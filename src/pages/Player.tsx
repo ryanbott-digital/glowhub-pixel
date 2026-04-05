@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
-import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus } from "@/lib/media-cache";
+import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
 interface PlaylistItem {
@@ -135,12 +135,15 @@ export default function Player() {
   }, [showSettings]);
 
   // Inject TV styles + register media cache SW
+  const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
+
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = TV_STYLES;
     document.head.appendChild(style);
-    registerMediaSW();
-    return () => { document.head.removeChild(style); };
+    registerMediaSW().then(() => requestPersistentStorage());
+    const unsub = onCacheProgress(setSyncProgress);
+    return () => { document.head.removeChild(style); unsub(); };
   }, []);
 
   // Capacitor autostart detection
@@ -984,6 +987,21 @@ export default function Player() {
                 <span className="text-white/60 text-xs font-mono">{cachedCount}</span>
               </div>
             </div>
+            {/* Sync progress bar */}
+            {syncProgress && !syncProgress.done && syncProgress.total > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-white/50">
+                  <span>Syncing media…</span>
+                  <span>{syncProgress.completed}/{syncProgress.total}</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-[hsl(180,100%,40%)] transition-all duration-300"
+                    style={{ width: `${(syncProgress.completed / syncProgress.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           </div>
 

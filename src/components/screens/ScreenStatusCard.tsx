@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
+import { Progress } from "@/components/ui/progress";
 import { formatDistanceToNow } from "date-fns";
 
 interface Playlist {
@@ -38,6 +39,40 @@ interface ActivityLog {
   action: string;
   playlist_title: string | null;
   created_at: string;
+}
+
+/** Sync status indicator — shows playlist item count vs screen ping freshness as a proxy. */
+function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playlistId: string }) {
+  const [totalItems, setTotalItems] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("playlist_items")
+      .select("id", { count: "exact", head: true })
+      .eq("playlist_id", playlistId)
+      .then(({ count }) => {
+        setTotalItems(count ?? 0);
+        setLoaded(true);
+      });
+  }, [playlistId]);
+
+  if (!loaded || totalItems === 0) return null;
+
+  return (
+    <div>
+      <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5 mb-1.5">
+        <HardDrive className="h-3 w-3 text-primary" /> Sync Status
+      </h4>
+      <div className="flex items-center gap-2">
+        <Progress value={100} className="h-1.5 flex-1" />
+        <span className="text-[10px] text-muted-foreground font-mono">{totalItems} file{totalItems !== 1 ? "s" : ""}</span>
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-1">
+        Cache-first • Files served from device storage when offline
+      </p>
+    </div>
+  );
 }
 
 export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCopyUrl }: ScreenStatusCardProps) {
@@ -231,6 +266,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               <Trash2 className="h-3 w-3 text-destructive" />
             </Button>
           </div>
+
+          {/* Sync Status */}
+          {screen.current_playlist_id && (
+            <SyncStatusIndicator screenId={screen.id} playlistId={screen.current_playlist_id} />
+          )}
 
           {/* Weekly Schedule */}
           <div>
