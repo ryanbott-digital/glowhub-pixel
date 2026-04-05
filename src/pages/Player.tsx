@@ -7,6 +7,7 @@ import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus } from "@/lib/media-cache";
+import fallbackBranding from "@/assets/fallback-branding.jpg";
 
 interface PlaylistItem {
   id: string;
