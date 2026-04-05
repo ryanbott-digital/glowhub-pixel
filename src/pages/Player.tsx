@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
-import { Settings, Volume2, VolumeX } from "lucide-react";
+import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 
 interface PlaylistItem {
   id: string;
