@@ -616,39 +616,49 @@ export default function Player() {
     };
   }, [currentIndex, items, advanceToNext]);
 
-  // Load active media sources and auto-play
+  // ── LOAD ACTIVE BUFFER: Set source, play video, show loading placeholder if slow ──
   useEffect(() => {
     if (items.length === 0) return;
     const item = items[currentIndex];
     if (!item) return;
 
     const url = getPublicUrl(item.media.storage_path);
-    const activeVideo = activeLayer === "A" ? videoRefA : videoRefB;
-    const activeHlsRef = activeLayer === "A" ? hlsRefA : hlsRefB;
-    const activeImg = activeLayer === "A" ? imgRefA : imgRefB;
+    const { video, img, hls } = getBufferRefs(activeBuffer);
 
-    if (item.media.type === "video" && activeVideo.current) {
-      const currentSrc = activeVideo.current.src;
-      // Only re-attach if source changed (HLS instances track their own source)
-      if (!activeHlsRef.current || currentSrc !== url) {
-        attachHls(activeVideo.current, url, activeHlsRef);
-      }
-      activeVideo.current.volume = volume;
-      activeVideo.current.muted = true; // always muted for autoplay on TV
-      activeVideo.current.play().catch(() => {});
+    // Show branded loading placeholder if media takes >2s to load
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    setBufferLoading(true);
+    loadTimeoutRef.current = setTimeout(() => setBufferLoading(false), 2000);
+
+    if (item.media.type === "video" && video.current) {
+      attachHls(video.current, url, hls);
+      video.current.volume = volume;
+      video.current.muted = true; // Required for autoplay on Firestick/Google TV
+      video.current.play().then(() => {
+        setBufferLoading(false);
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+      }).catch(() => {});
       // Unmute after play starts if volume > 0
       if (volume > 0) {
         setTimeout(() => {
-          if (activeVideo.current) {
-            activeVideo.current.muted = false;
-            activeVideo.current.volume = volume;
+          if (video.current) {
+            video.current.muted = false;
+            video.current.volume = volume;
           }
-        }, 100);
+        }, 150);
       }
-    } else if (item.media.type === "image" && activeImg.current) {
-      activeImg.current.src = url;
+    } else if (item.media.type === "image" && img.current) {
+      img.current.src = url;
+      img.current.onload = () => {
+        setBufferLoading(false);
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+      };
     }
-  }, [currentIndex, items, activeLayer, volume]);
+
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
+  }, [currentIndex, items, activeBuffer, volume, getBufferRefs, attachHls]);
 
   // ── LOADING STATE ──
   if (loading) {
