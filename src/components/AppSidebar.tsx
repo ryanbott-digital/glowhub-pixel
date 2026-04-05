@@ -1,8 +1,8 @@
-import { LayoutDashboard, Image, ListVideo, Monitor, LogOut, BarChart3 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { GlowHubLogo } from "@/components/GlowHubLogo";
+import { GlowHubLogo, GHSymbol, BrandCalendarIcon, BrandPlayIcon, BrandGridIcon, BrandMonitorIcon, BrandChartIcon } from "@/components/GlowHubLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Sidebar,
@@ -18,11 +18,11 @@ import {
 import { Button } from "@/components/ui/button";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Media Library", url: "/media", icon: Image },
-  { title: "Playlists", url: "/playlists", icon: ListVideo },
-  { title: "Screens", url: "/screens", icon: Monitor },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Dashboard", url: "/", icon: BrandCalendarIcon },
+  { title: "Media Library", url: "/media", icon: BrandGridIcon },
+  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon },
+  { title: "Screens", url: "/screens", icon: BrandMonitorIcon },
+  { title: "Analytics", url: "/analytics", icon: BrandChartIcon },
 ];
 
 export function AppSidebar() {
@@ -34,10 +34,13 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="p-4 flex items-center gap-2">
-        {!collapsed && <GlowHubLogo className="text-xl" />}
-        {collapsed && (
-          <span className="text-lg font-bold text-glow">G</span>
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <GHSymbol size={32} />
+            <GlowHubLogo className="text-xl" />
+          </div>
         )}
+        {collapsed && <GHSymbol size={28} />}
       </div>
       <SidebarContent>
         <SidebarGroup>
