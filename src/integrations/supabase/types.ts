@@ -20,6 +20,8 @@ export type Database = {
           created_at: string
           duration: number | null
           id: string
+          mux_asset_id: string | null
+          mux_status: string | null
           name: string
           storage_path: string
           type: string
@@ -30,6 +32,8 @@ export type Database = {
           created_at?: string
           duration?: number | null
           id?: string
+          mux_asset_id?: string | null
+          mux_status?: string | null
           name: string
           storage_path: string
           type: string
@@ -40,6 +44,8 @@ export type Database = {
           created_at?: string
           duration?: number | null
           id?: string
+          mux_asset_id?: string | null
+          mux_status?: string | null
           name?: string
           storage_path?: string
           type?: string

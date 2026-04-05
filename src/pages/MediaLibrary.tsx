@@ -17,6 +17,8 @@ interface MediaItem {
   type: string;
   created_at: string;
   duration: number | null;
+  mux_asset_id: string | null;
+  mux_status: string | null;
 }
 
 interface MediaWithSize extends MediaItem {
@@ -79,6 +81,34 @@ export default function MediaLibrary() {
   useEffect(() => {
     fetchMedia();
   }, [fetchMedia]);
+
+  // Poll Mux status for videos still processing
+  useEffect(() => {
+    const processingIds = media
+      .filter((m) => m.mux_asset_id && m.mux_status === "preparing")
+      .map((m) => m.id);
+    if (processingIds.length === 0) return;
+
+    const checkStatus = async () => {
+      const { data } = await supabase.functions.invoke("mux-status", {
+        body: { media_ids: processingIds },
+      });
+      if (data?.results) {
+        const readyIds = new Set(
+          data.results.filter((r: any) => r.status === "ready").map((r: any) => r.id)
+        );
+        if (readyIds.size > 0) {
+          setMedia((prev) =>
+            prev.map((m) => (readyIds.has(m.id) ? { ...m, mux_status: "ready" } : m))
+          );
+        }
+      }
+    };
+
+    const interval = setInterval(checkStatus, 8000);
+    checkStatus();
+    return () => clearInterval(interval);
+  }, [media.filter((m) => m.mux_status === "preparing").length]);
 
   const uploadFiles = async (files: File[]) => {
     if (!user) return;
@@ -380,7 +410,16 @@ export default function MediaLibrary() {
                     </Badge>
                   )}
 
-                  {/* Delete button */}
+                  {/* Mux processing badge */}
+                  {item.type === "video" && item.mux_asset_id && item.mux_status === "preparing" && (
+                    <Badge
+                      className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-white backdrop-blur-sm animate-pulse border-0"
+                    >
+                      <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
+                      Processing
+                    </Badge>
+                  )}
+
                   {!isSelecting && (
                     <button
                       onClick={(e) => {

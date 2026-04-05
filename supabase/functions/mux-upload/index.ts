@@ -90,10 +90,12 @@ serve(async (req) => {
 
     const streamUrl = `https://stream.mux.com/${playbackId}.m3u8`;
 
-    // Update the media record with the Mux stream URL
+    // Update the media record with the Mux stream URL, asset ID, and status
     if (media_id) {
       await supabaseAdmin.from("media").update({
         storage_path: streamUrl,
+        mux_asset_id: asset.id,
+        mux_status: asset.status, // "preparing" or "ready"
       }).eq("id", media_id).eq("user_id", user.id);
     }
 
