@@ -141,6 +141,78 @@ const steps = {
       ),
     },
   ],
+  smarttv: [
+    {
+      title: "Cast a Tab with Chromecast",
+      icon: Wifi,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>If you have a Chromecast or Chromecast-built-in TV:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Open <strong className="text-foreground">Google Chrome</strong> on your computer</li>
+            <li>Navigate to your player URL (see step 3 below)</li>
+            <li>Click the <strong className="text-foreground">three-dot menu → Cast</strong></li>
+            <li>Select your Chromecast device and choose <strong className="text-foreground">Cast tab</strong></li>
+          </ol>
+        </div>
+      ),
+    },
+    {
+      title: "Use the Built-in Browser (Samsung / LG / Vizio)",
+      icon: Globe,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Most modern Smart TVs ship with a web browser:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li><strong className="text-foreground">Samsung</strong> — Open the <em>Internet</em> app from the app drawer</li>
+            <li><strong className="text-foreground">LG webOS</strong> — Launch the <em>Web Browser</em> from the home bar</li>
+            <li><strong className="text-foreground">Vizio SmartCast</strong> — Use the built-in Chromecast to cast a Chrome tab</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      title: "Navigate to GlowHub Player & Pair",
+      icon: Play,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Enter the player URL in the browser:</p>
+          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all">
+            {window.location.origin}/player/<span className="text-primary">YOUR_PAIRING_CODE</span>
+          </div>
+          <p>Enter the 6-digit code shown on your TV into <strong className="text-foreground">Screens → Pair Screen</strong> in your dashboard.</p>
+        </div>
+      ),
+    },
+    {
+      title: "Disable Screen Saver & Sleep",
+      icon: Settings,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Prevent the TV from sleeping or showing a screensaver:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li><strong className="text-foreground">Samsung</strong> — Settings → General → System Manager → Time → Sleep Timer → Off</li>
+            <li><strong className="text-foreground">LG</strong> — Settings → General → Timers → Off</li>
+            <li>Alternatively, use a <strong className="text-foreground">smart plug</strong> to schedule power on/off</li>
+          </ul>
+        </div>
+      ),
+    },
+    {
+      title: "Lock to Fullscreen",
+      icon: Monitor,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>For the cleanest signage look:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Press <strong className="text-foreground">F11</strong> or use the browser's fullscreen option</li>
+            <li>Bookmark the URL so the TV can reload quickly after a power cycle</li>
+            <li><strong className="text-foreground">Tip:</strong> Some Samsung TVs support a <em>URL Launcher</em> in their business settings for kiosk mode</li>
+          </ul>
+        </div>
+      ),
+    },
+  ],
 };
 
 export default function InstallGuide() {
@@ -208,6 +280,35 @@ export default function InstallGuide() {
         </CardHeader>
         <CardContent className="space-y-0">
           {steps.androidtv.map((step, i) => (
+            <div key={i}>
+              {i > 0 && <Separator className="my-4" />}
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary">{i + 1}</span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <step.icon className="h-4 w-4 text-primary" />
+                    {step.title}
+                  </h3>
+                  {step.content}
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Chromecast / Smart TV Guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Globe className="h-5 w-5 text-primary" />
+            Chromecast / Smart TV
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          {steps.smarttv.map((step, i) => (
             <div key={i}>
               {i > 0 && <Separator className="my-4" />}
               <div className="flex gap-3">
