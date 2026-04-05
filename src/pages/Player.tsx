@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
-import { Settings } from "lucide-react";
+import { Settings, Volume2, VolumeX } from "lucide-react";
 
 interface PlaylistItem {
   id: string;
@@ -48,6 +48,7 @@ export default function Player() {
   const [showSettings, setShowSettings] = useState(false);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [isNative, setIsNative] = useState(false);
+  const [volume, setVolume] = useState(1);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -386,9 +387,11 @@ export default function Player() {
       if (activeRef.current.src !== url) {
         activeRef.current.src = url;
       }
+      activeRef.current.volume = volume;
+      activeRef.current.muted = volume === 0;
       activeRef.current.play().catch(() => {});
     }
-  }, [currentIndex, items, activeLayer]);
+  }, [currentIndex, items, activeLayer, volume]);
 
   // ── LOADING STATE ──
   if (loading) {
@@ -532,7 +535,7 @@ export default function Player() {
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted playsInline onEnded={advanceToNext}
+          muted={volume === 0} playsInline onEnded={advanceToNext}
         />
       </div>
 
@@ -548,7 +551,7 @@ export default function Player() {
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted playsInline onEnded={advanceToNext}
+          muted={volume === 0} playsInline onEnded={advanceToNext}
         />
       </div>
 
@@ -601,6 +604,32 @@ export default function Player() {
             </button>
           </div>
 
+          {/* Volume control */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setVolume(volume === 0 ? 1 : 0)}
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className="flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #00A3A3 ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
+                }}
+              />
+              <span className="text-white/40 text-xs font-mono w-8 text-right">
+                {Math.round(volume * 100)}%
+              </span>
+            </div>
+          </div>
           {isColdBoot.current && (
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
               ⚡ Cold boot detected — skipped splash, playing content immediately.
