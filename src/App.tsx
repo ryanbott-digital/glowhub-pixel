@@ -14,6 +14,7 @@ import Screens from "./pages/Screens";
 import Display from "./pages/Display";
 import Player from "./pages/Player";
 import Analytics from "./pages/Analytics";
+import InstallGuide from "./pages/InstallGuide";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
             <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
