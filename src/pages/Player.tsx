@@ -44,6 +44,7 @@ export default function Player() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [offlineSeconds, setOfflineSeconds] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [isNative, setIsNative] = useState(false);
@@ -119,11 +120,13 @@ export default function Player() {
     const goOffline = () => {
       offlineAtRef.current = Date.now();
       setIsOffline(true);
+      setOfflineSeconds(0);
     };
     const goOnline = () => {
       const offlineDuration = offlineAtRef.current ? Date.now() - offlineAtRef.current : 0;
       offlineAtRef.current = null;
       setIsOffline(false);
+      setOfflineSeconds(0);
       if (offlineDuration > 60_000) {
         toast.success("Back online — reloading…");
         setTimeout(() => window.location.reload(), 1000);
@@ -138,6 +141,13 @@ export default function Player() {
       window.removeEventListener("online", goOnline);
     };
   }, []);
+
+  // Offline duration counter
+  useEffect(() => {
+    if (!isOffline) return;
+    const interval = setInterval(() => setOfflineSeconds((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, [isOffline]);
 
   const getPublicUrl = (path: string) =>
     supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
@@ -573,9 +583,15 @@ export default function Player() {
 
       {/* Offline overlay */}
       {isOffline && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2.5 border border-white/10">
           <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-          <span className="text-white/70 text-sm font-medium">Reconnecting…</span>
+          <div className="flex flex-col">
+            <span className="text-white/70 text-sm font-medium">Reconnecting…</span>
+            <span className="text-white/40 text-xs font-mono tabular-nums">
+              {String(Math.floor(offlineSeconds / 60)).padStart(2, "0")}:{String(offlineSeconds % 60).padStart(2, "0")}
+              {offlineSeconds >= 60 && <span className="text-orange-400/80 ml-1.5">auto-reload on reconnect</span>}
+            </span>
+          </div>
         </div>
       )}
     </div>
