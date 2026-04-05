@@ -416,10 +416,7 @@ export default function Player() {
   if (loading) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-[hsl(215,55%,10%)] overflow-hidden">
-        <div className="text-4xl font-bold font-['Poppins']">
-          <span className="text-glow">Glow</span>
-          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
-        </div>
+        <GHLoader size={80} />
       </div>
     );
   }

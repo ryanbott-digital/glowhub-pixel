@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { GHLoaderPage } from "@/components/GHLoader";
 import { ThemeProvider } from "next-themes";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -23,7 +24,7 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="text-xl font-bold"><span className="text-glow">Glow</span><span className="text-hub">Hub</span></div></div>;
+  if (loading) return <GHLoaderPage />;
   if (!user) return <Navigate to="/auth" replace />;
   return <DashboardLayout>{children}</DashboardLayout>;
 }
