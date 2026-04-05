@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import Hls from "hls.js";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
