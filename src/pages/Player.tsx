@@ -1005,7 +1005,17 @@ export default function Player() {
                   {cachedCount} file{cachedCount !== 1 ? "s" : ""} · {formatBytes(cacheBytes)}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    await caches.delete("glowhub-media-v1");
+                    setCachedCount(0);
+                    setCacheBytes(0);
+                  }}
+                  className="text-[10px] text-red-400 hover:text-red-300 transition-colors px-1.5 py-0.5 rounded border border-red-400/30 hover:border-red-400/50"
+                >
+                  Clear
+                </button>
                 <span className={`inline-block w-2 h-2 rounded-full ${cachedCount > 0 ? "bg-[hsl(180,100%,40%)]" : "bg-white/20"}`} />
                 <span className="text-white/60 text-xs font-mono">{cachedCount}</span>
               </div>
