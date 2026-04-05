@@ -45,6 +45,7 @@ const App = () => (
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/display/:screenId" element={<Display />} />
+            <Route path="/player/:pairingCode" element={<Player />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
             <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
