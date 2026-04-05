@@ -142,6 +142,13 @@ export default function Player() {
     };
   }, []);
 
+  // Offline duration counter
+  useEffect(() => {
+    if (!isOffline) return;
+    const interval = setInterval(() => setOfflineSeconds((s) => s + 1), 1000);
+    return () => clearInterval(interval);
+  }, [isOffline]);
+
   const getPublicUrl = (path: string) =>
     supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
 
