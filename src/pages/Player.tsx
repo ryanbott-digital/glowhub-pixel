@@ -387,9 +387,11 @@ export default function Player() {
       if (activeRef.current.src !== url) {
         activeRef.current.src = url;
       }
+      activeRef.current.volume = volume;
+      activeRef.current.muted = volume === 0;
       activeRef.current.play().catch(() => {});
     }
-  }, [currentIndex, items, activeLayer]);
+  }, [currentIndex, items, activeLayer, volume]);
 
   // ── LOADING STATE ──
   if (loading) {
