@@ -7,6 +7,7 @@ import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus } from "@/lib/media-cache";
+import fallbackBranding from "@/assets/fallback-branding.jpg";
 
 interface PlaylistItem {
   id: string;
@@ -536,6 +537,25 @@ export default function Player() {
     }, 100);
   }, [items.length]);
 
+  // Error handler: log to Supabase and skip to next item
+  const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
+    console.error(`[Player] Media error: ${errorMsg}`);
+    if (screenId) {
+      supabase
+        .from("player_error_logs")
+        .insert({
+          screen_id: screenId,
+          media_id: mediaId,
+          error_message: errorMsg,
+        })
+        .then(() => {});
+    }
+    // Skip to next item
+    if (items.length > 1) {
+      advanceToNext();
+    }
+  }, [screenId, items.length, advanceToNext]);
+
   // Proof of Play: log each media play
   const lastLoggedRef = useRef<string | null>(null);
   useEffect(() => {
@@ -712,12 +732,14 @@ export default function Player() {
   // ── NO CONTENT ──
   if (items.length === 0) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4 overflow-hidden">
-        <div className="text-3xl font-bold font-['Poppins']">
-          <span className="text-glow">Glow</span>
-          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
-        </div>
-        <p style={{ color: "hsl(210, 20%, 70%)" }}>No content assigned to this screen</p>
+      <div className="w-screen h-screen overflow-hidden relative">
+        <img
+          src={fallbackBranding}
+          alt="GlowHub"
+          className="w-full h-full object-cover"
+          width={1920}
+          height={1080}
+        />
       </div>
     );
   }
@@ -741,12 +763,14 @@ export default function Player() {
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+          onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
           muted autoPlay playsInline onEnded={advanceToNext}
+          onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
 
@@ -760,12 +784,14 @@ export default function Player() {
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+          onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
           muted autoPlay playsInline onEnded={advanceToNext}
+          onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
 
