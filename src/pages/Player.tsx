@@ -342,7 +342,7 @@ export default function Player() {
   // ── LOADING STATE ──
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(215,55%,10%)]">
+      <div className="w-screen h-screen flex items-center justify-center bg-[hsl(215,55%,10%)] overflow-hidden">
         <div className="text-4xl font-bold font-['Poppins']">
           <span className="text-glow">Glow</span>
           <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
@@ -355,7 +355,7 @@ export default function Player() {
   if (!paired) {
     const digits = (pairingCode || "").split("");
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-8 select-none">
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-8 select-none overflow-hidden">
         {/* Logo */}
         <div className="text-3xl font-bold font-['Poppins'] mb-4">
           <span className="text-glow">Glow</span>
@@ -422,7 +422,7 @@ export default function Player() {
   // ── NO CONTENT ──
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4">
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4 overflow-hidden">
         <div className="text-3xl font-bold font-['Poppins']">
           <span className="text-glow">Glow</span>
           <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
