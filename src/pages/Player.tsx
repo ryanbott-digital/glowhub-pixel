@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import Hls from "hls.js";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -67,9 +68,43 @@ export default function Player() {
   const videoRefB = useRef<HTMLVideoElement>(null);
   const imgRefA = useRef<HTMLImageElement>(null);
   const imgRefB = useRef<HTMLImageElement>(null);
+  const hlsRefA = useRef<Hls | null>(null);
+  const hlsRefB = useRef<Hls | null>(null);
   const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
+
+  const isHlsUrl = (url: string) => url.includes(".m3u8");
+
+  /** Attach an HLS stream or set src directly (Safari native HLS). */
+  const attachHls = (videoEl: HTMLVideoElement, url: string, hlsRef: React.MutableRefObject<Hls | null>) => {
+    // Destroy previous instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    if (!isHlsUrl(url)) {
+      videoEl.src = url;
+      return;
+    }
+
+    // Safari supports HLS natively
+    if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+      videoEl.src = url;
+      return;
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+      hls.loadSource(url);
+      hls.attachMedia(videoEl);
+      hlsRef.current = hls;
+    } else {
+      // Fallback: try direct (may not work)
+      videoEl.src = url;
+    }
+  };
 
   // Refresh cache count when settings panel opens
   useEffect(() => {
@@ -477,10 +512,11 @@ export default function Player() {
 
     const url = getPublicUrl(next.media.storage_path);
     const inactiveVideo = activeLayer === "A" ? videoRefB : videoRefA;
+    const inactiveHlsRef = activeLayer === "A" ? hlsRefB : hlsRefA;
     const inactiveImg = activeLayer === "A" ? imgRefB : imgRefA;
 
     if (next.media.type === "video" && inactiveVideo.current) {
-      inactiveVideo.current.src = url;
+      attachHls(inactiveVideo.current, url, inactiveHlsRef);
       inactiveVideo.current.load();
     } else if (next.media.type === "image" && inactiveImg.current) {
       inactiveImg.current.src = url;
@@ -542,11 +578,14 @@ export default function Player() {
 
     const url = getPublicUrl(item.media.storage_path);
     const activeVideo = activeLayer === "A" ? videoRefA : videoRefB;
+    const activeHlsRef = activeLayer === "A" ? hlsRefA : hlsRefB;
     const activeImg = activeLayer === "A" ? imgRefA : imgRefB;
 
     if (item.media.type === "video" && activeVideo.current) {
-      if (activeVideo.current.src !== url) {
-        activeVideo.current.src = url;
+      const currentSrc = activeVideo.current.src;
+      // Only re-attach if source changed (HLS instances track their own source)
+      if (!activeHlsRef.current || currentSrc !== url) {
+        attachHls(activeVideo.current, url, activeHlsRef);
       }
       activeVideo.current.volume = volume;
       activeVideo.current.muted = true; // always muted for autoplay on TV
