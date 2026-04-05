@@ -24,6 +24,7 @@ const items = [
   { title: "Screens", url: "/screens", icon: BrandMonitorIcon },
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon },
   { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} /> },
+  { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} /> },
 ];
 
 export function AppSidebar() {
