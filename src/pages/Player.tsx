@@ -367,6 +367,7 @@ export default function Player() {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [screenId]);
 
   // Realtime: listen for playlist_items changes to refresh current playlist
   useEffect(() => {
