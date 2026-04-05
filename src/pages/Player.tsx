@@ -54,6 +54,7 @@ export default function Player() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [alertsMuted, setAlertsMuted] = useState(false);
+  const alertsMutedRef = useRef(false);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -714,7 +715,31 @@ export default function Player() {
               </span>
             </div>
           </div>
-          {isColdBoot.current && (
+
+          {/* Mute alerts toggle */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/90 text-sm font-medium">Mute Alerts</p>
+                <p className="text-white/50 text-xs mt-0.5">Silence offline threshold sound &amp; vibration</p>
+              </div>
+              <button
+                onClick={() => {
+                  const next = !alertsMuted;
+                  setAlertsMuted(next);
+                  alertsMutedRef.current = next;
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                  alertsMuted ? "bg-[hsl(180,100%,35%)]" : "bg-white/20"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                    alertsMuted ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
               ⚡ Cold boot detected — skipped splash, playing content immediately.
             </p>
