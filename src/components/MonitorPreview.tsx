@@ -1,74 +1,213 @@
-import { Calendar, ListVideo, Grid3X3, BarChart3 } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface PlaylistItem {
+  id: string;
+  position: number;
+  override_duration: number | null;
+  media: {
+    id: string;
+    storage_path: string;
+    type: string;
+    name: string;
+    duration: number | null;
+  };
+}
 
 export function MonitorPreview() {
+  const { user } = useAuth();
+  const [items, setItems] = useState<PlaylistItem[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [screenName, setScreenName] = useState<string | null>(null);
+  const [screenId, setScreenId] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const getPublicUrl = (path: string) =>
+    supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
+
+  const fetchPlaylist = useCallback(async (playlistId: string) => {
+    const { data } = await supabase
+      .from("playlist_items")
+      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration)")
+      .eq("playlist_id", playlistId)
+      .order("position");
+    if (data && data.length > 0) {
+      setItems(data as unknown as PlaylistItem[]);
+      setCurrentIndex(0);
+    } else {
+      setItems([]);
+    }
+  }, []);
+
+  // Load first screen's playlist
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data: screens } = await supabase
+        .from("screens")
+        .select("id, name, current_playlist_id")
+        .eq("user_id", user.id)
+        .order("created_at")
+        .limit(1);
+
+      if (screens && screens.length > 0) {
+        const screen = screens[0];
+        setScreenName(screen.name);
+        setScreenId(screen.id);
+        if (screen.current_playlist_id) {
+          fetchPlaylist(screen.current_playlist_id);
+        }
+      }
+    };
+    load();
+  }, [user, fetchPlaylist]);
+
+  // Realtime: watch for playlist changes on screen
+  useEffect(() => {
+    if (!screenId) return;
+    const channel = supabase
+      .channel(`monitor-preview-${screenId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
+        (payload) => {
+          const newPlaylistId = (payload.new as any).current_playlist_id;
+          if (newPlaylistId) fetchPlaylist(newPlaylistId);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [screenId, fetchPlaylist]);
+
+  // Playback timer for images
+  useEffect(() => {
+    if (items.length === 0) return;
+    const item = items[currentIndex];
+    if (!item) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (item.media.type === "image") {
+      const dur = (item.override_duration || item.media.duration || 10) * 1000;
+      timerRef.current = setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % items.length);
+      }, dur);
+    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [currentIndex, items]);
+
+  const currentItem = items.length > 0 ? items[currentIndex] : null;
+
   return (
-    <div className="relative flex items-center justify-center py-8">
-      {/* Radiant glow background */}
-      <div className="absolute inset-0 radiant-glow rounded-2xl animate-pulse-glow" />
+    <div className="relative flex items-center justify-center py-10">
+      {/* Multi-colored radiant backlight glow */}
+      <div
+        className="absolute rounded-3xl"
+        style={{
+          inset: "10px",
+          filter: "blur(40px)",
+          opacity: 0.6,
+          background: `
+            radial-gradient(ellipse at 20% 50%, hsla(330, 80%, 60%, 0.6) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 50%, hsla(180, 100%, 45%, 0.6) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 80%, hsla(120, 60%, 50%, 0.4) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 20%, hsla(24, 95%, 53%, 0.5) 0%, transparent 50%)
+          `,
+          animation: "radiantPulse 4s ease-in-out infinite",
+        }}
+      />
+
+      {/* Secondary sharper glow layer */}
+      <div
+        className="absolute rounded-2xl"
+        style={{
+          inset: "20px",
+          filter: "blur(20px)",
+          opacity: 0.35,
+          background: `
+            radial-gradient(ellipse at 30% 40%, hsla(180, 100%, 45%, 0.7) 0%, transparent 40%),
+            radial-gradient(ellipse at 70% 60%, hsla(330, 80%, 60%, 0.5) 0%, transparent 40%)
+          `,
+          animation: "radiantPulse 4s ease-in-out infinite 1s",
+        }}
+      />
 
       {/* Monitor frame */}
-      <div className="relative w-full max-w-2xl aspect-video rounded-xl overflow-hidden border-4 border-secondary bg-secondary/95 shadow-2xl">
-        {/* Screen content */}
-        <div className="absolute inset-2 rounded-lg bg-background overflow-hidden">
-          {/* Mini dashboard mockup */}
-          <div className="h-full flex flex-col p-3 gap-2">
-            {/* Top bar */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <div className="w-2 h-2 rounded-full bg-accent" />
-                <div className="w-2 h-2 rounded-full bg-glow-green" />
+      <div className="relative w-full max-w-2xl aspect-video rounded-xl overflow-hidden border-2 border-secondary/80 bg-secondary shadow-2xl" style={{
+        boxShadow: `
+          0 0 30px hsla(180, 100%, 45%, 0.15),
+          0 0 60px hsla(330, 80%, 60%, 0.1),
+          0 25px 50px -12px rgba(0, 0, 0, 0.4)
+        `
+      }}>
+        {/* Inner bezel */}
+        <div className="absolute inset-[6px] rounded-lg bg-black overflow-hidden">
+          {currentItem ? (
+            <>
+              {currentItem.media.type === "image" ? (
+                <img
+                  key={currentItem.id}
+                  src={getPublicUrl(currentItem.media.storage_path)}
+                  alt={currentItem.media.name}
+                  className="w-full h-full object-cover"
+                  style={{ animation: "monitorFadeIn 0.5s ease-in" }}
+                />
+              ) : (
+                <video
+                  key={currentItem.id}
+                  ref={videoRef}
+                  src={getPublicUrl(currentItem.media.storage_path)}
+                  autoPlay
+                  muted
+                  className="w-full h-full object-cover"
+                  onEnded={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
+                />
+              )}
+              {/* HUD overlay */}
+              <div className="absolute top-2 left-3 flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[9px] font-semibold text-white/80 tracking-widest uppercase">Live</span>
               </div>
-              <span className="text-[8px] font-semibold text-muted-foreground">LIVE</span>
+              <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
+                <span className="text-[8px] text-white/60 font-medium truncate max-w-[60%]">
+                  {currentItem.media.name}
+                </span>
+                <span className="text-[8px] text-white/40 font-medium">
+                  {currentIndex + 1}/{items.length}
+                </span>
+              </div>
+            </>
+          ) : (
+            /* Empty state — GH branding */
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[hsl(215,55%,10%)]">
+              <div className="text-2xl font-bold font-['Poppins']">
+                <span className="text-glow">Glow</span>
+                <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
+              </div>
+              <p className="text-[10px] text-[hsl(210,20%,50%)]">
+                {screenName ? `${screenName} — No playlist assigned` : "No screens paired yet"}
+              </p>
             </div>
-
-            {/* Content grid */}
-            <div className="flex-1 grid grid-cols-3 gap-2">
-              {/* Calendar block */}
-              <div className="bg-muted rounded-md p-2 flex flex-col items-center justify-center gap-1">
-                <Calendar className="h-4 w-4 text-primary" />
-                <div className="w-full space-y-0.5">
-                  <div className="h-1 bg-primary/20 rounded" />
-                  <div className="h-1 bg-primary/10 rounded w-3/4" />
-                </div>
-              </div>
-
-              {/* Playlist block */}
-              <div className="bg-muted rounded-md p-2 flex flex-col items-center justify-center gap-1">
-                <ListVideo className="h-4 w-4 text-accent" />
-                <div className="w-full space-y-0.5">
-                  <div className="h-1 bg-accent/20 rounded" />
-                  <div className="h-1 bg-accent/10 rounded w-2/3" />
-                  <div className="h-1 bg-accent/10 rounded w-1/2" />
-                </div>
-              </div>
-
-              {/* Media grid block */}
-              <div className="bg-muted rounded-md p-2 flex flex-col items-center justify-center gap-1">
-                <Grid3X3 className="h-4 w-4 text-glow-blue" />
-                <div className="grid grid-cols-2 gap-0.5 w-full">
-                  <div className="h-2 bg-glow-blue/15 rounded" />
-                  <div className="h-2 bg-glow-pink/15 rounded" />
-                  <div className="h-2 bg-glow-green/15 rounded" />
-                  <div className="h-2 bg-glow-orange/15 rounded" />
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom bar */}
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1">
-                <BarChart3 className="h-3 w-3 text-muted-foreground" />
-                <div className="h-1.5 w-8 bg-primary/20 rounded self-center" />
-              </div>
-              <div className="text-[6px] text-muted-foreground font-medium">GlowHub</div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
       {/* Monitor stand */}
-      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-20 h-3 bg-secondary/80 rounded-b-lg" />
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex flex-col items-center">
+        <div className="w-6 h-5 bg-secondary/70 rounded-b-sm" />
+        <div className="w-24 h-2 bg-secondary/50 rounded-b-lg" />
+      </div>
+
+      <style>{`
+        @keyframes radiantPulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.75; transform: scale(1.02); }
+        }
+        @keyframes monitorFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
