@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
-import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus } from "@/lib/media-cache";
+import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
 interface PlaylistItem {
@@ -135,12 +135,15 @@ export default function Player() {
   }, [showSettings]);
 
   // Inject TV styles + register media cache SW
+  const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
+
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = TV_STYLES;
     document.head.appendChild(style);
-    registerMediaSW();
-    return () => { document.head.removeChild(style); };
+    registerMediaSW().then(() => requestPersistentStorage());
+    const unsub = onCacheProgress(setSyncProgress);
+    return () => { document.head.removeChild(style); unsub(); };
   }, []);
 
   // Capacitor autostart detection
