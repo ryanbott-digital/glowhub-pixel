@@ -121,6 +121,30 @@ export type Database = {
           },
         ]
       }
+      player_error_logs: {
+        Row: {
+          created_at: string
+          error_message: string
+          id: string
+          media_id: string | null
+          screen_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message: string
+          id?: string
+          media_id?: string | null
+          screen_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string
+          id?: string
+          media_id?: string | null
+          screen_id?: string
+        }
+        Relationships: []
+      }
       playlist_items: {
         Row: {
           created_at: string
