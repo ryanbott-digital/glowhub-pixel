@@ -79,6 +79,42 @@ export type Database = {
           },
         ]
       }
+      playback_logs: {
+        Row: {
+          id: string
+          media_id: string
+          played_at: string
+          screen_id: string
+        }
+        Insert: {
+          id?: string
+          media_id: string
+          played_at?: string
+          screen_id: string
+        }
+        Update: {
+          id?: string
+          media_id?: string
+          played_at?: string
+          screen_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playback_logs_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playback_logs_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       playlist_items: {
         Row: {
           created_at: string
