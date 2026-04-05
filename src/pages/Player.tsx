@@ -355,22 +355,59 @@ export default function Player() {
     };
   }, [screenId, paired, fetchPlaylist]);
 
-  // Heartbeat: ping last_ping every 60s
+  // Heartbeat: ping last_ping + current_media_id every 30s
   useEffect(() => {
     if (!screenId || !paired) return;
 
     const ping = () => {
-      supabase
-        .from("screens")
-        .update({ last_ping: new Date().toISOString(), status: "online" })
-        .eq("id", screenId)
-        .then(() => {});
+      const currentItem = items[currentIndex];
+      const update: any = { last_ping: new Date().toISOString(), status: "online" };
+      if (currentItem) update.current_media_id = currentItem.media.id;
+      supabase.from("screens").update(update).eq("id", screenId).then(() => {});
     };
 
     ping(); // immediate first ping
-    const interval = setInterval(ping, 60_000);
+    const interval = setInterval(ping, 30_000);
     return () => clearInterval(interval);
-  }, [screenId, paired]);
+  }, [screenId, paired, currentIndex, items]);
+
+  // Screenshot capture: listen for broadcast request from admin
+  useEffect(() => {
+    if (!screenId) return;
+
+    const channel = supabase
+      .channel(`screenshot-${screenId}`)
+      .on("broadcast", { event: "take-screenshot" }, async () => {
+        try {
+          const html2canvas = (await import("html2canvas")).default;
+          const canvas = await html2canvas(document.body, {
+            useCORS: true,
+            allowTaint: true,
+            scale: 0.5,
+            logging: false,
+          });
+          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.7));
+          if (!blob) return;
+
+          const path = `${screenId}/${Date.now()}.jpg`;
+          await supabase.storage.from("debug-screenshots").upload(path, blob, {
+            contentType: "image/jpeg",
+            upsert: true,
+          });
+
+          const { data: urlData } = supabase.storage.from("debug-screenshots").getPublicUrl(path);
+
+          await supabase.from("screens").update({
+            last_screenshot_url: urlData.publicUrl,
+          }).eq("id", screenId);
+        } catch (err) {
+          console.error("Screenshot capture failed:", err);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [screenId]);
 
   // Remote Refresh: listen for broadcast command to reload
   useEffect(() => {
