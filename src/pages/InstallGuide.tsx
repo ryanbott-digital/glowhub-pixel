@@ -213,6 +213,76 @@ const steps = {
       ),
     },
   ],
+  raspberrypi: [
+    {
+      title: "Install Raspberry Pi OS",
+      icon: Download,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Download <strong className="text-foreground">Raspberry Pi Imager</strong> from <em>raspberrypi.com</em></li>
+            <li>Flash <strong className="text-foreground">Raspberry Pi OS (Desktop)</strong> to a microSD card</li>
+            <li>Insert the card, connect HDMI, keyboard and power — boot the Pi</li>
+            <li>Complete the initial setup wizard (Wi-Fi, locale, updates)</li>
+          </ol>
+        </div>
+      ),
+    },
+    {
+      title: "Open Chromium & Navigate to GlowHub",
+      icon: Globe,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Chromium comes pre-installed on Raspberry Pi OS:</p>
+          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all">
+            {window.location.origin}/player/<span className="text-primary">YOUR_PAIRING_CODE</span>
+          </div>
+          <p>Enter the 6-digit pairing code in your dashboard under <strong className="text-foreground">Screens → Pair Screen</strong>.</p>
+        </div>
+      ),
+    },
+    {
+      title: "Enable Kiosk Mode (Auto-Start Fullscreen)",
+      icon: Settings,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Launch Chromium in fullscreen kiosk mode on every boot:</p>
+          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all">
+            nano ~/.config/autostart/glowhub.desktop
+          </div>
+          <p className="pt-1">Paste the following:</p>
+          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all whitespace-pre-wrap">{`[Desktop Entry]\nType=Application\nName=GlowHub\nExec=chromium-browser --noerrdialogs --disable-infobars --kiosk ${window.location.origin}/player/YOUR_CODE`}</div>
+        </div>
+      ),
+    },
+    {
+      title: "Disable Screen Blanking",
+      icon: Tv,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Prevent the screen from going blank:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Open <strong className="text-foreground">Raspberry Pi Configuration → Display</strong></li>
+            <li>Set <strong className="text-foreground">Screen Blanking</strong> to <em>Disabled</em></li>
+            <li>Alternatively, run: <code className="bg-muted px-1.5 py-0.5 rounded text-xs text-foreground">sudo raspi-config</code> → Display Options → Screen Blanking → No</li>
+          </ol>
+        </div>
+      ),
+    },
+    {
+      title: "Hide the Mouse Cursor",
+      icon: Monitor,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>Install <strong className="text-foreground">unclutter</strong> to auto-hide the cursor:</p>
+          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all">
+            sudo apt install unclutter -y
+          </div>
+          <p>It will auto-hide the cursor after a few seconds of inactivity on the next reboot.</p>
+        </div>
+      ),
+    },
+  ],
 };
 
 export default function InstallGuide() {
@@ -329,6 +399,36 @@ export default function InstallGuide() {
       </Card>
 
       {/* Tips */}
+      {/* Raspberry Pi Guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Monitor className="h-5 w-5 text-primary" />
+            Raspberry Pi
+            <Badge variant="secondary" className="ml-auto text-xs">Best Value</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          {steps.raspberrypi.map((step, i) => (
+            <div key={i}>
+              {i > 0 && <Separator className="my-4" />}
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary">{i + 1}</span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <step.icon className="h-4 w-4 text-primary" />
+                    {step.title}
+                  </h3>
+                  {step.content}
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground text-base">💡 Pro Tips</CardTitle>
