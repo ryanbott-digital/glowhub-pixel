@@ -63,6 +63,30 @@ export default function Player() {
     return () => { document.head.removeChild(style); };
   }, []);
 
+  // Capacitor autostart detection
+  useEffect(() => {
+    const native = isNativePlatform();
+    setIsNative(native);
+    if (native) {
+      isAutoStartEnabled().then(setAutoStartEnabled);
+    }
+  }, []);
+
+  // Boot-bypass: mark cold launches so the player skips any splash delay
+  const isColdBoot = useRef(isBootLaunch());
+
+  const handleAutoStartToggle = useCallback(async () => {
+    if (autoStartEnabled) {
+      const ok = await disableAutoStart();
+      if (ok) { setAutoStartEnabled(false); toast.success("Launch on Boot disabled"); }
+      else toast.error("Failed to update setting");
+    } else {
+      const ok = await enableAutoStart();
+      if (ok) { setAutoStartEnabled(true); toast.success("Launch on Boot enabled"); }
+      else toast.error("Failed to update setting");
+    }
+  }, [autoStartEnabled]);
+
   // Wake Lock API
   useEffect(() => {
     let wakeLock: WakeLockSentinel | null = null;
