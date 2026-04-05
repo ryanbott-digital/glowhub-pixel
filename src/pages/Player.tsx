@@ -763,12 +763,14 @@ export default function Player() {
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+          onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
           muted autoPlay playsInline onEnded={advanceToNext}
+          onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
 
@@ -782,12 +784,14 @@ export default function Player() {
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+          onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
           muted autoPlay playsInline onEnded={advanceToNext}
+          onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
 
