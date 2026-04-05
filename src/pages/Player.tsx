@@ -68,9 +68,43 @@ export default function Player() {
   const videoRefB = useRef<HTMLVideoElement>(null);
   const imgRefA = useRef<HTMLImageElement>(null);
   const imgRefB = useRef<HTMLImageElement>(null);
+  const hlsRefA = useRef<Hls | null>(null);
+  const hlsRefB = useRef<Hls | null>(null);
   const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
+
+  const isHlsUrl = (url: string) => url.includes(".m3u8");
+
+  /** Attach an HLS stream or set src directly (Safari native HLS). */
+  const attachHls = (videoEl: HTMLVideoElement, url: string, hlsRef: React.MutableRefObject<Hls | null>) => {
+    // Destroy previous instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    if (!isHlsUrl(url)) {
+      videoEl.src = url;
+      return;
+    }
+
+    // Safari supports HLS natively
+    if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+      videoEl.src = url;
+      return;
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+      hls.loadSource(url);
+      hls.attachMedia(videoEl);
+      hlsRef.current = hls;
+    } else {
+      // Fallback: try direct (may not work)
+      videoEl.src = url;
+    }
+  };
 
   // Refresh cache count when settings panel opens
   useEffect(() => {
