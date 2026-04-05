@@ -1,4 +1,5 @@
-import { LogOut, Download, Smartphone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LogOut, Download, Smartphone, Check } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +34,14 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut } = useAuth();
 
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches
+      || (navigator as any).standalone === true;
+    setIsInstalled(standalone);
+  }, []);
+
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="p-4 flex items-center gap-2">
@@ -59,6 +68,15 @@ export function AppSidebar() {
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {item.url === "/install-app" && !collapsed && isInstalled && (
+                        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          <Check className="h-3 w-3" />
+                          Installed
+                        </span>
+                      )}
+                      {item.url === "/install-app" && collapsed && isInstalled && (
+                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
