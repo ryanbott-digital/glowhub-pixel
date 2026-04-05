@@ -142,6 +142,51 @@ export type Database = {
         }
         Relationships: []
       }
+      screen_activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          playlist_id: string | null
+          playlist_title: string | null
+          screen_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          playlist_id?: string | null
+          playlist_title?: string | null
+          screen_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          playlist_id?: string | null
+          playlist_title?: string | null
+          screen_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_activity_logs_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screen_activity_logs_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screen_schedules: {
         Row: {
           created_at: string

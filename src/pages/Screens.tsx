@@ -121,6 +121,17 @@ export default function Screens() {
       toast.error(error.message);
       return;
     }
+    // Log activity
+    const playlist = playlists.find((p) => p.id === playlistId);
+    if (user) {
+      await supabase.from("screen_activity_logs").insert({
+        screen_id: screenId,
+        user_id: user.id,
+        action: "Playlist published",
+        playlist_id: playlistId,
+        playlist_title: playlist?.title || "Unknown",
+      });
+    }
     toast.success("Playlist published to screen!");
     fetchData();
   };
