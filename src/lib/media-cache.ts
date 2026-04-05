@@ -1,8 +1,8 @@
 /**
  * Media Cache Helper
  *
- * Registers the media service worker and provides functions
- * to proactively cache playlist media files.
+ * Registers the media service worker, manages proactive caching,
+ * persistent storage, and progress tracking.
  */
 
 const SW_PATH = "/media-sw.js";
@@ -38,6 +38,18 @@ export async function registerMediaSW(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** Request persistent storage so the browser won't evict our cache. */
+export async function requestPersistentStorage(): Promise<boolean> {
+  if (navigator.storage && navigator.storage.persist) {
+    try {
+      return await navigator.storage.persist();
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
 
 /** Send a list of media URLs to the service worker for proactive caching. */
@@ -88,10 +100,35 @@ export function getCacheStatus(): Promise<{ count: number; urls: string[] }> {
     navigator.serviceWorker.addEventListener("message", handler);
     sw.postMessage({ type: "GET_CACHE_STATUS" });
 
-    // Timeout after 3s
     setTimeout(() => {
       navigator.serviceWorker.removeEventListener("message", handler);
       resolve({ count: 0, urls: [] });
     }, 3000);
   });
+}
+
+export interface CacheProgress {
+  total: number;
+  completed: number;
+  failed: number;
+  done: boolean;
+}
+
+/** Listen for cache progress updates from the service worker. */
+export function onCacheProgress(callback: (progress: CacheProgress) => void): () => void {
+  const handler = (event: MessageEvent) => {
+    if (event.data?.type === "CACHE_PROGRESS") {
+      callback({
+        total: event.data.total,
+        completed: event.data.completed,
+        failed: event.data.failed,
+        done: event.data.done,
+      });
+    }
+  };
+
+  navigator.serviceWorker?.addEventListener("message", handler);
+  return () => {
+    navigator.serviceWorker?.removeEventListener("message", handler);
+  };
 }

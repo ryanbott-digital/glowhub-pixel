@@ -1,32 +1,31 @@
 /**
- * Media Cache Service Worker
- * 
- * Intercepts requests to Supabase Storage (signage-content bucket)
- * and serves from Cache Storage when offline.
- * 
- * Strategy: Network-first with cache fallback.
- * - Online: fetch from network, update cache
- * - Offline: serve from cache
+ * Media Cache Service Worker — Offline-First Engine
+ *
+ * Strategy: CACHE-FIRST with background refresh.
+ * - Always check Cache Storage first → instant offline playback.
+ * - If cache miss, fetch from network and store in cache.
+ * - On cache hit, optionally refresh in background (stale-while-revalidate).
+ *
+ * Handles: precaching, eviction, progress reporting, persistent storage.
  */
 
 const CACHE_NAME = "glowhub-media-v1";
 
-// Match Supabase storage URLs for our signage-content bucket
+// Match Supabase storage URLs for signage-content bucket
 function isMediaRequest(url) {
   return url.includes("/storage/v1/object/public/signage-content/");
 }
 
-// Install: activate immediately
-self.addEventListener("install", (event) => {
+// ── Install: skip waiting ──
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
-// Activate: claim all clients and clean old caches
+// ── Activate: claim clients, clean old caches ──
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
-      // Clean up old cache versions
       caches.keys().then((keys) =>
         Promise.all(
           keys
@@ -38,7 +37,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch: network-first for media, passthrough for everything else
+// ── Fetch: CACHE-FIRST for media, passthrough for everything else ──
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
@@ -48,25 +47,30 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       const cache = await caches.open(CACHE_NAME);
 
-      try {
-        // Try network first
-        const networkResponse = await fetch(request);
+      // 1. Check cache first — instant response even offline
+      const cached = await cache.match(request);
+      if (cached) {
+        // Background refresh: update cache silently for freshness
+        event.waitUntil(
+          fetch(request)
+            .then((res) => {
+              if (res.ok) cache.put(request, res);
+            })
+            .catch(() => {})
+        );
+        return cached;
+      }
 
+      // 2. Cache miss — try network
+      try {
+        const networkResponse = await fetch(request);
         if (networkResponse.ok) {
-          // Clone and cache the response
           cache.put(request, networkResponse.clone());
           return networkResponse;
         }
-
-        // Non-OK response — try cache
-        const cached = await cache.match(request);
-        return cached || networkResponse;
+        return networkResponse;
       } catch (_err) {
-        // Network failed (offline) — serve from cache
-        const cached = await cache.match(request);
-        if (cached) return cached;
-
-        // Nothing cached either
+        // Fully offline with no cache
         return new Response("Media not available offline", {
           status: 503,
           statusText: "Service Unavailable",
@@ -76,19 +80,21 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Listen for messages from the app
+// ── Messages from app ──
 self.addEventListener("message", (event) => {
-  if (event.data?.type === "PRECACHE_MEDIA") {
+  const { type } = event.data || {};
+
+  if (type === "PRECACHE_MEDIA") {
     const urls = event.data.urls || [];
-    event.waitUntil(precacheUrls(urls));
+    event.waitUntil(precacheWithProgress(urls, event.source));
   }
 
-  if (event.data?.type === "EVICT_STALE") {
+  if (type === "EVICT_STALE") {
     const activeUrls = new Set(event.data.urls || []);
     event.waitUntil(evictStale(activeUrls));
   }
 
-  if (event.data?.type === "GET_CACHE_STATUS") {
+  if (type === "GET_CACHE_STATUS") {
     event.waitUntil(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
@@ -103,31 +109,69 @@ self.addEventListener("message", (event) => {
   }
 });
 
+// ── Evict files not in active playlist ──
 async function evictStale(activeUrls) {
   const cache = await caches.open(CACHE_NAME);
   const keys = await cache.keys();
+  let evicted = 0;
   for (const request of keys) {
     if (!activeUrls.has(request.url)) {
       await cache.delete(request);
+      evicted++;
     }
+  }
+  // Broadcast eviction result to all clients
+  const clients = await self.clients.matchAll();
+  for (const client of clients) {
+    client.postMessage({ type: "CACHE_EVICTED", evicted });
   }
 }
 
-async function precacheUrls(urls) {
+// ── Precache with per-file progress reporting ──
+async function precacheWithProgress(urls, source) {
   const cache = await caches.open(CACHE_NAME);
+  const total = urls.length;
+  let completed = 0;
+  let failed = 0;
+
+  // Report initial state
+  broadcastProgress(total, completed, failed);
 
   for (const url of urls) {
     try {
-      // Check if already cached
       const existing = await cache.match(url);
-      if (existing) continue;
+      if (existing) {
+        completed++;
+        broadcastProgress(total, completed, failed);
+        continue;
+      }
 
       const response = await fetch(url);
       if (response.ok) {
         await cache.put(url, response);
+        completed++;
+      } else {
+        failed++;
       }
     } catch (_err) {
-      // Silently skip — will be cached on next play
+      failed++;
     }
+    broadcastProgress(total, completed, failed);
+  }
+
+  // Final complete message
+  broadcastProgress(total, completed, failed, true);
+}
+
+async function broadcastProgress(total, completed, failed, done = false) {
+  const clients = await self.clients.matchAll();
+  for (const client of clients) {
+    client.postMessage({
+      type: "CACHE_PROGRESS",
+      total,
+      completed,
+      failed,
+      done,
+    });
   }
 }
