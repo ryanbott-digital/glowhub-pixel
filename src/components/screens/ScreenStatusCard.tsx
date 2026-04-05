@@ -233,6 +233,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             </Button>
           </div>
 
+          {/* Sync Status */}
+          {screen.current_playlist_id && (
+            <SyncStatusIndicator screenId={screen.id} playlistId={screen.current_playlist_id} />
+          )}
+
           {/* Weekly Schedule */}
           <div>
             <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5 mb-2">
