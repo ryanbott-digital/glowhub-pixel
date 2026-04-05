@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
-import { Settings, Volume2, VolumeX } from "lucide-react";
+import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 
 interface PlaylistItem {
   id: string;
@@ -49,6 +49,9 @@ export default function Player() {
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [isNative, setIsNative] = useState(false);
   const [volume, setVolume] = useState(1);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -72,6 +75,22 @@ export default function Player() {
     if (native) {
       isAutoStartEnabled().then(setAutoStartEnabled);
     }
+  }, []);
+
+  // PWA install prompt detection
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches
+      || (navigator as any).standalone === true;
+    setIsStandalone(standalone);
+    if (standalone) return;
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   // Boot-bypass: mark cold launches so the player skips any splash delay
@@ -635,6 +654,40 @@ export default function Player() {
               ⚡ Cold boot detected — skipped splash, playing content immediately.
             </p>
           )}
+        </div>
+      )}
+
+      {/* Install app banner */}
+      {showInstallBanner && !isStandalone && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-black/85 backdrop-blur-md rounded-xl px-5 py-3 border border-[rgba(0,163,163,0.3)] shadow-lg shadow-[rgba(0,163,163,0.15)]">
+          <Download className="w-5 h-5 text-[#00A3A3] shrink-0" />
+          <div className="flex flex-col">
+            <span className="text-white/90 text-sm font-semibold">Install GlowHub</span>
+            <span className="text-white/50 text-xs">Add to home screen for kiosk mode</span>
+          </div>
+          <button
+            onClick={async () => {
+              if (installPrompt) {
+                await installPrompt.prompt();
+                const { outcome } = await installPrompt.userChoice;
+                if (outcome === "accepted") {
+                  setShowInstallBanner(false);
+                  toast.success("GlowHub installed!");
+                }
+                setInstallPrompt(null);
+              }
+            }}
+            className="ml-2 px-3 py-1.5 rounded-lg bg-[#00A3A3] text-white text-xs font-semibold hover:bg-[#00A3A3]/80 transition-colors"
+          >
+            Install
+          </button>
+          <button
+            onClick={() => setShowInstallBanner(false)}
+            className="ml-1 text-white/40 hover:text-white/70 transition-colors"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
