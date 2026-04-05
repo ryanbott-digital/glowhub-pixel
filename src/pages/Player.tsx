@@ -512,10 +512,11 @@ export default function Player() {
 
     const url = getPublicUrl(next.media.storage_path);
     const inactiveVideo = activeLayer === "A" ? videoRefB : videoRefA;
+    const inactiveHlsRef = activeLayer === "A" ? hlsRefB : hlsRefA;
     const inactiveImg = activeLayer === "A" ? imgRefB : imgRefA;
 
     if (next.media.type === "video" && inactiveVideo.current) {
-      inactiveVideo.current.src = url;
+      attachHls(inactiveVideo.current, url, inactiveHlsRef);
       inactiveVideo.current.load();
     } else if (next.media.type === "image" && inactiveImg.current) {
       inactiveImg.current.src = url;
@@ -577,11 +578,14 @@ export default function Player() {
 
     const url = getPublicUrl(item.media.storage_path);
     const activeVideo = activeLayer === "A" ? videoRefA : videoRefB;
+    const activeHlsRef = activeLayer === "A" ? hlsRefA : hlsRefB;
     const activeImg = activeLayer === "A" ? imgRefA : imgRefB;
 
     if (item.media.type === "video" && activeVideo.current) {
-      if (activeVideo.current.src !== url) {
-        activeVideo.current.src = url;
+      const currentSrc = activeVideo.current.src;
+      // Only re-attach if source changed (HLS instances track their own source)
+      if (!activeHlsRef.current || currentSrc !== url) {
+        attachHls(activeVideo.current, url, activeHlsRef);
       }
       activeVideo.current.volume = volume;
       activeVideo.current.muted = true; // always muted for autoplay on TV
