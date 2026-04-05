@@ -64,26 +64,39 @@ export default function Player() {
   });
   const [cachedCount, setCachedCount] = useState(0);
 
-  // Double-buffer refs: A and B layers (video + img each)
+  // ── DOUBLE BUFFER SYSTEM ──
+  // Buffer A and Buffer B each contain a <video> + <img>.
+  // Active buffer: opacity 1, z-index 10
+  // Next buffer:   opacity 0, z-index 5 (preloaded & ready)
   const videoRefA = useRef<HTMLVideoElement>(null);
   const videoRefB = useRef<HTMLVideoElement>(null);
   const imgRefA = useRef<HTMLImageElement>(null);
   const imgRefB = useRef<HTMLImageElement>(null);
   const hlsRefA = useRef<Hls | null>(null);
   const hlsRefB = useRef<Hls | null>(null);
-  const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
+  const [activeBuffer, setActiveBuffer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  const transitioningRef = useRef(false);
+  const swapLockRef = useRef(false);
+  const [bufferLoading, setBufferLoading] = useState(false);
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // HLS helpers
   const isHlsUrl = (url: string) => url.includes(".m3u8");
 
-  /** Attach an HLS stream or set src directly (Safari native HLS). */
-  const attachHls = (videoEl: HTMLVideoElement, url: string, hlsRef: React.MutableRefObject<Hls | null>) => {
-    // Destroy previous instance
+  const destroyHls = (hlsRef: React.MutableRefObject<Hls | null>) => {
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
+  };
+
+  /** Attach HLS stream or set src directly (Safari native). */
+  const attachHls = useCallback((
+    videoEl: HTMLVideoElement,
+    url: string,
+    hlsRef: React.MutableRefObject<Hls | null>
+  ) => {
+    destroyHls(hlsRef);
 
     if (!isHlsUrl(url)) {
       videoEl.src = url;
@@ -102,10 +115,18 @@ export default function Player() {
       hls.attachMedia(videoEl);
       hlsRef.current = hls;
     } else {
-      // Fallback: try direct (may not work)
       videoEl.src = url;
     }
-  };
+  }, []);
+
+  /** Get refs for a specific buffer. */
+  const getBufferRefs = useCallback((buffer: "A" | "B") => ({
+    video: buffer === "A" ? videoRefA : videoRefB,
+    img: buffer === "A" ? imgRefA : imgRefB,
+    hls: buffer === "A" ? hlsRefA : hlsRefB,
+  }), []);
+
+  const inactiveBuffer = activeBuffer === "A" ? "B" : "A";
 
   // Refresh cache count when settings panel opens
   useEffect(() => {
@@ -273,7 +294,7 @@ export default function Player() {
       const parsed = data as unknown as PlaylistItem[];
       setItems(parsed);
       setCurrentIndex(0);
-      setActiveLayer("A");
+      setActiveBuffer("A");
 
       // Proactively cache all media files for offline playback
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
@@ -504,7 +525,7 @@ export default function Player() {
     };
   }, [paired, items.length, screenId, fetchPlaylist]);
 
-  // Pre-load next item into inactive buffer
+  // ── PRE-LOAD: While active buffer plays, load next item into inactive buffer ──
   useEffect(() => {
     if (items.length < 2) return;
     const ni = (currentIndex + 1) % items.length;
@@ -512,30 +533,35 @@ export default function Player() {
     if (!next) return;
 
     const url = getPublicUrl(next.media.storage_path);
-    const inactiveVideo = activeLayer === "A" ? videoRefB : videoRefA;
-    const inactiveHlsRef = activeLayer === "A" ? hlsRefB : hlsRefA;
-    const inactiveImg = activeLayer === "A" ? imgRefB : imgRefA;
+    const { video, img, hls } = getBufferRefs(inactiveBuffer);
 
-    if (next.media.type === "video" && inactiveVideo.current) {
-      attachHls(inactiveVideo.current, url, inactiveHlsRef);
-      inactiveVideo.current.load();
-    } else if (next.media.type === "image" && inactiveImg.current) {
-      inactiveImg.current.src = url;
+    if (next.media.type === "video" && video.current) {
+      attachHls(video.current, url, hls);
+      video.current.load(); // preload="auto" ensures full buffering
+    } else if (next.media.type === "image" && img.current) {
+      img.current.src = url;
     }
-  }, [currentIndex, items, activeLayer]);
+  }, [currentIndex, items, activeBuffer, getBufferRefs, inactiveBuffer, attachHls]);
 
-  // Advance to next item
+  // ── INSTANT SWAP: Single state update swaps buffers ──
   const advanceToNext = useCallback(() => {
-    if (transitioningRef.current) return;
-    transitioningRef.current = true;
+    if (swapLockRef.current) return;
+    swapLockRef.current = true;
 
+    // Clear any pending timers
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+
+    // Single atomic swap: advance index + flip buffer
     setCurrentIndex((prev) => (prev + 1) % items.length);
-    setActiveLayer((prev) => (prev === "A" ? "B" : "A"));
+    setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
+    setBufferLoading(false);
 
+    // Unlock after crossfade completes
     setTimeout(() => {
-      transitioningRef.current = false;
-    }, 100);
-  }, [items.length]);
+      swapLockRef.current = false;
+    }, Math.max(crossfadeDuration, 100));
+  }, [items.length, crossfadeDuration]);
 
   // Error handler: log to Supabase and skip to next item
   const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
@@ -590,39 +616,49 @@ export default function Player() {
     };
   }, [currentIndex, items, advanceToNext]);
 
-  // Load active media sources and auto-play
+  // ── LOAD ACTIVE BUFFER: Set source, play video, show loading placeholder if slow ──
   useEffect(() => {
     if (items.length === 0) return;
     const item = items[currentIndex];
     if (!item) return;
 
     const url = getPublicUrl(item.media.storage_path);
-    const activeVideo = activeLayer === "A" ? videoRefA : videoRefB;
-    const activeHlsRef = activeLayer === "A" ? hlsRefA : hlsRefB;
-    const activeImg = activeLayer === "A" ? imgRefA : imgRefB;
+    const { video, img, hls } = getBufferRefs(activeBuffer);
 
-    if (item.media.type === "video" && activeVideo.current) {
-      const currentSrc = activeVideo.current.src;
-      // Only re-attach if source changed (HLS instances track their own source)
-      if (!activeHlsRef.current || currentSrc !== url) {
-        attachHls(activeVideo.current, url, activeHlsRef);
-      }
-      activeVideo.current.volume = volume;
-      activeVideo.current.muted = true; // always muted for autoplay on TV
-      activeVideo.current.play().catch(() => {});
+    // Show branded loading placeholder if media takes >2s to load
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    setBufferLoading(true);
+    loadTimeoutRef.current = setTimeout(() => setBufferLoading(false), 2000);
+
+    if (item.media.type === "video" && video.current) {
+      attachHls(video.current, url, hls);
+      video.current.volume = volume;
+      video.current.muted = true; // Required for autoplay on Firestick/Google TV
+      video.current.play().then(() => {
+        setBufferLoading(false);
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+      }).catch(() => {});
       // Unmute after play starts if volume > 0
       if (volume > 0) {
         setTimeout(() => {
-          if (activeVideo.current) {
-            activeVideo.current.muted = false;
-            activeVideo.current.volume = volume;
+          if (video.current) {
+            video.current.muted = false;
+            video.current.volume = volume;
           }
-        }, 100);
+        }, 150);
       }
-    } else if (item.media.type === "image" && activeImg.current) {
-      activeImg.current.src = url;
+    } else if (item.media.type === "image" && img.current) {
+      img.current.src = url;
+      img.current.onload = () => {
+        setBufferLoading(false);
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+      };
     }
-  }, [currentIndex, items, activeLayer, volume]);
+
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
+  }, [currentIndex, items, activeBuffer, volume, getBufferRefs, attachHls]);
 
   // ── LOADING STATE ──
   if (loading) {
@@ -753,44 +789,61 @@ export default function Player() {
 
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative">
-      {/* Layer A */}
+      {/* Branded loading placeholder — shown when media takes >2s to load */}
+      {bufferLoading && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
+          <GHLoader size={60} />
+        </div>
+      )}
+
+      {/* Buffer A */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity"
-        style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1, transitionDuration: `${crossfadeDuration}ms` }}
+        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        style={{
+          opacity: activeBuffer === "A" ? 1 : 0,
+          zIndex: activeBuffer === "A" ? 10 : 5,
+          transitionDuration: `${crossfadeDuration}ms`,
+        }}
       >
         <img
           ref={imgRefA}
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+          style={{ display: activeBuffer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted autoPlay playsInline onEnded={advanceToNext}
+          style={{ display: activeBuffer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted autoPlay playsInline preload="auto"
+          onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
 
-      {/* Layer B */}
+      {/* Buffer B */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity"
-        style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1, transitionDuration: `${crossfadeDuration}ms` }}
+        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        style={{
+          opacity: activeBuffer === "B" ? 1 : 0,
+          zIndex: activeBuffer === "B" ? 10 : 5,
+          transitionDuration: `${crossfadeDuration}ms`,
+        }}
       >
         <img
           ref={imgRefB}
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+          style={{ display: activeBuffer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted autoPlay playsInline onEnded={advanceToNext}
+          style={{ display: activeBuffer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted autoPlay playsInline preload="auto"
+          onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
