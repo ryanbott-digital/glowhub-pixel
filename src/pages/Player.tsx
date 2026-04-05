@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
+import { registerMediaSW, precacheMediaUrls } from "@/lib/media-cache";
 
 interface PlaylistItem {
   id: string;
@@ -65,11 +66,12 @@ export default function Player() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
 
-  // Inject TV styles
+  // Inject TV styles + register media cache SW
   useEffect(() => {
     const style = document.createElement("style");
     style.textContent = TV_STYLES;
     document.head.appendChild(style);
+    registerMediaSW();
     return () => { document.head.removeChild(style); };
   }, []);
 
@@ -218,9 +220,14 @@ export default function Player() {
       .order("position");
 
     if (data && data.length > 0) {
-      setItems(data as unknown as PlaylistItem[]);
+      const parsed = data as unknown as PlaylistItem[];
+      setItems(parsed);
       setCurrentIndex(0);
       setActiveLayer("A");
+
+      // Proactively cache all media files for offline playback
+      const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
+      precacheMediaUrls(urls);
     } else {
       setItems([]);
     }
