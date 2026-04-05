@@ -12,6 +12,7 @@ import MediaLibrary from "./pages/MediaLibrary";
 import Playlists from "./pages/Playlists";
 import Screens from "./pages/Screens";
 import Display from "./pages/Display";
+import Player from "./pages/Player";
 import Analytics from "./pages/Analytics";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/display/:screenId" element={<Display />} />
+            <Route path="/player/:pairingCode" element={<Player />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
             <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />

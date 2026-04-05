@@ -1,0 +1,432 @@
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+interface PlaylistItem {
+  id: string;
+  position: number;
+  override_duration: number | null;
+  media: {
+    id: string;
+    storage_path: string;
+    type: string;
+    name: string;
+    duration: number | null;
+  };
+}
+
+const DEFAULT_IMAGE_DURATION = 10;
+
+export default function Player() {
+  const { pairingCode } = useParams<{ pairingCode: string }>();
+  const [screenId, setScreenId] = useState<string | null>(null);
+  const [paired, setPaired] = useState(false);
+  const [items, setItems] = useState<PlaylistItem[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Double-buffer refs: A and B layers
+  const videoRefA = useRef<HTMLVideoElement>(null);
+  const videoRefB = useRef<HTMLVideoElement>(null);
+  const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const transitioningRef = useRef(false);
+
+  const getPublicUrl = (path: string) =>
+    supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
+
+  // Fetch playlist items for a given playlist ID
+  const fetchPlaylist = useCallback(async (playlistId: string) => {
+    const { data } = await supabase
+      .from("playlist_items")
+      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration)")
+      .eq("playlist_id", playlistId)
+      .order("position");
+
+    if (data && data.length > 0) {
+      setItems(data as unknown as PlaylistItem[]);
+      setCurrentIndex(0);
+      setActiveLayer("A");
+    } else {
+      setItems([]);
+    }
+  }, []);
+
+  // Poll for pairing status
+  useEffect(() => {
+    if (!pairingCode) return;
+
+    const checkPairing = async () => {
+      // Find screen with this pairing code
+      const { data: screen } = await supabase
+        .from("screens")
+        .select("id, current_playlist_id, pairing_code")
+        .eq("pairing_code", pairingCode)
+        .maybeSingle();
+
+      if (screen) {
+        // Screen exists with this code — not yet paired (code still present)
+        setScreenId(screen.id);
+
+        // Check if pairing_code was cleared (meaning it's been claimed)
+        // Actually, our pairing flow sets user_id and clears pairing_code
+        // So if pairing_code still matches, it's unpaired
+        // We need to also check for screens that were already paired
+        // by looking for screens where pairing_code is null but we don't know the id yet
+        setPaired(false);
+        setLoading(false);
+        return;
+      }
+
+      // Maybe the screen was already paired (pairing_code cleared)
+      // Check pairings table
+      const { data: pairing } = await supabase
+        .from("pairings")
+        .select("screen_id")
+        .eq("pairing_code", pairingCode)
+        .maybeSingle();
+
+      if (pairing?.screen_id) {
+        setScreenId(pairing.screen_id);
+        setPaired(true);
+
+        // Fetch current playlist
+        const { data: screenData } = await supabase
+          .from("screens")
+          .select("current_playlist_id")
+          .eq("id", pairing.screen_id)
+          .single();
+
+        if (screenData?.current_playlist_id) {
+          await fetchPlaylist(screenData.current_playlist_id);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkPairing();
+
+    // Poll every 3s until paired
+    const interval = setInterval(async () => {
+      if (paired) return;
+
+      // Check if screen was just paired (pairing_code cleared from screens table)
+      const { data: screen } = await supabase
+        .from("screens")
+        .select("id, current_playlist_id, pairing_code, user_id")
+        .eq("pairing_code", pairingCode)
+        .maybeSingle();
+
+      if (screen) {
+        // Still has pairing code — not paired yet
+        setScreenId(screen.id);
+        return;
+      }
+
+      // If we already have a screenId, check if it's now paired
+      if (screenId) {
+        const { data: s } = await supabase
+          .from("screens")
+          .select("id, current_playlist_id, pairing_code")
+          .eq("id", screenId)
+          .maybeSingle();
+
+        if (s && !s.pairing_code) {
+          setPaired(true);
+          if (s.current_playlist_id) {
+            await fetchPlaylist(s.current_playlist_id);
+          }
+          clearInterval(interval);
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [pairingCode, paired, screenId, fetchPlaylist]);
+
+  // Realtime: listen for screen updates (playlist changes)
+  useEffect(() => {
+    if (!screenId || !paired) return;
+
+    const channel = supabase
+      .channel(`player-screen-${screenId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
+        (payload) => {
+          const newPlaylistId = (payload.new as any).current_playlist_id;
+          if (newPlaylistId) {
+            fetchPlaylist(newPlaylistId);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [screenId, paired, fetchPlaylist]);
+
+  // Realtime: listen for playlist_items changes to refresh current playlist
+  useEffect(() => {
+    if (!paired || items.length === 0) return;
+    const playlistId = items[0]?.id ? items[0] : null;
+    if (!playlistId) return;
+
+    // We need the playlist_id — get it from items context
+    // Since all items share the same playlist, fetch it
+    const channel = supabase
+      .channel(`player-playlist-items`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "playlist_items" },
+        async () => {
+          // Refetch current playlist
+          if (screenId) {
+            const { data: s } = await supabase
+              .from("screens")
+              .select("current_playlist_id")
+              .eq("id", screenId)
+              .single();
+            if (s?.current_playlist_id) {
+              fetchPlaylist(s.current_playlist_id);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [paired, items.length, screenId, fetchPlaylist]);
+
+  // Pre-load next item (double buffering)
+  useEffect(() => {
+    if (items.length < 2) return;
+    const nextIndex = (currentIndex + 1) % items.length;
+    const nextItem = items[nextIndex];
+    if (!nextItem) return;
+
+    const url = getPublicUrl(nextItem.media.storage_path);
+
+    if (nextItem.media.type === "image") {
+      const img = new window.Image();
+      img.src = url;
+    } else if (nextItem.media.type === "video") {
+      // Pre-load into the inactive video element
+      const inactiveRef = activeLayer === "A" ? videoRefB : videoRefA;
+      if (inactiveRef.current) {
+        inactiveRef.current.src = url;
+        inactiveRef.current.load();
+      }
+    }
+  }, [currentIndex, items, activeLayer]);
+
+  // Advance to next item
+  const advanceToNext = useCallback(() => {
+    if (transitioningRef.current) return;
+    transitioningRef.current = true;
+
+    setCurrentIndex((prev) => {
+      const next = (prev + 1) % items.length;
+      return next;
+    });
+    setActiveLayer((prev) => (prev === "A" ? "B" : "A"));
+
+    setTimeout(() => {
+      transitioningRef.current = false;
+    }, 100);
+  }, [items.length]);
+
+  // Playback timer for images
+  useEffect(() => {
+    if (items.length === 0) return;
+    const item = items[currentIndex];
+    if (!item) return;
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    if (item.media.type === "image") {
+      const duration = (item.override_duration || item.media.duration || DEFAULT_IMAGE_DURATION) * 1000;
+      timerRef.current = setTimeout(advanceToNext, duration);
+    }
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [currentIndex, items, advanceToNext]);
+
+  // Auto-play active video
+  useEffect(() => {
+    if (items.length === 0) return;
+    const item = items[currentIndex];
+    if (!item || item.media.type !== "video") return;
+
+    const activeRef = activeLayer === "A" ? videoRefA : videoRefB;
+    if (activeRef.current) {
+      const url = getPublicUrl(item.media.storage_path);
+      if (activeRef.current.src !== url) {
+        activeRef.current.src = url;
+      }
+      activeRef.current.play().catch(() => {});
+    }
+  }, [currentIndex, items, activeLayer]);
+
+  // ── LOADING STATE ──
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(215,55%,10%)]">
+        <div className="text-4xl font-bold font-['Poppins']">
+          <span className="text-glow">Glow</span>
+          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── PAIRING CODE SCREEN ──
+  if (!paired) {
+    const digits = (pairingCode || "").split("");
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-8 select-none">
+        {/* Logo */}
+        <div className="text-3xl font-bold font-['Poppins'] mb-4">
+          <span className="text-glow">Glow</span>
+          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
+        </div>
+
+        {/* Pairing instruction */}
+        <p className="text-[hsl(210,20%,70%)] text-lg tracking-wide">
+          Enter this code in your dashboard to pair this screen
+        </p>
+
+        {/* Glowing code digits */}
+        <div className="flex gap-4">
+          {digits.map((digit, i) => (
+            <div
+              key={i}
+              className="w-20 h-28 flex items-center justify-center rounded-2xl text-5xl font-bold font-['Poppins'] tracking-wider"
+              style={{
+                color: "hsl(180, 100%, 45%)",
+                background: "hsl(215, 55%, 15%)",
+                border: "2px solid hsl(180, 100%, 32%)",
+                boxShadow: `
+                  0 0 20px hsla(180, 100%, 45%, 0.3),
+                  0 0 40px hsla(180, 100%, 45%, 0.15),
+                  0 0 60px hsla(330, 80%, 60%, 0.1),
+                  inset 0 0 20px hsla(180, 100%, 45%, 0.05)
+                `,
+                animation: `pairingPulse 3s ease-in-out infinite`,
+                animationDelay: `${i * 0.15}s`,
+              }}
+            >
+              {digit}
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[hsl(210,20%,50%)] text-sm mt-4 animate-pulse">
+          Waiting for pairing…
+        </p>
+
+        <style>{`
+          @keyframes pairingPulse {
+            0%, 100% {
+              box-shadow:
+                0 0 20px hsla(180, 100%, 45%, 0.3),
+                0 0 40px hsla(180, 100%, 45%, 0.15),
+                0 0 60px hsla(330, 80%, 60%, 0.1),
+                inset 0 0 20px hsla(180, 100%, 45%, 0.05);
+            }
+            50% {
+              box-shadow:
+                0 0 30px hsla(180, 100%, 45%, 0.5),
+                0 0 60px hsla(180, 100%, 45%, 0.25),
+                0 0 80px hsla(330, 80%, 60%, 0.15),
+                0 0 100px hsla(24, 95%, 53%, 0.1),
+                inset 0 0 30px hsla(180, 100%, 45%, 0.1);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ── NO CONTENT ──
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4">
+        <div className="text-3xl font-bold font-['Poppins']">
+          <span className="text-glow">Glow</span>
+          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
+        </div>
+        <p style={{ color: "hsl(210, 20%, 70%)" }}>No content assigned to this screen</p>
+      </div>
+    );
+  }
+
+  // ── PLAYER ──
+  const currentItem = items[currentIndex];
+  const nextIndex = (currentIndex + 1) % items.length;
+  const nextItem = items.length > 1 ? items[nextIndex] : null;
+  const currentUrl = getPublicUrl(currentItem.media.storage_path);
+  const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
+
+  return (
+    <div className="min-h-screen w-full bg-black flex items-center justify-center overflow-hidden relative">
+      {/* Layer A */}
+      <div
+        className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
+        style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1 }}
+      >
+        {activeLayer === "A" && currentItem.media.type === "image" ? (
+          <img
+            src={currentUrl}
+            alt=""
+            className="max-w-full max-h-screen object-contain"
+          />
+        ) : null}
+        <video
+          ref={videoRefA}
+          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
+          style={{
+            display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none",
+          }}
+          muted
+          playsInline
+          onEnded={advanceToNext}
+        />
+      </div>
+
+      {/* Layer B */}
+      <div
+        className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
+        style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1 }}
+      >
+        {activeLayer === "B" && currentItem.media.type === "image" ? (
+          <img
+            src={currentUrl}
+            alt=""
+            className="max-w-full max-h-screen object-contain"
+          />
+        ) : null}
+        <video
+          ref={videoRefB}
+          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
+          style={{
+            display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none",
+          }}
+          muted
+          playsInline
+          onEnded={advanceToNext}
+        />
+      </div>
+
+      {/* Pre-load next image in hidden img tag */}
+      {nextUrl && nextItem?.media.type === "image" && (
+        <img src={nextUrl} alt="" className="hidden" aria-hidden="true" />
+      )}
+    </div>
+  );
+}
