@@ -235,6 +235,7 @@ export default function Player() {
       // Proactively cache all media files for offline playback
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
       precacheMediaUrls(urls);
+      evictStaleMedia(urls);
     } else {
       setItems([]);
     }
