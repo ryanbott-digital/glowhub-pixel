@@ -933,6 +933,35 @@ export default function Player() {
             </div>
           </div>
           </div>
+
+          {/* Device Info */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-white/90 text-sm font-medium mb-2">Device Info</p>
+            <div className="space-y-1.5 text-xs font-mono">
+              <div className="flex justify-between gap-2">
+                <span className="text-white/40 shrink-0">Resolution</span>
+                <span className="text-white/70 text-right">{window.screen.width}×{window.screen.height} @ {window.devicePixelRatio}x</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-white/40 shrink-0">Viewport</span>
+                <span className="text-white/70 text-right">{window.innerWidth}×{window.innerHeight}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-white/40 shrink-0">Connection</span>
+                <span className="text-white/70 text-right">
+                  {(navigator as any).connection
+                    ? `${(navigator as any).connection.effectiveType || "unknown"} · ${(navigator as any).connection.downlink || "?"}Mbps`
+                    : navigator.onLine ? "Online" : "Offline"}
+                </span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-white/40 shrink-0">User Agent</span>
+                <span className="text-white/70 text-right break-all leading-tight" style={{ fontSize: "9px" }}>
+                  {navigator.userAgent}
+                </span>
+              </div>
+            </div>
+          </div>
           {isColdBoot.current && (
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
               ⚡ Cold boot detected — skipped splash, playing content immediately.
