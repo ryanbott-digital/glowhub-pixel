@@ -54,6 +54,7 @@ const App = () => (
             <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
+            <Route path="/install-app" element={<InstallApp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
