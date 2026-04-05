@@ -107,6 +107,19 @@ export function getCacheStatus(): Promise<{ count: number; urls: string[] }> {
   });
 }
 
+/** Get total cache storage size in bytes by measuring all cached responses. */
+export async function getCacheSize(): Promise<number> {
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const est = await navigator.storage.estimate();
+      return est.usage ?? 0;
+    }
+  } catch {
+    // fallback: not available
+  }
+  return 0;
+}
+
 export interface CacheProgress {
   total: number;
   completed: number;

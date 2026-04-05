@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
-import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
+import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
 interface PlaylistItem {
@@ -63,6 +63,7 @@ export default function Player() {
     return saved ? parseInt(saved, 10) : 500;
   });
   const [cachedCount, setCachedCount] = useState(0);
+  const [cacheBytes, setCacheBytes] = useState(0);
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
@@ -132,6 +133,7 @@ export default function Player() {
   useEffect(() => {
     if (!showSettings) return;
     getCacheStatus().then((s) => setCachedCount(s.count));
+    getCacheSize().then(setCacheBytes);
   }, [showSettings]);
 
   // Inject TV styles + register media cache SW
