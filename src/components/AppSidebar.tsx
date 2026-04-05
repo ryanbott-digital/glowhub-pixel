@@ -1,4 +1,5 @@
-import { LogOut, Download, Smartphone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LogOut, Download, Smartphone, Check } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
