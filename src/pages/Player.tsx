@@ -56,9 +56,11 @@ export default function Player() {
   const [alertsMuted, setAlertsMuted] = useState(false);
   const alertsMutedRef = useRef(false);
 
-  // Double-buffer refs: A and B layers
+  // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
   const videoRefB = useRef<HTMLVideoElement>(null);
+  const imgRefA = useRef<HTMLImageElement>(null);
+  const imgRefB = useRef<HTMLImageElement>(null);
   const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
@@ -407,25 +409,22 @@ export default function Player() {
     };
   }, [paired, items.length, screenId, fetchPlaylist]);
 
-  // Pre-load next item (double buffering)
+  // Pre-load next item into inactive buffer
   useEffect(() => {
     if (items.length < 2) return;
-    const nextIndex = (currentIndex + 1) % items.length;
-    const nextItem = items[nextIndex];
-    if (!nextItem) return;
+    const ni = (currentIndex + 1) % items.length;
+    const next = items[ni];
+    if (!next) return;
 
-    const url = getPublicUrl(nextItem.media.storage_path);
+    const url = getPublicUrl(next.media.storage_path);
+    const inactiveVideo = activeLayer === "A" ? videoRefB : videoRefA;
+    const inactiveImg = activeLayer === "A" ? imgRefB : imgRefA;
 
-    if (nextItem.media.type === "image") {
-      const img = new window.Image();
-      img.src = url;
-    } else if (nextItem.media.type === "video") {
-      // Pre-load into the inactive video element
-      const inactiveRef = activeLayer === "A" ? videoRefB : videoRefA;
-      if (inactiveRef.current) {
-        inactiveRef.current.src = url;
-        inactiveRef.current.load();
-      }
+    if (next.media.type === "video" && inactiveVideo.current) {
+      inactiveVideo.current.src = url;
+      inactiveVideo.current.load();
+    } else if (next.media.type === "image" && inactiveImg.current) {
+      inactiveImg.current.src = url;
     }
   }, [currentIndex, items, activeLayer]);
 
@@ -434,10 +433,7 @@ export default function Player() {
     if (transitioningRef.current) return;
     transitioningRef.current = true;
 
-    setCurrentIndex((prev) => {
-      const next = (prev + 1) % items.length;
-      return next;
-    });
+    setCurrentIndex((prev) => (prev + 1) % items.length);
     setActiveLayer((prev) => (prev === "A" ? "B" : "A"));
 
     setTimeout(() => {
@@ -479,21 +475,34 @@ export default function Player() {
     };
   }, [currentIndex, items, advanceToNext]);
 
-  // Auto-play active video
+  // Load active media sources and auto-play
   useEffect(() => {
     if (items.length === 0) return;
     const item = items[currentIndex];
-    if (!item || item.media.type !== "video") return;
+    if (!item) return;
 
-    const activeRef = activeLayer === "A" ? videoRefA : videoRefB;
-    if (activeRef.current) {
-      const url = getPublicUrl(item.media.storage_path);
-      if (activeRef.current.src !== url) {
-        activeRef.current.src = url;
+    const url = getPublicUrl(item.media.storage_path);
+    const activeVideo = activeLayer === "A" ? videoRefA : videoRefB;
+    const activeImg = activeLayer === "A" ? imgRefA : imgRefB;
+
+    if (item.media.type === "video" && activeVideo.current) {
+      if (activeVideo.current.src !== url) {
+        activeVideo.current.src = url;
       }
-      activeRef.current.volume = volume;
-      activeRef.current.muted = volume === 0;
-      activeRef.current.play().catch(() => {});
+      activeVideo.current.volume = volume;
+      activeVideo.current.muted = true; // always muted for autoplay on TV
+      activeVideo.current.play().catch(() => {});
+      // Unmute after play starts if volume > 0
+      if (volume > 0) {
+        setTimeout(() => {
+          if (activeVideo.current) {
+            activeVideo.current.muted = false;
+            activeVideo.current.volume = volume;
+          }
+        }, 100);
+      }
+    } else if (item.media.type === "image" && activeImg.current) {
+      activeImg.current.src = url;
     }
   }, [currentIndex, items, activeLayer, volume]);
 
@@ -629,14 +638,17 @@ export default function Player() {
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
         style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1 }}
       >
-        {activeLayer === "A" && currentItem.media.type === "image" ? (
-          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
-        ) : null}
+        <img
+          ref={imgRefA}
+          alt=""
+          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
+          style={{ display: activeLayer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+        />
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted={volume === 0} playsInline onEnded={advanceToNext}
+          muted autoPlay playsInline onEnded={advanceToNext}
         />
       </div>
 
@@ -645,21 +657,19 @@ export default function Player() {
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
         style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1 }}
       >
-        {activeLayer === "B" && currentItem.media.type === "image" ? (
-          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
-        ) : null}
+        <img
+          ref={imgRefB}
+          alt=""
+          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
+          style={{ display: activeLayer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+        />
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted={volume === 0} playsInline onEnded={advanceToNext}
+          muted autoPlay playsInline onEnded={advanceToNext}
         />
       </div>
-
-      {/* Pre-load next image */}
-      {nextUrl && nextItem?.media.type === "image" && (
-        <img src={nextUrl} alt="" className="hidden" aria-hidden="true" />
-      )}
 
       {/* Settings gear button (top-right, fades in on hover/tap) */}
       <button
