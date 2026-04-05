@@ -44,6 +44,7 @@ export default function Player() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [offlineSeconds, setOfflineSeconds] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [isNative, setIsNative] = useState(false);
