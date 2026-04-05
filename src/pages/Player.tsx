@@ -439,43 +439,54 @@ export default function Player() {
     return () => clearInterval(interval);
   }, [screenId, paired, currentIndex, items]);
 
-  // Screenshot capture: listen for broadcast request from admin
+  // Reusable screenshot capture function
+  const captureScreenshot = useCallback(async () => {
+    if (!screenId) return;
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(document.body, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 0.5,
+        logging: false,
+      });
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.7));
+      if (!blob) return;
+
+      const path = `${screenId}/${Date.now()}.jpg`;
+      await supabase.storage.from("debug-screenshots").upload(path, blob, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+
+      const { data: urlData } = supabase.storage.from("debug-screenshots").getPublicUrl(path);
+
+      await supabase.from("screens").update({
+        last_screenshot_url: urlData.publicUrl,
+      }).eq("id", screenId);
+    } catch (err) {
+      console.error("Screenshot capture failed:", err);
+    }
+  }, [screenId]);
+
+  // Screenshot: listen for on-demand broadcast request from admin
   useEffect(() => {
     if (!screenId) return;
-
     const channel = supabase
       .channel(`screenshot-${screenId}`)
-      .on("broadcast", { event: "take-screenshot" }, async () => {
-        try {
-          const html2canvas = (await import("html2canvas")).default;
-          const canvas = await html2canvas(document.body, {
-            useCORS: true,
-            allowTaint: true,
-            scale: 0.5,
-            logging: false,
-          });
-          const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.7));
-          if (!blob) return;
-
-          const path = `${screenId}/${Date.now()}.jpg`;
-          await supabase.storage.from("debug-screenshots").upload(path, blob, {
-            contentType: "image/jpeg",
-            upsert: true,
-          });
-
-          const { data: urlData } = supabase.storage.from("debug-screenshots").getPublicUrl(path);
-
-          await supabase.from("screens").update({
-            last_screenshot_url: urlData.publicUrl,
-          }).eq("id", screenId);
-        } catch (err) {
-          console.error("Screenshot capture failed:", err);
-        }
-      })
+      .on("broadcast", { event: "take-screenshot" }, () => { captureScreenshot(); })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
-  }, [screenId]);
+  }, [screenId, captureScreenshot]);
+
+  // Auto-screenshot every 5 minutes
+  useEffect(() => {
+    if (!screenId) return;
+    const interval = setInterval(captureScreenshot, 5 * 60 * 1000);
+    // Take one immediately on mount
+    const timeout = setTimeout(captureScreenshot, 5000);
+    return () => { clearInterval(interval); clearTimeout(timeout); };
+  }, [screenId, captureScreenshot]);
 
   // Remote Refresh: listen for broadcast command to reload
   useEffect(() => {
