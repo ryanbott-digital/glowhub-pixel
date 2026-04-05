@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
-import { registerMediaSW, precacheMediaUrls } from "@/lib/media-cache";
+import { registerMediaSW, precacheMediaUrls, evictStaleMedia } from "@/lib/media-cache";
 
 interface PlaylistItem {
   id: string;
@@ -235,6 +235,7 @@ export default function Player() {
       // Proactively cache all media files for offline playback
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
       precacheMediaUrls(urls);
+      evictStaleMedia(urls);
     } else {
       setItems([]);
     }

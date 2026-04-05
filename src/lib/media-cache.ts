@@ -55,6 +55,17 @@ export async function precacheMediaUrls(urls: string[]): Promise<void> {
   }
 }
 
+/** Evict cached media that is no longer in the active playlist. */
+export function evictStaleMedia(activeUrls: string[]): void {
+  const sw =
+    navigator.serviceWorker?.controller ||
+    swRegistration?.active;
+
+  if (sw) {
+    sw.postMessage({ type: "EVICT_STALE", urls: activeUrls });
+  }
+}
+
 /** Get the current cache status from the service worker. */
 export function getCacheStatus(): Promise<{ count: number; urls: string[] }> {
   return new Promise((resolve) => {
