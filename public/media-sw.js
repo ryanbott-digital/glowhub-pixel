@@ -76,11 +76,16 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Listen for messages from the app to proactively cache URLs
+// Listen for messages from the app
 self.addEventListener("message", (event) => {
   if (event.data?.type === "PRECACHE_MEDIA") {
     const urls = event.data.urls || [];
     event.waitUntil(precacheUrls(urls));
+  }
+
+  if (event.data?.type === "EVICT_STALE") {
+    const activeUrls = new Set(event.data.urls || []);
+    event.waitUntil(evictStale(activeUrls));
   }
 
   if (event.data?.type === "GET_CACHE_STATUS") {
@@ -97,6 +102,16 @@ self.addEventListener("message", (event) => {
     );
   }
 });
+
+async function evictStale(activeUrls) {
+  const cache = await caches.open(CACHE_NAME);
+  const keys = await cache.keys();
+  for (const request of keys) {
+    if (!activeUrls.has(request.url)) {
+      await cache.delete(request);
+    }
+  }
+}
 
 async function precacheUrls(urls) {
   const cache = await caches.open(CACHE_NAME);
