@@ -789,44 +789,61 @@ export default function Player() {
 
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative">
-      {/* Layer A */}
+      {/* Branded loading placeholder — shown when media takes >2s to load */}
+      {bufferLoading && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
+          <GHLoader size={60} />
+        </div>
+      )}
+
+      {/* Buffer A */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity"
-        style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1, transitionDuration: `${crossfadeDuration}ms` }}
+        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        style={{
+          opacity: activeBuffer === "A" ? 1 : 0,
+          zIndex: activeBuffer === "A" ? 10 : 5,
+          transitionDuration: `${crossfadeDuration}ms`,
+        }}
       >
         <img
           ref={imgRefA}
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+          style={{ display: activeBuffer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted autoPlay playsInline onEnded={advanceToNext}
+          style={{ display: activeBuffer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted autoPlay playsInline preload="auto"
+          onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
 
-      {/* Layer B */}
+      {/* Buffer B */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity"
-        style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1, transitionDuration: `${crossfadeDuration}ms` }}
+        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        style={{
+          opacity: activeBuffer === "B" ? 1 : 0,
+          zIndex: activeBuffer === "B" ? 10 : 5,
+          transitionDuration: `${crossfadeDuration}ms`,
+        }}
       >
         <img
           ref={imgRefB}
           alt=""
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+          style={{ display: activeBuffer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted autoPlay playsInline onEnded={advanceToNext}
+          style={{ display: activeBuffer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted autoPlay playsInline preload="auto"
+          onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
