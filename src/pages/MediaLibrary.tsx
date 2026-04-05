@@ -216,6 +216,7 @@ export default function MediaLibrary() {
   };
 
   const getPublicUrl = (path: string) => {
+    if (path.startsWith("https://")) return path;
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data.publicUrl;
   };
