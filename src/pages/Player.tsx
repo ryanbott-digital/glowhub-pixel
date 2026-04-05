@@ -77,6 +77,22 @@ export default function Player() {
     }
   }, []);
 
+  // PWA install prompt detection
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches
+      || (navigator as any).standalone === true;
+    setIsStandalone(standalone);
+    if (standalone) return;
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
   // Boot-bypass: mark cold launches so the player skips any splash delay
   const isColdBoot = useRef(isBootLaunch());
 
