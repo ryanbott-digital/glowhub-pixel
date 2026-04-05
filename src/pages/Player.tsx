@@ -604,7 +604,32 @@ export default function Player() {
             </button>
           </div>
 
-          {isColdBoot.current && (
+          {/* Volume control */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setVolume(volume === 0 ? 1 : 0)}
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className="flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #00A3A3 ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
+                }}
+              />
+              <span className="text-white/40 text-xs font-mono w-8 text-right">
+                {Math.round(volume * 100)}%
+              </span>
+            </div>
+          </div>
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
               ⚡ Cold boot detected — skipped splash, playing content immediately.
             </p>
