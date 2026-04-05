@@ -44,6 +44,9 @@ export default function Player() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [showSettings, setShowSettings] = useState(false);
+  const [autoStartEnabled, setAutoStartEnabled] = useState(false);
+  const [isNative, setIsNative] = useState(false);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
