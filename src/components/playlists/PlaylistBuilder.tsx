@@ -53,7 +53,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
   const fetchItems = useCallback(async () => {
     const { data } = await supabase
       .from("playlist_items")
-      .select("*, media:media_id(name, type)")
+      .select("*, media:media_id(name, type, storage_path)")
       .eq("playlist_id", playlistId)
       .order("position");
     if (data) setItems(data as any);
@@ -123,6 +123,8 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
                   id={item.id}
                   index={i}
                   mediaName={(item as any).media?.name || "Unknown"}
+                  mediaType={(item as any).media?.type}
+                  storagePath={(item as any).media?.storage_path}
                   overrideDuration={item.override_duration}
                   onRemove={removeItem}
                   onUpdateDuration={updateDuration}
