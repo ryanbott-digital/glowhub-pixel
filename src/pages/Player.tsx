@@ -440,28 +440,20 @@ export default function Player() {
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
   return (
-    <div className="min-h-screen w-full bg-black flex items-center justify-center overflow-hidden relative">
+    <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative">
       {/* Layer A */}
       <div
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
         style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1 }}
       >
         {activeLayer === "A" && currentItem.media.type === "image" ? (
-          <img
-            src={currentUrl}
-            alt=""
-            className="max-w-full max-h-screen object-contain"
-          />
+          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
         ) : null}
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{
-            display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none",
-          }}
-          muted
-          playsInline
-          onEnded={advanceToNext}
+          style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted playsInline onEnded={advanceToNext}
         />
       </div>
 
@@ -471,27 +463,27 @@ export default function Player() {
         style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1 }}
       >
         {activeLayer === "B" && currentItem.media.type === "image" ? (
-          <img
-            src={currentUrl}
-            alt=""
-            className="max-w-full max-h-screen object-contain"
-          />
+          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
         ) : null}
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{
-            display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none",
-          }}
-          muted
-          playsInline
-          onEnded={advanceToNext}
+          style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted playsInline onEnded={advanceToNext}
         />
       </div>
 
-      {/* Pre-load next image in hidden img tag */}
+      {/* Pre-load next image */}
       {nextUrl && nextItem?.media.type === "image" && (
         <img src={nextUrl} alt="" className="hidden" aria-hidden="true" />
+      )}
+
+      {/* Offline overlay */}
+      {isOffline && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
+          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+          <span className="text-white/70 text-sm font-medium">Reconnecting…</span>
+        </div>
       )}
     </div>
   );
