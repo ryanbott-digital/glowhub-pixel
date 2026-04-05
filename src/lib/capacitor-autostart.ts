@@ -11,8 +11,11 @@ let AutoStart: any = null;
 async function getPlugin() {
   if (AutoStart) return AutoStart;
   try {
+    // Build the module name dynamically so Vite's dev server doesn't
+    // try to resolve it at pre-transform time.
+    const pkg = ["@capacitor-community", "autostart"].join("/");
     // @ts-ignore — only available in native Capacitor builds
-    const mod = await import(/* @vite-ignore */ "@capacitor-community/autostart");
+    const mod = await import(/* @vite-ignore */ pkg);
     AutoStart = mod.AutoStart ?? mod.default;
     return AutoStart;
   } catch {
