@@ -120,11 +120,13 @@ export default function Player() {
     const goOffline = () => {
       offlineAtRef.current = Date.now();
       setIsOffline(true);
+      setOfflineSeconds(0);
     };
     const goOnline = () => {
       const offlineDuration = offlineAtRef.current ? Date.now() - offlineAtRef.current : 0;
       offlineAtRef.current = null;
       setIsOffline(false);
+      setOfflineSeconds(0);
       if (offlineDuration > 60_000) {
         toast.success("Back online — reloading…");
         setTimeout(() => window.location.reload(), 1000);
