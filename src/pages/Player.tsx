@@ -64,26 +64,39 @@ export default function Player() {
   });
   const [cachedCount, setCachedCount] = useState(0);
 
-  // Double-buffer refs: A and B layers (video + img each)
+  // ── DOUBLE BUFFER SYSTEM ──
+  // Buffer A and Buffer B each contain a <video> + <img>.
+  // Active buffer: opacity 1, z-index 10
+  // Next buffer:   opacity 0, z-index 5 (preloaded & ready)
   const videoRefA = useRef<HTMLVideoElement>(null);
   const videoRefB = useRef<HTMLVideoElement>(null);
   const imgRefA = useRef<HTMLImageElement>(null);
   const imgRefB = useRef<HTMLImageElement>(null);
   const hlsRefA = useRef<Hls | null>(null);
   const hlsRefB = useRef<Hls | null>(null);
-  const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
+  const [activeBuffer, setActiveBuffer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  const transitioningRef = useRef(false);
+  const swapLockRef = useRef(false);
+  const [bufferLoading, setBufferLoading] = useState(false);
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // HLS helpers
   const isHlsUrl = (url: string) => url.includes(".m3u8");
 
-  /** Attach an HLS stream or set src directly (Safari native HLS). */
-  const attachHls = (videoEl: HTMLVideoElement, url: string, hlsRef: React.MutableRefObject<Hls | null>) => {
-    // Destroy previous instance
+  const destroyHls = (hlsRef: React.MutableRefObject<Hls | null>) => {
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
+  };
+
+  /** Attach HLS stream or set src directly (Safari native). */
+  const attachHls = useCallback((
+    videoEl: HTMLVideoElement,
+    url: string,
+    hlsRef: React.MutableRefObject<Hls | null>
+  ) => {
+    destroyHls(hlsRef);
 
     if (!isHlsUrl(url)) {
       videoEl.src = url;
@@ -102,10 +115,18 @@ export default function Player() {
       hls.attachMedia(videoEl);
       hlsRef.current = hls;
     } else {
-      // Fallback: try direct (may not work)
       videoEl.src = url;
     }
-  };
+  }, []);
+
+  /** Get refs for a specific buffer. */
+  const getBufferRefs = useCallback((buffer: "A" | "B") => ({
+    video: buffer === "A" ? videoRefA : videoRefB,
+    img: buffer === "A" ? imgRefA : imgRefB,
+    hls: buffer === "A" ? hlsRefA : hlsRefB,
+  }), []);
+
+  const inactiveBuffer = activeBuffer === "A" ? "B" : "A";
 
   // Refresh cache count when settings panel opens
   useEffect(() => {
