@@ -993,7 +993,9 @@ export default function Player() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/90 text-sm font-medium">Offline Cache</p>
-                <p className="text-white/50 text-xs mt-0.5">{cachedCount} file{cachedCount !== 1 ? "s" : ""} cached for offline playback</p>
+                <p className="text-white/50 text-xs mt-0.5">
+                  {cachedCount} file{cachedCount !== 1 ? "s" : ""} · {formatBytes(cacheBytes)}
+                </p>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className={`inline-block w-2 h-2 rounded-full ${cachedCount > 0 ? "bg-[hsl(180,100%,40%)]" : "bg-white/20"}`} />
