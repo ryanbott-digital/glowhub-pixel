@@ -82,6 +82,34 @@ export default function MediaLibrary() {
     fetchMedia();
   }, [fetchMedia]);
 
+  // Poll Mux status for videos still processing
+  useEffect(() => {
+    const processingIds = media
+      .filter((m) => m.mux_asset_id && m.mux_status === "preparing")
+      .map((m) => m.id);
+    if (processingIds.length === 0) return;
+
+    const checkStatus = async () => {
+      const { data } = await supabase.functions.invoke("mux-status", {
+        body: { media_ids: processingIds },
+      });
+      if (data?.results) {
+        const readyIds = new Set(
+          data.results.filter((r: any) => r.status === "ready").map((r: any) => r.id)
+        );
+        if (readyIds.size > 0) {
+          setMedia((prev) =>
+            prev.map((m) => (readyIds.has(m.id) ? { ...m, mux_status: "ready" } : m))
+          );
+        }
+      }
+    };
+
+    const interval = setInterval(checkStatus, 8000);
+    checkStatus();
+    return () => clearInterval(interval);
+  }, [media.filter((m) => m.mux_status === "preparing").length]);
+
   const uploadFiles = async (files: File[]) => {
     if (!user) return;
     const validFiles = files.filter((f) => {
