@@ -53,8 +53,8 @@ export default function Player() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
-  const [alertsMuted, setAlertsMuted] = useState(false);
-  const alertsMutedRef = useRef(false);
+  const [alertsMuted, setAlertsMuted] = useState(() => localStorage.getItem("glowhub_alerts_muted") === "1");
+  const alertsMutedRef = useRef(localStorage.getItem("glowhub_alerts_muted") === "1");
 
   // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
