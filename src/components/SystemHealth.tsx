@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Activity, RefreshCw, Monitor, Camera, ExternalLink } from "lucide-react";
+import { Activity, RefreshCw, Monitor, Camera, ExternalLink, ArrowUpCircle } from "lucide-react";
 
 interface Screen {
   id: string;
@@ -35,13 +36,36 @@ function timeAgo(date: string | null): string {
 
 function isOffline(lastPing: string | null): boolean {
   if (!lastPing) return true;
-  return Date.now() - new Date(lastPing).getTime() > 90_000; // 90 seconds
+  return Date.now() - new Date(lastPing).getTime() > 90_000;
+}
+
+/** Calculate uptime % from playback_logs: % of 5-min slots in last 24h with activity. */
+async function calcUptime(screenId: string): Promise<number> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await supabase
+    .from("playback_logs")
+    .select("played_at")
+    .eq("screen_id", screenId)
+    .gte("played_at", since)
+    .order("played_at");
+
+  if (!data || data.length === 0) return 0;
+
+  // Count distinct 5-min buckets with activity
+  const buckets = new Set<number>();
+  const slotMs = 5 * 60 * 1000;
+  for (const row of data) {
+    buckets.add(Math.floor(new Date(row.played_at).getTime() / slotMs));
+  }
+  const totalSlots = 24 * 12; // 288 five-minute slots in 24h
+  return Math.min(100, Math.round((buckets.size / totalSlots) * 100));
 }
 
 export function SystemHealth() {
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [mediaMap, setMediaMap] = useState<Record<string, MediaInfo>>({});
+  const [uptimeMap, setUptimeMap] = useState<Record<string, number>>({});
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [screenshottingId, setScreenshottingId] = useState<string | null>(null);
 
@@ -67,6 +91,15 @@ export function SystemHealth() {
           setMediaMap(map);
         }
       }
+
+      // Calculate uptime for each screen
+      const uptimes: Record<string, number> = {};
+      await Promise.all(
+        data.map(async (s: any) => {
+          uptimes[s.id] = await calcUptime(s.id);
+        })
+      );
+      setUptimeMap(uptimes);
     }
   };
 
@@ -166,6 +199,18 @@ export function SystemHealth() {
                           </span>
                         )}
                       </p>
+                      {/* Uptime metric */}
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <ArrowUpCircle className="h-3 w-3 text-muted-foreground" />
+                        <Progress
+                          value={uptimeMap[screen.id] ?? 0}
+                          className="h-1.5 w-20"
+                        />
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          {uptimeMap[screen.id] ?? 0}% uptime
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/60">24h</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
