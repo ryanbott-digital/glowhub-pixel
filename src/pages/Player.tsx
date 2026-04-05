@@ -294,7 +294,7 @@ export default function Player() {
       const parsed = data as unknown as PlaylistItem[];
       setItems(parsed);
       setCurrentIndex(0);
-      setActiveLayer("A");
+      setActiveBuffer("A");
 
       // Proactively cache all media files for offline playback
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
@@ -525,7 +525,7 @@ export default function Player() {
     };
   }, [paired, items.length, screenId, fetchPlaylist]);
 
-  // Pre-load next item into inactive buffer
+  // ── PRE-LOAD: While active buffer plays, load next item into inactive buffer ──
   useEffect(() => {
     if (items.length < 2) return;
     const ni = (currentIndex + 1) % items.length;
@@ -533,30 +533,35 @@ export default function Player() {
     if (!next) return;
 
     const url = getPublicUrl(next.media.storage_path);
-    const inactiveVideo = activeLayer === "A" ? videoRefB : videoRefA;
-    const inactiveHlsRef = activeLayer === "A" ? hlsRefB : hlsRefA;
-    const inactiveImg = activeLayer === "A" ? imgRefB : imgRefA;
+    const { video, img, hls } = getBufferRefs(inactiveBuffer);
 
-    if (next.media.type === "video" && inactiveVideo.current) {
-      attachHls(inactiveVideo.current, url, inactiveHlsRef);
-      inactiveVideo.current.load();
-    } else if (next.media.type === "image" && inactiveImg.current) {
-      inactiveImg.current.src = url;
+    if (next.media.type === "video" && video.current) {
+      attachHls(video.current, url, hls);
+      video.current.load(); // preload="auto" ensures full buffering
+    } else if (next.media.type === "image" && img.current) {
+      img.current.src = url;
     }
-  }, [currentIndex, items, activeLayer]);
+  }, [currentIndex, items, activeBuffer, getBufferRefs, inactiveBuffer, attachHls]);
 
-  // Advance to next item
+  // ── INSTANT SWAP: Single state update swaps buffers ──
   const advanceToNext = useCallback(() => {
-    if (transitioningRef.current) return;
-    transitioningRef.current = true;
+    if (swapLockRef.current) return;
+    swapLockRef.current = true;
 
+    // Clear any pending timers
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+
+    // Single atomic swap: advance index + flip buffer
     setCurrentIndex((prev) => (prev + 1) % items.length);
-    setActiveLayer((prev) => (prev === "A" ? "B" : "A"));
+    setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
+    setBufferLoading(false);
 
+    // Unlock after crossfade completes
     setTimeout(() => {
-      transitioningRef.current = false;
-    }, 100);
-  }, [items.length]);
+      swapLockRef.current = false;
+    }, Math.max(crossfadeDuration, 100));
+  }, [items.length, crossfadeDuration]);
 
   // Error handler: log to Supabase and skip to next item
   const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
