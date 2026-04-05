@@ -410,7 +410,16 @@ export default function MediaLibrary() {
                     </Badge>
                   )}
 
-                  {/* Delete button */}
+                  {/* Mux processing badge */}
+                  {item.type === "video" && item.mux_asset_id && item.mux_status === "preparing" && (
+                    <Badge
+                      className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-white backdrop-blur-sm animate-pulse border-0"
+                    >
+                      <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
+                      Processing
+                    </Badge>
+                  )}
+
                   {!isSelecting && (
                     <button
                       onClick={(e) => {
