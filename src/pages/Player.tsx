@@ -732,12 +732,14 @@ export default function Player() {
   // ── NO CONTENT ──
   if (items.length === 0) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4 overflow-hidden">
-        <div className="text-3xl font-bold font-['Poppins']">
-          <span className="text-glow">Glow</span>
-          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
-        </div>
-        <p style={{ color: "hsl(210, 20%, 70%)" }}>No content assigned to this screen</p>
+      <div className="w-screen h-screen overflow-hidden relative">
+        <img
+          src={fallbackBranding}
+          alt="GlowHub"
+          className="w-full h-full object-cover"
+          width={1920}
+          height={1080}
+        />
       </div>
     );
   }
