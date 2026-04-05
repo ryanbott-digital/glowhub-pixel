@@ -11,7 +11,8 @@ let AutoStart: any = null;
 async function getPlugin() {
   if (AutoStart) return AutoStart;
   try {
-    const mod = await import("@capacitor-community/autostart");
+    // @ts-ignore — only available in native Capacitor builds
+    const mod = await import(/* @vite-ignore */ "@capacitor-community/autostart");
     AutoStart = mod.AutoStart ?? mod.default;
     return AutoStart;
   } catch {
