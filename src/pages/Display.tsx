@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { GHLoader } from "@/components/GHLoader";
 
 interface PlaylistItem {
   id: string;
@@ -121,10 +122,7 @@ export default function Display() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-foreground">
-        <div className="text-4xl font-bold">
-          <span className="text-glow">Glow</span>
-          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
-        </div>
+        <GHLoader size={72} />
       </div>
     );
   }
