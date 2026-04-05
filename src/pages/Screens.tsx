@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Monitor, Wifi, WifiOff, Send, Trash2, Copy, ChevronDown } from "lucide-react";
+import { Plus, Monitor, Wifi, WifiOff, Send, Trash2, Copy, ChevronDown, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface Screen {
   id: string;
@@ -31,6 +32,9 @@ export default function Screens() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [newName, setNewName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [pairOpen, setPairOpen] = useState(false);
+  const [pairingCode, setPairingCode] = useState("");
+  const [pairing, setPairing] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -42,7 +46,9 @@ export default function Screens() {
     if (p.data) setPlaylists(p.data);
   }, [user]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -54,11 +60,59 @@ export default function Screens() {
       name: newName.trim(),
       pairing_code: code,
     });
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Screen created! Pairing code: " + code);
     setNewName("");
     setDialogOpen(false);
     fetchData();
+  };
+
+  const pairScreen = async () => {
+    if (!user || pairingCode.length !== 6) return;
+    setPairing(true);
+    try {
+      // Find screen with this pairing code (screens table is publicly readable)
+      const { data: screen, error: findErr } = await supabase
+        .from("screens")
+        .select("id, name, user_id")
+        .eq("pairing_code", pairingCode)
+        .maybeSingle();
+
+      if (findErr) {
+        toast.error("Error looking up code");
+        return;
+      }
+      if (!screen) {
+        toast.error("No screen found with that code. Please check and try again.");
+        return;
+      }
+      if (screen.user_id === user.id) {
+        toast.error("This screen is already linked to your account.");
+        return;
+      }
+
+      // Claim the screen by updating its user_id
+      const { error: updateErr } = await supabase
+        .from("screens")
+        .update({ user_id: user.id, pairing_code: null })
+        .eq("id", screen.id)
+        .eq("pairing_code", pairingCode);
+
+      if (updateErr) {
+        toast.error("Failed to pair screen: " + updateErr.message);
+        return;
+      }
+
+      toast.success(`Screen "${screen.name}" successfully linked to your account!`);
+      setPairingCode("");
+      setPairOpen(false);
+      fetchData();
+    } finally {
+      setPairing(false);
+    }
   };
 
   const publishPlaylist = async (screenId: string, playlistId: string) => {
@@ -66,7 +120,10 @@ export default function Screens() {
       .from("screens")
       .update({ current_playlist_id: playlistId })
       .eq("id", screenId);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Playlist published to screen!");
     fetchData();
   };
@@ -87,18 +144,73 @@ export default function Screens() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Screens</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> Add Screen</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Add Screen</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-              <Input placeholder="Screen name (e.g. Lobby TV)" value={newName} onChange={(e) => setNewName(e.target.value)} />
-              <Button onClick={createScreen} className="w-full">Create</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          {/* Pair Screen Modal */}
+          <Dialog open={pairOpen} onOpenChange={setPairOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Link2 className="h-4 w-4 mr-2" /> Pair Screen
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Pair a Screen</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <p className="text-sm text-muted-foreground text-center">
+                  Enter the 6-digit code shown on your display device to link it to your account.
+                </p>
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={pairingCode}
+                    onChange={setPairingCode}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <Button
+                  onClick={pairScreen}
+                  className="w-full"
+                  disabled={pairingCode.length !== 6 || pairing}
+                >
+                  {pairing ? "Linking..." : "Link Screen"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Add Screen Dialog */}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" /> Add Screen
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Screen</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Screen name (e.g. Lobby TV)"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                />
+                <Button onClick={createScreen} className="w-full">
+                  Create
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -127,7 +239,9 @@ export default function Screens() {
               {screen.pairing_code && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Code:</span>
-                  <span className="font-mono text-lg tracking-widest text-foreground">{screen.pairing_code}</span>
+                  <span className="font-mono text-lg tracking-widest text-foreground">
+                    {screen.pairing_code}
+                  </span>
                 </div>
               )}
 
@@ -141,14 +255,19 @@ export default function Screens() {
                   </SelectTrigger>
                   <SelectContent>
                     {playlists.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Button
                   size="icon"
                   variant="outline"
-                  onClick={() => screen.current_playlist_id && publishPlaylist(screen.id, screen.current_playlist_id)}
+                  onClick={() =>
+                    screen.current_playlist_id &&
+                    publishPlaylist(screen.id, screen.current_playlist_id)
+                  }
                   title="Publish"
                 >
                   <Send className="h-4 w-4" />
@@ -166,7 +285,11 @@ export default function Screens() {
 
               <Collapsible>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="w-full justify-between text-muted-foreground">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-between text-muted-foreground"
+                  >
                     Weekly Schedule
                     <ChevronDown className="h-3 w-3" />
                   </Button>
@@ -184,7 +307,7 @@ export default function Screens() {
         <div className="text-center py-12 text-muted-foreground">
           <Monitor className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>No screens paired yet</p>
-          <p className="text-sm">Add a screen to get started</p>
+          <p className="text-sm">Add a screen or pair one with a 6-digit code</p>
         </div>
       )}
     </div>
