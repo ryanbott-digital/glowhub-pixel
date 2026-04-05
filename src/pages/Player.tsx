@@ -56,6 +56,10 @@ export default function Player() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [alertsMuted, setAlertsMuted] = useState(() => localStorage.getItem("glowhub_alerts_muted") === "1");
   const alertsMutedRef = useRef(localStorage.getItem("glowhub_alerts_muted") === "1");
+  const [crossfadeDuration, setCrossfadeDuration] = useState(() => {
+    const saved = localStorage.getItem("glowhub_crossfade_ms");
+    return saved ? parseInt(saved, 10) : 500;
+  });
 
   // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -645,8 +649,8 @@ export default function Player() {
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative">
       {/* Layer A */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
-        style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1 }}
+        className="absolute inset-0 flex items-center justify-center transition-opacity"
+        style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1, transitionDuration: `${crossfadeDuration}ms` }}
       >
         <img
           ref={imgRefA}
@@ -664,8 +668,8 @@ export default function Player() {
 
       {/* Layer B */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
-        style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1 }}
+        className="absolute inset-0 flex items-center justify-center transition-opacity"
+        style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1, transitionDuration: `${crossfadeDuration}ms` }}
       >
         <img
           ref={imgRefB}
@@ -776,7 +780,34 @@ export default function Player() {
                   }`}
                 />
               </button>
+          </div>
+
+          {/* Crossfade duration */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-white/90 text-sm font-medium mb-2">Crossfade Duration</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="2000"
+                step="100"
+                value={crossfadeDuration}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setCrossfadeDuration(val);
+                  localStorage.setItem("glowhub_crossfade_ms", String(val));
+                }}
+                className="flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #00A3A3 ${(crossfadeDuration / 2000) * 100}%, rgba(255,255,255,0.15) ${(crossfadeDuration / 2000) * 100}%)`,
+                }}
+              />
+              <span className="text-white/40 text-xs font-mono w-12 text-right">
+                {crossfadeDuration === 0 ? "Off" : `${(crossfadeDuration / 1000).toFixed(1)}s`}
+              </span>
             </div>
+            <p className="text-white/50 text-xs mt-1">Smooth transition between media items</p>
+          </div>
           </div>
           {isColdBoot.current && (
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
