@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
 import { Monitor, Wifi, WifiOff, ListVideo } from "lucide-react";
+import { SystemHealth } from "@/components/SystemHealth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -100,6 +101,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* System Health */}
+      <SystemHealth />
 
       {/* Monitor Preview */}
       <Card className="overflow-hidden">
