@@ -34,6 +34,14 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut } = useAuth();
 
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches
+      || (navigator as any).standalone === true;
+    setIsInstalled(standalone);
+  }, []);
+
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <div className="p-4 flex items-center gap-2">
