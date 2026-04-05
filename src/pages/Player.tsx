@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PlaylistItem {
   id: string;
@@ -17,6 +18,22 @@ interface PlaylistItem {
 
 const DEFAULT_IMAGE_DURATION = 10;
 
+// Global TV styles injected once
+const TV_STYLES = `
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    scrollbar-width: none !important;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+  }
+`;
+
 export default function Player() {
   const { pairingCode } = useParams<{ pairingCode: string }>();
   const [screenId, setScreenId] = useState<string | null>(null);
@@ -24,6 +41,7 @@ export default function Player() {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -31,6 +49,54 @@ export default function Player() {
   const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
+
+  // Inject TV styles
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = TV_STYLES;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
+  // Wake Lock API
+  useEffect(() => {
+    let wakeLock: WakeLockSentinel | null = null;
+
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request("screen");
+        }
+      } catch {}
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") requestWakeLock();
+    };
+
+    requestWakeLock();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      wakeLock?.release().catch(() => {});
+    };
+  }, []);
+
+  // Offline detection
+  useEffect(() => {
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => {
+      setIsOffline(false);
+      toast.success("Back online");
+    };
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => {
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
+    };
+  }, []);
 
   const getPublicUrl = (path: string) =>
     supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
