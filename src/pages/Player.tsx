@@ -406,36 +406,58 @@ export default function Player() {
   if (!paired) {
     const digits = (pairingCode || "").split("");
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-8 select-none overflow-hidden">
+      <div className="w-screen h-screen flex flex-col items-center justify-center select-none overflow-hidden relative">
+        {/* Animated mesh gradient background */}
+        <div className="absolute inset-0" style={{
+          background: "#1A365D",
+        }}>
+          <div className="absolute inset-0" style={{
+            background: `
+              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0,163,163,0.6) 0%, transparent 60%),
+              radial-gradient(ellipse 70% 50% at 80% 70%, rgba(0,163,163,0.4) 0%, transparent 55%),
+              radial-gradient(ellipse 60% 80% at 60% 20%, rgba(26,54,93,0.8) 0%, transparent 50%),
+              radial-gradient(ellipse 90% 70% at 40% 80%, rgba(0,163,163,0.3) 0%, transparent 60%)
+            `,
+            animation: "meshMove 12s ease-in-out infinite alternate",
+          }} />
+          <div className="absolute inset-0" style={{
+            background: `
+              radial-gradient(ellipse 50% 60% at 70% 40%, rgba(0,163,163,0.35) 0%, transparent 50%),
+              radial-gradient(ellipse 80% 50% at 30% 60%, rgba(26,54,93,0.5) 0%, transparent 55%)
+            `,
+            animation: "meshMove2 15s ease-in-out infinite alternate",
+          }} />
+        </div>
+
         {/* Logo */}
-        <div className="text-3xl font-bold font-['Poppins'] mb-4">
+        <div className="relative z-10 text-4xl font-bold font-['Poppins'] mb-6">
           <span className="text-glow">Glow</span>
-          <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
+          <span style={{ color: "hsl(210, 20%, 95%)" }}>Hub</span>
         </div>
 
         {/* Pairing instruction */}
-        <p className="text-[hsl(210,20%,70%)] text-lg tracking-wide">
+        <p className="relative z-10 text-white/60 text-lg tracking-wide mb-8">
           Enter this code in your dashboard to pair this screen
         </p>
 
         {/* Glowing code digits */}
-        <div className="flex gap-4">
+        <div className="relative z-10 flex gap-5">
           {digits.map((digit, i) => (
             <div
               key={i}
-              className="w-20 h-28 flex items-center justify-center rounded-2xl text-5xl font-bold font-['Poppins'] tracking-wider"
+              className="w-24 h-32 flex items-center justify-center rounded-2xl text-6xl font-extrabold font-['Poppins'] tracking-wider"
               style={{
-                color: "hsl(180, 100%, 45%)",
-                background: "hsl(215, 55%, 15%)",
-                border: "2px solid hsl(180, 100%, 32%)",
+                color: "#00A3A3",
+                background: "rgba(26, 54, 93, 0.6)",
+                backdropFilter: "blur(12px)",
+                border: "2px solid rgba(0, 163, 163, 0.4)",
                 boxShadow: `
-                  0 0 20px hsla(180, 100%, 45%, 0.3),
-                  0 0 40px hsla(180, 100%, 45%, 0.15),
-                  0 0 60px hsla(330, 80%, 60%, 0.1),
-                  inset 0 0 20px hsla(180, 100%, 45%, 0.05)
+                  0 0 24px rgba(0, 163, 163, 0.35),
+                  0 0 48px rgba(0, 163, 163, 0.15),
+                  inset 0 0 20px rgba(0, 163, 163, 0.05)
                 `,
-                animation: `pairingPulse 3s ease-in-out infinite`,
-                animationDelay: `${i * 0.15}s`,
+                animation: "digitGlow 3s ease-in-out infinite",
+                animationDelay: `${i * 0.12}s`,
               }}
             >
               {digit}
@@ -443,26 +465,32 @@ export default function Player() {
           ))}
         </div>
 
-        <p className="text-[hsl(210,20%,50%)] text-sm mt-4 animate-pulse">
+        <p className="relative z-10 text-white/35 text-sm mt-8 animate-pulse">
           Waiting for pairing…
         </p>
 
         <style>{`
-          @keyframes pairingPulse {
+          @keyframes meshMove {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-30px, 20px) scale(1.08); }
+          }
+          @keyframes meshMove2 {
+            0% { transform: translate(0, 0) scale(1.05); }
+            100% { transform: translate(25px, -15px) scale(1); }
+          }
+          @keyframes digitGlow {
             0%, 100% {
               box-shadow:
-                0 0 20px hsla(180, 100%, 45%, 0.3),
-                0 0 40px hsla(180, 100%, 45%, 0.15),
-                0 0 60px hsla(330, 80%, 60%, 0.1),
-                inset 0 0 20px hsla(180, 100%, 45%, 0.05);
+                0 0 24px rgba(0, 163, 163, 0.35),
+                0 0 48px rgba(0, 163, 163, 0.15),
+                inset 0 0 20px rgba(0, 163, 163, 0.05);
             }
             50% {
               box-shadow:
-                0 0 30px hsla(180, 100%, 45%, 0.5),
-                0 0 60px hsla(180, 100%, 45%, 0.25),
-                0 0 80px hsla(330, 80%, 60%, 0.15),
-                0 0 100px hsla(24, 95%, 53%, 0.1),
-                inset 0 0 30px hsla(180, 100%, 45%, 0.1);
+                0 0 36px rgba(0, 163, 163, 0.55),
+                0 0 72px rgba(0, 163, 163, 0.25),
+                0 0 100px rgba(0, 163, 163, 0.1),
+                inset 0 0 30px rgba(0, 163, 163, 0.1);
             }
           }
         `}</style>
