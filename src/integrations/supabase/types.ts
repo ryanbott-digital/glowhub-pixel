@@ -14,7 +14,175 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      media: {
+        Row: {
+          aspect_ratio: string | null
+          created_at: string
+          duration: number | null
+          id: string
+          name: string
+          storage_path: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          name: string
+          storage_path: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          aspect_ratio?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          name?: string
+          storage_path?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pairings: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          pairing_code: string
+          screen_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          pairing_code: string
+          screen_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          pairing_code?: string
+          screen_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pairings_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          media_id: string
+          override_duration: number | null
+          playlist_id: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          media_id: string
+          override_duration?: number | null
+          playlist_id: string
+          position?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          media_id?: string
+          override_duration?: number | null
+          playlist_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_items_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_items_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      screens: {
+        Row: {
+          created_at: string
+          current_playlist_id: string | null
+          id: string
+          last_ping: string | null
+          name: string
+          pairing_code: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_playlist_id?: string | null
+          id?: string
+          last_ping?: string | null
+          name?: string
+          pairing_code?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_playlist_id?: string | null
+          id?: string
+          last_ping?: string | null
+          name?: string
+          pairing_code?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screens_current_playlist_id_fkey"
+            columns: ["current_playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
