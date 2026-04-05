@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
-import { registerMediaSW, precacheMediaUrls, evictStaleMedia } from "@/lib/media-cache";
+import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus } from "@/lib/media-cache";
 
 interface PlaylistItem {
   id: string;
@@ -60,6 +60,7 @@ export default function Player() {
     const saved = localStorage.getItem("glowhub_crossfade_ms");
     return saved ? parseInt(saved, 10) : 500;
   });
+  const [cachedCount, setCachedCount] = useState(0);
 
   // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -845,6 +846,20 @@ export default function Player() {
               </span>
             </div>
             <p className="text-white/50 text-xs mt-1">Smooth transition between media items</p>
+          </div>
+
+          {/* Cache status */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/90 text-sm font-medium">Offline Cache</p>
+                <p className="text-white/50 text-xs mt-0.5">{cachedCount} file{cachedCount !== 1 ? "s" : ""} cached for offline playback</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`inline-block w-2 h-2 rounded-full ${cachedCount > 0 ? "bg-[hsl(180,100%,40%)]" : "bg-white/20"}`} />
+                <span className="text-white/60 text-xs font-mono">{cachedCount}</span>
+              </div>
+            </div>
           </div>
           </div>
           {isColdBoot.current && (
