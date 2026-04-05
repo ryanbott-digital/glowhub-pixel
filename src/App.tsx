@@ -12,6 +12,7 @@ import MediaLibrary from "./pages/MediaLibrary";
 import Playlists from "./pages/Playlists";
 import Screens from "./pages/Screens";
 import Display from "./pages/Display";
+import Player from "./pages/Player";
 import Analytics from "./pages/Analytics";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
