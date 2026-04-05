@@ -49,6 +49,9 @@ export default function Player() {
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);
   const [isNative, setIsNative] = useState(false);
   const [volume, setVolume] = useState(1);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
