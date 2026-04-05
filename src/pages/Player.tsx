@@ -537,6 +537,25 @@ export default function Player() {
     }, 100);
   }, [items.length]);
 
+  // Error handler: log to Supabase and skip to next item
+  const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
+    console.error(`[Player] Media error: ${errorMsg}`);
+    if (screenId) {
+      supabase
+        .from("player_error_logs")
+        .insert({
+          screen_id: screenId,
+          media_id: mediaId,
+          error_message: errorMsg,
+        })
+        .then(() => {});
+    }
+    // Skip to next item
+    if (items.length > 1) {
+      advanceToNext();
+    }
+  }, [screenId, items.length, advanceToNext]);
+
   // Proof of Play: log each media play
   const lastLoggedRef = useRef<string | null>(null);
   useEffect(() => {
