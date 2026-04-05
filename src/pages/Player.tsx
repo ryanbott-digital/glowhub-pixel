@@ -53,6 +53,8 @@ export default function Player() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [alertsMuted, setAlertsMuted] = useState(false);
+  const alertsMutedRef = useRef(false);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -176,23 +178,25 @@ export default function Player() {
         const next = s + 1;
         if (next === 60 && !thresholdFiredRef.current) {
           thresholdFiredRef.current = true;
-          // Vibrate if supported
-          navigator.vibrate?.([200, 100, 200]);
-          // Play a short notification tone via Web Audio API
-          try {
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 880;
-            osc.type = "sine";
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.4);
-            setTimeout(() => ctx.close(), 500);
-          } catch {}
+          if (!alertsMutedRef.current) {
+            // Vibrate if supported
+            navigator.vibrate?.([200, 100, 200]);
+            // Play a short notification tone via Web Audio API
+            try {
+              const ctx = new AudioContext();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.frequency.value = 880;
+              osc.type = "sine";
+              gain.gain.setValueAtTime(0.3, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+              osc.start(ctx.currentTime);
+              osc.stop(ctx.currentTime + 0.4);
+              setTimeout(() => ctx.close(), 500);
+            } catch {}
+          }
         }
         return next;
       });
@@ -709,6 +713,32 @@ export default function Player() {
               <span className="text-white/40 text-xs font-mono w-8 text-right">
                 {Math.round(volume * 100)}%
               </span>
+            </div>
+          </div>
+
+          {/* Mute alerts toggle */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/90 text-sm font-medium">Mute Alerts</p>
+                <p className="text-white/50 text-xs mt-0.5">Silence offline threshold sound &amp; vibration</p>
+              </div>
+              <button
+                onClick={() => {
+                  const next = !alertsMuted;
+                  setAlertsMuted(next);
+                  alertsMutedRef.current = next;
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                  alertsMuted ? "bg-[hsl(180,100%,35%)]" : "bg-white/20"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                    alertsMuted ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
           </div>
           {isColdBoot.current && (
