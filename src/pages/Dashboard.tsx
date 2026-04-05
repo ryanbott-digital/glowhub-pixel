@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, Wifi, WifiOff, ListVideo } from "lucide-react";
+import { Monitor, Wifi, WifiOff, ListVideo, BarChart3 } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
+import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -105,18 +107,37 @@ export default function Dashboard() {
       {/* System Health */}
       <SystemHealth />
 
-      {/* Monitor Preview */}
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+      {/* Tabs: Preview / Insights */}
+      <Tabs defaultValue="preview">
+        <TabsList>
+          <TabsTrigger value="preview" className="gap-1.5">
             <Monitor className="h-4 w-4" />
-            Signage Preview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MonitorPreview />
-        </CardContent>
-      </Card>
+            Preview
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="gap-1.5">
+            <BarChart3 className="h-4 w-4" />
+            Insights
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="preview">
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Monitor className="h-4 w-4" />
+                Signage Preview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MonitorPreview />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <PlaybackInsights />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
