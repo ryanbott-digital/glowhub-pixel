@@ -693,7 +693,7 @@ export default function Player() {
       {isOffline && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2.5 border border-white/10">
           {/* Progress ring around pulse dot */}
-          <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+          <div className={`relative w-6 h-6 flex items-center justify-center shrink-0 ${offlineSeconds === 60 ? "animate-[ringBounce_0.5s_ease-out]" : ""}`}>
             <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
               <circle
@@ -707,6 +707,7 @@ export default function Player() {
               />
             </svg>
             <span className={`absolute w-2 h-2 rounded-full ${offlineSeconds >= 60 ? "bg-orange-400" : "bg-[#00A3A3]"} animate-pulse`} />
+            <style>{`@keyframes ringBounce { 0% { transform: scale(1); } 30% { transform: scale(1.35); } 60% { transform: scale(0.9); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }`}</style>
           </div>
           <div className="flex flex-col">
             <span className="text-white/70 text-sm font-medium">Reconnecting…</span>
