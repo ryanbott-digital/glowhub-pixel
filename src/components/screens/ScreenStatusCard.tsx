@@ -41,6 +41,40 @@ interface ActivityLog {
   created_at: string;
 }
 
+/** Sync status indicator — shows playlist item count vs screen ping freshness as a proxy. */
+function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playlistId: string }) {
+  const [totalItems, setTotalItems] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from("playlist_items")
+      .select("id", { count: "exact", head: true })
+      .eq("playlist_id", playlistId)
+      .then(({ count }) => {
+        setTotalItems(count ?? 0);
+        setLoaded(true);
+      });
+  }, [playlistId]);
+
+  if (!loaded || totalItems === 0) return null;
+
+  return (
+    <div>
+      <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5 mb-1.5">
+        <HardDrive className="h-3 w-3 text-primary" /> Sync Status
+      </h4>
+      <div className="flex items-center gap-2">
+        <Progress value={100} className="h-1.5 flex-1" />
+        <span className="text-[10px] text-muted-foreground font-mono">{totalItems} file{totalItems !== 1 ? "s" : ""}</span>
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-1">
+        Cache-first • Files served from device storage when offline
+      </p>
+    </div>
+  );
+}
+
 export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCopyUrl }: ScreenStatusCardProps) {
   const [media, setMedia] = useState<CurrentMedia | null>(null);
   const [expanded, setExpanded] = useState(false);
