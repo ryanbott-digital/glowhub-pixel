@@ -163,6 +163,18 @@ export default function Screens() {
                   <Trash2 className="h-3 w-3 text-destructive" />
                 </Button>
               </div>
+
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-full justify-between text-muted-foreground">
+                    Weekly Schedule
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <WeeklyScheduleGrid screenId={screen.id} playlists={playlists} />
+                </CollapsibleContent>
+              </Collapsible>
             </CardContent>
           </Card>
         ))}
