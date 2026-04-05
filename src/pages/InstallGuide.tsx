@@ -399,6 +399,36 @@ export default function InstallGuide() {
       </Card>
 
       {/* Tips */}
+      {/* Raspberry Pi Guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Monitor className="h-5 w-5 text-primary" />
+            Raspberry Pi
+            <Badge variant="secondary" className="ml-auto text-xs">Best Value</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-0">
+          {steps.raspberrypi.map((step, i) => (
+            <div key={i}>
+              {i > 0 && <Separator className="my-4" />}
+              <div className="flex gap-3">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary">{i + 1}</span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <step.icon className="h-4 w-4 text-primary" />
+                    {step.title}
+                  </h3>
+                  {step.content}
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-foreground text-base">💡 Pro Tips</CardTitle>
