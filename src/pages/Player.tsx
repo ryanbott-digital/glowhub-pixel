@@ -551,7 +551,7 @@ export default function Player() {
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted playsInline onEnded={advanceToNext}
+          muted={volume === 0} playsInline onEnded={advanceToNext}
         />
       </div>
 
