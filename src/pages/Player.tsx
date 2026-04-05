@@ -208,8 +208,11 @@ export default function Player() {
     return () => clearInterval(interval);
   }, [isOffline]);
 
-  const getPublicUrl = (path: string) =>
-    supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
+  const getPublicUrl = (path: string) => {
+    // Mux stream URLs are stored as full https:// URLs
+    if (path.startsWith("https://")) return path;
+    return supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
+  };
 
   // Fetch playlist items for a given playlist ID
   const fetchPlaylist = useCallback(async (playlistId: string) => {

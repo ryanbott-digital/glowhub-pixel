@@ -88,7 +88,7 @@ export default function MediaLibrary() {
         return false;
       }
       if (f.size > 50 * 1024 * 1024) {
-        toast.error(`${f.name}: file too large (max 50MB)`);
+        toast.error(`${f.name}: file exceeds 50 MB — consider compressing before upload`);
         return false;
       }
       return true;
@@ -115,13 +115,30 @@ export default function MediaLibrary() {
         duration = await getVideoDuration(file);
       }
 
-      await supabase.from("media").insert({
+      const { data: mediaRow } = await supabase.from("media").insert({
         user_id: user.id,
         name: file.name,
         storage_path: path,
         type: isImage ? "image" : "video",
         duration,
-      });
+      }).select("id").single();
+
+      // Send videos to Mux for transcoding
+      if (!isImage && mediaRow) {
+        toast.info(`Transcoding ${file.name} via Mux…`);
+        try {
+          const { data: muxData, error: muxError } = await supabase.functions.invoke("mux-upload", {
+            body: { storage_path: path, file_name: file.name, media_id: mediaRow.id },
+          });
+          if (muxError) throw muxError;
+          if (muxData?.stream_url) {
+            toast.success(`${file.name} optimized for streaming`);
+          }
+        } catch (err: any) {
+          console.error("Mux transcoding error:", err);
+          toast.warning(`${file.name} uploaded but transcoding failed — raw file will be used`);
+        }
+      }
 
       setUploadProgress(Math.round(((i + 1) / validFiles.length) * 100));
     }
@@ -199,6 +216,7 @@ export default function MediaLibrary() {
   };
 
   const getPublicUrl = (path: string) => {
+    if (path.startsWith("https://")) return path;
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
     return data.publicUrl;
   };
