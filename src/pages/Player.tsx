@@ -56,6 +56,10 @@ export default function Player() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [alertsMuted, setAlertsMuted] = useState(() => localStorage.getItem("glowhub_alerts_muted") === "1");
   const alertsMutedRef = useRef(localStorage.getItem("glowhub_alerts_muted") === "1");
+  const [crossfadeDuration, setCrossfadeDuration] = useState(() => {
+    const saved = localStorage.getItem("glowhub_crossfade_ms");
+    return saved ? parseInt(saved, 10) : 500;
+  });
 
   // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
