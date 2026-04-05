@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -11,16 +11,16 @@ import {
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { SortablePlaylistItem } from "./SortablePlaylistItem";
+import { TimelineBlock } from "./TimelineBlock";
 
 interface PlaylistItem {
   id: string;
@@ -28,7 +28,7 @@ interface PlaylistItem {
   media_id: string;
   position: number;
   override_duration: number | null;
-  media?: { name: string; type: string };
+  media?: { name: string; type: string; storage_path: string; duration: number | null };
 }
 
 interface MediaItem {
@@ -43,19 +43,22 @@ interface PlaylistBuilderProps {
   media: MediaItem[];
 }
 
+const DEFAULT_IMAGE_DURATION = 10;
+
 export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBuilderProps) {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [lightbox, setLightbox] = useState<{ url: string; type: string; name: string } | null>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const fetchItems = useCallback(async () => {
     const { data } = await supabase
       .from("playlist_items")
-      .select("*, media:media_id(name, type, storage_path)")
+      .select("*, media:media_id(name, type, storage_path, duration)")
       .eq("playlist_id", playlistId)
       .order("position");
     if (data) setItems(data as any);
@@ -72,11 +75,8 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
     const oldIndex = items.findIndex((i) => i.id === active.id);
     const newIndex = items.findIndex((i) => i.id === over.id);
     const reordered = arrayMove(items, oldIndex, newIndex);
-
-    // Optimistic update
     setItems(reordered);
 
-    // Persist new positions
     const updates = reordered.map((item, idx) =>
       supabase.from("playlist_items").update({ position: idx }).eq("id", item.id)
     );
@@ -107,42 +107,99 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
 
   const updateDuration = async (itemId: string, duration: number | null) => {
     await supabase.from("playlist_items").update({ override_duration: duration }).eq("id", itemId);
-    fetchItems();
+    // Optimistic update
+    setItems((prev) =>
+      prev.map((it) => (it.id === itemId ? { ...it, override_duration: duration } : it))
+    );
+  };
+
+  // Total playlist duration
+  const totalSeconds = items.reduce((sum, item) => {
+    const dur = item.override_duration ?? item.media?.duration ?? DEFAULT_IMAGE_DURATION;
+    return sum + dur;
+  }, 0);
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-foreground">{playlistTitle}</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-foreground">{playlistTitle}</CardTitle>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <span className="font-mono tabular-nums">{formatTime(totalSeconds)}</span>
+            <span>· {items.length} items</span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-              {items.map((item, i) => (
-                <SortablePlaylistItem
-                  key={item.id}
-                  id={item.id}
-                  index={i}
-                  mediaName={(item as any).media?.name || "Unknown"}
-                  mediaType={(item as any).media?.type}
-                  storagePath={(item as any).media?.storage_path}
-                  overrideDuration={item.override_duration}
-                  onRemove={removeItem}
-                  onUpdateDuration={updateDuration}
-                  onPreview={(url, type, name) => setLightbox({ url, type, name })}
-                />
-              ))}
+        {/* Timeline track */}
+        <div className="relative">
+          {/* Track background */}
+          <div className="absolute inset-0 rounded-lg bg-muted/50 border border-border" />
+
+          {/* Scrollable timeline */}
+          <div
+            ref={timelineRef}
+            className="relative overflow-x-auto py-3 px-2"
+            style={{ scrollbarWidth: "thin" }}
+          >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={items.map((i) => i.id)} strategy={horizontalListSortingStrategy}>
+                <div className="flex gap-1.5 min-h-[80px] items-stretch">
+                  {items.map((item, i) => (
+                    <TimelineBlock
+                      key={item.id}
+                      id={item.id}
+                      index={i}
+                      mediaName={item.media?.name || "Unknown"}
+                      mediaType={item.media?.type}
+                      storagePath={item.media?.storage_path}
+                      overrideDuration={item.override_duration}
+                      defaultDuration={item.media?.duration ?? DEFAULT_IMAGE_DURATION}
+                      onRemove={removeItem}
+                      onUpdateDuration={updateDuration}
+                      onPreview={(url, type, name) => setLightbox({ url, type, name })}
+                    />
+                  ))}
+
+                  {items.length === 0 && (
+                    <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground min-w-[200px]">
+                      Drag media here to build your timeline
+                    </div>
+                  )}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+
+          {/* Timecode ruler */}
+          {items.length > 0 && (
+            <div className="px-2 pb-1.5 flex items-center">
+              <div className="flex-1 h-px bg-border relative">
+                {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
+                  <div
+                    key={pct}
+                    className="absolute top-0 flex flex-col items-center"
+                    style={{ left: `${pct * 100}%`, transform: "translateX(-50%)" }}
+                  >
+                    <div className="w-px h-2 bg-muted-foreground/30" />
+                    <span className="text-[8px] text-muted-foreground/50 mt-0.5 font-mono">
+                      {formatTime(Math.round(totalSeconds * pct))}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </SortableContext>
-        </DndContext>
+          )}
+        </div>
 
-        {items.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No items yet — add media below
-          </p>
-        )}
-
+        {/* Add media buttons */}
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-2">Add media:</p>
           <div className="flex flex-wrap gap-2">
@@ -168,18 +225,9 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
             <X className="h-5 w-5 text-white" />
           </button>
           {lightbox?.type === "image" ? (
-            <img
-              src={lightbox.url}
-              alt={lightbox.name}
-              className="w-full max-h-[80vh] object-contain"
-            />
+            <img src={lightbox.url} alt={lightbox.name} className="w-full max-h-[80vh] object-contain" />
           ) : lightbox?.type === "video" ? (
-            <video
-              src={lightbox.url}
-              controls
-              autoPlay
-              className="w-full max-h-[80vh] object-contain"
-            />
+            <video src={lightbox.url} controls autoPlay className="w-full max-h-[80vh] object-contain" />
           ) : null}
           <div className="px-4 py-2 bg-secondary/50">
             <p className="text-sm text-secondary-foreground truncate">{lightbox?.name}</p>
