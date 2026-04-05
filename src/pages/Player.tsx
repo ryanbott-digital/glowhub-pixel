@@ -335,6 +335,40 @@ export default function Player() {
     };
   }, [screenId, paired, fetchPlaylist]);
 
+  // Heartbeat: ping last_ping every 60s
+  useEffect(() => {
+    if (!screenId || !paired) return;
+
+    const ping = () => {
+      supabase
+        .from("screens")
+        .update({ last_ping: new Date().toISOString(), status: "online" })
+        .eq("id", screenId)
+        .then(() => {});
+    };
+
+    ping(); // immediate first ping
+    const interval = setInterval(ping, 60_000);
+    return () => clearInterval(interval);
+  }, [screenId, paired]);
+
+  // Remote Refresh: listen for broadcast command to reload
+  useEffect(() => {
+    if (!screenId) return;
+
+    const channel = supabase
+      .channel(`remote-refresh-${screenId}`)
+      .on("broadcast", { event: "remote-refresh" }, () => {
+        toast.info("Remote refresh triggered — reloading…");
+        setTimeout(() => window.location.reload(), 1500);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [screenId]);
+
   // Realtime: listen for playlist_items changes to refresh current playlist
   useEffect(() => {
     if (!paired || items.length === 0) return;
