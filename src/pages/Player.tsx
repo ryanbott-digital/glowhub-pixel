@@ -71,6 +71,12 @@ export default function Player() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
 
+  // Refresh cache count when settings panel opens
+  useEffect(() => {
+    if (!showSettings) return;
+    getCacheStatus().then((s) => setCachedCount(s.count));
+  }, [showSettings]);
+
   // Inject TV styles + register media cache SW
   useEffect(() => {
     const style = document.createElement("style");
