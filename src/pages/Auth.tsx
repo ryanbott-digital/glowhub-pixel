@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 
+type AuthView = "login" | "signup" | "forgot";
+
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<AuthView>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,14 +17,21 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
+      if (view === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Signed in successfully!");
-      } else {
+      } else if (view === "signup") {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast.success("Account created! Check your email to confirm.");
+        toast.success("Account created!");
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Check your email for a password reset link.");
+        setView("login");
       }
     } catch (err: any) {
       toast.error(err.message);
@@ -30,6 +39,9 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  const title = view === "login" ? "Welcome back" : view === "signup" ? "Create your account" : "Reset your password";
+  const buttonLabel = view === "login" ? "Sign In" : view === "signup" ? "Sign Up" : "Send Reset Link";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -44,9 +56,12 @@ export default function Auth() {
 
         <Card className="radiant-glow-sm">
           <CardHeader className="text-center">
-            <h2 className="text-xl font-semibold text-foreground">
-              {isLogin ? "Welcome back" : "Create your account"}
-            </h2>
+            <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+            {view === "forgot" && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Enter your email and we'll send you a reset link
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,24 +72,55 @@ export default function Auth() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+              {view !== "forgot" && (
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              )}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+                {loading ? "Loading..." : buttonLabel}
               </Button>
             </form>
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center mt-4 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-            </button>
+
+            <div className="mt-4 space-y-2 text-center text-sm">
+              {view === "login" && (
+                <>
+                  <button
+                    onClick={() => setView("forgot")}
+                    className="block w-full text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Forgot your password?
+                  </button>
+                  <button
+                    onClick={() => setView("signup")}
+                    className="block w-full text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Don't have an account? Sign up
+                  </button>
+                </>
+              )}
+              {view === "signup" && (
+                <button
+                  onClick={() => setView("login")}
+                  className="block w-full text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Already have an account? Sign in
+                </button>
+              )}
+              {view === "forgot" && (
+                <button
+                  onClick={() => setView("login")}
+                  className="block w-full text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Back to sign in
+                </button>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
