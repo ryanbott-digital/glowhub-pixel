@@ -13,6 +13,7 @@ import Playlists from "./pages/Playlists";
 import Screens from "./pages/Screens";
 import Display from "./pages/Display";
 import Analytics from "./pages/Analytics";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthRoute />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/display/:screenId" element={<Display />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
