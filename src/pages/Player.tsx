@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled, isBootLaunch } from "@/lib/capacitor-autostart";
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { GHLoader } from "@/components/GHLoader";
-import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
+import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
 interface PlaylistItem {
@@ -23,6 +23,14 @@ interface PlaylistItem {
 }
 
 const DEFAULT_IMAGE_DURATION = 10;
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+}
 
 // Global TV styles injected once
 const TV_STYLES = `
@@ -63,6 +71,7 @@ export default function Player() {
     return saved ? parseInt(saved, 10) : 500;
   });
   const [cachedCount, setCachedCount] = useState(0);
+  const [cacheBytes, setCacheBytes] = useState(0);
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
@@ -132,6 +141,7 @@ export default function Player() {
   useEffect(() => {
     if (!showSettings) return;
     getCacheStatus().then((s) => setCachedCount(s.count));
+    getCacheSize().then(setCacheBytes);
   }, [showSettings]);
 
   // Inject TV styles + register media cache SW
@@ -991,7 +1001,9 @@ export default function Player() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/90 text-sm font-medium">Offline Cache</p>
-                <p className="text-white/50 text-xs mt-0.5">{cachedCount} file{cachedCount !== 1 ? "s" : ""} cached for offline playback</p>
+                <p className="text-white/50 text-xs mt-0.5">
+                  {cachedCount} file{cachedCount !== 1 ? "s" : ""} · {formatBytes(cacheBytes)}
+                </p>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className={`inline-block w-2 h-2 rounded-full ${cachedCount > 0 ? "bg-[hsl(180,100%,40%)]" : "bg-white/20"}`} />
