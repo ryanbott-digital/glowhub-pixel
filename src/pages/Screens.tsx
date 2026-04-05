@@ -1,16 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Monitor, Wifi, WifiOff, Send, Trash2, Copy, ChevronDown, Link2 } from "lucide-react";
+import { Plus, Monitor, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 
 interface Screen {
   id: string;
@@ -213,93 +210,16 @@ export default function Screens() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {screens.map((screen) => (
-          <Card key={screen.id}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Monitor className="h-5 w-5" />
-                  {screen.name}
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  {screen.status === "online" ? (
-                    <span className="flex items-center gap-1 text-xs text-primary">
-                      <Wifi className="h-3 w-3" /> Online
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <WifiOff className="h-3 w-3" /> Offline
-                    </span>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {screen.pairing_code && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Code:</span>
-                  <span className="font-mono text-lg tracking-widest text-foreground">
-                    {screen.pairing_code}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                <Select
-                  value={screen.current_playlist_id || ""}
-                  onValueChange={(val) => publishPlaylist(screen.id, val)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select playlist" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {playlists.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() =>
-                    screen.current_playlist_id &&
-                    publishPlaylist(screen.id, screen.current_playlist_id)
-                  }
-                  title="Publish"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => copyDisplayUrl(screen.id)}>
-                  <Copy className="h-3 w-3 mr-1" /> Copy Display URL
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => deleteScreen(screen.id)}>
-                  <Trash2 className="h-3 w-3 text-destructive" />
-                </Button>
-              </div>
-
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-between text-muted-foreground"
-                  >
-                    Weekly Schedule
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2">
-                  <WeeklyScheduleGrid screenId={screen.id} playlists={playlists} />
-                </CollapsibleContent>
-              </Collapsible>
-            </CardContent>
-          </Card>
+          <ScreenStatusCard
+            key={screen.id}
+            screen={screen}
+            playlists={playlists}
+            onPublish={publishPlaylist}
+            onDelete={deleteScreen}
+            onCopyUrl={copyDisplayUrl}
+          />
         ))}
       </div>
 
