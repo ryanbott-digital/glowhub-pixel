@@ -638,14 +638,17 @@ export default function Player() {
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
         style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1 }}
       >
-        {activeLayer === "A" && currentItem.media.type === "image" ? (
-          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
-        ) : null}
+        <img
+          ref={imgRefA}
+          alt=""
+          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
+          style={{ display: activeLayer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+        />
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted={volume === 0} playsInline onEnded={advanceToNext}
+          muted autoPlay playsInline onEnded={advanceToNext}
         />
       </div>
 
@@ -654,21 +657,19 @@ export default function Player() {
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
         style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1 }}
       >
-        {activeLayer === "B" && currentItem.media.type === "image" ? (
-          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
-        ) : null}
+        <img
+          ref={imgRefB}
+          alt=""
+          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
+          style={{ display: activeLayer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+        />
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
           style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted={volume === 0} playsInline onEnded={advanceToNext}
+          muted autoPlay playsInline onEnded={advanceToNext}
         />
       </div>
-
-      {/* Pre-load next image */}
-      {nextUrl && nextItem?.media.type === "image" && (
-        <img src={nextUrl} alt="" className="hidden" aria-hidden="true" />
-      )}
 
       {/* Settings gear button (top-right, fades in on hover/tap) */}
       <button
