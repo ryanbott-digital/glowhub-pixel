@@ -83,12 +83,24 @@ export default function Player() {
     };
   }, []);
 
-  // Offline detection
+  // Offline detection with auto-reload after 60s
+  const offlineAtRef = useRef<number | null>(null);
+
   useEffect(() => {
-    const goOffline = () => setIsOffline(true);
+    const goOffline = () => {
+      offlineAtRef.current = Date.now();
+      setIsOffline(true);
+    };
     const goOnline = () => {
+      const offlineDuration = offlineAtRef.current ? Date.now() - offlineAtRef.current : 0;
+      offlineAtRef.current = null;
       setIsOffline(false);
-      toast.success("Back online");
+      if (offlineDuration > 60_000) {
+        toast.success("Back online — reloading…");
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        toast.success("Back online");
+      }
     };
     window.addEventListener("offline", goOffline);
     window.addEventListener("online", goOnline);
