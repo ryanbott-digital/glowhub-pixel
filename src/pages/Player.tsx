@@ -53,8 +53,8 @@ export default function Player() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
-  const [alertsMuted, setAlertsMuted] = useState(false);
-  const alertsMutedRef = useRef(false);
+  const [alertsMuted, setAlertsMuted] = useState(() => localStorage.getItem("glowhub_alerts_muted") === "1");
+  const alertsMutedRef = useRef(localStorage.getItem("glowhub_alerts_muted") === "1");
 
   // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -754,6 +754,7 @@ export default function Player() {
                   const next = !alertsMuted;
                   setAlertsMuted(next);
                   alertsMutedRef.current = next;
+                  localStorage.setItem("glowhub_alerts_muted", next ? "1" : "0");
                 }}
                 className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
                   alertsMuted ? "bg-[hsl(180,100%,35%)]" : "bg-white/20"
