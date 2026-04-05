@@ -519,6 +519,58 @@ export default function Player() {
         <img src={nextUrl} alt="" className="hidden" aria-hidden="true" />
       )}
 
+      {/* Settings gear button (top-right, fades in on hover/tap) */}
+      <button
+        onClick={() => setShowSettings((v) => !v)}
+        className="fixed top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity duration-300"
+        aria-label="Power Settings"
+      >
+        <Settings className="w-5 h-5 text-white/70" />
+      </button>
+
+      {/* Power Settings panel */}
+      {showSettings && (
+        <div className="fixed top-16 right-4 z-50 w-72 rounded-xl bg-black/90 backdrop-blur-md border border-white/10 p-5 shadow-2xl">
+          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+            <Settings className="w-4 h-4" /> Power Settings
+          </h3>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/90 text-sm font-medium">Launch on Boot</p>
+              <p className="text-white/50 text-xs mt-0.5">
+                {isNative
+                  ? "Start GlowHub when device powers on"
+                  : "Only available in the native app"}
+              </p>
+            </div>
+            <button
+              disabled={!isNative}
+              onClick={handleAutoStartToggle}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                !isNative
+                  ? "bg-white/10 cursor-not-allowed"
+                  : autoStartEnabled
+                    ? "bg-[hsl(180,100%,35%)]"
+                    : "bg-white/20"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                  autoStartEnabled && isNative ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {isColdBoot.current && (
+            <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
+              ⚡ Cold boot detected — skipped splash, playing content immediately.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Offline overlay */}
       {isOffline && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
