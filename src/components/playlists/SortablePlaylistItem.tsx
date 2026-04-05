@@ -13,6 +13,7 @@ interface SortablePlaylistItemProps {
   overrideDuration: number | null;
   onRemove: (id: string) => void;
   onUpdateDuration: (id: string, duration: number | null) => void;
+  onPreview?: (url: string, type: string, name: string) => void;
 }
 
 export function SortablePlaylistItem({
@@ -24,6 +25,7 @@ export function SortablePlaylistItem({
   overrideDuration,
   onRemove,
   onUpdateDuration,
+  onPreview,
 }: SortablePlaylistItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -49,7 +51,11 @@ export function SortablePlaylistItem({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>
       <span className="text-sm font-medium text-muted-foreground w-6">{index + 1}</span>
-      <div className="h-10 w-14 rounded overflow-hidden bg-background flex items-center justify-center flex-shrink-0">
+      <button
+        type="button"
+        className="h-10 w-14 rounded overflow-hidden bg-background flex items-center justify-center flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+        onClick={() => thumbnailUrl && mediaType && onPreview?.(thumbnailUrl, mediaType, mediaName)}
+      >
         {thumbnailUrl && mediaType === "image" ? (
           <img src={thumbnailUrl} alt={mediaName} className="h-full w-full object-cover" />
         ) : thumbnailUrl && mediaType === "video" ? (
@@ -59,7 +65,7 @@ export function SortablePlaylistItem({
         ) : (
           <Image className="h-5 w-5 text-muted-foreground" />
         )}
-      </div>
+      </button>
       <span className="flex-1 text-sm text-foreground truncate">{mediaName}</span>
       <div className="flex items-center gap-1">
         <Clock className="h-3 w-3 text-muted-foreground" />

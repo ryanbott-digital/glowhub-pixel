@@ -16,7 +16,8 @@ import {
 } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SortablePlaylistItem } from "./SortablePlaylistItem";
@@ -44,6 +45,7 @@ interface PlaylistBuilderProps {
 
 export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBuilderProps) {
   const [items, setItems] = useState<PlaylistItem[]>([]);
+  const [lightbox, setLightbox] = useState<{ url: string; type: string; name: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -128,6 +130,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
                   overrideDuration={item.override_duration}
                   onRemove={removeItem}
                   onUpdateDuration={updateDuration}
+                  onPreview={(url, type, name) => setLightbox({ url, type, name })}
                 />
               ))}
             </div>
@@ -154,6 +157,35 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
           </div>
         </div>
       </CardContent>
+
+      {/* Lightbox Dialog */}
+      <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black border-secondary">
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-3 right-3 z-10 p-1 rounded-full bg-black/60 hover:bg-black/80 transition-colors"
+          >
+            <X className="h-5 w-5 text-white" />
+          </button>
+          {lightbox?.type === "image" ? (
+            <img
+              src={lightbox.url}
+              alt={lightbox.name}
+              className="w-full max-h-[80vh] object-contain"
+            />
+          ) : lightbox?.type === "video" ? (
+            <video
+              src={lightbox.url}
+              controls
+              autoPlay
+              className="w-full max-h-[80vh] object-contain"
+            />
+          ) : null}
+          <div className="px-4 py-2 bg-secondary/50">
+            <p className="text-sm text-secondary-foreground truncate">{lightbox?.name}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
