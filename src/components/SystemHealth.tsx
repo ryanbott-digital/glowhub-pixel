@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Activity, RefreshCw, Monitor } from "lucide-react";
+import { Activity, RefreshCw, Monitor, Camera, ExternalLink } from "lucide-react";
 
 interface Screen {
   id: string;
@@ -13,6 +13,14 @@ interface Screen {
   status: string;
   last_ping: string | null;
   current_playlist_id: string | null;
+  last_screenshot_url?: string | null;
+  current_media_id?: string | null;
+}
+
+interface MediaInfo {
+  id: string;
+  name: string;
+  type: string;
 }
 
 function timeAgo(date: string | null): string {
@@ -27,21 +35,39 @@ function timeAgo(date: string | null): string {
 
 function isOffline(lastPing: string | null): boolean {
   if (!lastPing) return true;
-  return Date.now() - new Date(lastPing).getTime() > 5 * 60 * 1000;
+  return Date.now() - new Date(lastPing).getTime() > 90_000; // 90 seconds
 }
 
 export function SystemHealth() {
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
+  const [mediaMap, setMediaMap] = useState<Record<string, MediaInfo>>({});
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
+  const [screenshottingId, setScreenshottingId] = useState<string | null>(null);
 
   const fetchScreens = async () => {
     if (!user) return;
     const { data } = await supabase
       .from("screens")
-      .select("id, name, status, last_ping, current_playlist_id")
+      .select("id, name, status, last_ping, current_playlist_id, last_screenshot_url, current_media_id")
       .eq("user_id", user.id);
-    if (data) setScreens(data);
+    if (data) {
+      setScreens(data as Screen[]);
+
+      // Fetch current media names
+      const mediaIds = data.map((s: any) => s.current_media_id).filter(Boolean);
+      if (mediaIds.length > 0) {
+        const { data: mediaData } = await supabase
+          .from("media")
+          .select("id, name, type")
+          .in("id", mediaIds);
+        if (mediaData) {
+          const map: Record<string, MediaInfo> = {};
+          mediaData.forEach((m: any) => { map[m.id] = m; });
+          setMediaMap(map);
+        }
+      }
+    }
   };
 
   useEffect(() => {
@@ -64,6 +90,41 @@ export function SystemHealth() {
     setTimeout(() => setRefreshingId(null), 2000);
   };
 
+  const handleScreenshot = async (screenId: string) => {
+    setScreenshottingId(screenId);
+    const channel = supabase.channel(`screenshot-${screenId}`);
+    await channel.subscribe();
+    await channel.send({
+      type: "broadcast",
+      event: "take-screenshot",
+      payload: {},
+    });
+    supabase.removeChannel(channel);
+    toast.info("Screenshot requested — waiting for device…");
+    // Poll for the screenshot to appear (max 10s)
+    let attempts = 0;
+    const poll = setInterval(async () => {
+      attempts++;
+      const { data } = await supabase
+        .from("screens")
+        .select("last_screenshot_url")
+        .eq("id", screenId)
+        .single();
+      const currentScreen = screens.find((s) => s.id === screenId);
+      if (data?.last_screenshot_url && data.last_screenshot_url !== currentScreen?.last_screenshot_url) {
+        clearInterval(poll);
+        setScreenshottingId(null);
+        toast.success("Screenshot captured!");
+        fetchScreens();
+      }
+      if (attempts > 10) {
+        clearInterval(poll);
+        setScreenshottingId(null);
+        toast.error("Screenshot timed out — device may be offline");
+      }
+    }, 1000);
+  };
+
   if (screens.length === 0) return null;
 
   const onlineScreens = screens.filter((s) => !isOffline(s.last_ping));
@@ -81,52 +142,92 @@ export function SystemHealth() {
         <div className="space-y-3">
           {screens.map((screen) => {
             const offline = isOffline(screen.last_ping);
+            const currentMedia = screen.current_media_id ? mediaMap[screen.current_media_id] : null;
             return (
-              <div
-                key={screen.id}
-                className="flex items-center justify-between rounded-lg border p-3 transition-all"
-                style={{
-                  borderColor: offline
-                    ? "hsl(0, 70%, 50%)"
-                    : "hsl(180, 100%, 40%)",
-                  boxShadow: offline
-                    ? "0 0 12px hsla(0, 70%, 50%, 0.25), inset 0 0 8px hsla(0, 70%, 50%, 0.06)"
-                    : "0 0 12px hsla(180, 100%, 40%, 0.2), inset 0 0 8px hsla(180, 100%, 40%, 0.04)",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <Monitor className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{screen.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Last ping: {timeAgo(screen.last_ping)}
-                    </p>
+              <div key={screen.id} className="space-y-2">
+                <div
+                  className="flex items-center justify-between rounded-lg border p-3 transition-all"
+                  style={{
+                    borderColor: offline ? "hsl(0, 70%, 50%)" : "hsl(var(--primary))",
+                    boxShadow: offline
+                      ? "0 0 12px hsla(0, 70%, 50%, 0.25), inset 0 0 8px hsla(0, 70%, 50%, 0.06)"
+                      : "0 0 12px hsl(var(--primary) / 0.2), inset 0 0 8px hsl(var(--primary) / 0.04)",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <Monitor className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{screen.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Last ping: {timeAgo(screen.last_ping)}
+                        {currentMedia && (
+                          <span className="ml-2">
+                            · Playing: <span className="text-foreground/70">{currentMedia.name}</span>
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      variant={offline ? "destructive" : "default"}
+                      className={
+                        offline
+                          ? "animate-pulse"
+                          : "bg-primary/15 text-primary hover:bg-primary/20"
+                      }
+                    >
+                      {offline ? "Offline" : "Online"}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleScreenshot(screen.id)}
+                      disabled={screenshottingId === screen.id || offline}
+                      title="Take Screenshot"
+                    >
+                      <Camera
+                        className={`h-4 w-4 ${screenshottingId === screen.id ? "animate-pulse text-primary" : "text-muted-foreground"}`}
+                      />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleRemoteRefresh(screen.id)}
+                      disabled={refreshingId === screen.id}
+                      title="Remote Refresh"
+                    >
+                      <RefreshCw
+                        className={`h-4 w-4 ${refreshingId === screen.id ? "animate-spin text-primary" : "text-muted-foreground"}`}
+                      />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={offline ? "destructive" : "default"}
-                    className={
-                      offline
-                        ? "animate-pulse"
-                        : "bg-primary/15 text-primary hover:bg-primary/20"
-                    }
-                  >
-                    {offline ? "Offline" : "Online"}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleRemoteRefresh(screen.id)}
-                    disabled={refreshingId === screen.id}
-                    title="Remote Refresh"
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 ${refreshingId === screen.id ? "animate-spin text-primary" : "text-muted-foreground"}`}
-                    />
-                  </Button>
-                </div>
+
+                {/* Screenshot preview */}
+                {screen.last_screenshot_url && (
+                  <div className="ml-7 flex items-center gap-2">
+                    <a
+                      href={screen.last_screenshot_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative block w-32 aspect-video rounded-md overflow-hidden border border-border/50 hover:border-primary/40 transition-colors"
+                    >
+                      <img
+                        src={screen.last_screenshot_url}
+                        alt="Screen snapshot"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <ExternalLink className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </a>
+                    <span className="text-xs text-muted-foreground">Latest snapshot</span>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -271,9 +271,11 @@ export type Database = {
       screens: {
         Row: {
           created_at: string
+          current_media_id: string | null
           current_playlist_id: string | null
           id: string
           last_ping: string | null
+          last_screenshot_url: string | null
           name: string
           pairing_code: string | null
           status: string
@@ -281,9 +283,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_media_id?: string | null
           current_playlist_id?: string | null
           id?: string
           last_ping?: string | null
+          last_screenshot_url?: string | null
           name?: string
           pairing_code?: string | null
           status?: string
@@ -291,9 +295,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_media_id?: string | null
           current_playlist_id?: string | null
           id?: string
           last_ping?: string | null
+          last_screenshot_url?: string | null
           name?: string
           pairing_code?: string | null
           status?: string
