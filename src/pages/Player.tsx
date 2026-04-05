@@ -56,9 +56,11 @@ export default function Player() {
   const [alertsMuted, setAlertsMuted] = useState(false);
   const alertsMutedRef = useRef(false);
 
-  // Double-buffer refs: A and B layers
+  // Double-buffer refs: A and B layers (video + img each)
   const videoRefA = useRef<HTMLVideoElement>(null);
   const videoRefB = useRef<HTMLVideoElement>(null);
+  const imgRefA = useRef<HTMLImageElement>(null);
+  const imgRefB = useRef<HTMLImageElement>(null);
   const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
