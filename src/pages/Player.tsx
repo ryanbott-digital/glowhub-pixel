@@ -163,10 +163,40 @@ export default function Player() {
     };
   }, []);
 
-  // Offline duration counter
+  // Offline duration counter + 60s threshold alert
+  const thresholdFiredRef = useRef(false);
+
   useEffect(() => {
-    if (!isOffline) return;
-    const interval = setInterval(() => setOfflineSeconds((s) => s + 1), 1000);
+    if (!isOffline) {
+      thresholdFiredRef.current = false;
+      return;
+    }
+    const interval = setInterval(() => {
+      setOfflineSeconds((s) => {
+        const next = s + 1;
+        if (next === 60 && !thresholdFiredRef.current) {
+          thresholdFiredRef.current = true;
+          // Vibrate if supported
+          navigator.vibrate?.([200, 100, 200]);
+          // Play a short notification tone via Web Audio API
+          try {
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            osc.type = "sine";
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.4);
+            setTimeout(() => ctx.close(), 500);
+          } catch {}
+        }
+        return next;
+      });
+    }, 1000);
     return () => clearInterval(interval);
   }, [isOffline]);
 
