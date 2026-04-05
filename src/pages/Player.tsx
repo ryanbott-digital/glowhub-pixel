@@ -445,6 +445,22 @@ export default function Player() {
     }, 100);
   }, [items.length]);
 
+  // Proof of Play: log each media play
+  const lastLoggedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!screenId || items.length === 0) return;
+    const item = items[currentIndex];
+    if (!item) return;
+    const key = `${screenId}-${item.media.id}-${currentIndex}`;
+    if (lastLoggedRef.current === key) return;
+    lastLoggedRef.current = key;
+
+    supabase
+      .from("playback_logs")
+      .insert({ screen_id: screenId, media_id: item.media.id })
+      .then(() => {});
+  }, [screenId, currentIndex, items]);
+
   // Playback timer for images
   useEffect(() => {
     if (items.length === 0) return;
