@@ -68,6 +68,15 @@ export function AppSidebar() {
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {item.url === "/install-app" && !collapsed && isInstalled && (
+                        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          <Check className="h-3 w-3" />
+                          Installed
+                        </span>
+                      )}
+                      {item.url === "/install-app" && collapsed && isInstalled && (
+                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
