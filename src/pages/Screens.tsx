@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Monitor, Wifi, WifiOff, Send, Trash2, Copy } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Plus, Monitor, Wifi, WifiOff, Send, Trash2, Copy, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 
 interface Screen {
   id: string;
@@ -161,6 +163,18 @@ export default function Screens() {
                   <Trash2 className="h-3 w-3 text-destructive" />
                 </Button>
               </div>
+
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-full justify-between text-muted-foreground">
+                    Weekly Schedule
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <WeeklyScheduleGrid screenId={screen.id} playlists={playlists} />
+                </CollapsibleContent>
+              </Collapsible>
             </CardContent>
           </Card>
         ))}

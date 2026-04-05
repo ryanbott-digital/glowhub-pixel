@@ -142,6 +142,51 @@ export type Database = {
         }
         Relationships: []
       }
+      screen_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          playlist_id: string
+          screen_id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          playlist_id: string
+          screen_id: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          playlist_id?: string
+          screen_id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_schedules_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screen_schedules_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screens: {
         Row: {
           created_at: string
