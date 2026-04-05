@@ -739,7 +739,8 @@ export default function Player() {
                   }`}
                 />
               </button>
-            </div>
+          </div>
+          {isColdBoot.current && (
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
               ⚡ Cold boot detected — skipped splash, playing content immediately.
             </p>
