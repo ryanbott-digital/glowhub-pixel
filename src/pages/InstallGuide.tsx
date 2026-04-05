@@ -451,6 +451,10 @@ export default function InstallGuide() {
               <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
               <span><strong className="text-foreground">Offline resilience</strong> — The player caches content locally, so brief network interruptions won't cause a blank screen.</span>
             </li>
+            <li className="flex items-start gap-2">
+              <ChevronRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <span><strong className="text-foreground">Raspberry Pi heatsink case</strong> — For 24/7 operation, use a passive aluminium heatsink case (e.g. Flirc or Argon Neo) to keep the Pi cool without a noisy fan.</span>
+            </li>
           </ul>
         </CardContent>
       </Card>
