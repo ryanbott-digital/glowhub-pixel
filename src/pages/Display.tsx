@@ -114,7 +114,7 @@ export default function Display() {
   }, [currentIndex, items]);
 
   const getPublicUrl = (path: string) => {
-    const { data } = supabase.storage.from("media").getPublicUrl(path);
+    const { data } = supabase.storage.from("signage-content").getPublicUrl(path);
     return data.publicUrl;
   };
 
