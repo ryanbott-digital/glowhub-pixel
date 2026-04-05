@@ -692,7 +692,22 @@ export default function Player() {
       {/* Offline overlay */}
       {isOffline && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2.5 border border-white/10">
-          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+          {/* Progress ring around pulse dot */}
+          <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+            <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+              <circle
+                cx="12" cy="12" r="10" fill="none"
+                stroke={offlineSeconds >= 60 ? "#f97316" : "#00A3A3"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 10}
+                strokeDashoffset={2 * Math.PI * 10 * (1 - Math.min(offlineSeconds / 60, 1))}
+                className="transition-all duration-1000 ease-linear"
+              />
+            </svg>
+            <span className={`absolute w-2 h-2 rounded-full ${offlineSeconds >= 60 ? "bg-orange-400" : "bg-[#00A3A3]"} animate-pulse`} />
+          </div>
           <div className="flex flex-col">
             <span className="text-white/70 text-sm font-medium">Reconnecting…</span>
             <span className="text-white/40 text-xs font-mono tabular-nums">
