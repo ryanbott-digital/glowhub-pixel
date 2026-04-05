@@ -1,4 +1,4 @@
-import { LayoutDashboard, Image, ListVideo, Monitor, LogOut } from "lucide-react";
+import { LayoutDashboard, Image, ListVideo, Monitor, LogOut, BarChart3 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const items = [
   { title: "Media Library", url: "/media", icon: Image },
   { title: "Playlists", url: "/playlists", icon: ListVideo },
   { title: "Screens", url: "/screens", icon: Monitor },
+  { title: "Analytics", url: "/analytics", icon: BarChart3 },
 ];
 
 export function AppSidebar() {
