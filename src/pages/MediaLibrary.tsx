@@ -17,6 +17,8 @@ interface MediaItem {
   type: string;
   created_at: string;
   duration: number | null;
+  mux_asset_id: string | null;
+  mux_status: string | null;
 }
 
 interface MediaWithSize extends MediaItem {
