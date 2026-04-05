@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PlaylistItem {
   id: string;
@@ -17,6 +18,22 @@ interface PlaylistItem {
 
 const DEFAULT_IMAGE_DURATION = 10;
 
+// Global TV styles injected once
+const TV_STYLES = `
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    scrollbar-width: none !important;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+  }
+`;
+
 export default function Player() {
   const { pairingCode } = useParams<{ pairingCode: string }>();
   const [screenId, setScreenId] = useState<string | null>(null);
@@ -24,6 +41,7 @@ export default function Player() {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
@@ -31,6 +49,54 @@ export default function Player() {
   const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const transitioningRef = useRef(false);
+
+  // Inject TV styles
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = TV_STYLES;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
+  // Wake Lock API
+  useEffect(() => {
+    let wakeLock: WakeLockSentinel | null = null;
+
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request("screen");
+        }
+      } catch {}
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") requestWakeLock();
+    };
+
+    requestWakeLock();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      wakeLock?.release().catch(() => {});
+    };
+  }, []);
+
+  // Offline detection
+  useEffect(() => {
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => {
+      setIsOffline(false);
+      toast.success("Back online");
+    };
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => {
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
+    };
+  }, []);
 
   const getPublicUrl = (path: string) =>
     supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
@@ -276,7 +342,7 @@ export default function Player() {
   // ── LOADING STATE ──
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(215,55%,10%)]">
+      <div className="w-screen h-screen flex items-center justify-center bg-[hsl(215,55%,10%)] overflow-hidden">
         <div className="text-4xl font-bold font-['Poppins']">
           <span className="text-glow">Glow</span>
           <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
@@ -289,7 +355,7 @@ export default function Player() {
   if (!paired) {
     const digits = (pairingCode || "").split("");
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-8 select-none">
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-8 select-none overflow-hidden">
         {/* Logo */}
         <div className="text-3xl font-bold font-['Poppins'] mb-4">
           <span className="text-glow">Glow</span>
@@ -356,7 +422,7 @@ export default function Player() {
   // ── NO CONTENT ──
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4">
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-[hsl(215,55%,10%)] gap-4 overflow-hidden">
         <div className="text-3xl font-bold font-['Poppins']">
           <span className="text-glow">Glow</span>
           <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
@@ -374,28 +440,20 @@ export default function Player() {
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
   return (
-    <div className="min-h-screen w-full bg-black flex items-center justify-center overflow-hidden relative">
+    <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative">
       {/* Layer A */}
       <div
         className="absolute inset-0 flex items-center justify-center transition-opacity duration-500"
         style={{ opacity: activeLayer === "A" ? 1 : 0, zIndex: activeLayer === "A" ? 2 : 1 }}
       >
         {activeLayer === "A" && currentItem.media.type === "image" ? (
-          <img
-            src={currentUrl}
-            alt=""
-            className="max-w-full max-h-screen object-contain"
-          />
+          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
         ) : null}
         <video
           ref={videoRefA}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{
-            display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none",
-          }}
-          muted
-          playsInline
-          onEnded={advanceToNext}
+          style={{ display: activeLayer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted playsInline onEnded={advanceToNext}
         />
       </div>
 
@@ -405,27 +463,27 @@ export default function Player() {
         style={{ opacity: activeLayer === "B" ? 1 : 0, zIndex: activeLayer === "B" ? 2 : 1 }}
       >
         {activeLayer === "B" && currentItem.media.type === "image" ? (
-          <img
-            src={currentUrl}
-            alt=""
-            className="max-w-full max-h-screen object-contain"
-          />
+          <img src={currentUrl} alt="" className="max-w-full max-h-screen object-contain" />
         ) : null}
         <video
           ref={videoRefB}
           className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{
-            display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none",
-          }}
-          muted
-          playsInline
-          onEnded={advanceToNext}
+          style={{ display: activeLayer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
+          muted playsInline onEnded={advanceToNext}
         />
       </div>
 
-      {/* Pre-load next image in hidden img tag */}
+      {/* Pre-load next image */}
       {nextUrl && nextItem?.media.type === "image" && (
         <img src={nextUrl} alt="" className="hidden" aria-hidden="true" />
+      )}
+
+      {/* Offline overlay */}
+      {isOffline && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
+          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+          <span className="text-white/70 text-sm font-medium">Reconnecting…</span>
+        </div>
       )}
     </div>
   );
