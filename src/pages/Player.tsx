@@ -409,25 +409,22 @@ export default function Player() {
     };
   }, [paired, items.length, screenId, fetchPlaylist]);
 
-  // Pre-load next item (double buffering)
+  // Pre-load next item into inactive buffer
   useEffect(() => {
     if (items.length < 2) return;
-    const nextIndex = (currentIndex + 1) % items.length;
-    const nextItem = items[nextIndex];
-    if (!nextItem) return;
+    const ni = (currentIndex + 1) % items.length;
+    const next = items[ni];
+    if (!next) return;
 
-    const url = getPublicUrl(nextItem.media.storage_path);
+    const url = getPublicUrl(next.media.storage_path);
+    const inactiveVideo = activeLayer === "A" ? videoRefB : videoRefA;
+    const inactiveImg = activeLayer === "A" ? imgRefB : imgRefA;
 
-    if (nextItem.media.type === "image") {
-      const img = new window.Image();
-      img.src = url;
-    } else if (nextItem.media.type === "video") {
-      // Pre-load into the inactive video element
-      const inactiveRef = activeLayer === "A" ? videoRefB : videoRefA;
-      if (inactiveRef.current) {
-        inactiveRef.current.src = url;
-        inactiveRef.current.load();
-      }
+    if (next.media.type === "video" && inactiveVideo.current) {
+      inactiveVideo.current.src = url;
+      inactiveVideo.current.load();
+    } else if (next.media.type === "image" && inactiveImg.current) {
+      inactiveImg.current.src = url;
     }
   }, [currentIndex, items, activeLayer]);
 
@@ -436,10 +433,7 @@ export default function Player() {
     if (transitioningRef.current) return;
     transitioningRef.current = true;
 
-    setCurrentIndex((prev) => {
-      const next = (prev + 1) % items.length;
-      return next;
-    });
+    setCurrentIndex((prev) => (prev + 1) % items.length);
     setActiveLayer((prev) => (prev === "A" ? "B" : "A"));
 
     setTimeout(() => {
@@ -481,21 +475,34 @@ export default function Player() {
     };
   }, [currentIndex, items, advanceToNext]);
 
-  // Auto-play active video
+  // Load active media sources and auto-play
   useEffect(() => {
     if (items.length === 0) return;
     const item = items[currentIndex];
-    if (!item || item.media.type !== "video") return;
+    if (!item) return;
 
-    const activeRef = activeLayer === "A" ? videoRefA : videoRefB;
-    if (activeRef.current) {
-      const url = getPublicUrl(item.media.storage_path);
-      if (activeRef.current.src !== url) {
-        activeRef.current.src = url;
+    const url = getPublicUrl(item.media.storage_path);
+    const activeVideo = activeLayer === "A" ? videoRefA : videoRefB;
+    const activeImg = activeLayer === "A" ? imgRefA : imgRefB;
+
+    if (item.media.type === "video" && activeVideo.current) {
+      if (activeVideo.current.src !== url) {
+        activeVideo.current.src = url;
       }
-      activeRef.current.volume = volume;
-      activeRef.current.muted = volume === 0;
-      activeRef.current.play().catch(() => {});
+      activeVideo.current.volume = volume;
+      activeVideo.current.muted = true; // always muted for autoplay on TV
+      activeVideo.current.play().catch(() => {});
+      // Unmute after play starts if volume > 0
+      if (volume > 0) {
+        setTimeout(() => {
+          if (activeVideo.current) {
+            activeVideo.current.muted = false;
+            activeVideo.current.volume = volume;
+          }
+        }, 100);
+      }
+    } else if (item.media.type === "image" && activeImg.current) {
+      activeImg.current.src = url;
     }
   }, [currentIndex, items, activeLayer, volume]);
 
