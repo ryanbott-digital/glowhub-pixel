@@ -53,6 +53,7 @@ export default function Player() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [alertsMuted, setAlertsMuted] = useState(false);
 
   // Double-buffer refs: A and B layers
   const videoRefA = useRef<HTMLVideoElement>(null);
