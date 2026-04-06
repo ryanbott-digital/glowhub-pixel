@@ -10,6 +10,7 @@ import { GHLoader } from "@/components/GHLoader";
 import glowLogoPng from "@/assets/glow-text.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
+import { useVersionCheck } from "@/hooks/use-version-check";
 
 interface PlaylistItem {
   id: string;
@@ -52,6 +53,7 @@ const TV_STYLES = `
 
 export default function Player() {
   const { pairingCode: urlPairingCode } = useParams<{ pairingCode: string }>();
+  useVersionCheck(true);
   const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
   const [pairingCode, setPairingCode] = useState<string | null>(urlPairingCode || null);
   const [paired, setPaired] = useState(false);
