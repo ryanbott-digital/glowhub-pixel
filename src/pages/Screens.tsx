@@ -15,6 +15,9 @@ import { checkScreenLimit } from "@/lib/subscription";
 import { useNavigate } from "react-router-dom";
 import { ScreenGroupManager, type ScreenGroup } from "@/components/screens/ScreenGroupManager";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DraggableScreenWrapper } from "@/components/screens/DraggableScreenWrapper";
+import { DroppableGroupZone } from "@/components/screens/DroppableGroupZone";
 
 interface Screen {
   id: string;
