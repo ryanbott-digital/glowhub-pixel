@@ -719,10 +719,14 @@ export default function Player() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
         (payload) => {
-          const newPlaylistId = (payload.new as any).current_playlist_id;
-          if (newPlaylistId) {
-            fetchPlaylist(newPlaylistId);
+          const updated = payload.new as any;
+          if (updated.current_playlist_id) {
+            fetchPlaylist(updated.current_playlist_id);
           }
+          // Apply playback settings in real-time
+          if (updated.transition_type) setTransitionType(updated.transition_type);
+          if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
+          if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
         }
       )
       .subscribe();
@@ -869,22 +873,33 @@ export default function Player() {
   // ── INSTANT SWAP: Single state update swaps buffers ──
   const advanceToNext = useCallback(() => {
     if (swapLockRef.current) return;
+
+    const nextIndex = (currentIndex + 1) % items.length;
+
+    // If loop is off and we've reached the end, stop
+    if (!loopEnabled && nextIndex === 0) {
+      return;
+    }
+
     swapLockRef.current = true;
 
     // Clear any pending timers
     if (timerRef.current) clearTimeout(timerRef.current);
     if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
 
+    // For "cut" transition, use 0ms crossfade
+    const effectiveDuration = transitionType === "cut" ? 0 : crossfadeDuration;
+
     // Single atomic swap: advance index + flip buffer
-    setCurrentIndex((prev) => (prev + 1) % items.length);
+    setCurrentIndex(nextIndex);
     setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
     setBufferLoading(false);
 
     // Unlock after crossfade completes
     setTimeout(() => {
       swapLockRef.current = false;
-    }, Math.max(crossfadeDuration, 100));
-  }, [items.length, crossfadeDuration]);
+    }, Math.max(effectiveDuration, 50));
+  }, [items.length, crossfadeDuration, transitionType, loopEnabled, currentIndex]);
 
   // Error handler: log to Supabase and skip to next item
   const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
