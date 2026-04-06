@@ -1830,7 +1830,7 @@ export default function Player() {
       {/* Unpair confirmation dialog */}
       {showUnpairConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-black/95 border border-white/10 rounded-xl p-6 w-80 shadow-2xl">
+          <div data-dialog-focus className="bg-black/95 border border-white/10 rounded-xl p-6 w-80 shadow-2xl">
             <h4 className="text-white font-semibold text-sm mb-2">Unpair this device?</h4>
             <p className="text-white/50 text-xs mb-5">
               This will clear the stored screen ID and all cached settings. The device will return to the pairing code screen.
@@ -1927,7 +1927,7 @@ export default function Player() {
       {/* Clear cache confirmation dialog */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70">
-          <div className="bg-[hsl(var(--background))] border border-border rounded-lg p-6 max-w-xs w-full mx-4 shadow-xl space-y-4">
+          <div data-dialog-focus className="bg-[hsl(var(--background))] border border-border rounded-lg p-6 max-w-xs w-full mx-4 shadow-xl space-y-4">
             <h3 className="text-foreground text-sm font-semibold">Clear Offline Cache?</h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
               This will delete all cached media files. The player will need to re-download them, which may cause interruptions if the device is offline.
