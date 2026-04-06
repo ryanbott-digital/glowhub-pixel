@@ -1,0 +1,1 @@
+ALTER TABLE public.screen_groups ADD COLUMN icon TEXT NOT NULL DEFAULT 'folder-open';
