@@ -370,7 +370,7 @@ export default function MediaLibrary() {
 
       {/* Media grid */}
       {media.length > 0 && (
-        <div className={`grid gap-4 ${
+        <div className={`grid gap-4 stagger-in ${
           (() => {
             const size = localStorage.getItem("glowhub_media_grid") || "medium";
             if (size === "small") return "grid-cols-3 md:grid-cols-4 lg:grid-cols-6";
