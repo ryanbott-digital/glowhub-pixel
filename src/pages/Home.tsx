@@ -157,9 +157,35 @@ const Home = () => {
   const wrapperRef = useScrollReveal();
   const ctaRef = useMagnetic();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const blobContainerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  // Scroll-triggered parallax for mesh blobs
+  useEffect(() => {
+    const container = blobContainerRef.current;
+    if (!container) return;
+    const blobs = container.querySelectorAll<HTMLElement>("[data-parallax-speed]");
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        blobs.forEach((blob) => {
+          const speed = parseFloat(blob.dataset.parallaxSpeed || "0");
+          blob.style.transform = `translateY(${scrollY * speed}px)`;
+        });
+        ticking = false;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const scrollTo = (id: string) => {
@@ -201,11 +227,11 @@ const Home = () => {
       {/* ── Hero with mesh gradient ── */}
       <section className="relative px-6 pt-20 sm:pt-28 pb-28 max-w-6xl mx-auto">
         {/* Animated mesh gradient background */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="mesh-blob mesh-blob-1" />
-          <div className="mesh-blob mesh-blob-2" />
-          <div className="mesh-blob mesh-blob-3" />
-          <div className="mesh-blob mesh-blob-4" />
+        <div ref={blobContainerRef} className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="mesh-blob mesh-blob-1" data-parallax-speed="-0.15" />
+          <div className="mesh-blob mesh-blob-2" data-parallax-speed="-0.25" />
+          <div className="mesh-blob mesh-blob-3" data-parallax-speed="-0.1" />
+          <div className="mesh-blob mesh-blob-4" data-parallax-speed="-0.3" />
         </div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -673,7 +699,8 @@ const Home = () => {
           position: absolute;
           border-radius: 50%;
           filter: blur(120px);
-          will-change: transform;
+          will-change: transform, translate;
+          transition: transform 0.1s linear;
         }
         .mesh-blob-1 {
           width: 600px; height: 600px;
@@ -700,20 +727,20 @@ const Home = () => {
           animation: mesh-drift-4 18s ease-in-out infinite alternate;
         }
         @keyframes mesh-drift-1 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(60px, 40px) scale(1.15); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: 60px 40px; scale: 1.15; }
         }
         @keyframes mesh-drift-2 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-50px, 50px) scale(1.1); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: -50px 50px; scale: 1.1; }
         }
         @keyframes mesh-drift-3 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(40px, -30px) scale(1.2); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: 40px -30px; scale: 1.2; }
         }
         @keyframes mesh-drift-4 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-30px, 20px) scale(1.1); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: -30px 20px; scale: 1.1; }
         }
 
         /* ── Magnetic CTA ── */
