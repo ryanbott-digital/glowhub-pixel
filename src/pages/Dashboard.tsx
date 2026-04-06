@@ -216,7 +216,7 @@ export default function Dashboard() {
       <SystemHealth />
 
       {/* Tabs: Preview / Insights */}
-      <Tabs defaultValue="preview">
+      <Tabs defaultValue={localStorage.getItem("glowhub_default_tab") || "preview"}>
         <TabsList className="glass rounded-xl p-1">
           <TabsTrigger value="preview" className="gap-1.5 rounded-lg text-xs tracking-wider data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
             <Monitor className="h-3.5 w-3.5" />
