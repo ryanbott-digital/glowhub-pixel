@@ -40,6 +40,7 @@ export function AppSidebar() {
 
   const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
+  const [unreadSubmissions, setUnreadSubmissions] = useState(0);
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
@@ -54,6 +55,26 @@ export function AppSidebar() {
       setScreenUsage({ count: currentCount, limit });
     };
     fetchUsage();
+  }, [user, location.pathname]);
+
+  // Fetch unread contact submissions count
+  useEffect(() => {
+    if (!user) return;
+    const fetchUnread = async () => {
+      const lastSeen = localStorage.getItem("glowhub_admin_last_seen") || "1970-01-01T00:00:00Z";
+      const { count } = await supabase
+        .from("contact_submissions")
+        .select("*", { count: "exact", head: true })
+        .gt("created_at", lastSeen);
+      setUnreadSubmissions(count || 0);
+    };
+    fetchUnread();
+
+    // Mark as read when visiting /admin
+    if (location.pathname === "/admin") {
+      localStorage.setItem("glowhub_admin_last_seen", new Date().toISOString());
+      setUnreadSubmissions(0);
+    }
   }, [user, location.pathname]);
 
   return (
