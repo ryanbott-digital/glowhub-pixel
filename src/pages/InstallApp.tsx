@@ -43,7 +43,7 @@ export default function InstallApp() {
         <CheckCircle className="h-16 w-16 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">Already Installed</h1>
         <p className="text-muted-foreground text-center max-w-sm">
-          You're running GlowHub as an installed app. You're all set!
+          You're running Glow as an installed app. You're all set!
         </p>
       </div>
     );
@@ -55,9 +55,9 @@ export default function InstallApp() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
           <Download className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">Install GlowHub</h1>
+        <h1 className="text-2xl font-bold text-foreground">Install Glow</h1>
         <p className="text-muted-foreground mt-1">
-          Add GlowHub to your home screen for instant access — no app store needed.
+          Add Glow to your home screen for instant access — no app store needed.
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default function InstallApp() {
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="pt-6 flex flex-col items-center gap-3">
             <CheckCircle className="h-10 w-10 text-primary" />
-            <p className="font-semibold text-foreground">GlowHub has been installed!</p>
+            <p className="font-semibold text-foreground">Glow has been installed!</p>
             <p className="text-sm text-muted-foreground text-center">
               Find it on your home screen or app drawer.
             </p>
@@ -77,11 +77,11 @@ export default function InstallApp() {
           <CardContent className="pt-6 flex flex-col items-center gap-4">
             <Smartphone className="h-10 w-10 text-primary" />
             <p className="text-sm text-muted-foreground text-center">
-              Tap the button below to install GlowHub as an app on this device.
+              Tap the button below to install Glow as an app on this device.
             </p>
             <Button size="lg" className="w-full" onClick={handleInstall}>
               <Download className="h-4 w-4 mr-2" />
-              Install GlowHub
+              Install Glow
             </Button>
           </CardContent>
         </Card>
