@@ -157,9 +157,35 @@ const Home = () => {
   const wrapperRef = useScrollReveal();
   const ctaRef = useMagnetic();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const blobContainerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  // Scroll-triggered parallax for mesh blobs
+  useEffect(() => {
+    const container = blobContainerRef.current;
+    if (!container) return;
+    const blobs = container.querySelectorAll<HTMLElement>("[data-parallax-speed]");
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        blobs.forEach((blob) => {
+          const speed = parseFloat(blob.dataset.parallaxSpeed || "0");
+          blob.style.transform = `translateY(${scrollY * speed}px)`;
+        });
+        ticking = false;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const scrollTo = (id: string) => {
@@ -201,11 +227,11 @@ const Home = () => {
       {/* ── Hero with mesh gradient ── */}
       <section className="relative px-6 pt-20 sm:pt-28 pb-28 max-w-6xl mx-auto">
         {/* Animated mesh gradient background */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="mesh-blob mesh-blob-1" />
-          <div className="mesh-blob mesh-blob-2" />
-          <div className="mesh-blob mesh-blob-3" />
-          <div className="mesh-blob mesh-blob-4" />
+        <div ref={blobContainerRef} className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="mesh-blob mesh-blob-1" data-parallax-speed="-0.15" />
+          <div className="mesh-blob mesh-blob-2" data-parallax-speed="-0.25" />
+          <div className="mesh-blob mesh-blob-3" data-parallax-speed="-0.1" />
+          <div className="mesh-blob mesh-blob-4" data-parallax-speed="-0.3" />
         </div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
