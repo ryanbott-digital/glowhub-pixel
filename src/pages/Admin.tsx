@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -13,6 +12,14 @@ interface AdminUser {
   created_at: string;
   subscription_status: string;
   subscription_tier: string;
+}
+
+interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
 }
 
 const TIERS = [
@@ -25,6 +32,8 @@ export default function Admin() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
+  const [subsLoading, setSubsLoading] = useState(true);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -45,8 +54,25 @@ export default function Admin() {
     setLoading(false);
   };
 
+  const fetchSubmissions = async () => {
+    setSubsLoading(true);
+    const { data, error } = await supabase
+      .from("contact_submissions")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error("Failed to load submissions:", error);
+    } else {
+      setSubmissions((data as ContactSubmission[]) || []);
+    }
+    setSubsLoading(false);
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchSubmissions();
   }, []);
 
   const updateTier = async (userId: string, tier: string) => {
@@ -135,6 +161,47 @@ export default function Admin() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Contact Submissions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" /> Contact Submissions
+          </CardTitle>
+          <CardDescription>Messages from the public contact form</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {subsLoading ? (
+            <p className="text-muted-foreground text-sm">Loading submissions…</p>
+          ) : submissions.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No submissions yet</p>
+          ) : (
+            <div className="space-y-3">
+              {submissions.map((sub) => (
+                <div
+                  key={sub.id}
+                  className="p-4 rounded-lg border bg-card space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm font-semibold text-foreground truncate">{sub.name}</span>
+                      <span className="text-xs text-muted-foreground truncate">{sub.email}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(sub.created_at).toLocaleDateString(undefined, {
+                        month: "short", day: "numeric", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
+                      })}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{sub.message}</p>
                 </div>
               ))}
             </div>
