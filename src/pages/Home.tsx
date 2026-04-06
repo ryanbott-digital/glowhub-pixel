@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
-import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-/** Hook: observes elements with data-animate and adds "in-view" class on scroll */
+/* ── Scroll reveal hook ── */
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -11,14 +11,12 @@ function useScrollReveal() {
     if (!root) return;
     const targets = root.querySelectorAll("[data-animate]");
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            (e.target as HTMLElement).classList.add("in-view");
-            observer.unobserve(e.target);
-          }
-        });
-      },
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) {
+          (e.target as HTMLElement).classList.add("in-view");
+          observer.unobserve(e.target);
+        }
+      }),
       { threshold: 0.15 }
     );
     targets.forEach((t) => observer.observe(t));
@@ -27,8 +25,123 @@ function useScrollReveal() {
   return ref;
 }
 
+/* ── Magnetic button hook ── */
+function useMagnetic() {
+  const ref = useRef<HTMLAnchorElement>(null);
+
+  const handleMove = useCallback((e: MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    el.style.transform = `translate(${x * 0.25}px, ${y * 0.35}px)`;
+  }, []);
+
+  const handleLeave = useCallback(() => {
+    const el = ref.current;
+    if (el) el.style.transform = "translate(0,0)";
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.addEventListener("mousemove", handleMove);
+    el.addEventListener("mouseleave", handleLeave);
+    return () => {
+      el.removeEventListener("mousemove", handleMove);
+      el.removeEventListener("mouseleave", handleLeave);
+    };
+  }, [handleMove, handleLeave]);
+
+  return ref;
+}
+
+/* ── Live menu items for the mockup ── */
+const MENU_ITEMS = [
+  [
+    { name: "Flat White", price: "$4.50", tag: "Popular" },
+    { name: "Avocado Toast", price: "$12.00", tag: "" },
+    { name: "Açaí Bowl", price: "$14.00", tag: "New" },
+  ],
+  [
+    { name: "Espresso", price: "$3.50", tag: "" },
+    { name: "Croissant", price: "$5.00", tag: "Fresh" },
+    { name: "Matcha Latte", price: "$6.00", tag: "Popular" },
+  ],
+  [
+    { name: "Cold Brew", price: "$5.50", tag: "Bestseller" },
+    { name: "Salmon Bagel", price: "$13.00", tag: "" },
+    { name: "Smoothie Bowl", price: "$11.00", tag: "Healthy" },
+  ],
+];
+
+function LiveMenuMockup() {
+  const [menuIndex, setMenuIndex] = useState(0);
+  const [fading, setFading] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFading(true);
+      setTimeout(() => {
+        setMenuIndex((i) => (i + 1) % MENU_ITEMS.length);
+        setFading(false);
+      }, 600);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const items = MENU_ITEMS[menuIndex];
+
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#131C2E] p-4 sm:p-6 flex flex-col justify-between overflow-hidden relative">
+      {/* Ambient light */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#00A3A3]/10 rounded-full blur-[60px]" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#3B82F6]/10 rounded-full blur-[50px]" />
+
+      {/* Header */}
+      <div className="relative z-10 mb-3 sm:mb-4">
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="text-xs sm:text-sm font-bold text-[#E2E8F0] tracking-widest uppercase">Today's Menu</h4>
+          <div className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+            <span className="text-[8px] sm:text-[10px] text-[#00A3A3] font-medium">LIVE</span>
+          </div>
+        </div>
+        <div className="h-px bg-gradient-to-r from-[#00A3A3]/40 via-[#3B82F6]/30 to-transparent" />
+      </div>
+
+      {/* Menu items with crossfade */}
+      <div className={`relative z-10 flex-1 flex flex-col justify-center gap-2 sm:gap-3 transition-all duration-500 ${fading ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"}`}>
+        {items.map((item) => (
+          <div key={item.name} className="flex items-center justify-between py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-white/[0.03] border border-white/[0.05] backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-medium text-[#E2E8F0]">{item.name}</span>
+              {item.tag && (
+                <span className="text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#00A3A3]/15 text-[#00A3A3] uppercase tracking-wider">{item.tag}</span>
+              )}
+            </div>
+            <span className="text-xs sm:text-sm font-semibold text-[#94A3B8]">{item.price}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 mt-2 sm:mt-3 flex items-center justify-between">
+        <span className="text-[8px] sm:text-[10px] text-[#475569]">Powered by GLOW</span>
+        <div className="flex gap-0.5">
+          {MENU_ITEMS.map((_, i) => (
+            <div key={i} className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full transition-colors duration-300 ${i === menuIndex ? "bg-[#00A3A3]" : "bg-[#1E293B]"}`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const Home = () => {
   const wrapperRef = useScrollReveal();
+  const ctaRef = useMagnetic();
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -57,13 +170,14 @@ const Home = () => {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
+      {/* ── Hero with mesh gradient ── */}
       <section className="relative px-6 pt-20 sm:pt-28 pb-28 max-w-6xl mx-auto">
-        {/* Radiant background blurs */}
+        {/* Animated mesh gradient background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-[-20%] left-[10%] w-[500px] h-[500px] rounded-full bg-[#00A3A3]/[0.07] blur-[120px]" />
-          <div className="absolute top-[0%] right-[5%] w-[400px] h-[400px] rounded-full bg-[#3B82F6]/[0.06] blur-[100px]" />
-          <div className="absolute bottom-[10%] left-[30%] w-[350px] h-[350px] rounded-full bg-[#EC4899]/[0.05] blur-[110px]" />
+          <div className="mesh-blob mesh-blob-1" />
+          <div className="mesh-blob mesh-blob-2" />
+          <div className="mesh-blob mesh-blob-3" />
+          <div className="mesh-blob mesh-blob-4" />
         </div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -74,7 +188,7 @@ const Home = () => {
               Digital signage made simple
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight leading-[1.05] mb-6 uppercase">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-[0.04em] sm:tracking-[0.06em] leading-[1.05] mb-6 uppercase">
               Your Content.<br /> Any Screen.{" "}
               <span className="bg-gradient-to-r from-[#00A3A3] via-[#3B82F6] to-[#00A3A3] bg-clip-text text-transparent bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
                 Pure Glow.
@@ -86,8 +200,9 @@ const Home = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 lg:justify-start justify-center">
               <Link
+                ref={ctaRef}
                 to="/auth"
-                className="group inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold text-[#0B1120] bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
+                className="magnetic-cta group inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold text-[#0B1120] bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] transition-all duration-200 will-change-transform"
               >
                 Start Glowing for Free
                 <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
@@ -110,9 +225,7 @@ const Home = () => {
                 transformStyle: "preserve-3d",
               }}
             >
-              {/* Shadow underneath */}
               <div className="absolute -bottom-6 left-[10%] right-[10%] h-12 bg-[#00A3A3]/10 blur-[40px] rounded-full" />
-
               <div className="radiant-glow rounded-2xl">
                 <div className="bg-[#131C2E] rounded-2xl p-2.5 border border-[#1E293B]/60 shadow-2xl">
                   <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-[#00A3A3]/20 via-[#3B82F6]/15 to-[#EC4899]/10 flex items-center justify-center relative">
@@ -120,12 +233,28 @@ const Home = () => {
                     <GlowLogoImage className="h-14 sm:h-20 relative z-10 drop-shadow-[0_0_20px_rgba(0,163,163,0.3)]" />
                   </div>
                 </div>
-                {/* Stand */}
                 <div className="mx-auto w-20 h-3 bg-[#131C2E] rounded-b-lg border-x border-b border-[#1E293B]/60" />
                 <div className="mx-auto w-32 h-1.5 bg-[#131C2E] rounded-b-lg border-x border-b border-[#1E293B]/40 mt-[-1px]" />
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── Trusted-for ribbon ── */}
+      <section className="border-y border-[#1E293B]/40 bg-[#0B1120]/60 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
+          <span className="text-xs text-[#64748B] uppercase tracking-[0.2em] font-medium">Trusted for</span>
+          {[
+            { Icon: Coffee, label: "Cafés" },
+            { Icon: Dumbbell, label: "Gyms" },
+            { Icon: ShoppingBag, label: "Retailers" },
+          ].map(({ Icon, label }) => (
+            <div key={label} className="flex items-center gap-2.5 text-[#94A3B8]">
+              <Icon className="w-5 h-5 text-[#00A3A3]/70" />
+              <span className="text-sm font-medium tracking-wide">{label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -139,9 +268,7 @@ const Home = () => {
         </p>
 
         <div className="grid sm:grid-cols-3 gap-6 relative">
-          {/* Connector line (desktop only) */}
           <div className="hidden sm:block absolute top-12 left-[20%] right-[20%] h-px bg-gradient-to-r from-[#00A3A3]/30 via-[#3B82F6]/30 to-[#00A3A3]/30" />
-
           {[
             { step: "01", icon: <UserPlus className="w-7 h-7" />, title: "Sign Up", desc: "Create your free account in seconds. No credit card required." },
             { step: "02", icon: <Download className="w-7 h-7" />, title: "Sideload with Downloader", desc: "Use the 'Downloader' app to install Glow on any Firestick or Android TV." },
@@ -175,24 +302,9 @@ const Home = () => {
 
         <div className="grid sm:grid-cols-3 gap-6">
           {[
-            {
-              icon: <WifiOff className="w-7 h-7" />,
-              title: "Offline-First",
-              desc: "Content is cached locally. Your screens keep playing even when the internet drops.",
-              accent: "#00A3A3",
-            },
-            {
-              icon: <Activity className="w-7 h-7" />,
-              title: "Heartbeat Monitoring",
-              desc: "Real-time health pings tell you exactly which screens are online from your dashboard.",
-              accent: "#3B82F6",
-            },
-            {
-              icon: <CalendarClock className="w-7 h-7" />,
-              title: "Easy Scheduling",
-              desc: "Set weekly time-slot schedules per screen. The right playlist plays at the right time.",
-              accent: "#EC4899",
-            },
+            { icon: <WifiOff className="w-7 h-7" />, title: "Offline-First", desc: "Content is cached locally. Your screens keep playing even when the internet drops.", accent: "#00A3A3" },
+            { icon: <Activity className="w-7 h-7" />, title: "Heartbeat Monitoring", desc: "Real-time health pings tell you exactly which screens are online from your dashboard.", accent: "#3B82F6" },
+            { icon: <CalendarClock className="w-7 h-7" />, title: "Easy Scheduling", desc: "Set weekly time-slot schedules per screen. The right playlist plays at the right time.", accent: "#EC4899" },
           ].map((f, i) => (
             <div
               key={f.title}
@@ -213,6 +325,35 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ── Live Preview Showcase ── */}
+      <section className="px-6 py-24 max-w-5xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Any Content, Perfectly Rendered
+        </h2>
+        <p className="text-[#94A3B8] text-center mb-16 text-base max-w-lg mx-auto">
+          Smooth double-buffered transitions. No flicker. No black screens. Ever.
+        </p>
+
+        <div data-animate className="reveal-card max-w-2xl mx-auto" style={{ perspective: "1400px" }}>
+          <div
+            className="relative"
+            style={{ transform: "rotateY(-4deg) rotateX(2deg)", transformStyle: "preserve-3d" }}
+          >
+            {/* Glow underneath */}
+            <div className="absolute -bottom-8 left-[5%] right-[5%] h-16 bg-[#00A3A3]/8 blur-[50px] rounded-full" />
+
+            <div className="bg-[#131C2E] rounded-2xl p-3 border border-[#1E293B]/60 shadow-[0_25px_80px_rgba(0,163,163,0.12),0_10px_30px_rgba(0,0,0,0.4)]">
+              <div className="aspect-video rounded-lg overflow-hidden">
+                <LiveMenuMockup />
+              </div>
+            </div>
+            {/* Stand */}
+            <div className="mx-auto w-24 h-3.5 bg-[#131C2E] rounded-b-xl border-x border-b border-[#1E293B]/60" />
+            <div className="mx-auto w-40 h-2 bg-[#131C2E] rounded-b-xl border-x border-b border-[#1E293B]/40 mt-[-1px]" />
+          </div>
+        </div>
+      </section>
+
       {/* ── Pricing ── */}
       <section id="pricing" className="px-6 py-24 max-w-5xl mx-auto">
         <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
@@ -223,10 +364,10 @@ const Home = () => {
         </p>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          {/* Starter */}
+          {/* Starter — glassmorphism */}
           <div
             data-animate
-            className="reveal-card rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-xl p-8 flex flex-col hover:border-[#1E293B]/80 transition-all duration-300"
+            className="reveal-card glass-card rounded-2xl p-8 flex flex-col transition-all duration-300"
           >
             <h3 className="text-xl font-semibold mb-1">The Starter</h3>
             <p className="text-sm text-[#94A3B8] mb-6">Free forever</p>
@@ -234,14 +375,12 @@ const Home = () => {
               $0<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
             </div>
             <ul className="space-y-3.5 mb-8 flex-1">
-              {["1 Screen", "Basic Scheduling", "500MB Storage", "'Powered by GLOW' watermark"].map(
-                (f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
-                    <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
-                    {f}
-                  </li>
-                )
-              )}
+              {["1 Screen", "Basic Scheduling", "500MB Storage", "'Powered by GLOW' watermark"].map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
+                  <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
+                  {f}
+                </li>
+              ))}
             </ul>
             <Link
               to="/auth"
@@ -251,45 +390,44 @@ const Home = () => {
             </Link>
           </div>
 
-          {/* Pro Glow — animated glowing border */}
+          {/* Pro Glow — rotating conic gradient border */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl p-8 flex flex-col transition-all duration-300 pro-glow-card"
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300"
             style={{ transitionDelay: "120ms" }}
           >
-            {/* Best Value badge */}
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] shadow-[0_0_20px_rgba(0,163,163,0.3)]">
-              ✦ Best Value
-            </span>
+            {/* Rotating conic border wrapper */}
+            <div className="conic-border-wrapper rounded-2xl p-[2px]">
+              <div className="glass-card rounded-[14px] p-8 flex flex-col h-full">
+                {/* Best Value badge */}
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] shadow-[0_0_20px_rgba(0,163,163,0.3)]">
+                  ✦ Best Value
+                </span>
 
-            <h3 className="text-xl font-semibold mb-1">The Pro Glow</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">For serious signage</p>
-            <div className="text-5xl font-extrabold mb-2">
-              $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+                <h3 className="text-xl font-semibold mb-1">The Pro Glow</h3>
+                <p className="text-sm text-[#94A3B8] mb-6">For serious signage</p>
+                <div className="text-5xl font-extrabold mb-2">
+                  $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+                </div>
+                <p className="text-base font-bold text-[#00A3A3] mb-8">
+                  Up to 5 Screens
+                </p>
+                <ul className="space-y-3.5 mb-8 flex-1">
+                  {["No Watermarks", "Offline Mode (Cache)", "Screen Health Monitoring", "5GB Storage", "Priority Support"].map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
+                      <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to="/auth"
+                  className="block text-center py-3 rounded-xl font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
+                >
+                  Go Pro
+                </Link>
+              </div>
             </div>
-            <p className="text-base font-bold text-[#00A3A3] mb-8">
-              Up to 5 Screens
-            </p>
-            <ul className="space-y-3.5 mb-8 flex-1">
-              {[
-                "No Watermarks",
-                "Offline Mode (Cache)",
-                "Screen Health Monitoring",
-                "5GB Storage",
-                "Priority Support",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
-                  <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              to="/auth"
-              className="block text-center py-3 rounded-xl font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
-            >
-              Go Pro
-            </Link>
           </div>
         </div>
       </section>
@@ -307,7 +445,7 @@ const Home = () => {
         </div>
       </footer>
 
-      {/* Inline styles for animations */}
+      {/* ── Styles ── */}
       <style>{`
         @keyframes shimmer {
           0% { background-position: 200% center; }
@@ -325,22 +463,87 @@ const Home = () => {
           transform: translateY(0);
         }
 
-        /* Animated glowing border for Pro card */
-        @keyframes border-glow {
-          0%, 100% {
-            border-color: rgba(0,163,163,0.4);
-            box-shadow: 0 0 30px rgba(0,163,163,0.1), 0 0 60px rgba(59,130,246,0.05);
-          }
-          50% {
-            border-color: rgba(59,130,246,0.5);
-            box-shadow: 0 0 40px rgba(0,163,163,0.18), 0 0 80px rgba(59,130,246,0.1);
-          }
+        /* ── Mesh gradient blobs ── */
+        .mesh-blob {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(120px);
+          will-change: transform;
         }
-        .pro-glow-card {
-          border: 1px solid rgba(0,163,163,0.4);
-          background: rgba(15,23,42,0.6);
-          backdrop-filter: blur(16px);
-          animation: border-glow 3s ease-in-out infinite;
+        .mesh-blob-1 {
+          width: 600px; height: 600px;
+          top: -15%; left: 5%;
+          background: rgba(0,163,163,0.08);
+          animation: mesh-drift-1 12s ease-in-out infinite alternate;
+        }
+        .mesh-blob-2 {
+          width: 500px; height: 500px;
+          top: 10%; right: 0%;
+          background: rgba(59,130,246,0.07);
+          animation: mesh-drift-2 14s ease-in-out infinite alternate;
+        }
+        .mesh-blob-3 {
+          width: 400px; height: 400px;
+          bottom: 5%; left: 25%;
+          background: rgba(236,72,153,0.06);
+          animation: mesh-drift-3 16s ease-in-out infinite alternate;
+        }
+        .mesh-blob-4 {
+          width: 350px; height: 350px;
+          top: 30%; left: 50%;
+          background: rgba(249,115,22,0.04);
+          animation: mesh-drift-4 18s ease-in-out infinite alternate;
+        }
+        @keyframes mesh-drift-1 {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(60px, 40px) scale(1.15); }
+        }
+        @keyframes mesh-drift-2 {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(-50px, 50px) scale(1.1); }
+        }
+        @keyframes mesh-drift-3 {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(40px, -30px) scale(1.2); }
+        }
+        @keyframes mesh-drift-4 {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(-30px, 20px) scale(1.1); }
+        }
+
+        /* ── Magnetic CTA ── */
+        .magnetic-cta {
+          box-shadow: 0 0 20px rgba(0,163,163,0.2);
+          transition: box-shadow 0.3s ease, transform 0.15s ease;
+        }
+        .magnetic-cta:hover {
+          box-shadow: 0 0 50px rgba(0,163,163,0.5), 0 0 100px rgba(59,130,246,0.2);
+        }
+
+        /* ── Glassmorphism card ── */
+        .glass-card {
+          background: rgba(15,23,42,0.5);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* ── Rotating conic gradient border ── */
+        @property --conic-angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
+        }
+        @keyframes conic-spin {
+          to { --conic-angle: 360deg; }
+        }
+        .conic-border-wrapper {
+          background: conic-gradient(
+            from var(--conic-angle),
+            #00A3A3, #3B82F6, #EC4899, #F97316, #00A3A3
+          );
+          animation: conic-spin 4s linear infinite;
+          box-shadow: 0 0 40px rgba(0,163,163,0.15), 0 0 80px rgba(59,130,246,0.08);
         }
       `}</style>
     </div>
