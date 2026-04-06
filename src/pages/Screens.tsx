@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
+import { checkScreenLimit } from "@/lib/subscription";
+import { useNavigate } from "react-router-dom";
 
 interface Screen {
   id: string;
@@ -26,6 +28,7 @@ interface Playlist {
 }
 
 export default function Screens() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
