@@ -13,7 +13,7 @@ import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { checkScreenLimit } from "@/lib/subscription";
 import { useNavigate } from "react-router-dom";
-import { ScreenGroupManager, type ScreenGroup } from "@/components/screens/ScreenGroupManager";
+import { ScreenGroupManager, type ScreenGroup, getGroupColorClass } from "@/components/screens/ScreenGroupManager";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { DraggableScreenWrapper } from "@/components/screens/DraggableScreenWrapper";
@@ -498,7 +498,7 @@ export default function Screens() {
             >
               <CollapsibleTrigger asChild>
                 <button className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors w-full text-left py-1">
-                  <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                  <span className={`inline-block h-3 w-3 rounded-full ${getGroupColorClass(group.color)}`} />
                   {group.name}
                   <span className="text-xs font-normal text-muted-foreground">
                     ({groupScreens.length} screen{groupScreens.length !== 1 ? "s" : ""})
