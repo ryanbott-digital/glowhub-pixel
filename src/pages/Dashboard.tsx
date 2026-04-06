@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2 } from "lucide-react";
+import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2, Rocket, PartyPopper } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,11 +14,15 @@ import { toast } from "sonner";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [pairingCode, setPairingCode] = useState("");
   const [screens, setScreens] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [newScreenName, setNewScreenName] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -33,12 +39,78 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
+  const triggerCelebration = useCallback((screenName?: string) => {
+    setNewScreenName(screenName || "Your screen");
+    setConfettiActive(true);
+    setShowCelebration(true);
+    setTimeout(() => setConfettiActive(false), 4000);
+  }, []);
+
+  // Realtime: listen for new screens being paired to this user
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("dashboard-screens")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const newScreen = payload.new as any;
+          setScreens((prev) => [...prev, newScreen]);
+          triggerCelebration(newScreen.name);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          setScreens((prev) => prev.map((s) => (s.id === (payload.new as any).id ? payload.new : s)));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, triggerCelebration]);
+
   const handlePair = async () => {
     if (pairingCode.length !== 6) {
       toast.error("Please enter a 6-digit pairing code");
       return;
     }
-    toast.info("Pairing feature coming soon!");
+    // Attempt to claim the pairing code
+    const { data: pairing, error: pairingErr } = await supabase
+      .from("pairings")
+      .select("id, screen_id, expires_at")
+      .eq("pairing_code", pairingCode)
+      .maybeSingle();
+
+    if (pairingErr || !pairing) {
+      toast.error("Invalid pairing code. Please try again.");
+      setPairingCode("");
+      return;
+    }
+    if (new Date(pairing.expires_at) < new Date()) {
+      toast.error("This pairing code has expired. Generate a new one on the TV.");
+      setPairingCode("");
+      return;
+    }
+    if (!pairing.screen_id) {
+      toast.error("No screen associated with this code.");
+      setPairingCode("");
+      return;
+    }
+    // Claim the screen
+    const { error: claimErr } = await supabase
+      .from("screens")
+      .update({ user_id: user!.id, status: "online", pairing_code: null })
+      .eq("id", pairing.screen_id);
+
+    if (claimErr) {
+      toast.error("Failed to pair screen. " + claimErr.message);
+    } else {
+      // Delete used pairing
+      await supabase.from("pairings").delete().eq("id", pairing.id);
+      triggerCelebration();
+    }
     setPairingCode("");
   };
 
@@ -61,7 +133,92 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in relative">
+      {/* Confetti burst */}
+      {confettiActive && (
+        <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-sm"
+              style={{
+                width: `${Math.random() * 8 + 4}px`,
+                height: `${Math.random() * 12 + 6}px`,
+                left: `${Math.random() * 100}%`,
+                top: "-5%",
+                background: [
+                  "hsl(var(--primary))",
+                  "hsl(var(--accent))",
+                  "hsl(180, 100%, 45%)",
+                  "hsl(280, 80%, 60%)",
+                  "hsl(45, 100%, 60%)",
+                  "hsl(330, 80%, 60%)",
+                ][i % 6],
+                animation: `confettiFall ${2 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+              }}
+            />
+          ))}
+          <style>{`
+            @keyframes confettiFall {
+              0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+              100% { transform: translateY(100vh) rotate(${720}deg) scale(0.5); opacity: 0; }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* Celebration Modal */}
+      <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
+        <DialogContent className="glass border-primary/20 sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{
+                background: "rgba(0,163,163,0.1)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid rgba(0,163,163,0.3)",
+                boxShadow: "0 0 30px rgba(0,163,163,0.2), 0 0 60px rgba(0,163,163,0.1)",
+                animation: "celebPulse 2s ease-in-out infinite",
+              }}
+            >
+              <PartyPopper className="h-10 w-10 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-foreground">
+              Your screen is now Glowing! 🚀
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-base mt-2">
+              <span className="font-medium text-foreground">{newScreenName}</span> has been successfully paired and is ready to display content.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              onClick={() => {
+                setShowCelebration(false);
+                navigate("/playlists");
+              }}
+              className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--glow-blue))] text-primary-foreground magnetic-btn w-full gap-2"
+            >
+              <Rocket className="h-4 w-4" />
+              Create your first Playlist
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setShowCelebration(false)}
+              className="text-muted-foreground"
+            >
+              I'll do this later
+            </Button>
+          </div>
+          <style>{`
+            @keyframes celebPulse {
+              0%, 100% { box-shadow: 0 0 30px rgba(0,163,163,0.2), 0 0 60px rgba(0,163,163,0.1); }
+              50% { box-shadow: 0 0 40px rgba(0,163,163,0.35), 0 0 80px rgba(0,163,163,0.2); }
+            }
+          `}</style>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
         {subscriptionTier !== "free" && (
