@@ -5,6 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
+import StarField from "@/components/StarField";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 /* ── Scroll reveal hook ── */
@@ -228,6 +229,7 @@ const Home = () => {
       <section className="relative px-6 pt-20 sm:pt-28 pb-28 max-w-6xl mx-auto">
         {/* Animated mesh gradient background */}
         <div ref={blobContainerRef} className="absolute inset-0 -z-10 overflow-hidden">
+          <StarField className="absolute inset-0 z-0" />
           <div className="mesh-blob mesh-blob-1" data-parallax-speed="-0.15" />
           <div className="mesh-blob mesh-blob-2" data-parallax-speed="-0.25" />
           <div className="mesh-blob mesh-blob-3" data-parallax-speed="-0.1" />
