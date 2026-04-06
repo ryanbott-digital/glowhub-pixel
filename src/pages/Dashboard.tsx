@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2, Rocket, PartyPopper, Terminal } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { PairSuccessModal } from "@/components/PairSuccessModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -22,8 +22,8 @@ export default function Dashboard() {
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [portalLoading, setPortalLoading] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [confettiActive, setConfettiActive] = useState(false);
   const [newScreenName, setNewScreenName] = useState("");
+  const [onlineFlash, setOnlineFlash] = useState(false);
   const [mediaCount, setMediaCount] = useState(0);
 
   useEffect(() => {
@@ -43,33 +43,12 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
-  const playCelebrationSound = useCallback(() => {
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.5);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.12);
-        osc.stop(ctx.currentTime + i * 0.12 + 0.5);
-      });
-    } catch {}
-  }, []);
-
   const triggerCelebration = useCallback((screenName?: string) => {
     setNewScreenName(screenName || "Your screen");
-    const showConfetti = localStorage.getItem("glowhub_pair_confetti") !== "false";
-    const playSound = localStorage.getItem("glowhub_pair_sound") !== "false";
-    if (showConfetti) setConfettiActive(true);
     setShowCelebration(true);
-    if (playSound) playCelebrationSound();
-    if (showConfetti) setTimeout(() => setConfettiActive(false), 4000);
-  }, [playCelebrationSound]);
+    setOnlineFlash(true);
+    setTimeout(() => setOnlineFlash(false), 1500);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -153,83 +132,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5 animate-fade-in relative">
-      {/* Confetti burst */}
-      {confettiActive && (
-        <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
-          {Array.from({ length: 60 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute rounded-sm"
-              style={{
-                width: `${Math.random() * 8 + 4}px`,
-                height: `${Math.random() * 12 + 6}px`,
-                left: `${Math.random() * 100}%`,
-                top: "-5%",
-                background: [
-                  "hsl(180, 100%, 45%)",
-                  "hsl(220, 80%, 55%)",
-                  "hsl(280, 80%, 60%)",
-                  "hsl(45, 100%, 60%)",
-                  "hsl(330, 80%, 60%)",
-                  "hsl(150, 70%, 50%)",
-                ][i % 6],
-                animation: `confettiFall ${2 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`,
-                transform: `rotate(${Math.random() * 360}deg)`,
-              }}
-            />
-          ))}
-          <style>{`
-            @keyframes confettiFall {
-              0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-              100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
-            }
-          `}</style>
-        </div>
-      )}
-
-      {/* Celebration Modal */}
-      <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
-        <DialogContent className="glass-strong border-primary/20 sm:max-w-md text-center">
-          <DialogHeader className="items-center">
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-              style={{
-                background: "hsla(180, 100%, 45%, 0.08)",
-                backdropFilter: "blur(20px)",
-                border: "1px solid hsla(180, 100%, 45%, 0.2)",
-                boxShadow: "0 0 30px hsla(180, 100%, 45%, 0.15), 0 0 60px hsla(180, 100%, 45%, 0.08)",
-                animation: "celebPulse 2s ease-in-out infinite",
-              }}
-            >
-              <PartyPopper className="h-10 w-10 text-primary" />
-            </div>
-            <DialogTitle className="text-2xl font-bold text-foreground tracking-wide">
-              Your screen is now Glowing! 🚀
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-base mt-2">
-              <span className="font-medium text-foreground">{newScreenName}</span> has been successfully paired and is ready to display content.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 mt-4">
-            <Button
-              onClick={() => { setShowCelebration(false); navigate("/playlists"); }}
-              className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground magnetic-btn w-full gap-2"
-            >
-              <Rocket className="h-4 w-4" />
-              Create your first Playlist
-            </Button>
-            <Button variant="ghost" onClick={() => setShowCelebration(false)} className="text-muted-foreground">
-              I'll do this later
-            </Button>
-          </div>
-          <style>{`
-            @keyframes celebPulse {
-              0%, 100% { box-shadow: 0 0 30px hsla(180,100%,45%,0.15), 0 0 60px hsla(180,100%,45%,0.08); }
-              50% { box-shadow: 0 0 40px hsla(180,100%,45%,0.3), 0 0 80px hsla(180,100%,45%,0.15); }
-            }
-          `}</style>
-        </DialogContent>
-      </Dialog>
+      {/* Success Modal */}
+      <PairSuccessModal open={showCelebration} onOpenChange={setShowCelebration} screenName={newScreenName} />
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -277,11 +181,11 @@ export default function Dashboard() {
         <div className="glass glass-spotlight rounded-2xl p-5 relative overflow-hidden">
           <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase mb-3">Screens</h3>
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2.5">
+            <div className={`flex items-center gap-2.5 transition-all duration-500 ${onlineFlash ? "neon-online-flash" : ""}`}>
               <div className="relative">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 heartbeat-pulse" />
               </div>
-              <span className="text-2xl font-bold text-foreground tabular-nums">{onlineCount}</span>
+              <span className={`text-2xl font-bold tabular-nums transition-all duration-500 ${onlineFlash ? "text-emerald-400" : "text-foreground"}`} style={onlineFlash ? { textShadow: "0 0 12px hsl(150, 100%, 50%)" } : {}}>{onlineCount}</span>
               <span className="text-[11px] text-muted-foreground tracking-wider uppercase">Online</span>
             </div>
             <div className="flex items-center gap-2.5">
