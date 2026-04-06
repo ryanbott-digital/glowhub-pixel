@@ -164,11 +164,12 @@ const Home = () => {
     setMousePos({ x: e.clientX, y: e.clientY });
   }, []);
 
-  // Scroll-triggered parallax for mesh blobs
+  // Scroll-triggered parallax for mesh blobs + second TV
   useEffect(() => {
     const container = blobContainerRef.current;
-    if (!container) return;
-    const blobs = container.querySelectorAll<HTMLElement>("[data-parallax-speed]");
+    const secondTv = secondTvRef.current;
+    if (!container && !secondTv) return;
+    const blobs = container?.querySelectorAll<HTMLElement>("[data-parallax-speed]") || [];
 
     let ticking = false;
     const onScroll = () => {
@@ -180,6 +181,15 @@ const Home = () => {
           const speed = parseFloat(blob.dataset.parallaxSpeed || "0");
           blob.style.transform = `translateY(${scrollY * speed}px)`;
         });
+        // Parallax for second TV mockup
+        if (secondTv) {
+          const rect = secondTv.getBoundingClientRect();
+          const viewH = window.innerHeight;
+          const progress = (viewH - rect.top) / (viewH + rect.height);
+          const clamped = Math.max(0, Math.min(1, progress));
+          const offset = (clamped - 0.5) * -30; // ±15px
+          secondTv.style.transform = `translateY(${offset}px)`;
+        }
         ticking = false;
       });
     };
