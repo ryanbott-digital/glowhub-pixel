@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare, Sparkles, Crown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare, Sparkles, Crown, FolderOpen } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +13,8 @@ import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { checkScreenLimit } from "@/lib/subscription";
 import { useNavigate } from "react-router-dom";
+import { ScreenGroupManager, type ScreenGroup } from "@/components/screens/ScreenGroupManager";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Screen {
   id: string;
@@ -21,6 +23,7 @@ interface Screen {
   status: string;
   current_playlist_id: string | null;
   last_ping: string | null;
+  group_id: string | null;
 }
 
 interface Playlist {
@@ -33,7 +36,9 @@ export default function Screens() {
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [groups, setGroups] = useState<ScreenGroup[]>([]);
   const [newName, setNewName] = useState("");
+  const [newGroupId, setNewGroupId] = useState<string>("none");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pairOpen, setPairOpen] = useState(false);
   const [pairingCode, setPairingCode] = useState("");
@@ -44,6 +49,7 @@ export default function Screens() {
   const [tierName, setTierName] = useState("free");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const selectionMode = selectedIds.size > 0;
   const atLimit = screenLimit !== null && screens.length >= screenLimit;
@@ -55,12 +61,14 @@ export default function Screens() {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [s, p] = await Promise.all([
+    const [s, p, g] = await Promise.all([
       supabase.from("screens").select("*").eq("user_id", user.id).order("created_at"),
       supabase.from("playlists").select("id, title").eq("user_id", user.id),
+      supabase.from("screen_groups").select("*").eq("user_id", user.id).order("created_at"),
     ]);
-    if (s.data) setScreens(s.data);
+    if (s.data) setScreens(s.data as Screen[]);
     if (p.data) setPlaylists(p.data);
+    if (g.data) setGroups(g.data as ScreenGroup[]);
 
     const { limit, tier } = await checkScreenLimit(user.id);
     setScreenLimit(limit);
@@ -73,31 +81,31 @@ export default function Screens() {
 
   const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+  const showUpgradeModal = (tier: string, limit: number) => {
+    if (tier === "pro") {
+      setUpgradeMessage({ title: "Pro Limit Reached", description: `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan with unlimited screens.`, showUpgrade: false });
+    } else {
+      setUpgradeMessage({ title: "Upgrade to Pro", description: `Your ${tier === "free" ? "Free" : "Basic"} plan supports ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro to manage up to 5 screens.`, showUpgrade: true });
+    }
+    setUpgradeOpen(true);
+  };
+
   const createScreen = async () => {
     if (!user || !newName.trim()) return;
+    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    if (!allowed) { showUpgradeModal(tier, limit); return; }
 
-    const { allowed, limit, tier, currentCount } = await checkScreenLimit(user.id);
-    if (!allowed) {
-      if (tier === "pro") {
-        setUpgradeMessage({ title: "Pro Limit Reached", description: `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan with unlimited screens.`, showUpgrade: false });
-      } else {
-        setUpgradeMessage({ title: "Upgrade to Pro", description: `Your ${tier === "free" ? "Free" : "Basic"} plan supports ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro to manage up to 5 screens.`, showUpgrade: true });
-      }
-      setUpgradeOpen(true);
-      return;
-    }
     const code = generateCode();
     const { error } = await supabase.from("screens").insert({
       user_id: user.id,
       name: newName.trim(),
       pairing_code: code,
+      group_id: newGroupId === "none" ? null : newGroupId,
     });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    if (error) { toast.error(error.message); return; }
     toast.success("Screen created! Pairing code: " + code);
     setNewName("");
+    setNewGroupId("none");
     setDialogOpen(false);
     fetchData();
   };
@@ -105,61 +113,37 @@ export default function Screens() {
   const pairScreen = async () => {
     if (!user || pairingCode.length !== 6) return;
     setPairing(true);
-
-    const { allowed, limit, tier, currentCount } = await checkScreenLimit(user.id);
-    if (!allowed) {
-      if (tier === "pro") {
-        setUpgradeMessage({ title: "Pro Limit Reached", description: `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan with unlimited screens.`, showUpgrade: false });
-      } else {
-        setUpgradeMessage({ title: "Upgrade to Pro", description: `Your ${tier === "free" ? "Free" : "Basic"} plan supports ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro to manage up to 5 screens.`, showUpgrade: true });
-      }
-      setUpgradeOpen(true);
-      setPairing(false);
-      return;
-    }
+    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    if (!allowed) { showUpgradeModal(tier, limit); setPairing(false); return; }
 
     try {
       const { data: screen, error: findErr } = await supabase
-        .from("screens")
-        .select("id, name, user_id")
-        .eq("pairing_code", pairingCode)
-        .maybeSingle();
-
+        .from("screens").select("id, name, user_id")
+        .eq("pairing_code", pairingCode).maybeSingle();
       if (findErr) { toast.error("Error looking up code"); return; }
-      if (!screen) { toast.error("No screen found with that code. Please check and try again."); return; }
+      if (!screen) { toast.error("No screen found with that code."); return; }
       if (screen.user_id === user.id) { toast.error("This screen is already linked to your account."); return; }
 
       const { error: updateErr } = await supabase
-        .from("screens")
-        .update({ user_id: user.id, pairing_code: null })
-        .eq("id", screen.id)
-        .eq("pairing_code", pairingCode);
+        .from("screens").update({ user_id: user.id, pairing_code: null })
+        .eq("id", screen.id).eq("pairing_code", pairingCode);
+      if (updateErr) { toast.error("Failed to pair: " + updateErr.message); return; }
 
-      if (updateErr) { toast.error("Failed to pair screen: " + updateErr.message); return; }
-
-      toast.success(`Screen "${screen.name}" successfully linked to your account!`);
+      toast.success(`Screen "${screen.name}" linked!`);
       setPairingCode("");
       setPairOpen(false);
       fetchData();
-    } finally {
-      setPairing(false);
-    }
+    } finally { setPairing(false); }
   };
 
   const publishPlaylist = async (screenId: string, playlistId: string) => {
-    const { error } = await supabase
-      .from("screens")
-      .update({ current_playlist_id: playlistId })
-      .eq("id", screenId);
+    const { error } = await supabase.from("screens").update({ current_playlist_id: playlistId }).eq("id", screenId);
     if (error) { toast.error(error.message); return; }
     const playlist = playlists.find((p) => p.id === playlistId);
     if (user) {
       await supabase.from("screen_activity_logs").insert({
-        screen_id: screenId,
-        user_id: user.id,
-        action: "Playlist published",
-        playlist_id: playlistId,
-        playlist_title: playlist?.title || "Unknown",
+        screen_id: screenId, user_id: user.id, action: "Playlist published",
+        playlist_id: playlistId, playlist_title: playlist?.title || "Unknown",
       });
     }
     toast.success("Playlist published to screen!");
@@ -173,9 +157,15 @@ export default function Screens() {
   };
 
   const copyDisplayUrl = (screenId: string) => {
-    const url = `${window.location.origin}/display/${screenId}`;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(`${window.location.origin}/display/${screenId}`);
     toast.success("Display URL copied!");
+  };
+
+  const moveScreenToGroup = async (screenId: string, groupId: string | null) => {
+    const { error } = await supabase.from("screens").update({ group_id: groupId }).eq("id", screenId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Screen moved");
+    fetchData();
   };
 
   // ── Bulk actions ──
@@ -188,41 +178,23 @@ export default function Screens() {
   };
 
   const selectAll = () => {
-    if (selectedIds.size === screens.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(screens.map((s) => s.id)));
-    }
+    setSelectedIds(selectedIds.size === screens.length ? new Set() : new Set(screens.map((s) => s.id)));
   };
 
-  const clearSelection = () => {
-    setSelectedIds(new Set());
-    setBulkPlaylistId("");
-  };
+  const clearSelection = () => { setSelectedIds(new Set()); setBulkPlaylistId(""); };
 
   const bulkPublish = async () => {
     if (!bulkPlaylistId || selectedIds.size === 0 || !user) return;
     const ids = Array.from(selectedIds);
     const playlist = playlists.find((p) => p.id === bulkPlaylistId);
-
-    const { error } = await supabase
-      .from("screens")
-      .update({ current_playlist_id: bulkPlaylistId })
-      .in("id", ids);
-
+    const { error } = await supabase.from("screens").update({ current_playlist_id: bulkPlaylistId }).in("id", ids);
     if (error) { toast.error(error.message); return; }
-
-    // Log activity for each
     await supabase.from("screen_activity_logs").insert(
       ids.map((screenId) => ({
-        screen_id: screenId,
-        user_id: user.id,
-        action: "Playlist published (bulk)",
-        playlist_id: bulkPlaylistId,
-        playlist_title: playlist?.title || "Unknown",
+        screen_id: screenId, user_id: user.id, action: "Playlist published (bulk)",
+        playlist_id: bulkPlaylistId, playlist_title: playlist?.title || "Unknown",
       }))
     );
-
     toast.success(`Playlist published to ${ids.length} screen(s)`);
     clearSelection();
     fetchData();
@@ -238,9 +210,67 @@ export default function Screens() {
     fetchData();
   };
 
+  const bulkMoveToGroup = async (groupId: string | null) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("screens").update({ group_id: groupId }).in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${ids.length} screen(s) moved`);
+    clearSelection();
+    fetchData();
+  };
+
+  const toggleGroupCollapse = (groupId: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
+      return next;
+    });
+  };
+
+  // ── Organize screens by group ──
+  const ungroupedScreens = screens.filter((s) => !s.group_id);
+  const groupedScreenMap = groups.map((g) => ({
+    group: g,
+    screens: screens.filter((s) => s.group_id === g.id),
+  }));
+
+  const renderScreenCard = (screen: Screen) => (
+    <div key={screen.id} className="relative">
+      {selectionMode && (
+        <div className="absolute top-2 left-2 z-20">
+          <Checkbox
+            checked={selectedIds.has(screen.id)}
+            onCheckedChange={() => toggleSelect(screen.id)}
+            className="h-5 w-5 border-white/50 bg-black/40 backdrop-blur-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+          />
+        </div>
+      )}
+      <div
+        className={`transition-all duration-150 ${
+          selectionMode
+            ? selectedIds.has(screen.id) ? "ring-2 ring-primary rounded-xl" : "opacity-60"
+            : ""
+        }`}
+        onClick={selectionMode ? (e) => { e.stopPropagation(); toggleSelect(screen.id); } : undefined}
+      >
+        <ScreenStatusCard
+          screen={screen}
+          playlists={playlists}
+          onPublish={publishPlaylist}
+          onDelete={deleteScreen}
+          onCopyUrl={copyDisplayUrl}
+          groups={groups}
+          onMoveToGroup={moveScreenToGroup}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-foreground">Screens</h1>
           {screenLimit !== null && (
@@ -268,7 +298,7 @@ export default function Screens() {
             </TooltipProvider>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {screens.length > 0 && (
             <Button variant="outline" size="sm" onClick={selectAll}>
               <CheckSquare className="h-4 w-4 mr-1" />
@@ -276,68 +306,49 @@ export default function Screens() {
             </Button>
           )}
 
-          {/* Pair Screen — disabled at limit with tooltip */}
+          <ScreenGroupManager groups={groups} userId={user?.id || ""} onRefresh={fetchData} />
+
+          {/* Pair Screen */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="inline-flex">
-                  <Button
-                    variant="outline"
-                    disabled={atLimit}
-                    onClick={() => !atLimit && setPairOpen(true)}
-                  >
+                  <Button variant="outline" disabled={atLimit} onClick={() => !atLimit && setPairOpen(true)}>
                     <Link2 className="h-4 w-4 mr-2" /> Pair Screen
                   </Button>
                 </span>
               </TooltipTrigger>
-              {atLimit && (
-                <TooltipContent>
-                  <p>{limitTooltip}</p>
-                </TooltipContent>
-              )}
+              {atLimit && <TooltipContent><p>{limitTooltip}</p></TooltipContent>}
             </Tooltip>
           </TooltipProvider>
 
-          {/* Add Screen — disabled at limit with tooltip */}
+          {/* Add Screen */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="inline-flex">
-                  <Button
-                    disabled={atLimit}
-                    onClick={() => !atLimit && setDialogOpen(true)}
-                  >
+                  <Button disabled={atLimit} onClick={() => !atLimit && setDialogOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" /> Add Screen
                   </Button>
                 </span>
               </TooltipTrigger>
-              {atLimit && (
-                <TooltipContent>
-                  <p>{limitTooltip}</p>
-                </TooltipContent>
-              )}
+              {atLimit && <TooltipContent><p>{limitTooltip}</p></TooltipContent>}
             </Tooltip>
           </TooltipProvider>
 
           {/* Pair Dialog */}
           <Dialog open={pairOpen} onOpenChange={setPairOpen}>
             <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Pair a Screen</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Pair a Screen</DialogTitle></DialogHeader>
               <div className="space-y-6 py-4">
                 <p className="text-sm text-muted-foreground text-center">
-                  Enter the 6-digit code shown on your display device to link it to your account.
+                  Enter the 6-digit code shown on your display device.
                 </p>
                 <div className="flex justify-center">
                   <InputOTP maxLength={6} value={pairingCode} onChange={setPairingCode}>
                     <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
+                      <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
@@ -351,15 +362,22 @@ export default function Screens() {
           {/* Add Screen Dialog */}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Screen</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Add Screen</DialogTitle></DialogHeader>
               <div className="space-y-4">
-                <Input
-                  placeholder="Screen name (e.g. Lobby TV)"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
+                <Input placeholder="Screen name (e.g. Lobby TV)" value={newName} onChange={(e) => setNewName(e.target.value)} />
+                {groups.length > 0 && (
+                  <Select value={newGroupId} onValueChange={setNewGroupId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Assign to group (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No group</SelectItem>
+                      {groups.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <Button onClick={createScreen} className="w-full">Create</Button>
               </div>
             </DialogContent>
@@ -367,28 +385,31 @@ export default function Screens() {
         </div>
       </div>
 
-      {/* Batch action toolbar */}
+      {/* Bulk action toolbar */}
       {selectionMode && (
-        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 animate-fade-in">
-          <span className="text-sm font-medium text-foreground">
-            {selectedIds.size} selected
-          </span>
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 animate-fade-in flex-wrap">
+          <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
           <div className="h-4 w-px bg-border" />
 
           <Select value={bulkPlaylistId} onValueChange={setBulkPlaylistId}>
-            <SelectTrigger className="w-48 h-8 text-xs">
-              <SelectValue placeholder="Choose playlist…" />
-            </SelectTrigger>
+            <SelectTrigger className="w-48 h-8 text-xs"><SelectValue placeholder="Choose playlist…" /></SelectTrigger>
             <SelectContent>
-              {playlists.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-              ))}
+              {playlists.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
             </SelectContent>
           </Select>
-
           <Button size="sm" className="h-8" disabled={!bulkPlaylistId} onClick={bulkPublish}>
             <Send className="h-3 w-3 mr-1" /> Publish All
           </Button>
+
+          {groups.length > 0 && (
+            <Select onValueChange={(v) => bulkMoveToGroup(v === "none" ? null : v)}>
+              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Move to group…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Ungrouped</SelectItem>
+                {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
 
           <Button size="sm" variant="destructive" className="h-8" onClick={bulkDelete}>
             <Trash2 className="h-3 w-3 mr-1" /> Delete All
@@ -401,40 +422,47 @@ export default function Screens() {
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {screens.map((screen) => (
-          <div key={screen.id} className="relative">
-            {/* Selection checkbox overlay */}
-            {selectionMode && (
-              <div className="absolute top-2 left-2 z-20">
-                <Checkbox
-                  checked={selectedIds.has(screen.id)}
-                  onCheckedChange={() => toggleSelect(screen.id)}
-                  className="h-5 w-5 border-white/50 bg-black/40 backdrop-blur-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                />
-              </div>
-            )}
-            <div
-              className={`transition-all duration-150 ${
-                selectionMode
-                  ? selectedIds.has(screen.id)
-                    ? "ring-2 ring-primary rounded-xl"
-                    : "opacity-60"
-                  : ""
-              }`}
-              onClick={selectionMode ? (e) => { e.stopPropagation(); toggleSelect(screen.id); } : undefined}
-            >
-              <ScreenStatusCard
-                screen={screen}
-                playlists={playlists}
-                onPublish={publishPlaylist}
-                onDelete={deleteScreen}
-                onCopyUrl={copyDisplayUrl}
-              />
-            </div>
+      {/* Ungrouped screens */}
+      {ungroupedScreens.length > 0 && (
+        <div className="space-y-3">
+          {groups.length > 0 && (
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              All Screens
+            </h2>
+          )}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {ungroupedScreens.map(renderScreenCard)}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Grouped screens */}
+      {groupedScreenMap.map(({ group, screens: groupScreens }) => (
+        <Collapsible
+          key={group.id}
+          open={!collapsedGroups.has(group.id)}
+          onOpenChange={() => toggleGroupCollapse(group.id)}
+        >
+          <CollapsibleTrigger asChild>
+            <button className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors w-full text-left py-1">
+              <FolderOpen className="h-4 w-4 text-muted-foreground" />
+              {group.name}
+              <span className="text-xs font-normal text-muted-foreground">
+                ({groupScreens.length} screen{groupScreens.length !== 1 ? "s" : ""})
+              </span>
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {groupScreens.length > 0 ? (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3">
+                {groupScreens.map(renderScreenCard)}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-3 pl-6">No screens in this group</p>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      ))}
 
       {screens.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
@@ -460,9 +488,7 @@ export default function Screens() {
                 <Crown className="h-4 w-4 mr-2" /> View Plans
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => setUpgradeOpen(false)}>
-                Got it
-              </Button>
+              <Button variant="outline" onClick={() => setUpgradeOpen(false)}>Got it</Button>
             )}
           </div>
         </DialogContent>
