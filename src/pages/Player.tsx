@@ -53,7 +53,11 @@ const TV_STYLES = `
 
 export default function Player() {
   const { pairingCode: urlPairingCode } = useParams<{ pairingCode: string }>();
-  useVersionCheck(true);
+  const [updateInterval, setUpdateInterval] = useState(() => {
+    const saved = localStorage.getItem("glowhub_update_interval_ms");
+    return saved ? parseInt(saved, 10) : 5 * 60 * 1000; // default 5 min
+  });
+  useVersionCheck(updateInterval);
   const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
   const [pairingCode, setPairingCode] = useState<string | null>(urlPairingCode || null);
   const [paired, setPaired] = useState(false);
