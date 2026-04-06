@@ -80,6 +80,7 @@ export default function Player() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
   const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">("splash");
+  const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
@@ -1574,6 +1575,36 @@ export default function Player() {
       >
         <Settings className="w-5 h-5 text-white/70" />
       </button>
+
+      {/* Settings hint overlay — shown once on first load */}
+      {showSettingsHint && !showSettings && (
+        <div
+          className="fixed top-5 right-16 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-black/80 backdrop-blur-md border border-[rgba(0,163,163,0.3)] shadow-lg"
+          style={{
+            animation: "settingsHintIn 0.5s ease-out forwards, settingsHintOut 0.5s ease-in 4.5s forwards",
+          }}
+          onAnimationEnd={(e) => {
+            if (e.animationName === "settingsHintOut") {
+              setShowSettingsHint(false);
+              localStorage.setItem("glowhub_settings_hint_seen", "1");
+            }
+          }}
+        >
+          <kbd className="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 text-white/90 text-xs font-mono font-bold">M</kbd>
+          <span className="text-white/70 text-xs tracking-wide">Press for settings</span>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes settingsHintIn {
+          0% { opacity: 0; transform: translateX(10px); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes settingsHintOut {
+          0% { opacity: 1; transform: translateX(0); }
+          100% { opacity: 0; transform: translateX(10px); }
+        }
+      `}</style>
 
       {/* Power Settings panel */}
       {showSettings && (
