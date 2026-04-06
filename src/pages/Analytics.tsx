@@ -104,111 +104,93 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in stagger-in">
       <h1 className="text-2xl font-bold text-foreground">Analytics & Insights</h1>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-in">
         {statCards.map((s) => (
-          <Card key={s.label}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <s.icon className="h-4 w-4 text-primary" />
-                <span className="text-xs text-muted-foreground">{s.label}</span>
-              </div>
-              <p className="text-2xl font-bold text-foreground">{s.value}</p>
-              <p className="text-xs text-muted-foreground">{s.sub}</p>
-            </CardContent>
-          </Card>
+          <div key={s.label} className="glass glass-spotlight rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <s.icon className="h-4 w-4 text-primary" />
+              <span className="text-xs text-muted-foreground">{s.label}</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{s.value}</p>
+            <p className="text-xs text-muted-foreground">{s.sub}</p>
+          </div>
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-6 stagger-in">
         {/* Upload timeline */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-foreground">Media Uploads (7 days)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={mediaTimeline}>
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
-                <Bar dataKey="uploads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <div className="glass glass-spotlight rounded-2xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Media Uploads (7 days)</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={mediaTimeline}>
+              <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+              <Tooltip contentStyle={{ backgroundColor: "hsla(220,50%,10%,0.9)", backdropFilter: "blur(12px)", border: "1px solid hsla(180,100%,45%,0.15)", borderRadius: 12, color: "hsl(var(--foreground))" }} />
+              <Bar dataKey="uploads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Media by type */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-foreground">Media by Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {mediaByType.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={mediaByType} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
-                    {mediaByType.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No media yet</p>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass glass-spotlight rounded-2xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Media by Type</h3>
+          {mediaByType.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={mediaByType} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
+                  {mediaByType.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend />
+                <Tooltip contentStyle={{ backgroundColor: "hsla(220,50%,10%,0.9)", backdropFilter: "blur(12px)", border: "1px solid hsla(180,100%,45%,0.15)", borderRadius: 12, color: "hsl(var(--foreground))" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">No media yet</p>
+          )}
+        </div>
 
         {/* Playlist content counts */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-foreground">Content per Playlist</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {playlistSizes.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={playlistSizes} layout="vertical">
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
-                  <Bar dataKey="items" fill="#F97316" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No playlists yet</p>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass glass-spotlight rounded-2xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Content per Playlist</h3>
+          {playlistSizes.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={playlistSizes} layout="vertical">
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} stroke="hsl(var(--muted-foreground))" />
+                <Tooltip contentStyle={{ backgroundColor: "hsla(220,50%,10%,0.9)", backdropFilter: "blur(12px)", border: "1px solid hsla(180,100%,45%,0.15)", borderRadius: 12, color: "hsl(var(--foreground))" }} />
+                <Bar dataKey="items" fill="#F97316" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">No playlists yet</p>
+          )}
+        </div>
 
         {/* Screen status */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-foreground">Screen Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {screenStatus.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={screenStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
-                    {screenStatus.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No screens yet</p>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass glass-spotlight rounded-2xl p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Screen Status</h3>
+          {screenStatus.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={screenStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
+                  {screenStatus.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend />
+                <Tooltip contentStyle={{ backgroundColor: "hsla(220,50%,10%,0.9)", backdropFilter: "blur(12px)", border: "1px solid hsla(180,100%,45%,0.15)", borderRadius: 12, color: "hsl(var(--foreground))" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">No screens yet</p>
+          )}
+        </div>
       </div>
     </div>
   );
