@@ -159,7 +159,7 @@ const Home = () => {
   const ctaRef = useMagnetic();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const blobContainerRef = useRef<HTMLDivElement>(null);
-
+  const secondTvRef = useRef<HTMLDivElement>(null);
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
   }, []);
