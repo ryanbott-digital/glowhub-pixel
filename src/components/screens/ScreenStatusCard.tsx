@@ -95,6 +95,14 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [expanded, setExpanded] = useState(false);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [transitionType, setTransitionType] = useState(screen.transition_type || "crossfade");
+  const [crossfadeMs, setCrossfadeMs] = useState(screen.crossfade_ms ?? 500);
+  const [loopEnabled, setLoopEnabled] = useState(screen.loop_enabled !== false);
+
+  const updateScreenSetting = useCallback(async (updates: Record<string, any>) => {
+    const { error } = await supabase.from("screens").update(updates).eq("id", screen.id);
+    if (error) toast.error("Failed to save setting");
+  }, [screen.id]);
 
   const isAlive = (() => {
     if (!screen.last_ping) return false;
