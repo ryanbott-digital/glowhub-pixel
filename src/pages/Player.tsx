@@ -808,93 +808,193 @@ export default function Player() {
 
   // ── PAIRING CODE SCREEN ──
   if (!paired) {
-    const digits = (pairingCode || "").split("");
+    const rawCode = pairingCode || "";
+    // Format as XX-XX-XX for display
+    const formattedCode = rawCode.length === 6
+      ? `${rawCode.slice(0, 2)}-${rawCode.slice(2, 4)}-${rawCode.slice(4, 6)}`
+      : rawCode;
+    const pairUrl = `https://glowhub-pixel.lovable.app/pair?code=${rawCode}`;
+
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center select-none overflow-hidden relative">
-        {/* Pure black background with radiant glow accents */}
-        <div className="absolute inset-0" style={{
-          background: "#000000",
-        }}>
-          <div className="absolute inset-0" style={{
-            background: `
-              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0,163,163,0.6) 0%, transparent 60%),
-              radial-gradient(ellipse 70% 50% at 80% 70%, rgba(0,163,163,0.4) 0%, transparent 55%),
-              radial-gradient(ellipse 60% 80% at 60% 20%, rgba(26,54,93,0.8) 0%, transparent 50%),
-              radial-gradient(ellipse 90% 70% at 40% 80%, rgba(0,163,163,0.3) 0%, transparent 60%)
-            `,
-            animation: "meshMove 12s ease-in-out infinite alternate",
-          }} />
-          <div className="absolute inset-0" style={{
-            background: `
-              radial-gradient(ellipse 50% 60% at 70% 40%, rgba(0,163,163,0.35) 0%, transparent 50%),
-              radial-gradient(ellipse 80% 50% at 30% 60%, rgba(26,54,93,0.5) 0%, transparent 55%)
-            `,
-            animation: "meshMove2 15s ease-in-out infinite alternate",
-          }} />
+        {/* ── Pure black base ── */}
+        <div className="absolute inset-0 bg-black" />
+
+        {/* ── Deep Space Nebula: 3 massive blurred blobs ── */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Teal blob */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "900px", height: "900px",
+              top: "10%", left: "5%",
+              background: "radial-gradient(circle, rgba(0,163,163,0.45) 0%, transparent 70%)",
+              filter: "blur(150px)",
+              animation: "nebulaBlob1 18s ease-in-out infinite alternate",
+            }}
+          />
+          {/* Deep Blue blob */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "1100px", height: "1100px",
+              top: "30%", right: "-10%",
+              background: "radial-gradient(circle, rgba(26,54,93,0.6) 0%, transparent 70%)",
+              filter: "blur(150px)",
+              animation: "nebulaBlob2 22s ease-in-out infinite alternate",
+            }}
+          />
+          {/* Violet blob */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "800px", height: "800px",
+              bottom: "0%", left: "30%",
+              background: "radial-gradient(circle, rgba(109,40,217,0.35) 0%, transparent 70%)",
+              filter: "blur(150px)",
+              animation: "nebulaBlob3 20s ease-in-out infinite alternate",
+            }}
+          />
         </div>
 
-        {/* Logo */}
-        <div className="relative z-10 text-4xl font-bold font-['Poppins'] mb-6">
-          <span className="text-glow">Glow</span>
-        </div>
+        {/* ── Main content with entry animation ── */}
+        <div
+          className="relative z-10 flex flex-col items-center justify-center"
+          style={{
+            animation: "powerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+            opacity: 0,
+          }}
+        >
+          {/* Hero pairing code + QR side by side */}
+          <div className="flex items-center gap-12 lg:gap-16">
+            {/* Code section */}
+            <div className="flex flex-col items-center">
+              <p className="text-white/50 text-sm tracking-[0.3em] uppercase mb-6 font-medium">
+                Pair Your Screen
+              </p>
 
-        {/* Pairing instruction */}
-        <p className="relative z-10 text-white/60 text-lg tracking-wide mb-8">
-          Enter this code in your dashboard to pair this screen
-        </p>
+              {/* Neon Glass Code */}
+              <div
+                className="font-mono font-extrabold tracking-[0.25em] leading-none"
+                style={{
+                  fontSize: "clamp(3rem, 8vw, 6rem)",
+                  background: "linear-gradient(180deg, #ffffff 20%, #00A3A3 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  textShadow: "none",
+                  filter: "drop-shadow(0 0 30px rgba(0,163,163,0.5)) drop-shadow(0 0 60px rgba(0,163,163,0.25))",
+                  animation: "neonPulse 3s ease-in-out infinite",
+                }}
+              >
+                {formattedCode.toUpperCase()}
+              </div>
 
-        {/* Glowing code digits */}
-        <div className="relative z-10 flex gap-5">
-          {digits.map((digit, i) => (
-            <div
-              key={i}
-              className="w-24 h-32 flex items-center justify-center rounded-2xl text-6xl font-extrabold font-['Inter'] tracking-[0.15em]"
-              style={{
-                color: "#00A3A3",
-                background: "rgba(26, 54, 93, 0.6)",
-                backdropFilter: "blur(12px)",
-                border: "2px solid rgba(0, 163, 163, 0.4)",
-                boxShadow: `
-                  0 0 24px rgba(0, 163, 163, 0.35),
-                  0 0 48px rgba(0, 163, 163, 0.15),
-                  inset 0 0 20px rgba(0, 163, 163, 0.05)
-                `,
-                animation: "digitGlow 3s ease-in-out infinite",
-                animationDelay: `${i * 0.12}s`,
-              }}
-            >
-              {digit}
+              <p className="text-white/30 text-sm mt-6 tracking-wide">
+                Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span> to pair
+              </p>
             </div>
-          ))}
+
+            {/* QR Code section */}
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-[#00A3A3]/60 text-xs tracking-[0.2em] uppercase font-medium animate-pulse">
+                Scan to Connect
+              </p>
+              <div
+                className="p-4 rounded-2xl"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  backdropFilter: "blur(40px)",
+                  border: "1px solid rgba(0,163,163,0.25)",
+                  boxShadow: "0 0 30px rgba(0,163,163,0.1), inset 0 0 20px rgba(0,163,163,0.03)",
+                }}
+              >
+                <QRCodeSVG
+                  value={pairUrl}
+                  size={140}
+                  bgColor="transparent"
+                  fgColor="#00A3A3"
+                  level="M"
+                  style={{ display: "block" }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Waiting indicator */}
+          <div className="flex items-center gap-2 mt-10">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+            <span className="text-white/25 text-xs tracking-widest uppercase">
+              Waiting for pairing…
+            </span>
+          </div>
         </div>
 
-        <p className="relative z-10 text-white/35 text-sm mt-8 animate-pulse">
-          Waiting for pairing…
-        </p>
+        {/* ── Bottom: Logo + Connection dot ── */}
+        <div className="absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10">
+          {/* Logo center */}
+          <div className="flex-1" />
+          <div
+            className="text-3xl font-bold font-['Poppins'] select-none"
+            style={{
+              opacity: 0.25,
+              animation: "logoPulse 4s ease-in-out infinite",
+            }}
+          >
+            <span className="text-glow">Glow</span>
+          </div>
+          <div className="flex-1 flex justify-end">
+            {/* Connection status dot */}
+            <div className="flex items-center gap-2">
+              <span className="text-white/20 text-[10px] tracking-wider uppercase font-mono">
+                {navigator.onLine ? "Connected" : "Offline"}
+              </span>
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{
+                  backgroundColor: navigator.onLine ? "#22c55e" : "#ef4444",
+                  boxShadow: navigator.onLine
+                    ? "0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3)"
+                    : "0 0 8px rgba(239,68,68,0.6)",
+                  animation: navigator.onLine ? "statusGlow 2s ease-in-out infinite" : "none",
+                }}
+              />
+            </div>
+          </div>
+        </div>
 
         <style>{`
-          @keyframes meshMove {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(-30px, 20px) scale(1.08); }
+          @keyframes nebulaBlob1 {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(80px, -60px) scale(1.15) rotate(15deg); }
           }
-          @keyframes meshMove2 {
-            0% { transform: translate(0, 0) scale(1.05); }
-            100% { transform: translate(25px, -15px) scale(1); }
+          @keyframes nebulaBlob2 {
+            0% { transform: translate(0, 0) scale(1.05) rotate(0deg); }
+            100% { transform: translate(-70px, 50px) scale(0.9) rotate(-10deg); }
           }
-          @keyframes digitGlow {
+          @keyframes nebulaBlob3 {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(60px, -40px) scale(1.2) rotate(20deg); }
+          }
+          @keyframes powerUp {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+          @keyframes neonPulse {
             0%, 100% {
-              box-shadow:
-                0 0 24px rgba(0, 163, 163, 0.35),
-                0 0 48px rgba(0, 163, 163, 0.15),
-                inset 0 0 20px rgba(0, 163, 163, 0.05);
+              filter: drop-shadow(0 0 30px rgba(0,163,163,0.5)) drop-shadow(0 0 60px rgba(0,163,163,0.25));
             }
             50% {
-              box-shadow:
-                0 0 36px rgba(0, 163, 163, 0.55),
-                0 0 72px rgba(0, 163, 163, 0.25),
-                0 0 100px rgba(0, 163, 163, 0.1),
-                inset 0 0 30px rgba(0, 163, 163, 0.1);
+              filter: drop-shadow(0 0 45px rgba(0,163,163,0.7)) drop-shadow(0 0 90px rgba(0,163,163,0.35)) drop-shadow(0 0 120px rgba(0,163,163,0.15));
             }
+          }
+          @keyframes logoPulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.35; }
+          }
+          @keyframes statusGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3); }
+            50% { box-shadow: 0 0 12px rgba(34,197,94,0.8), 0 0 30px rgba(34,197,94,0.4), 0 0 50px rgba(34,197,94,0.15); }
           }
         `}</style>
       </div>
