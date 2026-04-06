@@ -79,7 +79,7 @@ export default function Playlists() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <div className="space-y-2">
+        <div className="space-y-2 stagger-in">
           {playlists.map((pl) => (
             <div
               key={pl.id}
