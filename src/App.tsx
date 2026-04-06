@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { isNativePlatform } from "@/lib/capacitor-autostart";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -29,11 +30,31 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function shouldLaunchPlayerOnBoot() {
+  if (typeof window === "undefined") return false;
+
+  const isStandalone =
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+  return isNativePlatform() || isStandalone;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <GHLoaderPage />;
   if (!user) return <Navigate to="/home" replace />;
   return <DashboardLayout>{children}</DashboardLayout>;
+}
+
+function RootRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <GHLoaderPage />;
+  if (!user && shouldLaunchPlayerOnBoot()) return <Navigate to="/player" replace />;
+  if (!user) return <Navigate to="/home" replace />;
+
+  return <DashboardLayout><Dashboard /></DashboardLayout>;
 }
 
 function AuthRoute() {
@@ -65,7 +86,7 @@ const App = () => (
             <Route path="/display/:screenId" element={<Display />} />
             <Route path="/player" element={<Player />} />
             <Route path="/player/:pairingCode" element={<Player />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
             <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
             <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
