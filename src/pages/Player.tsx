@@ -10,6 +10,7 @@ import { GHLoader } from "@/components/GHLoader";
 import glowLogoPng from "@/assets/glow-text.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
+import { useVersionCheck } from "@/hooks/use-version-check";
 
 interface PlaylistItem {
   id: string;
