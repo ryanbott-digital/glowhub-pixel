@@ -306,6 +306,7 @@ const Home = () => {
             <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
               <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
+            <div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
             <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Fire TV Stick</span>
           </div>
           <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
@@ -313,6 +314,7 @@ const Home = () => {
             <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
               <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
+            <div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
             <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Google TV</span>
           </div>
         </div>
