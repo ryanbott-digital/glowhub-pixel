@@ -33,12 +33,8 @@ export default function DownloadPage() {
         {/* Header with pulsing icon */}
         <div className="text-center space-y-6">
           <div className="relative inline-block">
-            <img
-              src="/icon-512x512.png"
-              alt="GLOW Icon"
-              className="w-28 h-28 mx-auto rounded-3xl animate-pulse drop-shadow-[0_0_30px_hsla(180,100%,45%,0.4)]"
-            />
-            <div className="absolute inset-0 rounded-3xl bg-primary/10 blur-[20px] animate-pulse" />
+            <GlowLogoImage className="h-20 mx-auto" />
+            <div className="absolute inset-0 bg-primary/10 blur-[20px] animate-pulse" />
           </div>
           <div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-[0.08em] uppercase">
