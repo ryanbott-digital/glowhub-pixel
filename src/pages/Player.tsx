@@ -884,6 +884,35 @@ export default function Player() {
             opacity: 0,
           }}
         >
+          {/* GLOW logo with light burst */}
+          <div className="relative mb-10">
+            {/* Expanding light rings */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="pairing-ring pairing-ring-1" />
+              <div className="pairing-ring pairing-ring-2" />
+              <div className="pairing-ring pairing-ring-3" />
+            </div>
+            {/* Central bloom */}
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              style={{ transform: "scale(2)" }}
+            >
+              <div
+                style={{
+                  width: "200px", height: "200px",
+                  borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(0,163,163,0.3) 0%, rgba(0,163,163,0.08) 40%, transparent 70%)",
+                  animation: "bloomPulsePair 3s ease-in-out infinite",
+                }}
+              />
+            </div>
+            <img
+              src={glowLogoPng}
+              alt="Glow"
+              className="h-16 lg:h-20 w-auto relative z-10 glow-text-pulse"
+            />
+          </div>
+
           {/* Hero pairing code + QR side by side */}
           <div className="flex items-center gap-12 lg:gap-16">
             {/* Code section */}
