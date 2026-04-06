@@ -60,6 +60,15 @@ export default function Screens() {
 
   const createScreen = async () => {
     if (!user || !newName.trim()) return;
+
+    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    if (!allowed) {
+      toast.error(
+        `Your ${tier === "free" ? "Free" : "Basic"} plan allows up to ${limit} screen${limit !== 1 ? "s" : ""}. Please upgrade to add more.`,
+        { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
+      );
+      return;
+    }
     const code = generateCode();
     const { error } = await supabase.from("screens").insert({
       user_id: user.id,
@@ -79,6 +88,17 @@ export default function Screens() {
   const pairScreen = async () => {
     if (!user || pairingCode.length !== 6) return;
     setPairing(true);
+
+    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    if (!allowed) {
+      toast.error(
+        `Your ${tier === "free" ? "Free" : "Basic"} plan allows up to ${limit} screen${limit !== 1 ? "s" : ""}. Please upgrade to add more.`,
+        { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
+      );
+      setPairing(false);
+      return;
+    }
+
     try {
       const { data: screen, error: findErr } = await supabase
         .from("screens")
