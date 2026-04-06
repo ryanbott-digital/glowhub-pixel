@@ -560,6 +560,7 @@ const Home = () => {
             <div>
               <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Name</label>
               <input
+                name="name"
                 type="text"
                 required
                 maxLength={100}
@@ -570,6 +571,7 @@ const Home = () => {
             <div>
               <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Email</label>
               <input
+                name="email"
                 type="email"
                 required
                 maxLength={255}
@@ -581,6 +583,7 @@ const Home = () => {
           <div>
             <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Message</label>
             <textarea
+              name="message"
               required
               maxLength={1000}
               rows={4}
