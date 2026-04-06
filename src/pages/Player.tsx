@@ -79,6 +79,7 @@ export default function Player() {
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
+  const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">("splash");
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
@@ -865,10 +866,24 @@ export default function Player() {
     };
   }, [currentIndex, items, activeBuffer, volume, getBufferRefs, attachHls]);
 
-  // ── LOADING STATE ──
-  if (loading) {
+  // ── Boot splash fade-out when loading completes ──
+  useEffect(() => {
+    if (!loading && bootPhase === "splash") {
+      setBootPhase("fading");
+      const timer = setTimeout(() => setBootPhase("done"), 900);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, bootPhase]);
+
+  if (loading || bootPhase !== "done") {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
+      <div
+        className="w-screen h-screen flex items-center justify-center bg-black overflow-hidden"
+        style={{
+          opacity: bootPhase === "fading" ? 0 : 1,
+          transition: "opacity 0.8s ease-out",
+        }}
+      >
         <GHLoader size={80} />
       </div>
     );
