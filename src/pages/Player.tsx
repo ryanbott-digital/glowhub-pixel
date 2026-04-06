@@ -445,7 +445,7 @@ export default function Player() {
           // Screen claimed when pairing_code is cleared and status changes from pending
           if (!updated.pairing_code && updated.status !== "pending") {
             localStorage.setItem("glowhub_screen_id", screenId);
-            setPaired(true);
+            triggerActivation();
             if (updated.current_playlist_id) {
               await fetchPlaylist(updated.current_playlist_id);
             }
