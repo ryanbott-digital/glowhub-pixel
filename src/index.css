@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -53,25 +53,34 @@
   }
 
   .dark {
-    --background: 215 55% 8%;
+    --background: 220 60% 7%;
     --foreground: 210 20% 95%;
-    --card: 215 50% 12%;
+    --card: 220 50% 10%;
     --card-foreground: 210 20% 95%;
-    --popover: 215 50% 12%;
+    --popover: 220 50% 10%;
     --popover-foreground: 210 20% 95%;
     --primary: 180 100% 45%;
-    --primary-foreground: 215 55% 8%;
+    --primary-foreground: 220 60% 7%;
     --secondary: 215 40% 25%;
     --secondary-foreground: 210 20% 95%;
-    --muted: 215 40% 18%;
+    --muted: 220 40% 14%;
     --muted-foreground: 215 16% 60%;
     --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 215 40% 20%;
-    --input: 215 40% 20%;
+    --border: 220 30% 16%;
+    --input: 220 30% 16%;
     --ring: 180 100% 45%;
+
+    --sidebar-background: 220 55% 8%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 180 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 45% 14%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 30% 14%;
+    --sidebar-ring: 180 100% 45%;
   }
 }
 
@@ -81,7 +90,13 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.01em;
   }
 }
 
@@ -117,5 +132,107 @@
 
   .gradient-accent {
     background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
+  }
+
+  /* ── Glassmorphism utilities ── */
+  .glass {
+    background: hsla(var(--card), 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsla(var(--border), 0.5);
+  }
+
+  .dark .glass {
+    background: hsla(220, 50%, 10%, 0.5);
+    border-color: hsla(220, 30%, 20%, 0.6);
+  }
+
+  .glass-strong {
+    background: hsla(var(--card), 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsla(var(--border), 0.6);
+  }
+
+  .dark .glass-strong {
+    background: hsla(220, 50%, 10%, 0.65);
+    border-color: hsla(220, 30%, 20%, 0.7);
+  }
+
+  /* ── Mesh gradient background ── */
+  .mesh-bg {
+    position: relative;
+  }
+
+  .mesh-bg::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 600px 600px at 15% 20%, hsla(180, 100%, 45%, 0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 500px at 85% 30%, hsla(220, 80%, 55%, 0.05) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 400px at 40% 80%, hsla(330, 80%, 60%, 0.04) 0%, transparent 70%);
+    animation: meshShift 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes meshShift {
+    0% {
+      background-position: 0% 0%, 100% 0%, 50% 100%;
+    }
+    100% {
+      background-position: 10% 10%, 90% 10%, 40% 90%;
+    }
+  }
+
+  /* ── Glow focus ring for inputs ── */
+  .glow-focus:focus,
+  .glow-focus:focus-within {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsla(var(--primary), 0.15), 0 0 20px hsla(var(--primary), 0.1);
+  }
+
+  /* ── PRO badge ── */
+  .pro-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, hsla(180, 100%, 45%, 0.15), hsla(220, 80%, 55%, 0.15));
+    color: hsl(var(--primary));
+    border: 1px solid hsla(180, 100%, 45%, 0.25);
+    animation: proBadgeGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes proBadgeGlow {
+    0%, 100% { box-shadow: 0 0 4px hsla(180, 100%, 45%, 0.2); }
+    50% { box-shadow: 0 0 10px hsla(180, 100%, 45%, 0.35); }
+  }
+
+  /* ── Magnetic button ── */
+  .magnetic-btn {
+    transition: box-shadow 0.3s ease, transform 0.15s ease;
+    box-shadow: 0 0 15px hsla(180, 100%, 45%, 0.15);
+  }
+
+  .magnetic-btn:hover {
+    box-shadow: 0 0 40px hsla(180, 100%, 45%, 0.4), 0 0 80px hsla(220, 80%, 55%, 0.15);
+  }
+
+  /* ── Empty state pulse ── */
+  @keyframes emptyPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+  }
+
+  .empty-state-pulse {
+    animation: emptyPulse 3s ease-in-out infinite;
   }
 }
