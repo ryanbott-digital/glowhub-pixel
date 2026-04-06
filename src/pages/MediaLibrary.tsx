@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+// glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -292,7 +292,7 @@ export default function MediaLibrary() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-1">
             {media.length} file{media.length !== 1 ? "s" : ""}
             {totalSize > 0 && ` · ${formatFileSize(totalSize)} total`}
           </p>
@@ -353,10 +353,10 @@ export default function MediaLibrary() {
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-10 text-center transition-all duration-200 ${
+        className={`glass glass-spotlight rounded-2xl p-10 text-center transition-all duration-200 border ${
           dragOver
-            ? "border-primary bg-primary/5 scale-[1.01]"
-            : "border-border hover:border-primary/50"
+            ? "border-primary shadow-[0_0_30px_rgba(0,163,163,0.3)] scale-[1.01]"
+            : "border-white/[0.06] hover:border-primary/30"
         }`}
       >
         <div className="flex flex-col items-center gap-2">
@@ -382,12 +382,12 @@ export default function MediaLibrary() {
             const url = getPublicUrl(item.storage_path);
             const isSelected = selected.has(item.id);
             return (
-              <Card
+              <div
                 key={item.id}
-                className={`group overflow-hidden transition-all cursor-pointer ${
+                className={`glass glass-spotlight rounded-2xl group overflow-hidden transition-all cursor-pointer border ${
                   isSelected
                     ? "ring-2 ring-primary border-primary"
-                    : "border-border/50 hover:border-primary/30"
+                    : "border-white/[0.06] hover:border-primary/30"
                 }`}
                 onClick={() => toggleSelect(item.id)}
               >
@@ -473,7 +473,7 @@ export default function MediaLibrary() {
                     </button>
                   )}
                 </div>
-                <CardContent className="p-3">
+                <div className="p-3">
                   <p className="text-sm font-medium truncate text-foreground" title={item.name}>
                     {item.name}
                   </p>
@@ -487,15 +487,15 @@ export default function MediaLibrary() {
                       </p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
       )}
 
       {media.length === 0 && !uploading && (
-        <div className="text-center py-16 text-muted-foreground">
+        <div className="glass glass-spotlight rounded-2xl text-center py-16 text-muted-foreground border border-white/[0.06]">
           <FileWarning className="h-12 w-12 mx-auto mb-3 opacity-40" />
           <p className="font-medium text-foreground">No media uploaded yet</p>
           <p className="text-sm mt-1">Upload images and videos to build your content library</p>

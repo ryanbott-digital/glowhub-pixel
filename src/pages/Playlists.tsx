@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+// glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -68,7 +68,7 @@ export default function Playlists() {
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="glass-strong border-white/[0.06]">
             <DialogHeader><DialogTitle>Create Playlist</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <Input placeholder="Playlist title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
@@ -81,24 +81,22 @@ export default function Playlists() {
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2">
           {playlists.map((pl) => (
-            <Card
+            <div
               key={pl.id}
-              className={`cursor-pointer transition-colors ${selectedPlaylist?.id === pl.id ? "ring-2 ring-primary" : "hover:bg-muted/50"}`}
+              className={`glass glass-spotlight rounded-2xl cursor-pointer transition-all border p-4 flex items-center justify-between ${selectedPlaylist?.id === pl.id ? "ring-2 ring-primary border-primary" : "border-white/[0.06] hover:border-primary/30"}`}
               onClick={() => setSelectedPlaylist(pl)}
             >
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ListVideo className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-foreground">{pl.title}</span>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                </button>
-              </CardContent>
-            </Card>
+              <div className="flex items-center gap-2">
+                <ListVideo className="h-4 w-4 text-primary" />
+                <span className="font-medium text-foreground">{pl.title}</span>
+              </div>
+              <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}>
+                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+              </button>
+            </div>
           ))}
           {playlists.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">No playlists yet</p>
+            <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] text-center text-muted-foreground py-8">No playlists yet</div>
           )}
         </div>
 
@@ -111,7 +109,7 @@ export default function Playlists() {
               media={media}
             />
           ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
+            <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] flex items-center justify-center h-64 text-muted-foreground">
               Select a playlist to edit
             </div>
           )}
