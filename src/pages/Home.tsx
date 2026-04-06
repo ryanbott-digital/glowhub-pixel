@@ -1,172 +1,154 @@
 import { Link } from "react-router-dom";
-import { GlowHubLogo } from "@/components/GlowHubLogo";
-import { Check, Wifi, WifiOff, Smartphone, Activity } from "lucide-react";
+import { GlowLogoImage } from "@/components/GlowHubLogo";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv } from "lucide-react";
 
 const Home = () => {
-  const scrollToFeatures = () => {
-    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-sans overflow-x-hidden">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <GlowHubLogo className="text-2xl" />
-        <Link
-          to="/auth"
-          className="text-sm font-medium px-5 py-2 rounded-lg border border-[#1E293B] hover:border-[#00A3A3]/50 transition-colors"
-        >
-          Sign In
-        </Link>
+    <div className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-sans overflow-x-hidden scroll-smooth">
+      {/* ── Nav ── */}
+      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1120]/80 border-b border-[#1E293B]/50">
+        <div className="flex items-center justify-between px-6 py-3.5 max-w-6xl mx-auto">
+          <GlowLogoImage className="h-8" />
+          <div className="flex items-center gap-6">
+            <button onClick={() => scrollTo("process")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">How it works</button>
+            <button onClick={() => scrollTo("features")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Features</button>
+            <button onClick={() => scrollTo("pricing")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
+            <Link
+              to="/auth"
+              className="text-sm font-medium px-5 py-2 rounded-lg border border-[#1E293B] hover:border-[#00A3A3]/60 hover:shadow-[0_0_12px_rgba(0,163,163,0.15)] transition-all"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative flex flex-col items-center text-center px-6 pt-16 pb-24 max-w-5xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6">
-          Your Content. Any Screen.{" "}
-          <span className="bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] bg-clip-text text-transparent">
+      {/* ── Hero ── */}
+      <section className="relative flex flex-col items-center text-center px-6 pt-20 sm:pt-28 pb-28 max-w-5xl mx-auto">
+        {/* Radiant background blurs */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute top-[-20%] left-[10%] w-[500px] h-[500px] rounded-full bg-[#00A3A3]/[0.07] blur-[120px]" />
+          <div className="absolute top-[0%] right-[5%] w-[400px] h-[400px] rounded-full bg-[#3B82F6]/[0.06] blur-[100px]" />
+          <div className="absolute bottom-[10%] left-[30%] w-[350px] h-[350px] rounded-full bg-[#EC4899]/[0.05] blur-[110px]" />
+        </div>
+
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-sm text-xs text-[#94A3B8] mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+          Digital signage made simple
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 uppercase">
+          Your Content.<br className="hidden sm:block" /> Any Screen.{" "}
+          <span className="bg-gradient-to-r from-[#00A3A3] via-[#3B82F6] to-[#00A3A3] bg-clip-text text-transparent bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
             Pure Glow.
           </span>
         </h1>
-        <p className="text-lg sm:text-xl text-[#94A3B8] max-w-2xl mb-10 leading-relaxed">
-          The most reliable, affordable way to turn any Firestick or Android TV
-          into professional digital signage.
+        <p className="text-base sm:text-lg text-[#94A3B8] max-w-xl mb-10 leading-relaxed">
+          Turn any Firestick or Android TV into professional digital signage — reliable, affordable, and stunning.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-16">
+        <div className="flex flex-col sm:flex-row gap-4 mb-20">
           <Link
             to="/auth"
-            className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold text-[#0B1120] bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] hover:shadow-[0_0_24px_rgba(0,163,163,0.4)] transition-shadow"
+            className="group inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold text-[#0B1120] bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
           >
             Start Glowing for Free
+            <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
           </Link>
           <button
-            onClick={scrollToFeatures}
-            className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold border border-[#1E293B] hover:border-[#00A3A3]/50 transition-colors"
+            onClick={() => scrollTo("process")}
+            className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold border border-[#1E293B] hover:border-[#00A3A3]/50 hover:shadow-[0_0_16px_rgba(0,163,163,0.1)] transition-all duration-300"
           >
             See how it works
           </button>
         </div>
 
         {/* TV Mockup */}
-        <div className="relative w-full max-w-xl mx-auto">
+        <div className="relative w-full max-w-lg mx-auto">
           <div className="radiant-glow rounded-2xl">
-            <div className="bg-[#1E293B] rounded-2xl p-3">
-              <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-[#00A3A3]/30 via-[#3B82F6]/20 to-[#EC4899]/20 flex items-center justify-center">
-                <span className="text-2xl sm:text-3xl font-bold tracking-widest bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] bg-clip-text text-transparent">
-                  GLOW
-                </span>
+            <div className="bg-[#131C2E] rounded-2xl p-2.5 border border-[#1E293B]/60">
+              <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-[#00A3A3]/20 via-[#3B82F6]/15 to-[#EC4899]/10 flex items-center justify-center relative">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(0,163,163,0.15),transparent_60%)]" />
+                <GlowLogoImage className="h-12 sm:h-16 relative z-10 drop-shadow-[0_0_20px_rgba(0,163,163,0.3)]" />
               </div>
             </div>
-            <div className="mx-auto w-24 h-3 bg-[#1E293B] rounded-b-lg" />
+            <div className="mx-auto w-20 h-2 bg-[#131C2E] rounded-b-lg border-x border-b border-[#1E293B]/60" />
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="px-6 py-24 max-w-5xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-4">
-          Disruptive Pricing
+      {/* ── Process: 3-Step ── */}
+      <section id="process" className="px-6 py-24 max-w-5xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Up & Running in <span className="text-[#00A3A3]">60 Seconds</span>
         </h2>
-        <p className="text-[#94A3B8] text-center mb-14 text-lg">
-          No hidden fees. No per-screen surprises.
+        <p className="text-[#94A3B8] text-center mb-16 text-base max-w-lg mx-auto">
+          Three simple steps to transform any screen into a digital signage powerhouse.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          {/* Starter */}
-          <div className="rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-xl p-8 flex flex-col">
-            <h3 className="text-xl font-semibold mb-1">The Starter</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">Free Forever</p>
-            <div className="text-4xl font-bold mb-8">
-              $0<span className="text-base font-normal text-[#94A3B8]">/mo</span>
-            </div>
-            <ul className="space-y-3 mb-8 flex-1">
-              {["1 Screen", "Basic Scheduling", "500MB Storage", "'Powered by GLOW' watermark"].map(
-                (f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-[#CBD5E1]">
-                    <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
-                    {f}
-                  </li>
-                )
-              )}
-            </ul>
-            <Link
-              to="/auth"
-              className="block text-center py-3 rounded-xl font-semibold border border-[#1E293B] hover:border-[#00A3A3]/50 transition-colors"
-            >
-              Get Started
-            </Link>
-          </div>
+        <div className="grid sm:grid-cols-3 gap-6 relative">
+          {/* Connector line (desktop only) */}
+          <div className="hidden sm:block absolute top-12 left-[20%] right-[20%] h-px bg-gradient-to-r from-[#00A3A3]/30 via-[#3B82F6]/30 to-[#00A3A3]/30" />
 
-          {/* Pro */}
-          <div className="relative rounded-2xl border border-[#00A3A3]/40 bg-[#0F172A]/60 backdrop-blur-xl p-8 flex flex-col shadow-[0_0_40px_rgba(0,163,163,0.12)]">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120]">
-              Recommended
-            </span>
-            <h3 className="text-xl font-semibold mb-1">The Pro Glow</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">For serious signage</p>
-            <div className="text-4xl font-bold mb-2">
-              $9<span className="text-base font-normal text-[#94A3B8]">/mo</span>
+          {[
+            { step: "01", icon: <UserPlus className="w-7 h-7" />, title: "Sign Up", desc: "Create your free account in seconds. No credit card required." },
+            { step: "02", icon: <Download className="w-7 h-7" />, title: "Sideload", desc: "Use the 'Downloader' app to install Glow on any Firestick or Android TV." },
+            { step: "03", icon: <Tv className="w-7 h-7" />, title: "Pair & Play", desc: "Enter your 6-digit code and your screen starts playing immediately." },
+          ].map((s) => (
+            <div key={s.step} className="relative flex flex-col items-center text-center group">
+              <div className="relative z-10 w-24 h-24 rounded-2xl border border-[#1E293B] bg-[#0F172A]/80 backdrop-blur-xl flex items-center justify-center mb-5 group-hover:border-[#00A3A3]/40 group-hover:shadow-[0_0_20px_rgba(0,163,163,0.1)] transition-all duration-300">
+                <div className="text-[#00A3A3]">{s.icon}</div>
+                <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-gradient-to-br from-[#00A3A3] to-[#3B82F6] text-[#0B1120] text-xs font-bold flex items-center justify-center">{s.step}</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-1.5">{s.title}</h3>
+              <p className="text-sm text-[#94A3B8] leading-relaxed max-w-[240px]">{s.desc}</p>
             </div>
-            <p className="text-sm font-bold text-[#00A3A3] mb-8">
-              Covers up to 5 screens
-            </p>
-            <ul className="space-y-3 mb-8 flex-1">
-              {[
-                "No Watermarks",
-                "Offline Mode (Cache)",
-                "Screen Health Monitoring",
-                "5GB Storage",
-                "Priority Support",
-              ].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-[#CBD5E1]">
-                  <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              to="/auth"
-              className="block text-center py-3 rounded-xl font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_24px_rgba(0,163,163,0.4)] transition-shadow"
-            >
-              Go Pro
-            </Link>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Features */}
+      {/* ── Features ── */}
       <section id="features" className="px-6 py-24 max-w-5xl mx-auto">
-        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-4">
-          The Elements
+        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Built Different
         </h2>
-        <p className="text-[#94A3B8] text-center mb-14 text-lg">
+        <p className="text-[#94A3B8] text-center mb-16 text-base max-w-lg mx-auto">
           Everything you need. Nothing you don't.
         </p>
 
-        <div className="grid sm:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-3 gap-6">
           {[
             {
-              icon: <WifiOff className="w-8 h-8" />,
-              title: "Reliability",
-              desc: "'Offline-First' technology. Your content keeps playing even if the Wi-Fi drops.",
+              icon: <WifiOff className="w-7 h-7" />,
+              title: "Offline-First",
+              desc: "Content is cached locally. Your screens keep playing even when the internet drops.",
+              accent: "#00A3A3",
             },
             {
-              icon: <Smartphone className="w-8 h-8" />,
-              title: "Simplicity",
-              desc: "Use the 'Downloader' app to install on any Firestick in under 60 seconds.",
+              icon: <Activity className="w-7 h-7" />,
+              title: "Heartbeat Monitoring",
+              desc: "Real-time health pings tell you exactly which screens are online from your dashboard.",
+              accent: "#3B82F6",
             },
             {
-              icon: <Activity className="w-8 h-8" />,
-              title: "Intelligence",
-              desc: "Real-time 'Health Heartbeat' tells you exactly which screens are online from your dashboard.",
+              icon: <CalendarClock className="w-7 h-7" />,
+              title: "Easy Scheduling",
+              desc: "Set weekly time-slot schedules per screen. The right playlist plays at the right time.",
+              accent: "#EC4899",
             },
           ].map((f) => (
             <div
               key={f.title}
-              className="rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-xl p-8 text-center"
+              className="group rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-xl p-7 hover:border-[#1E293B]/80 hover:bg-[#0F172A]/80 transition-all duration-300"
             >
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[#00A3A3]/10 text-[#00A3A3] mb-5">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 transition-shadow duration-300"
+                style={{ background: `${f.accent}15`, color: f.accent }}
+              >
                 {f.icon}
               </div>
               <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
@@ -176,11 +158,98 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[#1E293B] py-10 text-center text-sm text-[#64748B]">
-        <GlowHubLogo className="text-lg" />
-        <p className="mt-4">© {new Date().getFullYear()} Glow. All rights reserved.</p>
+      {/* ── Pricing ── */}
+      <section id="pricing" className="px-6 py-24 max-w-5xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Simple, Honest Pricing
+        </h2>
+        <p className="text-[#94A3B8] text-center mb-16 text-base max-w-lg mx-auto">
+          No hidden fees. No per-screen surprises. Start free, upgrade when ready.
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          {/* Starter */}
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-xl p-8 flex flex-col hover:border-[#1E293B]/80 transition-all duration-300">
+            <h3 className="text-xl font-semibold mb-1">The Starter</h3>
+            <p className="text-sm text-[#94A3B8] mb-6">Free forever</p>
+            <div className="text-5xl font-extrabold mb-8">
+              $0<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+            </div>
+            <ul className="space-y-3.5 mb-8 flex-1">
+              {["1 Screen", "Basic Scheduling", "500MB Storage", "'Powered by GLOW' watermark"].map(
+                (f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
+                    <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
+                    {f}
+                  </li>
+                )
+              )}
+            </ul>
+            <Link
+              to="/auth"
+              className="block text-center py-3 rounded-xl font-semibold border border-[#1E293B] hover:border-[#00A3A3]/50 hover:shadow-[0_0_16px_rgba(0,163,163,0.1)] transition-all duration-300"
+            >
+              Get Started
+            </Link>
+          </div>
+
+          {/* Pro Glow */}
+          <div className="relative rounded-2xl border border-[#00A3A3]/40 bg-[#0F172A]/60 backdrop-blur-xl p-8 flex flex-col shadow-[0_0_50px_rgba(0,163,163,0.1),0_0_100px_rgba(59,130,246,0.05)] hover:shadow-[0_0_60px_rgba(0,163,163,0.18),0_0_120px_rgba(59,130,246,0.08)] transition-all duration-300">
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120]">
+              Recommended
+            </span>
+            <h3 className="text-xl font-semibold mb-1">The Pro Glow</h3>
+            <p className="text-sm text-[#94A3B8] mb-6">For serious signage</p>
+            <div className="text-5xl font-extrabold mb-2">
+              $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+            </div>
+            <p className="text-sm font-bold text-[#00A3A3] mb-8">
+              Covers up to 5 screens
+            </p>
+            <ul className="space-y-3.5 mb-8 flex-1">
+              {[
+                "No Watermarks",
+                "Offline Mode (Cache)",
+                "Screen Health Monitoring",
+                "5GB Storage",
+                "Priority Support",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
+                  <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/auth"
+              className="block text-center py-3 rounded-xl font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
+            >
+              Go Pro
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="border-t border-[#1E293B] py-10 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <GlowLogoImage className="h-6" />
+          <div className="flex items-center gap-6 text-sm text-[#64748B]">
+            <Link to="/auth" className="hover:text-[#E2E8F0] transition-colors">Login</Link>
+            <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
+            <span className="hover:text-[#E2E8F0] transition-colors cursor-pointer">Terms</span>
+          </div>
+          <p className="text-xs text-[#475569]">© {new Date().getFullYear()} Glow. All rights reserved.</p>
+        </div>
       </footer>
+
+      {/* Shimmer keyframe */}
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+      `}</style>
     </div>
   );
 };
