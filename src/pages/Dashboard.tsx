@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2 } from "lucide-react";
+import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2, Rocket, PartyPopper } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,11 +14,15 @@ import { toast } from "sonner";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [pairingCode, setPairingCode] = useState("");
   const [screens, setScreens] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [newScreenName, setNewScreenName] = useState("");
 
   useEffect(() => {
     if (!user) return;
