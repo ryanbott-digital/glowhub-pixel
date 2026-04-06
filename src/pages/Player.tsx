@@ -908,7 +908,7 @@ export default function Player() {
       <div className="w-screen h-screen overflow-hidden relative">
         <img
           src={fallbackBranding}
-          alt="GlowHub"
+          alt="Glow"
           className="w-full h-full object-cover"
           width={1920}
           height={1080}
