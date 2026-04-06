@@ -457,7 +457,7 @@ export default function Player() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [screenId, paired, fetchPlaylist]);
+  }, [screenId, paired, fetchPlaylist, triggerActivation]);
 
   // Poll for pairing status (URL param flow — legacy support)
   useEffect(() => {
