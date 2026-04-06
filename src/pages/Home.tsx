@@ -883,6 +883,20 @@ const Home = () => {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
         }
+        @media (max-width: 640px) {
+          .hero-float {
+            animation: heroFloatMobile 5s ease-in-out infinite;
+          }
+        }
+        @keyframes heroFloatMobile {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-float {
+            animation: none;
+          }
+        }
 
         /* ── Marquee ── */
         .marquee-container {
