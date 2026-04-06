@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2 } from "lucide-react";
@@ -526,25 +527,40 @@ const Home = () => {
             e.preventDefault();
             const form = e.currentTarget;
             const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+            const formData = new FormData(form);
+            const name = (formData.get('name') as string || '').trim();
+            const email = (formData.get('email') as string || '').trim();
+            const message = (formData.get('message') as string || '').trim();
+            if (!name || !email || !message) return;
             btn.disabled = true;
             btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Sending…</span>';
-            // Simulate send (replace with real endpoint later)
-            await new Promise((r) => setTimeout(r, 1200));
-            form.reset();
-            btn.disabled = false;
-            btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>Send Message</span>';
-            // Show success feedback
-            const msg = document.createElement('div');
-            msg.className = 'text-center text-sm text-emerald-400 mt-3 animate-fade-in';
-            msg.textContent = '✓ Message sent! We\'ll be in touch soon.';
-            form.appendChild(msg);
-            setTimeout(() => msg.remove(), 4000);
+            try {
+              const { error } = await supabase.from('contact_submissions').insert({ name, email, message });
+              if (error) throw error;
+              form.reset();
+              const msg = document.createElement('div');
+              msg.className = 'text-center text-sm text-emerald-400 mt-3 animate-fade-in';
+              msg.textContent = '✓ Message sent! We\'ll be in touch soon.';
+              form.appendChild(msg);
+              setTimeout(() => msg.remove(), 4000);
+            } catch (err) {
+              console.error('[Contact] Submit failed:', err);
+              const msg = document.createElement('div');
+              msg.className = 'text-center text-sm text-red-400 mt-3 animate-fade-in';
+              msg.textContent = 'Something went wrong. Please try again.';
+              form.appendChild(msg);
+              setTimeout(() => msg.remove(), 4000);
+            } finally {
+              btn.disabled = false;
+              btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>Send Message</span>';
+            }
           }}
         >
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Name</label>
               <input
+                name="name"
                 type="text"
                 required
                 maxLength={100}
@@ -555,6 +571,7 @@ const Home = () => {
             <div>
               <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Email</label>
               <input
+                name="email"
                 type="email"
                 required
                 maxLength={255}
@@ -566,6 +583,7 @@ const Home = () => {
           <div>
             <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Message</label>
             <textarea
+              name="message"
               required
               maxLength={1000}
               rows={4}
