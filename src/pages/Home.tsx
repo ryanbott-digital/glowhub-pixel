@@ -699,7 +699,8 @@ const Home = () => {
           position: absolute;
           border-radius: 50%;
           filter: blur(120px);
-          will-change: transform;
+          will-change: transform, translate;
+          transition: transform 0.1s linear;
         }
         .mesh-blob-1 {
           width: 600px; height: 600px;
@@ -726,20 +727,20 @@ const Home = () => {
           animation: mesh-drift-4 18s ease-in-out infinite alternate;
         }
         @keyframes mesh-drift-1 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(60px, 40px) scale(1.15); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: 60px 40px; scale: 1.15; }
         }
         @keyframes mesh-drift-2 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-50px, 50px) scale(1.1); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: -50px 50px; scale: 1.1; }
         }
         @keyframes mesh-drift-3 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(40px, -30px) scale(1.2); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: 40px -30px; scale: 1.2; }
         }
         @keyframes mesh-drift-4 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-30px, 20px) scale(1.1); }
+          0% { translate: 0 0; scale: 1; }
+          100% { translate: -30px 20px; scale: 1.1; }
         }
 
         /* ── Magnetic CTA ── */
