@@ -53,7 +53,11 @@ const TV_STYLES = `
 
 export default function Player() {
   const { pairingCode: urlPairingCode } = useParams<{ pairingCode: string }>();
-  useVersionCheck(true);
+  const [updateInterval, setUpdateInterval] = useState(() => {
+    const saved = localStorage.getItem("glowhub_update_interval_ms");
+    return saved ? parseInt(saved, 10) : 5 * 60 * 1000; // default 5 min
+  });
+  useVersionCheck(updateInterval);
   const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
   const [pairingCode, setPairingCode] = useState<string | null>(urlPairingCode || null);
   const [paired, setPaired] = useState(false);
@@ -1740,6 +1744,34 @@ export default function Player() {
               </span>
             </div>
             <p className="text-white/50 text-xs mt-1">Smooth transition between media items</p>
+          </div>
+
+          {/* Auto-update interval */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-white/90 text-sm font-medium mb-2">Auto-Update Check</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="30"
+                step="1"
+                value={updateInterval / 60000}
+                onChange={(e) => {
+                  const mins = parseInt(e.target.value, 10);
+                  const ms = mins * 60000;
+                  setUpdateInterval(ms);
+                  localStorage.setItem("glowhub_update_interval_ms", String(ms));
+                }}
+                className="tv-focusable flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #00A3A3 ${(updateInterval / 60000 / 30) * 100}%, rgba(255,255,255,0.15) ${(updateInterval / 60000 / 30) * 100}%)`,
+                }}
+              />
+              <span className="text-white/40 text-xs font-mono w-12 text-right">
+                {updateInterval === 0 ? "Off" : `${updateInterval / 60000}m`}
+              </span>
+            </div>
+            <p className="text-white/50 text-xs mt-1">How often to check for new deployments</p>
           </div>
 
           {/* Cache status */}
