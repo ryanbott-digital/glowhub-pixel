@@ -31,7 +31,7 @@ const steps = {
       ),
     },
     {
-      title: "Navigate to GlowHub Player",
+      title: "Navigate to Glow Player",
       icon: Play,
       content: (
         <div className="space-y-2 text-sm text-muted-foreground">
@@ -39,7 +39,7 @@ const steps = {
           <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all">
             {window.location.origin}/player/<span className="text-primary">YOUR_PAIRING_CODE</span>
           </div>
-          <p>The 6-digit pairing code will be shown on screen. Enter it in your GlowHub dashboard under <strong className="text-foreground">Screens → Pair Screen</strong>.</p>
+          <p>The 6-digit pairing code will be shown on screen. Enter it in your Glow dashboard under <strong className="text-foreground">Screens → Pair Screen</strong>.</p>
         </div>
       ),
     },
@@ -86,7 +86,7 @@ const steps = {
       ),
     },
     {
-      title: "Navigate to GlowHub Player",
+      title: "Navigate to Glow Player",
       icon: Play,
       content: (
         <div className="space-y-2 text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ const steps = {
           <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all">
             {window.location.origin}/player/<span className="text-primary">YOUR_PAIRING_CODE</span>
           </div>
-          <p>Your 6-digit pairing code will appear on the TV. Enter it in your GlowHub dashboard to link the screen.</p>
+          <p>Your 6-digit pairing code will appear on the TV. Enter it in your Glow dashboard to link the screen.</p>
         </div>
       ),
     },
@@ -104,7 +104,7 @@ const steps = {
       content: (
         <div className="space-y-2 text-sm text-muted-foreground">
           <ol className="list-decimal list-inside space-y-1.5">
-            <li>Log in to GlowHub on your computer or phone</li>
+            <li>Log in to Glow on your computer or phone</li>
             <li>Go to <strong className="text-foreground">Screens</strong> and click <strong className="text-foreground">Pair Screen</strong></li>
             <li>Enter the 6-digit code shown on your TV</li>
             <li>The TV will automatically start playing your assigned playlist</li>
@@ -120,7 +120,7 @@ const steps = {
           <p>For a dedicated signage experience, lock the TV to the player:</p>
           <ul className="list-disc list-inside space-y-1">
             <li><strong className="text-foreground">Fully Kiosk Browser</strong> — a popular kiosk app available on the Play Store (free trial)</li>
-            <li>Set the GlowHub player URL as the start page</li>
+            <li>Set the Glow player URL as the start page</li>
             <li>Enable "Prevent Sleep" and "Auto-Start on Boot"</li>
           </ul>
         </div>
@@ -172,7 +172,7 @@ const steps = {
       ),
     },
     {
-      title: "Navigate to GlowHub Player & Pair",
+      title: "Navigate to Glow Player & Pair",
       icon: Play,
       content: (
         <div className="space-y-2 text-sm text-muted-foreground">
@@ -229,7 +229,7 @@ const steps = {
       ),
     },
     {
-      title: "Open Chromium & Navigate to GlowHub",
+      title: "Open Chromium & Navigate to Glow",
       icon: Globe,
       content: (
         <div className="space-y-2 text-sm text-muted-foreground">
@@ -251,7 +251,7 @@ const steps = {
             nano ~/.config/autostart/glowhub.desktop
           </div>
           <p className="pt-1">Paste the following:</p>
-          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all whitespace-pre-wrap">{`[Desktop Entry]\nType=Application\nName=GlowHub\nExec=chromium-browser --noerrdialogs --disable-infobars --kiosk ${window.location.origin}/player/YOUR_CODE`}</div>
+          <div className="bg-muted rounded-lg px-4 py-3 font-mono text-xs text-foreground break-all whitespace-pre-wrap">{`[Desktop Entry]\nType=Application\nName=Glow\nExec=chromium-browser --noerrdialogs --disable-infobars --kiosk ${window.location.origin}/player/YOUR_CODE`}</div>
         </div>
       ),
     },
@@ -289,7 +289,7 @@ export default function InstallGuide() {
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Install GlowHub Player</h1>
+        <h1 className="text-2xl font-bold text-foreground">Install Glow Player</h1>
         <p className="text-muted-foreground mt-1">
           Set up your TV or streaming device as a digital signage screen in minutes.
         </p>
@@ -303,7 +303,7 @@ export default function InstallGuide() {
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">How it works</p>
               <p className="text-sm text-muted-foreground">
-                GlowHub Player runs in a web browser — no app installation needed. Open the player URL on your device, enter the pairing code in your dashboard, and your screen is ready. Content updates automatically in real-time.
+                Glow Player runs in a web browser — no app installation needed. Open the player URL on your device, enter the pairing code in your dashboard, and your screen is ready. Content updates automatically in real-time.
               </p>
             </div>
           </div>

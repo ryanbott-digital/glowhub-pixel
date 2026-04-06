@@ -1006,7 +1006,7 @@ export default function Player() {
               <p className="text-white/90 text-sm font-medium">Launch on Boot</p>
               <p className="text-white/50 text-xs mt-0.5">
                 {isNative
-                  ? "Start GlowHub when device powers on"
+                  ? "Start Glow when device powers on"
                   : "Only available in the native app"}
               </p>
             </div>
@@ -1234,7 +1234,7 @@ export default function Player() {
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-black/85 backdrop-blur-md rounded-xl px-5 py-3 border border-[rgba(0,163,163,0.3)] shadow-lg shadow-[rgba(0,163,163,0.15)]">
           <Download className="w-5 h-5 text-[#00A3A3] shrink-0" />
           <div className="flex flex-col">
-            <span className="text-white/90 text-sm font-semibold">Install GlowHub</span>
+            <span className="text-white/90 text-sm font-semibold">Install Glow</span>
             <span className="text-white/50 text-xs">Add to home screen for kiosk mode</span>
           </div>
           <button
@@ -1244,7 +1244,7 @@ export default function Player() {
                 const { outcome } = await installPrompt.userChoice;
                 if (outcome === "accepted") {
                   setShowInstallBanner(false);
-                  toast.success("GlowHub installed!");
+                  toast.success("Glow installed!");
                 }
                 setInstallPrompt(null);
               }
