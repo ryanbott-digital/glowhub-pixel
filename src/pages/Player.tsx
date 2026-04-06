@@ -985,11 +985,8 @@ export default function Player() {
           <img
             src={glowLogoPng}
             alt="Glow"
-            className="h-10 w-auto select-none"
-            style={{
-              opacity: 0.25,
-              animation: "logoPulse 4s ease-in-out infinite",
-            }}
+            className="h-8 w-auto select-none glow-text-pulse"
+            style={{ opacity: 0.3 }}
           />
           <div className="flex-1 flex justify-end">
             {/* Connection status dot */}
