@@ -1,13 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import glowLogoPng from "@/assets/glow-text.png";
 
-const SCREENSAVER_DELAY = 30_000; // 30s before screen saver kicks in
+interface ScreenSaverProps {
+  delayMs?: number;
+}
 
 /**
  * A cinematic screen saver with drifting GLOW logo, aurora blobs,
  * and a live clock. Activates when no content is assigned.
  */
-export function ScreenSaver() {
+export function ScreenSaver({ delayMs = 30_000 }: ScreenSaverProps) {
   const [active, setActive] = useState(false);
   const [clock, setClock] = useState("");
   const [logoPos, setLogoPos] = useState({ x: 50, y: 50 });
@@ -17,9 +19,9 @@ export function ScreenSaver() {
 
   // Activate after delay
   useEffect(() => {
-    const timer = setTimeout(() => setActive(true), SCREENSAVER_DELAY);
+    const timer = setTimeout(() => setActive(true), delayMs);
     return () => clearTimeout(timer);
-  }, []);
+  }, [delayMs]);
 
   // Live clock
   useEffect(() => {
