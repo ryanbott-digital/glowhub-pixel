@@ -585,7 +585,10 @@ export default function Player() {
         return;
       }
 
-      // Screen is claimed — go to playback
+      // Screen is claimed — apply settings and go to playback
+      if (screen.transition_type) setTransitionType(screen.transition_type);
+      if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
+      if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
