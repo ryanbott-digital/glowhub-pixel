@@ -63,10 +63,12 @@ export default function Dashboard() {
 
   const triggerCelebration = useCallback((screenName?: string) => {
     setNewScreenName(screenName || "Your screen");
-    setConfettiActive(true);
+    const showConfetti = localStorage.getItem("glowhub_pair_confetti") !== "false";
+    const playSound = localStorage.getItem("glowhub_pair_sound") !== "false";
+    if (showConfetti) setConfettiActive(true);
     setShowCelebration(true);
-    playCelebrationSound();
-    setTimeout(() => setConfettiActive(false), 4000);
+    if (playSound) playCelebrationSound();
+    if (showConfetti) setTimeout(() => setConfettiActive(false), 4000);
   }, [playCelebrationSound]);
 
   // Realtime: listen for new screens being paired to this user
