@@ -87,6 +87,7 @@ export default function Player() {
     return saved ? parseInt(saved, 10) : 500;
   });
   const [transitionType, setTransitionType] = useState("crossfade");
+  const [fadeToBlackActive, setFadeToBlackActive] = useState(false);
   const [loopEnabled, setLoopEnabled] = useState(true);
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
@@ -1501,6 +1502,16 @@ export default function Player() {
           <GHLoader size={60} />
         </div>
       )}
+
+      {/* Fade-to-black overlay */}
+      <div
+        className="absolute inset-0 bg-black transition-opacity ease-in-out pointer-events-none"
+        style={{
+          opacity: fadeToBlackActive ? 1 : 0,
+          zIndex: 15,
+          transitionDuration: `${crossfadeDuration}ms`,
+        }}
+      />
 
       {/* Buffer A */}
       <div
