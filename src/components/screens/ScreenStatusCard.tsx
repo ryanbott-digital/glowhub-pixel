@@ -316,6 +316,68 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             </div>
           )}
 
+          {/* Transition & Loop settings */}
+          <div className="space-y-3 rounded-xl bg-muted/30 p-3">
+            <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <Shuffle className="h-3 w-3 text-primary" /> Playback Settings
+            </h4>
+
+            {/* Transition type */}
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground w-20 shrink-0">Transition</Label>
+              <Select
+                value={transitionType}
+                onValueChange={(val) => {
+                  setTransitionType(val);
+                  updateScreenSetting({ transition_type: val });
+                }}
+              >
+                <SelectTrigger className="flex-1 h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="crossfade">Crossfade</SelectItem>
+                  <SelectItem value="cut">Cut (instant)</SelectItem>
+                  <SelectItem value="fade-black">Fade to Black</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Crossfade duration — only show when crossfade or fade-black */}
+            {transitionType !== "cut" && (
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground w-20 shrink-0">Duration</Label>
+                <Slider
+                  min={100}
+                  max={2000}
+                  step={100}
+                  value={[crossfadeMs]}
+                  onValueChange={([val]) => setCrossfadeMs(val)}
+                  onValueCommit={([val]) => updateScreenSetting({ crossfade_ms: val })}
+                  className="flex-1"
+                />
+                <span className="text-[10px] text-muted-foreground font-mono w-10 text-right">
+                  {(crossfadeMs / 1000).toFixed(1)}s
+                </span>
+              </div>
+            )}
+
+            {/* Loop toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Repeat className="h-3 w-3 text-muted-foreground" />
+                <Label className="text-xs text-muted-foreground">Loop playlist</Label>
+              </div>
+              <Switch
+                checked={loopEnabled}
+                onCheckedChange={(checked) => {
+                  setLoopEnabled(checked);
+                  updateScreenSetting({ loop_enabled: checked });
+                }}
+              />
+            </div>
+          </div>
+
           {/* Actions row */}
           <div className="flex gap-1.5">
             <Button variant="outline" size="sm" className="text-xs h-7 flex-1" onClick={() => onCopyUrl(screen.id)}>
