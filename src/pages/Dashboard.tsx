@@ -39,12 +39,78 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
+  const triggerCelebration = useCallback((screenName?: string) => {
+    setNewScreenName(screenName || "Your screen");
+    setConfettiActive(true);
+    setShowCelebration(true);
+    setTimeout(() => setConfettiActive(false), 4000);
+  }, []);
+
+  // Realtime: listen for new screens being paired to this user
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("dashboard-screens")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const newScreen = payload.new as any;
+          setScreens((prev) => [...prev, newScreen]);
+          triggerCelebration(newScreen.name);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          setScreens((prev) => prev.map((s) => (s.id === (payload.new as any).id ? payload.new : s)));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, triggerCelebration]);
+
   const handlePair = async () => {
     if (pairingCode.length !== 6) {
       toast.error("Please enter a 6-digit pairing code");
       return;
     }
-    toast.info("Pairing feature coming soon!");
+    // Attempt to claim the pairing code
+    const { data: pairing, error: pairingErr } = await supabase
+      .from("pairings")
+      .select("id, screen_id, expires_at")
+      .eq("pairing_code", pairingCode)
+      .maybeSingle();
+
+    if (pairingErr || !pairing) {
+      toast.error("Invalid pairing code. Please try again.");
+      setPairingCode("");
+      return;
+    }
+    if (new Date(pairing.expires_at) < new Date()) {
+      toast.error("This pairing code has expired. Generate a new one on the TV.");
+      setPairingCode("");
+      return;
+    }
+    if (!pairing.screen_id) {
+      toast.error("No screen associated with this code.");
+      setPairingCode("");
+      return;
+    }
+    // Claim the screen
+    const { error: claimErr } = await supabase
+      .from("screens")
+      .update({ user_id: user!.id, status: "online", pairing_code: null })
+      .eq("id", pairing.screen_id);
+
+    if (claimErr) {
+      toast.error("Failed to pair screen. " + claimErr.message);
+    } else {
+      // Delete used pairing
+      await supabase.from("pairings").delete().eq("id", pairing.id);
+      triggerCelebration();
+    }
     setPairingCode("");
   };
 
