@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare, Sparkles, Crown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -40,6 +41,7 @@ export default function Screens() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPlaylistId, setBulkPlaylistId] = useState("");
   const [screenLimit, setScreenLimit] = useState<number | null>(null);
+  const [tierName, setTierName] = useState("free");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
 
@@ -54,8 +56,9 @@ export default function Screens() {
     if (s.data) setScreens(s.data);
     if (p.data) setPlaylists(p.data);
 
-    const { limit } = await checkScreenLimit(user.id);
+    const { limit, tier } = await checkScreenLimit(user.id);
     setScreenLimit(limit);
+    setTierName(tier);
   }, [user]);
 
   useEffect(() => {
@@ -240,14 +243,23 @@ export default function Screens() {
             </span>
           )}
           {screenLimit !== null && screenLimit > 0 && (
-            <div className="w-32 h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  screens.length >= screenLimit ? "bg-destructive" : screens.length >= screenLimit * 0.8 ? "bg-accent" : "bg-primary"
-                }`}
-                style={{ width: `${Math.min((screens.length / screenLimit) * 100, 100)}%` }}
-              />
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-32 h-2 rounded-full bg-muted overflow-hidden cursor-default">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        screens.length >= screenLimit ? "bg-destructive" : screens.length >= screenLimit * 0.8 ? "bg-accent" : "bg-primary"
+                      }`}
+                      style={{ width: `${Math.min((screens.length / screenLimit) * 100, 100)}%` }}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{screens.length} of {screenLimit} screens used — {tierName.charAt(0).toUpperCase() + tierName.slice(1)} plan</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
         <div className="flex gap-2">
