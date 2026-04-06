@@ -28,7 +28,7 @@ const queryClient = new QueryClient();
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <GHLoaderPage />;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/home" replace />;
   return <DashboardLayout>{children}</DashboardLayout>;
 }
 
