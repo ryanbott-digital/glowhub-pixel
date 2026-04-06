@@ -348,45 +348,129 @@ export default function Player() {
     }
   }, []);
 
-  // Poll for pairing status
+  // ── STANDALONE ENTRY: No URL param, no stored screen → create pending screen via edge function ──
   useEffect(() => {
-    if (!pairingCode) return;
+    if (urlPairingCode || screenId) return; // handled by other flows
+
+    const createPendingScreen = async () => {
+      try {
+        const res = await supabase.functions.invoke("create-pending-screen");
+        if (res.error || !res.data) {
+          console.error("Failed to create pending screen:", res.error);
+          setLoading(false);
+          return;
+        }
+        const { screen_id, pairing_code } = res.data as { screen_id: string; pairing_code: string };
+        setScreenId(screen_id);
+        setPairingCode(pairing_code);
+        setLoading(false);
+      } catch (err) {
+        console.error("Edge function error:", err);
+        setLoading(false);
+      }
+    };
+
+    createPendingScreen();
+  }, [urlPairingCode, screenId]);
+
+  // ── STORED SCREEN: Already paired, jump straight to playback ──
+  useEffect(() => {
+    if (!screenId || urlPairingCode) return; // let URL-param flow handle it
+    if (paired) return;
+
+    const checkStoredScreen = async () => {
+      const { data: screen } = await supabase
+        .from("screens")
+        .select("id, current_playlist_id, pairing_code, status")
+        .eq("id", screenId)
+        .maybeSingle();
+
+      if (!screen) {
+        // Screen was deleted — clear localStorage and reset
+        localStorage.removeItem("glowhub_screen_id");
+        setScreenId(null);
+        setPairingCode(null);
+        setLoading(false);
+        return;
+      }
+
+      if (screen.status === "pending" || screen.pairing_code) {
+        // Still pending — show pairing code
+        setPairingCode(screen.pairing_code);
+        setLoading(false);
+        return;
+      }
+
+      // Screen is claimed — go to playback
+      setPaired(true);
+      if (screen.current_playlist_id) {
+        await fetchPlaylist(screen.current_playlist_id);
+      }
+      setLoading(false);
+    };
+
+    checkStoredScreen();
+  }, [screenId, urlPairingCode, paired, fetchPlaylist]);
+
+  // ── REALTIME: Listen for screen being claimed (pairing_code cleared, user_id set) ──
+  useEffect(() => {
+    if (!screenId || paired) return;
+
+    const channel = supabase
+      .channel(`pairing-watch-${screenId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
+        async (payload) => {
+          const updated = payload.new as any;
+          // Screen claimed when pairing_code is cleared and status changes from pending
+          if (!updated.pairing_code && updated.status !== "pending") {
+            localStorage.setItem("glowhub_screen_id", screenId);
+            setPaired(true);
+            if (updated.current_playlist_id) {
+              await fetchPlaylist(updated.current_playlist_id);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [screenId, paired, fetchPlaylist]);
+
+  // Poll for pairing status (URL param flow — legacy support)
+  useEffect(() => {
+    if (!urlPairingCode) return;
 
     const checkPairing = async () => {
       // Find screen with this pairing code
       const { data: screen } = await supabase
         .from("screens")
         .select("id, current_playlist_id, pairing_code")
-        .eq("pairing_code", pairingCode)
+        .eq("pairing_code", urlPairingCode)
         .maybeSingle();
 
       if (screen) {
-        // Screen exists with this code — not yet paired (code still present)
         setScreenId(screen.id);
-
-        // Check if pairing_code was cleared (meaning it's been claimed)
-        // Actually, our pairing flow sets user_id and clears pairing_code
-        // So if pairing_code still matches, it's unpaired
-        // We need to also check for screens that were already paired
-        // by looking for screens where pairing_code is null but we don't know the id yet
         setPaired(false);
         setLoading(false);
         return;
       }
 
       // Maybe the screen was already paired (pairing_code cleared)
-      // Check pairings table
       const { data: pairing } = await supabase
         .from("pairings")
         .select("screen_id")
-        .eq("pairing_code", pairingCode)
+        .eq("pairing_code", urlPairingCode)
         .maybeSingle();
 
       if (pairing?.screen_id) {
         setScreenId(pairing.screen_id);
+        localStorage.setItem("glowhub_screen_id", pairing.screen_id);
         setPaired(true);
 
-        // Fetch current playlist
         const { data: screenData } = await supabase
           .from("screens")
           .select("current_playlist_id")
@@ -406,20 +490,17 @@ export default function Player() {
     const interval = setInterval(async () => {
       if (paired) return;
 
-      // Check if screen was just paired (pairing_code cleared from screens table)
       const { data: screen } = await supabase
         .from("screens")
         .select("id, current_playlist_id, pairing_code, user_id")
-        .eq("pairing_code", pairingCode)
+        .eq("pairing_code", urlPairingCode)
         .maybeSingle();
 
       if (screen) {
-        // Still has pairing code — not paired yet
         setScreenId(screen.id);
         return;
       }
 
-      // If we already have a screenId, check if it's now paired
       if (screenId) {
         const { data: s } = await supabase
           .from("screens")
@@ -428,6 +509,7 @@ export default function Player() {
           .maybeSingle();
 
         if (s && !s.pairing_code) {
+          localStorage.setItem("glowhub_screen_id", s.id);
           setPaired(true);
           if (s.current_playlist_id) {
             await fetchPlaylist(s.current_playlist_id);
@@ -438,7 +520,7 @@ export default function Player() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [pairingCode, paired, screenId, fetchPlaylist]);
+  }, [urlPairingCode, paired, screenId, fetchPlaylist]);
 
   // Realtime: listen for screen updates (playlist changes)
   useEffect(() => {
