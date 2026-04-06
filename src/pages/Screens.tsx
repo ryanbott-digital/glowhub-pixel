@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare } from "lucide-react";
+import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare, Sparkles, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -40,6 +40,8 @@ export default function Screens() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPlaylistId, setBulkPlaylistId] = useState("");
   const [screenLimit, setScreenLimit] = useState<number | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
 
   const selectionMode = selectedIds.size > 0;
 
@@ -68,16 +70,11 @@ export default function Screens() {
     const { allowed, limit, tier, currentCount } = await checkScreenLimit(user.id);
     if (!allowed) {
       if (tier === "pro") {
-        toast.error(
-          `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan.`,
-          { duration: 6000 }
-        );
+        setUpgradeMessage({ title: "Pro Limit Reached", description: `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan with unlimited screens.`, showUpgrade: false });
       } else {
-        toast.error(
-          `Your ${tier === "free" ? "Free" : "Basic"} plan allows ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro for up to 5.`,
-          { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
-        );
+        setUpgradeMessage({ title: "Upgrade to Pro", description: `Your ${tier === "free" ? "Free" : "Basic"} plan supports ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro to manage up to 5 screens.`, showUpgrade: true });
       }
+      setUpgradeOpen(true);
       return;
     }
     const code = generateCode();
@@ -103,16 +100,11 @@ export default function Screens() {
     const { allowed, limit, tier, currentCount } = await checkScreenLimit(user.id);
     if (!allowed) {
       if (tier === "pro") {
-        toast.error(
-          `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan.`,
-          { duration: 6000 }
-        );
+        setUpgradeMessage({ title: "Pro Limit Reached", description: `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan with unlimited screens.`, showUpgrade: false });
       } else {
-        toast.error(
-          `Your ${tier === "free" ? "Free" : "Basic"} plan allows ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro for up to 5.`,
-          { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
-        );
+        setUpgradeMessage({ title: "Upgrade to Pro", description: `Your ${tier === "free" ? "Free" : "Basic"} plan supports ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro to manage up to 5 screens.`, showUpgrade: true });
       }
+      setUpgradeOpen(true);
       setPairing(false);
       return;
     }
