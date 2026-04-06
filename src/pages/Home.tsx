@@ -434,7 +434,7 @@ const Home = () => {
           Smooth double-buffered transitions. No flicker. No black screens. Ever.
         </p>
 
-        <div data-animate className="reveal-card max-w-2xl mx-auto" style={{ perspective: "1400px" }}>
+        <div ref={secondTvRef} data-animate className="reveal-card max-w-2xl mx-auto will-change-transform" style={{ perspective: "1400px" }}>
           <div
             className="relative"
             style={{ transform: "rotateY(-4deg) rotateX(2deg)", transformStyle: "preserve-3d" }}
