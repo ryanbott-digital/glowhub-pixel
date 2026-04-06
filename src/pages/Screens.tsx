@@ -39,6 +39,7 @@ export default function Screens() {
   const [pairing, setPairing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPlaylistId, setBulkPlaylistId] = useState("");
+  const [screenLimit, setScreenLimit] = useState<number | null>(null);
 
   const selectionMode = selectedIds.size > 0;
 
