@@ -7,6 +7,7 @@ import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { GHLoader } from "@/components/GHLoader";
+import glowLogoPng from "@/assets/glow-logo.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
@@ -952,15 +953,15 @@ export default function Player() {
         <div className="absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10">
           {/* Logo center */}
           <div className="flex-1" />
-          <div
-            className="text-3xl font-bold font-['Poppins'] select-none"
+          <img
+            src={glowLogoPng}
+            alt="Glow"
+            className="h-10 w-auto select-none"
             style={{
               opacity: 0.25,
               animation: "logoPulse 4s ease-in-out infinite",
             }}
-          >
-            <span className="text-glow">Glow</span>
-          </div>
+          />
           <div className="flex-1 flex justify-end">
             {/* Connection status dot */}
             <div className="flex items-center gap-2">
@@ -1157,12 +1158,12 @@ export default function Player() {
         )}
 
         {/* Bottom logo — subtle */}
-        <div
-          className="absolute bottom-8 z-10 text-2xl font-bold font-['Poppins'] select-none"
+        <img
+          src={glowLogoPng}
+          alt="Glow"
+          className="absolute bottom-8 z-10 h-8 w-auto select-none"
           style={{ opacity: 0.15, animation: "logoPulse 4s ease-in-out infinite" }}
-        >
-          <span className="text-glow">Glow</span>
-        </div>
+        />
 
         <style>{`
           @keyframes nebulaBlob1 {
