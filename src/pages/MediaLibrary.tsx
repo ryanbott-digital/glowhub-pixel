@@ -370,7 +370,14 @@ export default function MediaLibrary() {
 
       {/* Media grid */}
       {media.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className={`grid gap-4 ${
+          (() => {
+            const size = localStorage.getItem("glowhub_media_grid") || "medium";
+            if (size === "small") return "grid-cols-3 md:grid-cols-4 lg:grid-cols-6";
+            if (size === "large") return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+            return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+          })()
+        }`}>
           {media.map((item) => {
             const url = getPublicUrl(item.storage_path);
             const isSelected = selected.has(item.id);
