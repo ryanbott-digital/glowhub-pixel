@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Auth from "./pages/Auth";
+import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import MediaLibrary from "./pages/MediaLibrary";
 import Playlists from "./pages/Playlists";
@@ -27,7 +28,7 @@ const queryClient = new QueryClient();
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <GHLoaderPage />;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/home" replace />;
   return <DashboardLayout>{children}</DashboardLayout>;
 }
 
@@ -36,6 +37,13 @@ function AuthRoute() {
   if (loading) return null;
   if (user) return <Navigate to="/" replace />;
   return <Auth />;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/" replace />;
+  return <>{children}</>;
 }
 
 const App = () => (
@@ -47,6 +55,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/home" element={<PublicRoute><Home /></PublicRoute>} />
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/display/:screenId" element={<Display />} />
