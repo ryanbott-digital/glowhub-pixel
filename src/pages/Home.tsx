@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2 } from "lucide-react";
