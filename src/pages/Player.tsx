@@ -1577,7 +1577,7 @@ export default function Player() {
 
       {/* Power Settings panel */}
       {showSettings && (
-        <div className="fixed top-16 right-4 z-50 w-72 rounded-xl bg-black/90 backdrop-blur-md border border-white/10 p-5 shadow-2xl">
+        <div ref={settingsPanelRef} className="fixed top-16 right-4 z-50 w-72 rounded-xl bg-black/90 backdrop-blur-md border border-white/10 p-5 shadow-2xl max-h-[85vh] overflow-y-auto">
           <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
             <Settings className="w-4 h-4" /> Power Settings
           </h3>
