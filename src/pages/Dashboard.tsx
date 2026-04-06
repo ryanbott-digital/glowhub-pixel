@@ -181,11 +181,11 @@ export default function Dashboard() {
         <div className="glass glass-spotlight rounded-2xl p-5 relative overflow-hidden">
           <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase mb-3">Screens</h3>
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2.5">
+            <div className={`flex items-center gap-2.5 transition-all duration-500 ${onlineFlash ? "neon-online-flash" : ""}`}>
               <div className="relative">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 heartbeat-pulse" />
               </div>
-              <span className="text-2xl font-bold text-foreground tabular-nums">{onlineCount}</span>
+              <span className={`text-2xl font-bold tabular-nums transition-all duration-500 ${onlineFlash ? "text-emerald-400" : "text-foreground"}`} style={onlineFlash ? { textShadow: "0 0 12px hsl(150, 100%, 50%)" } : {}}>{onlineCount}</span>
               <span className="text-[11px] text-muted-foreground tracking-wider uppercase">Online</span>
             </div>
             <div className="flex items-center gap-2.5">
