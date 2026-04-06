@@ -53,6 +53,11 @@ export default function Screens() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   const selectionMode = selectedIds.size > 0;
   const atLimit = screenLimit !== null && screens.length >= screenLimit;
