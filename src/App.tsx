@@ -18,6 +18,7 @@ import Analytics from "./pages/Analytics";
 import InstallGuide from "./pages/InstallGuide";
 import InstallApp from "./pages/InstallApp";
 import ResetPassword from "./pages/ResetPassword";
+import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
             <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
             <Route path="/install-app" element={<InstallApp />} />
             <Route path="*" element={<NotFound />} />

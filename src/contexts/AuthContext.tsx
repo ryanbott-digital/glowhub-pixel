@@ -23,9 +23,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setLoading(false);
+      // Ensure profile exists for this user
+      if (session?.user) {
+        const { data } = await supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle();
+        if (!data) {
+          await supabase.from("profiles").upsert({ id: session.user.id }, { onConflict: "id" });
+        }
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {

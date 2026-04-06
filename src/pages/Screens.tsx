@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
+import { checkScreenLimit } from "@/lib/subscription";
+import { useNavigate } from "react-router-dom";
 
 interface Screen {
   id: string;
@@ -26,6 +28,7 @@ interface Playlist {
 }
 
 export default function Screens() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -57,6 +60,15 @@ export default function Screens() {
 
   const createScreen = async () => {
     if (!user || !newName.trim()) return;
+
+    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    if (!allowed) {
+      toast.error(
+        `Your ${tier === "free" ? "Free" : "Basic"} plan allows up to ${limit} screen${limit !== 1 ? "s" : ""}. Please upgrade to add more.`,
+        { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
+      );
+      return;
+    }
     const code = generateCode();
     const { error } = await supabase.from("screens").insert({
       user_id: user.id,
@@ -76,6 +88,17 @@ export default function Screens() {
   const pairScreen = async () => {
     if (!user || pairingCode.length !== 6) return;
     setPairing(true);
+
+    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    if (!allowed) {
+      toast.error(
+        `Your ${tier === "free" ? "Free" : "Basic"} plan allows up to ${limit} screen${limit !== 1 ? "s" : ""}. Please upgrade to add more.`,
+        { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
+      );
+      setPairing(false);
+      return;
+    }
+
     try {
       const { data: screen, error: findErr } = await supabase
         .from("screens")
