@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 const SCREEN_LIMITS: Record<string, number> = {
   free: 1,
   basic: 2,
-  pro: Infinity,
+  pro: 5,
 };
 
 export async function checkScreenLimit(userId: string): Promise<{

@@ -61,12 +61,19 @@ export default function Screens() {
   const createScreen = async () => {
     if (!user || !newName.trim()) return;
 
-    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    const { allowed, limit, tier, currentCount } = await checkScreenLimit(user.id);
     if (!allowed) {
-      toast.error(
-        `Your ${tier === "free" ? "Free" : "Basic"} plan allows up to ${limit} screen${limit !== 1 ? "s" : ""}. Please upgrade to add more.`,
-        { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
-      );
+      if (tier === "pro") {
+        toast.error(
+          `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan.`,
+          { duration: 6000 }
+        );
+      } else {
+        toast.error(
+          `Your ${tier === "free" ? "Free" : "Basic"} plan allows ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro for up to 5.`,
+          { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
+        );
+      }
       return;
     }
     const code = generateCode();
@@ -89,12 +96,19 @@ export default function Screens() {
     if (!user || pairingCode.length !== 6) return;
     setPairing(true);
 
-    const { allowed, limit, tier } = await checkScreenLimit(user.id);
+    const { allowed, limit, tier, currentCount } = await checkScreenLimit(user.id);
     if (!allowed) {
-      toast.error(
-        `Your ${tier === "free" ? "Free" : "Basic"} plan allows up to ${limit} screen${limit !== 1 ? "s" : ""}. Please upgrade to add more.`,
-        { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
-      );
+      if (tier === "pro") {
+        toast.error(
+          `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan.`,
+          { duration: 6000 }
+        );
+      } else {
+        toast.error(
+          `Your ${tier === "free" ? "Free" : "Basic"} plan allows ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro for up to 5.`,
+          { action: { label: "Upgrade", onClick: () => navigate("/subscription") } }
+        );
+      }
       setPairing(false);
       return;
     }
