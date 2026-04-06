@@ -82,6 +82,8 @@ export default function Player() {
     const saved = localStorage.getItem("glowhub_crossfade_ms");
     return saved ? parseInt(saved, 10) : 500;
   });
+  const [transitionType, setTransitionType] = useState("crossfade");
+  const [loopEnabled, setLoopEnabled] = useState(true);
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
