@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => ({
         background_color: "#000000",
         display: "fullscreen",
         orientation: "landscape",
-        start_url: "/",
+        start_url: "/player",
         scope: "/",
         icons: [
           {
