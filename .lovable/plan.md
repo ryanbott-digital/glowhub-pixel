@@ -1,34 +1,33 @@
 
 
-## Add Floor Reflection to Hardware Icons
+## Apply Premium Glassmorphism to Media Library & Playlists
 
 ### Overview
-Add a polished black glass reflection effect beneath the Firestick and Google TV icon containers, making them appear to sit on a reflective surface.
+Both pages currently use plain `Card` components with default styling. The Dashboard uses `glass glass-spotlight rounded-2xl` containers throughout. We'll apply the same treatment for visual consistency.
 
 ### Changes
 
-**`src/pages/Home.tsx`** (lines 305-317)
+**`src/pages/MediaLibrary.tsx`**
+- **Page header area**: Wrap stats subtitle in the same tracking/uppercase style used on Dashboard
+- **Drop zone**: Add `glass glass-spotlight rounded-2xl` classes, replace `border-dashed` with the frosted glass border style, add teal glow on drag-over
+- **Media grid cards**: Replace plain `Card` with `div` using `glass glass-spotlight rounded-2xl` classes, matching the Dashboard stat cards' frosted look. Keep existing selection ring behavior
+- **Empty state**: Wrap in `glass glass-spotlight rounded-2xl` container
+- **Upload button area**: Style the bulk-action bar with `glass-strong rounded-xl` when in selection mode
 
-For each hardware icon column, add a reflection element after the icon container div — a duplicate of the container that is flipped vertically, faded, and blurred:
+**`src/pages/Playlists.tsx`**
+- **Playlist sidebar cards**: Replace plain `Card` with `glass glass-spotlight rounded-2xl` styled divs. Selected state uses `ring-2 ring-primary` (already exists), unselected gets the glass hover glow
+- **Empty "Select a playlist" placeholder**: Wrap in `glass glass-spotlight rounded-2xl` container
+- **Empty "No playlists yet" state**: Style with glass container
+- **Create Playlist dialog**: Add `glass-strong` class to `DialogContent`
 
-- Add a `div` after each icon container with:
-  - `transform: scaleY(-1)` to flip vertically
-  - A gradient mask (`mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent)`) so it fades out downward
-  - `blur(2px)` and `opacity: 0.3` for a soft glass look
-  - `h-12` height constraint so the reflection is subtle
-  - `overflow: hidden` to clip cleanly
-- Alternatively, use a CSS `::after` pseudo-element approach via an inline style block to avoid duplicating the image elements — create a reflected gradient strip beneath each container that mimics the card's glow
-
-**Simpler approach**: Add a styled div below each icon container that renders a soft elliptical teal/white gradient, simulating a light pool on a glass floor:
-
-```tsx
-<div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
-```
-
-This creates a subtle "floor glow" reflection without duplicating images. Combined with the existing `hero-float` animation, the reflection will sit statically beneath the floating icons, enhancing the depth illusion.
+**`src/components/playlists/PlaylistBuilder.tsx`**
+- **Main card wrapper**: Replace `Card` with `glass glass-spotlight rounded-2xl` container
+- **Timeline track background**: Update from `bg-muted/50 border border-border` to frosted glass style
+- **Add media button section**: Subtle glass background strip
+- **Lightbox dialog**: Add `glass-strong` to `DialogContent`
 
 ### Technical Details
-- No new files, no new dependencies
-- Pure CSS/Tailwind — a small elliptical gradient div placed after each icon container
-- The reflection glow will use the brand teal at ~15% opacity with a `blur-sm` for softness
+- All glass classes (`glass`, `glass-strong`, `glass-spotlight`) are already defined in `src/index.css`
+- The spotlight cursor effect from `DashboardLayout.tsx` (mousemove handler setting `--mouse-x`/`--mouse-y`) already runs globally on all `.glass-spotlight` elements, so no additional JS needed
+- Replace `Card`/`CardContent` imports with plain divs where the glass classes provide the container styling, or keep Card but override its classes
 
