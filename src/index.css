@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,14 +7,14 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98.4%;
-    --foreground: 215 50% 23%;
+    --background: 220 60% 7%;
+    --foreground: 210 20% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 50% 23%;
+    --card: 220 50% 10%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 50% 23%;
+    --popover: 220 50% 10%;
+    --popover-foreground: 210 20% 95%;
 
     --primary: 180 100% 32%;
     --primary-foreground: 0 0% 100%;
@@ -21,8 +22,8 @@
     --secondary: 215 55% 23%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 20% 95%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 40% 14%;
+    --muted-foreground: 215 16% 55%;
 
     --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
@@ -30,19 +31,19 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
+    --border: 220 30% 16%;
+    --input: 220 30% 16%;
     --ring: 180 100% 32%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 215 55% 15%;
-    --sidebar-foreground: 210 20% 90%;
+    --sidebar-background: 220 55% 8%;
+    --sidebar-foreground: 210 20% 85%;
     --sidebar-primary: 180 100% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 45% 20%;
+    --sidebar-accent: 220 45% 14%;
     --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 215 40% 22%;
+    --sidebar-border: 220 30% 14%;
     --sidebar-ring: 180 100% 45%;
 
     --glow-teal: 180 100% 32%;
@@ -91,12 +92,13 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Satoshi', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #0B1120;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    letter-spacing: 0.01em;
+    font-family: 'Satoshi', 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.04em;
   }
 }
 
@@ -134,34 +136,56 @@
     background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)));
   }
 
-  /* ── Glassmorphism utilities ── */
+  /* ── Premium Glassmorphism ── */
   .glass {
-    background: hsla(var(--card), 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsla(var(--border), 0.5);
-  }
-
-  .dark .glass {
-    background: hsla(220, 50%, 10%, 0.5);
-    border-color: hsla(220, 30%, 20%, 0.6);
+    background: hsla(220, 50%, 10%, 0.45);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid hsla(180, 100%, 45%, 0.08);
+    box-shadow: 0 4px 30px hsla(0, 0%, 0%, 0.3), inset 0 1px 0 hsla(180, 100%, 80%, 0.04);
   }
 
   .glass-strong {
-    background: hsla(var(--card), 0.7);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsla(var(--border), 0.6);
+    background: hsla(220, 50%, 8%, 0.7);
+    backdrop-filter: blur(32px) saturate(1.6);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    border: 1px solid hsla(180, 100%, 45%, 0.1);
+    box-shadow: 0 8px 40px hsla(0, 0%, 0%, 0.4), inset 0 1px 0 hsla(180, 100%, 80%, 0.05);
   }
 
-  .dark .glass-strong {
-    background: hsla(220, 50%, 10%, 0.65);
-    border-color: hsla(220, 30%, 20%, 0.7);
+  /* ── Spotlight cursor effect ── */
+  .glass-spotlight {
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
   }
 
-  /* ── Mesh gradient background ── */
+  .glass-spotlight::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsla(180, 100%, 45%, 0.06),
+      transparent 60%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .glass-spotlight:hover::after {
+    opacity: 1;
+  }
+
+  .glass-spotlight:hover {
+    border-color: hsla(180, 100%, 45%, 0.15);
+  }
+
+  /* ── Deep Space mesh gradient ── */
   .mesh-bg {
     position: relative;
+    background-color: #0B1120;
   }
 
   .mesh-bg::before {
@@ -171,18 +195,20 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(ellipse 600px 600px at 15% 20%, hsla(180, 100%, 45%, 0.06) 0%, transparent 70%),
-      radial-gradient(ellipse 500px 500px at 85% 30%, hsla(220, 80%, 55%, 0.05) 0%, transparent 70%),
-      radial-gradient(ellipse 400px 400px at 40% 80%, hsla(330, 80%, 60%, 0.04) 0%, transparent 70%);
-    animation: meshShift 20s ease-in-out infinite alternate;
+      radial-gradient(ellipse 700px 700px at 10% 15%, hsla(180, 100%, 40%, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 600px 600px at 85% 25%, hsla(220, 80%, 55%, 0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 500px at 50% 85%, hsla(280, 60%, 50%, 0.05) 0%, transparent 70%);
+    animation: meshDrift 25s ease-in-out infinite alternate;
   }
 
-  @keyframes meshShift {
+  @keyframes meshDrift {
     0% {
       background-position: 0% 0%, 100% 0%, 50% 100%;
+      filter: hue-rotate(0deg);
     }
     100% {
-      background-position: 10% 10%, 90% 10%, 40% 90%;
+      background-position: 15% 15%, 80% 15%, 35% 85%;
+      filter: hue-rotate(8deg);
     }
   }
 
@@ -192,6 +218,26 @@
     outline: none;
     border-color: hsl(var(--primary));
     box-shadow: 0 0 0 3px hsla(var(--primary), 0.15), 0 0 20px hsla(var(--primary), 0.1);
+  }
+
+  /* ── Holographic terminal input ── */
+  .holo-input {
+    background: hsla(220, 50%, 8%, 0.6);
+    border: 1px solid hsla(180, 100%, 45%, 0.15);
+    color: hsl(180, 100%, 65%);
+    text-shadow: 0 0 8px hsla(180, 100%, 45%, 0.5);
+    transition: all 0.3s ease;
+  }
+
+  .holo-input:focus {
+    border-color: hsl(180, 100%, 45%);
+    box-shadow: 0 0 0 2px hsla(180, 100%, 45%, 0.15), 0 0 30px hsla(180, 100%, 45%, 0.12), inset 0 0 20px hsla(180, 100%, 45%, 0.05);
+    text-shadow: 0 0 12px hsla(180, 100%, 45%, 0.7);
+  }
+
+  .holo-input::placeholder {
+    color: hsla(180, 40%, 50%, 0.4);
+    text-shadow: none;
   }
 
   /* ── PRO badge ── */
@@ -216,7 +262,7 @@
     50% { box-shadow: 0 0 10px hsla(180, 100%, 45%, 0.35); }
   }
 
-  /* ── Magnetic button ── */
+  /* ── Magnetic button with glow pulse ── */
   .magnetic-btn {
     transition: box-shadow 0.3s ease, transform 0.15s ease;
     box-shadow: 0 0 15px hsla(180, 100%, 45%, 0.15);
@@ -224,6 +270,73 @@
 
   .magnetic-btn:hover {
     box-shadow: 0 0 40px hsla(180, 100%, 45%, 0.4), 0 0 80px hsla(220, 80%, 55%, 0.15);
+    transform: scale(1.02);
+  }
+
+  /* ── Neon pulse for pair button ── */
+  .neon-pulse-btn {
+    position: relative;
+    box-shadow: 0 0 15px hsla(180, 100%, 45%, 0.2), 0 0 45px hsla(180, 100%, 45%, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .neon-pulse-btn:hover {
+    box-shadow: 0 0 20px hsla(180, 100%, 45%, 0.4), 0 0 60px hsla(180, 100%, 45%, 0.15), 0 0 100px hsla(180, 100%, 45%, 0.05);
+    transform: scale(1.04);
+  }
+
+  .neon-pulse-btn::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsla(180, 100%, 45%, 0.3), hsla(220, 80%, 55%, 0.3));
+    z-index: -1;
+    filter: blur(8px);
+    opacity: 0.5;
+    animation: neonBtnPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes neonBtnPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  /* ── Heartbeat pulse for online status ── */
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 6px hsla(150, 100%, 50%, 0.4); }
+    15% { transform: scale(1.3); box-shadow: 0 0 12px hsla(150, 100%, 50%, 0.7); }
+    30% { transform: scale(1); box-shadow: 0 0 6px hsla(150, 100%, 50%, 0.4); }
+    45% { transform: scale(1.15); box-shadow: 0 0 10px hsla(150, 100%, 50%, 0.6); }
+  }
+
+  .heartbeat-pulse {
+    animation: heartbeat 2s ease-in-out infinite;
+  }
+
+  /* ── Neon edge for completed boot items ── */
+  .neon-complete {
+    border-left: 2px solid hsl(180, 100%, 45%);
+    box-shadow: inset 3px 0 12px hsla(180, 100%, 45%, 0.1), 0 0 8px hsla(180, 100%, 45%, 0.05);
+  }
+
+  /* ── Aurora animation for empty state ── */
+  @keyframes auroraFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .neon-aurora {
+    background: linear-gradient(
+      270deg,
+      hsla(180, 100%, 40%, 0.15),
+      hsla(220, 80%, 50%, 0.1),
+      hsla(280, 60%, 50%, 0.08),
+      hsla(180, 100%, 40%, 0.15)
+    );
+    background-size: 400% 400%;
+    animation: auroraFlow 12s ease-in-out infinite;
   }
 
   /* ── Empty state pulse ── */
@@ -234,5 +347,22 @@
 
   .empty-state-pulse {
     animation: emptyPulse 3s ease-in-out infinite;
+  }
+
+  /* ── Stagger animation for list items ── */
+  .stagger-in > * {
+    opacity: 0;
+    animation: staggerFadeIn 0.4s ease-out forwards;
+  }
+
+  .stagger-in > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-in > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-in > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-in > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-in > *:nth-child(5) { animation-delay: 0.25s; }
+
+  @keyframes staggerFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
