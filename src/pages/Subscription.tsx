@@ -6,12 +6,11 @@ import { Check, Crown, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useSearchParams } from "react-router-dom";
 
 const PLANS = [
   {
     id: "free",
-    name: "Free",
+    name: "Starter",
     price: "$0",
     period: "forever",
     description: "Get started with digital signage",
@@ -20,43 +19,30 @@ const PLANS = [
     icon: Zap,
   },
   {
-    id: "basic",
-    name: "Basic",
-    price: "$9.99",
-    period: "/month",
-    description: "Perfect for small businesses",
-    features: ["Up to 2 screens", "All media types", "Scheduling", "Email support"],
-    screenLimit: 2,
-    icon: Check,
-    popular: true,
-  },
-  {
     id: "pro",
     name: "Pro",
-    price: "$29.99",
+    price: "$9",
     period: "/month",
-    description: "Unlimited screens for growing teams",
-    features: ["Unlimited screens", "All media types", "Advanced scheduling", "Priority support", "Analytics"],
-    screenLimit: Infinity,
+    description: "For growing businesses with multiple screens",
+    features: [
+      "Up to 5 screens",
+      "All media types",
+      "Advanced scheduling",
+      "Heartbeat monitoring",
+      "Priority support",
+    ],
+    screenLimit: 5,
     icon: Crown,
+    popular: true,
   },
 ];
 
 export default function Subscription() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const [currentTier, setCurrentTier] = useState("free");
   const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("success") === "true") {
-      toast.success("Subscription activated! 🎉");
-    } else if (searchParams.get("canceled") === "true") {
-      toast.info("Checkout canceled");
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     if (!user) return;
@@ -72,11 +58,11 @@ export default function Subscription() {
     fetchProfile();
   }, [user]);
 
-  const handleCheckout = async (tier: string) => {
-    setCheckoutLoading(tier);
+  const handleCheckout = async () => {
+    setCheckoutLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-        body: { tier },
+        body: { tier: "pro" },
       });
       if (error) throw error;
       if (data?.url) {
@@ -85,7 +71,7 @@ export default function Subscription() {
     } catch (err: any) {
       toast.error(err.message || "Failed to start checkout");
     } finally {
-      setCheckoutLoading(null);
+      setCheckoutLoading(false);
     }
   };
 
@@ -129,7 +115,7 @@ export default function Subscription() {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 max-w-2xl">
         {PLANS.map((plan) => {
           const isCurrent = plan.id === currentTier;
           return (
@@ -141,7 +127,12 @@ export default function Subscription() {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+                  <Badge className="bg-primary text-primary-foreground">Recommended</Badge>
+                </div>
+              )}
+              {isCurrent && (
+                <div className="absolute -top-3 right-4">
+                  <Badge variant="secondary">Your Plan</Badge>
                 </div>
               )}
               <CardHeader className="text-center pb-2">
@@ -177,13 +168,15 @@ export default function Subscription() {
                 ) : (
                   <Button
                     className="w-full"
-                    onClick={() => handleCheckout(plan.id)}
-                    disabled={checkoutLoading !== null}
+                    onClick={handleCheckout}
+                    disabled={checkoutLoading}
                   >
-                    {checkoutLoading === plan.id ? (
+                    {checkoutLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : null}
-                    {currentTier !== "free" ? "Switch Plan" : "Upgrade"}
+                    ) : (
+                      <Crown className="h-4 w-4 mr-2" />
+                    )}
+                    Upgrade to Pro
                   </Button>
                 )}
               </CardContent>
