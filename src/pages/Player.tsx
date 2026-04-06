@@ -72,6 +72,7 @@ export default function Player() {
   });
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
@@ -1007,11 +1008,7 @@ export default function Player() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={async () => {
-                    await caches.delete("glowhub-media-v1");
-                    setCachedCount(0);
-                    setCacheBytes(0);
-                  }}
+                  onClick={() => setShowClearConfirm(true)}
                   className="text-[10px] text-red-400 hover:text-red-300 transition-colors px-1.5 py-0.5 rounded border border-red-400/30 hover:border-red-400/50"
                 >
                   Clear
@@ -1134,6 +1131,36 @@ export default function Player() {
               {String(Math.floor(offlineSeconds / 60)).padStart(2, "0")}:{String(offlineSeconds % 60).padStart(2, "0")}
               {offlineSeconds >= 60 && <span className="text-orange-400/80 ml-1.5">auto-reload on reconnect</span>}
             </span>
+          </div>
+        </div>
+      )}
+      {/* Clear cache confirmation dialog */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70">
+          <div className="bg-[hsl(var(--background))] border border-border rounded-lg p-6 max-w-xs w-full mx-4 shadow-xl space-y-4">
+            <h3 className="text-foreground text-sm font-semibold">Clear Offline Cache?</h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              This will delete all cached media files. The player will need to re-download them, which may cause interruptions if the device is offline.
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await caches.delete("glowhub-media-v1");
+                  setCachedCount(0);
+                  setCacheBytes(0);
+                  setShowClearConfirm(false);
+                }}
+                className="text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Clear Cache
+              </button>
+            </div>
           </div>
         </div>
       )}
