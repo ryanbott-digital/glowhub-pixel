@@ -117,6 +117,14 @@ export function AppSidebar() {
                           {screenUsage.count}/{screenUsage.limit}
                         </span>
                       )}
+                      {item.url === "/admin" && unreadSubmissions > 0 && !collapsed && (
+                        <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground min-w-[18px]">
+                          {unreadSubmissions > 99 ? "99+" : unreadSubmissions}
+                        </span>
+                      )}
+                      {item.url === "/admin" && unreadSubmissions > 0 && collapsed && (
+                        <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-destructive shadow-[0_0_6px_hsl(var(--destructive))]" />
+                      )}
                       {item.url === "/install-app" && !collapsed && isInstalled && (
                         <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
                           <Check className="h-3 w-3" />
