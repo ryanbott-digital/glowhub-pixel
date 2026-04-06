@@ -280,6 +280,27 @@ export type Database = {
           },
         ]
       }
+      screen_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       screen_schedules: {
         Row: {
           created_at: string
@@ -330,6 +351,7 @@ export type Database = {
           created_at: string
           current_media_id: string | null
           current_playlist_id: string | null
+          group_id: string | null
           id: string
           last_ping: string | null
           last_screenshot_url: string | null
@@ -342,6 +364,7 @@ export type Database = {
           created_at?: string
           current_media_id?: string | null
           current_playlist_id?: string | null
+          group_id?: string | null
           id?: string
           last_ping?: string | null
           last_screenshot_url?: string | null
@@ -354,6 +377,7 @@ export type Database = {
           created_at?: string
           current_media_id?: string | null
           current_playlist_id?: string | null
+          group_id?: string | null
           id?: string
           last_ping?: string | null
           last_screenshot_url?: string | null
@@ -368,6 +392,13 @@ export type Database = {
             columns: ["current_playlist_id"]
             isOneToOne: false
             referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screens_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "screen_groups"
             referencedColumns: ["id"]
           },
         ]

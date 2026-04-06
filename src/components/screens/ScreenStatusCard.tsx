@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -13,7 +13,12 @@ interface Playlist {
   title: string;
 }
 
-interface ScreenStatusCardProps {
+interface ScreenGroup {
+  id: string;
+  name: string;
+}
+
+export interface ScreenStatusCardProps {
   screen: {
     id: string;
     name: string;
@@ -21,11 +26,14 @@ interface ScreenStatusCardProps {
     status: string;
     current_playlist_id: string | null;
     last_ping: string | null;
+    group_id?: string | null;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
   onDelete: (id: string) => void;
   onCopyUrl: (id: string) => void;
+  groups?: ScreenGroup[];
+  onMoveToGroup?: (screenId: string, groupId: string | null) => void;
 }
 
 interface CurrentMedia {
@@ -75,7 +83,7 @@ function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playl
   );
 }
 
-export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCopyUrl }: ScreenStatusCardProps) {
+export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCopyUrl, groups, onMoveToGroup }: ScreenStatusCardProps) {
   const [media, setMedia] = useState<CurrentMedia | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -256,6 +264,27 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               <Send className="h-3 w-3" />
             </Button>
           </div>
+
+          {/* Move to group */}
+          {groups && groups.length > 0 && onMoveToGroup && (
+            <div className="flex items-center gap-1.5">
+              <FolderOpen className="h-3 w-3 text-muted-foreground" />
+              <Select
+                value={screen.group_id || "none"}
+                onValueChange={(val) => onMoveToGroup(screen.id, val === "none" ? null : val)}
+              >
+                <SelectTrigger className="flex-1 h-7 text-xs">
+                  <SelectValue placeholder="Move to group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ungrouped</SelectItem>
+                  {groups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Actions row */}
           <div className="flex gap-1.5">
