@@ -370,3 +370,17 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+/* Pulsating glow around GLOW text logo */
+@keyframes glowTextPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px hsla(180, 100%, 45%, 0.3)) drop-shadow(0 0 20px hsla(180, 100%, 45%, 0.15));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px hsla(180, 100%, 45%, 0.6)) drop-shadow(0 0 40px hsla(180, 100%, 45%, 0.3)) drop-shadow(0 0 60px hsla(180, 100%, 45%, 0.15));
+  }
+}
+
+.glow-text-pulse {
+  animation: glowTextPulse 3s ease-in-out infinite;
+}

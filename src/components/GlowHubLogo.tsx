@@ -1,16 +1,20 @@
-import glowLogo from "@/assets/glow-logo.png";
+import glowText from "@/assets/glow-text.png";
 
 export function GlowHubLogo({ className = "" }: { className?: string }) {
   return (
-    <span className={`font-bold font-['Poppins'] ${className}`}>
-      <span className="text-glow">Glow</span>
+    <span className={`inline-block ${className}`}>
+      <img src={glowText} alt="Glow" className="h-full glow-text-pulse" />
     </span>
   );
 }
 
 /** Brand logo image from uploaded asset */
 export function GlowLogoImage({ className = "h-10", alt = "Glow Digital Signage" }: { className?: string; alt?: string }) {
-  return <img src={glowLogo} alt={alt} className={className} />;
+  return (
+    <div className="relative inline-block">
+      <img src={glowText} alt={alt} className={`${className} relative z-10 glow-text-pulse`} />
+    </div>
+  );
 }
 
 /** Interwoven geometric G monogram matching brand asset sheet */
