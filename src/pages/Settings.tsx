@@ -43,6 +43,7 @@ function SettingRow({ children }: { children: React.ReactNode }) {
 }
 
 export default function Settings() {
+  const { user } = useAuth();
   const [checklistDismissed, setChecklistDismissed] = useState(
     () => localStorage.getItem(DISMISS_KEY) === "true"
   );
@@ -53,10 +54,73 @@ export default function Settings() {
   const [defaultPreviewTab, setDefaultPreviewTab] = usePref("glowhub_default_tab", "preview");
   const [mediaGridSize, setMediaGridSize] = usePref("glowhub_media_grid", "medium");
 
+  const [exporting, setExporting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   const handleShowChecklist = () => {
     localStorage.removeItem(DISMISS_KEY);
     setChecklistDismissed(false);
     toast.success("Setup Guide will now show on your Dashboard");
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+    setExporting(true);
+    try {
+      const [screens, playlists, media, playbackLogs] = await Promise.all([
+        supabase.from("screens").select("*").eq("user_id", user.id),
+        supabase.from("playlists").select("*").eq("user_id", user.id),
+        supabase.from("media").select("*").eq("user_id", user.id),
+        supabase.from("playback_logs").select("*"),
+      ]);
+
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        user_id: user.id,
+        screens: screens.data || [],
+        playlists: playlists.data || [],
+        media: media.data || [],
+        playback_logs: playbackLogs.data || [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `glow-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Data exported successfully");
+    } catch (err: any) {
+      toast.error("Export failed: " + (err.message || "Unknown error"));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== "DELETE") return;
+    setDeleting(true);
+    try {
+      // Delete user data in order
+      await supabase.from("playback_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("playlist_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("playlists").delete().eq("user_id", user!.id);
+      await supabase.from("screen_activity_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("screen_schedules").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("screens").delete().eq("user_id", user!.id);
+      await supabase.from("media").delete().eq("user_id", user!.id);
+
+      await supabase.auth.signOut();
+      toast.success("Your data has been deleted and you've been signed out.");
+      window.location.href = "/";
+    } catch (err: any) {
+      toast.error("Deletion failed: " + (err.message || "Unknown error"));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -171,6 +235,75 @@ export default function Settings() {
           </Select>
         </SettingRow>
       </div>
+
+      {/* Danger Zone */}
+      <div className="rounded-2xl p-5 space-y-3 border border-destructive/30" style={{ background: "hsla(0, 84%, 60%, 0.04)" }}>
+        <h2 className="text-sm font-semibold text-destructive flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          Danger Zone
+        </h2>
+        <SettingRow>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">Export All Data</p>
+            <p className="text-xs text-muted-foreground">Download all your screens, playlists, media, and logs as JSON</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleExportData} disabled={exporting} className="gap-1.5">
+            {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            Export
+          </Button>
+        </SettingRow>
+        <SettingRow>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">Delete All Data</p>
+            <p className="text-xs text-muted-foreground">Permanently delete all your screens, playlists, media, and sign out</p>
+          </div>
+          <Button variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)} className="gap-1.5">
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete
+          </Button>
+        </SettingRow>
+      </div>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="glass-strong border-destructive/20 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Delete All Data
+            </DialogTitle>
+            <DialogDescription>
+              This will permanently delete all your screens, playlists, media records, and activity logs. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <p className="text-sm text-muted-foreground">
+              Type <span className="font-mono font-bold text-foreground">DELETE</span> to confirm:
+            </p>
+            <Input
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder="Type DELETE"
+              className="font-mono tracking-wider"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" size="sm" onClick={() => { setShowDeleteDialog(false); setDeleteConfirm(""); }}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={deleteConfirm !== "DELETE" || deleting}
+                onClick={handleDeleteAccount}
+                className="gap-1.5"
+              >
+                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Delete Everything
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
