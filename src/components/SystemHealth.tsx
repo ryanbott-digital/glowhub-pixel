@@ -170,8 +170,7 @@ export function SystemHealth() {
         System Health
         <span className="pro-badge">PRO</span>
       </div>
-      <CardContent>
-        <div className="space-y-3">
+      <div className="space-y-3">
           {screens.map((screen) => {
             const offline = isOffline(screen.last_ping);
             const currentMedia = screen.current_media_id ? mediaMap[screen.current_media_id] : null;
@@ -286,7 +285,6 @@ export function SystemHealth() {
             {offlineScreens.length} offline
           </span>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
