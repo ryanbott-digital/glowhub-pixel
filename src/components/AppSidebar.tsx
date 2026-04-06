@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { LogOut, Download, Smartphone, Check, CreditCard, Shield } from "lucide-react";
+import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,7 @@ const items = [
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
   { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
   { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} />, pro: false },
+  { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false },
 ];
 
 export function AppSidebar() {
