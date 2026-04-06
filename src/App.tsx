@@ -24,6 +24,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
+import Download from "./pages/Download";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
             <Route path="/install-app" element={<InstallApp />} />
+            <Route path="/download" element={<Download />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
