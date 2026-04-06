@@ -1,10 +1,14 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const PRICE_ID = "price_1TJJYUJjPm8usCNRbICbPPbs"; // Glow Pro $9/mo
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -21,12 +25,14 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid session" }), {
         status: 401,
@@ -34,19 +40,11 @@ serve(async (req) => {
       });
     }
 
-    const { tier } = await req.json();
-    if (!tier || !["basic", "pro"].includes(tier)) {
-      return new Response(JSON.stringify({ error: "Invalid tier" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-08-27.basil",
     });
 
-    // Check if customer already exists
+    // Check / create Stripe customer
     const serviceSupabase = createClient(
       supabaseUrl,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -73,31 +71,14 @@ serve(async (req) => {
         .eq("id", user.id);
     }
 
-    // Define prices per tier
-    const priceMap: Record<string, { amount: number; name: string }> = {
-      basic: { amount: 999, name: "Glow Basic" },
-      pro: { amount: 2999, name: "Glow Pro" },
-    };
-
-    const { amount, name } = priceMap[tier];
-
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            recurring: { interval: "month" },
-            product_data: { name },
-            unit_amount: amount,
-          },
-        },
-      ],
-      success_url: `${req.headers.get("origin")}/subscription?success=true`,
-      cancel_url: `${req.headers.get("origin")}/subscription?canceled=true`,
+      line_items: [{ price: PRICE_ID, quantity: 1 }],
+      success_url: `${req.headers.get("origin")}/payment/success`,
+      cancel_url: `${req.headers.get("origin")}/payment/cancel`,
       subscription_data: {
-        metadata: { supabase_user_id: user.id, tier },
+        metadata: { supabase_user_id: user.id, tier: "pro" },
       },
     });
 
@@ -107,8 +88,13 @@ serve(async (req) => {
   } catch (error) {
     console.error("Stripe checkout error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });
