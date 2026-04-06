@@ -159,16 +159,17 @@ const Home = () => {
   const ctaRef = useMagnetic();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const blobContainerRef = useRef<HTMLDivElement>(null);
-
+  const secondTvRef = useRef<HTMLDivElement>(null);
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     setMousePos({ x: e.clientX, y: e.clientY });
   }, []);
 
-  // Scroll-triggered parallax for mesh blobs
+  // Scroll-triggered parallax for mesh blobs + second TV
   useEffect(() => {
     const container = blobContainerRef.current;
-    if (!container) return;
-    const blobs = container.querySelectorAll<HTMLElement>("[data-parallax-speed]");
+    const secondTv = secondTvRef.current;
+    if (!container && !secondTv) return;
+    const blobs = container?.querySelectorAll<HTMLElement>("[data-parallax-speed]") || [];
 
     let ticking = false;
     const onScroll = () => {
@@ -180,6 +181,15 @@ const Home = () => {
           const speed = parseFloat(blob.dataset.parallaxSpeed || "0");
           blob.style.transform = `translateY(${scrollY * speed}px)`;
         });
+        // Parallax for second TV mockup
+        if (secondTv) {
+          const rect = secondTv.getBoundingClientRect();
+          const viewH = window.innerHeight;
+          const progress = (viewH - rect.top) / (viewH + rect.height);
+          const clamped = Math.max(0, Math.min(1, progress));
+          const offset = (clamped - 0.5) * -30; // ±15px
+          secondTv.style.transform = `translateY(${offset}px)`;
+        }
         ticking = false;
       });
     };
@@ -424,7 +434,7 @@ const Home = () => {
           Smooth double-buffered transitions. No flicker. No black screens. Ever.
         </p>
 
-        <div data-animate className="reveal-card max-w-2xl mx-auto" style={{ perspective: "1400px" }}>
+        <div ref={secondTvRef} data-animate className="reveal-card max-w-2xl mx-auto will-change-transform" style={{ perspective: "1400px" }}>
           <div
             className="relative"
             style={{ transform: "rotateY(-4deg) rotateX(2deg)", transformStyle: "preserve-3d" }}
