@@ -20,6 +20,8 @@ import InstallGuide from "./pages/InstallGuide";
 import InstallApp from "./pages/InstallApp";
 import ResetPassword from "./pages/ResetPassword";
 import Subscription from "./pages/Subscription";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -67,6 +69,8 @@ const App = () => (
             <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/cancel" element={<PaymentCancel />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
             <Route path="/install-app" element={<InstallApp />} />

@@ -1,10 +1,15 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+
+const logStep = (step: string, details?: unknown) => {
+  const d = details ? ` - ${JSON.stringify(details)}` : "";
+  console.log(`[STRIPE-WEBHOOK] ${step}${d}`);
+};
 
 serve(async (req) => {
   const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
-    apiVersion: "2023-10-16",
+    apiVersion: "2025-08-27.basil",
   });
 
   const body = await req.text();
@@ -12,18 +17,19 @@ serve(async (req) => {
 
   let event: Stripe.Event;
 
-  // If webhook signing secret is configured, verify signature
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   if (webhookSecret && sig) {
     try {
       event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch (err) {
-      console.error("Webhook signature verification failed:", err);
+      logStep("Signature verification failed", { error: String(err) });
       return new Response("Webhook signature verification failed", { status: 400 });
     }
   } else {
     event = JSON.parse(body);
   }
+
+  logStep("Event received", { type: event.type });
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -33,15 +39,19 @@ serve(async (req) => {
   const handleSubscriptionChange = async (subscription: Stripe.Subscription) => {
     const customerId = subscription.customer as string;
     const status = subscription.status;
-    const tier = subscription.metadata?.tier || "basic";
+    const tier = subscription.metadata?.tier || "pro";
 
-    // Map Stripe status to our status
+    let subscriptionTier = "free";
     let subscriptionStatus = "free";
+
     if (status === "active" || status === "trialing") {
-      subscriptionStatus = tier;
+      subscriptionTier = tier;
+      subscriptionStatus = "active";
     } else if (status === "past_due") {
-      subscriptionStatus = tier; // Keep tier but could flag
-    } else if (status === "canceled" || status === "unpaid" || status === "incomplete_expired") {
+      subscriptionTier = tier;
+      subscriptionStatus = "past_due";
+    } else {
+      subscriptionTier = "free";
       subscriptionStatus = "free";
     }
 
@@ -49,15 +59,15 @@ serve(async (req) => {
       .from("profiles")
       .update({
         subscription_status: subscriptionStatus,
-        subscription_tier: subscriptionStatus === "free" ? "free" : tier,
+        subscription_tier: subscriptionTier,
         updated_at: new Date().toISOString(),
       })
       .eq("stripe_customer_id", customerId);
 
     if (error) {
-      console.error("Error updating profile:", error);
+      logStep("Error updating profile", { error });
     } else {
-      console.log(`Updated subscription for customer ${customerId}: ${subscriptionStatus}`);
+      logStep("Profile updated", { customerId, subscriptionTier, subscriptionStatus });
     }
   };
 
@@ -78,7 +88,7 @@ serve(async (req) => {
       break;
     }
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      logStep("Unhandled event type", { type: event.type });
   }
 
   return new Response(JSON.stringify({ received: true }), {
