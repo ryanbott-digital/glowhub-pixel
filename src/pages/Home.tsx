@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2 } from "lucide-react";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -143,9 +143,24 @@ function LiveMenuMockup() {
   );
 }
 
+/* ── Marquee items ── */
+const MARQUEE_ITEMS = [
+  { Icon: Coffee, label: "Cafés" },
+  { Icon: Dumbbell, label: "Gyms" },
+  { Icon: ShoppingBag, label: "Retailers" },
+  { Icon: Building2, label: "Offices" },
+  { Icon: Hotel, label: "Hotels" },
+  { Icon: Stethoscope, label: "Clinics" },
+];
+
 const Home = () => {
   const wrapperRef = useScrollReveal();
   const ctaRef = useMagnetic();
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  }, []);
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -154,8 +169,17 @@ const Home = () => {
   return (
     <div
       ref={wrapperRef}
-      className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-sans overflow-x-hidden scroll-smooth"
+      onMouseMove={handleMouseMove}
+      className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-['Satoshi','Inter',system-ui,sans-serif] overflow-x-hidden scroll-smooth relative"
     >
+      {/* ── Mouse Spotlight ── */}
+      <div
+        className="pointer-events-none fixed inset-0 z-[999] transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(0,163,163,0.08), transparent 60%)`,
+        }}
+      />
+
       {/* ── Nav ── */}
       <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1120]/80 border-b border-[#1E293B]/50">
         <div className="flex items-center justify-between px-6 py-3.5 max-w-6xl mx-auto">
@@ -192,9 +216,9 @@ const Home = () => {
               Digital signage made simple
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-[0.04em] sm:tracking-[0.06em] leading-[1.05] mb-6 uppercase">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-[0.1em] leading-[1.05] mb-6 uppercase font-['Satoshi',system-ui,sans-serif]">
               Your Content.<br /> Any Screen.{" "}
-              <span className="bg-gradient-to-r from-[#00A3A3] via-[#3B82F6] to-[#00A3A3] bg-clip-text text-transparent bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
+              <span className="neon-heartbeat-text bg-gradient-to-r from-[#00A3A3] via-[#3B82F6] to-[#00A3A3] bg-clip-text text-transparent bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
                 Pure Glow.
               </span>
             </h1>
@@ -220,8 +244,8 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Right — 3D TV Mockup */}
-          <div className="flex-1 max-w-md lg:max-w-lg w-full" style={{ perspective: "1200px" }}>
+          {/* Right — 3D TV Mockup with Aurora Screen */}
+          <div className="flex-1 max-w-md lg:max-w-lg w-full hero-float" style={{ perspective: "1200px" }}>
             <div
               className="relative"
               style={{
@@ -232,9 +256,17 @@ const Home = () => {
               <div className="absolute -bottom-6 left-[10%] right-[10%] h-12 bg-[#00A3A3]/10 blur-[40px] rounded-full" />
               <div className="radiant-glow rounded-2xl">
                 <div className="bg-[#131C2E] rounded-2xl p-2.5 border border-[#1E293B]/60 shadow-2xl">
-                  <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-[#00A3A3]/20 via-[#3B82F6]/15 to-[#EC4899]/10 flex items-center justify-center relative">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(0,163,163,0.15),transparent_60%)]" />
-                    <GlowLogoImage className="h-24 sm:h-32 relative z-10 drop-shadow-[0_0_30px_rgba(0,163,163,0.4)]" />
+                  <div className="aspect-video rounded-lg overflow-hidden relative">
+                    {/* Aurora animated screen */}
+                    <div className="absolute inset-0 aurora-screen" />
+                    {/* Scanline overlay */}
+                    <div className="absolute inset-0 scanline-overlay pointer-events-none" />
+                    {/* Neon GLOW text */}
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <span className="text-4xl sm:text-5xl font-extrabold tracking-[0.2em] uppercase neon-logo-text select-none">
+                        GLOW
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="mx-auto w-20 h-3 bg-[#131C2E] rounded-b-lg border-x border-b border-[#1E293B]/60" />
@@ -245,20 +277,22 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Trusted-for ribbon ── */}
-      <section className="border-y border-[#1E293B]/40 bg-[#0B1120]/60 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
-          <span className="text-xs text-[#64748B] uppercase tracking-[0.2em] font-medium">Trusted for</span>
-          {[
-            { Icon: Coffee, label: "Cafés" },
-            { Icon: Dumbbell, label: "Gyms" },
-            { Icon: ShoppingBag, label: "Retailers" },
-          ].map(({ Icon, label }) => (
-            <div key={label} className="flex items-center gap-2.5 text-[#94A3B8]">
-              <Icon className="w-5 h-5 text-[#00A3A3]/70" />
-              <span className="text-sm font-medium tracking-wide">{label}</span>
+      {/* ── Trusted-for Marquee ── */}
+      <section className="border-y border-[#1E293B]/40 bg-[#0B1120]/60 backdrop-blur-sm overflow-hidden">
+        <div className="py-8">
+          <div className="flex items-center justify-center mb-4">
+            <span className="text-xs text-[#64748B] uppercase tracking-[0.2em] font-medium">Trusted for</span>
+          </div>
+          <div className="marquee-container">
+            <div className="marquee-track">
+              {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map(({ Icon, label }, i) => (
+                <div key={`${label}-${i}`} className="flex items-center gap-2.5 text-[#94A3B8] mx-8 shrink-0">
+                  <Icon className="w-5 h-5 text-[#00A3A3] drop-shadow-[0_0_8px_rgba(0,163,163,0.5)]" />
+                  <span className="text-sm font-medium tracking-wide whitespace-nowrap">{label}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
@@ -268,15 +302,15 @@ const Home = () => {
           Designed for the hardware you already own
         </h2>
         <div className="flex items-center justify-center gap-12 sm:gap-20">
-          <div data-animate className="reveal-card flex flex-col items-center gap-4">
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4 hero-float" style={{ animationDelay: "0.5s" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
               <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
             <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Fire TV Stick</span>
           </div>
           <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
-          <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ transitionDelay: "120ms" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4 hero-float" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
               <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
             <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Google TV</span>
@@ -335,7 +369,7 @@ const Home = () => {
             <div
               key={f.title}
               data-animate
-              className="reveal-card group rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-xl p-7 hover:border-[#1E293B]/80 hover:bg-[#0F172A]/80 transition-all duration-300"
+              className="reveal-card group rounded-2xl light-catch-border bg-[#0F172A]/60 backdrop-blur-xl p-7 hover:bg-[#0F172A]/80 transition-all duration-300 glass-spotlight"
               style={{ transitionDelay: `${i * 120}ms` }}
             >
               <div
@@ -393,7 +427,7 @@ const Home = () => {
           {/* Starter — glassmorphism */}
           <div
             data-animate
-            className="reveal-card glass-card rounded-2xl p-8 flex flex-col transition-all duration-300"
+            className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight"
           >
             <h3 className="text-xl font-semibold mb-1">The Starter</h3>
             <p className="text-sm text-[#94A3B8] mb-6">Free forever</p>
@@ -419,7 +453,7 @@ const Home = () => {
           {/* Pro Glow — rotating conic gradient border */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300"
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight"
             style={{ transitionDelay: "120ms" }}
           >
             {/* Rotating conic border wrapper */}
@@ -522,7 +556,7 @@ const Home = () => {
         </p>
         <form
           data-animate
-          className="reveal-card glass-card rounded-2xl p-8 space-y-5"
+          className="reveal-card glass-card light-catch-border rounded-2xl p-8 space-y-5"
           onSubmit={async (e) => {
             e.preventDefault();
             const form = e.currentTarget;
@@ -697,6 +731,32 @@ const Home = () => {
           border: 1px solid rgba(255,255,255,0.06);
         }
 
+        /* ── Light catch gradient border ── */
+        .light-catch-border {
+          border: 1px solid transparent;
+          background-clip: padding-box;
+          position: relative;
+        }
+        .light-catch-border::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 1px;
+          background: linear-gradient(
+            135deg,
+            rgba(0,163,163,0.3) 0%,
+            rgba(59,130,246,0.15) 30%,
+            rgba(255,255,255,0.05) 50%,
+            rgba(59,130,246,0.15) 70%,
+            rgba(0,163,163,0.3) 100%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          pointer-events: none;
+        }
+
         /* ── Rotating conic gradient border ── */
         @property --conic-angle {
           syntax: '<angle>';
@@ -713,6 +773,99 @@ const Home = () => {
           );
           animation: conic-spin 4s linear infinite;
           box-shadow: 0 0 40px rgba(0,163,163,0.15), 0 0 80px rgba(59,130,246,0.08);
+        }
+
+        /* ── Neon CSS Logo Text ── */
+        .neon-logo-text {
+          color: transparent;
+          -webkit-text-stroke: 1px rgba(0,163,163,0.6);
+          text-shadow:
+            0 0 10px rgba(0,163,163,0.5),
+            0 0 30px rgba(0,163,163,0.3),
+            0 0 60px rgba(0,163,163,0.2),
+            0 0 100px rgba(0,163,163,0.1);
+          animation: neonLogoFlicker 4s ease-in-out infinite;
+        }
+        @keyframes neonLogoFlicker {
+          0%, 100% {
+            text-shadow:
+              0 0 10px rgba(0,163,163,0.5),
+              0 0 30px rgba(0,163,163,0.3),
+              0 0 60px rgba(0,163,163,0.2);
+          }
+          50% {
+            text-shadow:
+              0 0 20px rgba(0,163,163,0.8),
+              0 0 50px rgba(0,163,163,0.5),
+              0 0 90px rgba(0,163,163,0.3),
+              0 0 140px rgba(0,163,163,0.15);
+          }
+        }
+
+        /* ── Aurora TV screen ── */
+        .aurora-screen {
+          background: linear-gradient(
+            270deg,
+            rgba(0,163,163,0.6),
+            rgba(59,130,246,0.5),
+            rgba(139,92,246,0.5),
+            rgba(0,163,163,0.6)
+          );
+          background-size: 400% 400%;
+          animation: auroraShift 8s ease-in-out infinite;
+        }
+        @keyframes auroraShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        /* ── Scanline overlay ── */
+        .scanline-overlay {
+          background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.08) 2px,
+            rgba(0,0,0,0.08) 4px
+          );
+        }
+
+        /* ── Neon heartbeat for "Pure Glow" ── */
+        .neon-heartbeat-text {
+          animation: shimmer 3s linear infinite, neonHeartbeat 3s ease-in-out infinite;
+        }
+        @keyframes neonHeartbeat {
+          0%, 100% {
+            filter: drop-shadow(0 0 8px rgba(0,163,163,0.3));
+          }
+          50% {
+            filter: drop-shadow(0 0 20px rgba(0,163,163,0.6)) drop-shadow(0 0 40px rgba(0,163,163,0.3));
+          }
+        }
+
+        /* ── Floating animation ── */
+        .hero-float {
+          animation: heroFloat 4s ease-in-out infinite;
+        }
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        /* ── Marquee ── */
+        .marquee-container {
+          overflow: hidden;
+          width: 100%;
+        }
+        .marquee-track {
+          display: flex;
+          animation: marqueeScroll 20s linear infinite;
+          width: max-content;
+        }
+        @keyframes marqueeScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
       `}</style>
     </div>
