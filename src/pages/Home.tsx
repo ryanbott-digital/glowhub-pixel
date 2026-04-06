@@ -11,7 +11,7 @@ const Home = () => {
     <div className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-sans overflow-x-hidden">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <GlowHubLogo size="md" />
+        <GlowHubLogo className="text-2xl" />
         <Link
           to="/auth"
           className="text-sm font-medium px-5 py-2 rounded-lg border border-[#1E293B] hover:border-[#00A3A3]/50 transition-colors"
@@ -178,7 +178,7 @@ const Home = () => {
 
       {/* Footer */}
       <footer className="border-t border-[#1E293B] py-10 text-center text-sm text-[#64748B]">
-        <GlowHubLogo size="sm" />
+        <GlowHubLogo className="text-lg" />
         <p className="mt-4">© {new Date().getFullYear()} Glow. All rights reserved.</p>
       </footer>
     </div>
