@@ -7,7 +7,7 @@ import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { GHLoader } from "@/components/GHLoader";
-import glowLogoPng from "@/assets/glow-logo.png";
+import glowLogoPng from "@/assets/glow-text.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
@@ -884,6 +884,35 @@ export default function Player() {
             opacity: 0,
           }}
         >
+          {/* GLOW logo with light burst */}
+          <div className="relative mb-10">
+            {/* Expanding light rings */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="pairing-ring pairing-ring-1" />
+              <div className="pairing-ring pairing-ring-2" />
+              <div className="pairing-ring pairing-ring-3" />
+            </div>
+            {/* Central bloom */}
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              style={{ transform: "scale(2)" }}
+            >
+              <div
+                style={{
+                  width: "200px", height: "200px",
+                  borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(0,163,163,0.3) 0%, rgba(0,163,163,0.08) 40%, transparent 70%)",
+                  animation: "bloomPulsePair 3s ease-in-out infinite",
+                }}
+              />
+            </div>
+            <img
+              src={glowLogoPng}
+              alt="Glow"
+              className="h-16 lg:h-20 w-auto relative z-10 glow-text-pulse"
+            />
+          </div>
+
           {/* Hero pairing code + QR side by side */}
           <div className="flex items-center gap-12 lg:gap-16">
             {/* Code section */}
@@ -956,11 +985,8 @@ export default function Player() {
           <img
             src={glowLogoPng}
             alt="Glow"
-            className="h-10 w-auto select-none"
-            style={{
-              opacity: 0.25,
-              animation: "logoPulse 4s ease-in-out infinite",
-            }}
+            className="h-8 w-auto select-none glow-text-pulse"
+            style={{ opacity: 0.3 }}
           />
           <div className="flex-1 flex justify-end">
             {/* Connection status dot */}
@@ -1007,13 +1033,26 @@ export default function Player() {
               filter: drop-shadow(0 0 45px rgba(0,163,163,0.7)) drop-shadow(0 0 90px rgba(0,163,163,0.35)) drop-shadow(0 0 120px rgba(0,163,163,0.15));
             }
           }
-          @keyframes logoPulse {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 0.35; }
-          }
           @keyframes statusGlow {
             0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3); }
             50% { box-shadow: 0 0 12px rgba(34,197,94,0.8), 0 0 30px rgba(34,197,94,0.4), 0 0 50px rgba(34,197,94,0.15); }
+          }
+          @keyframes bloomPulsePair {
+            0%, 100% { transform: scale(0.9); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 1; }
+          }
+          .pairing-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0,163,163,0.2);
+            animation: pairingRingExpand 4s ease-out infinite;
+          }
+          .pairing-ring-1 { width: 80px; height: 80px; animation-delay: 0s; }
+          .pairing-ring-2 { width: 80px; height: 80px; animation-delay: 1.3s; }
+          .pairing-ring-3 { width: 80px; height: 80px; animation-delay: 2.6s; }
+          @keyframes pairingRingExpand {
+            0% { transform: scale(1); opacity: 0.5; border-color: rgba(0,163,163,0.3); }
+            100% { transform: scale(5); opacity: 0; border-color: rgba(0,163,163,0); }
           }
         `}</style>
       </div>
