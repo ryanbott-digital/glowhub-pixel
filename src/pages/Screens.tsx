@@ -46,6 +46,12 @@ export default function Screens() {
   const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
 
   const selectionMode = selectedIds.size > 0;
+  const atLimit = screenLimit !== null && screens.length >= screenLimit;
+  const limitTooltip = atLimit
+    ? tierName === "pro"
+      ? "Maximum 5 screens reached"
+      : "Limit reached — Upgrade to Pro"
+    : "";
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -270,12 +276,51 @@ export default function Screens() {
             </Button>
           )}
 
+          {/* Pair Screen — disabled at limit with tooltip */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Button
+                    variant="outline"
+                    disabled={atLimit}
+                    onClick={() => !atLimit && setPairOpen(true)}
+                  >
+                    <Link2 className="h-4 w-4 mr-2" /> Pair Screen
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {atLimit && (
+                <TooltipContent>
+                  <p>{limitTooltip}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Add Screen — disabled at limit with tooltip */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <Button
+                    disabled={atLimit}
+                    onClick={() => !atLimit && setDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> Add Screen
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {atLimit && (
+                <TooltipContent>
+                  <p>{limitTooltip}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Pair Dialog */}
           <Dialog open={pairOpen} onOpenChange={setPairOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Link2 className="h-4 w-4 mr-2" /> Pair Screen
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Pair a Screen</DialogTitle>
@@ -303,12 +348,8 @@ export default function Screens() {
             </DialogContent>
           </Dialog>
 
+          {/* Add Screen Dialog */}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" /> Add Screen
-              </Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add Screen</DialogTitle>

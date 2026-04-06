@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, Wifi, WifiOff, ListVideo, BarChart3 } from "lucide-react";
+import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2 } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,16 +16,20 @@ export default function Dashboard() {
   const [pairingCode, setPairingCode] = useState("");
   const [screens, setScreens] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
+  const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [s, p] = await Promise.all([
+      const [s, p, prof] = await Promise.all([
         supabase.from("screens").select("*").eq("user_id", user.id),
         supabase.from("playlists").select("*").eq("user_id", user.id),
+        supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
       ]);
       if (s.data) setScreens(s.data);
       if (p.data) setPlaylists(p.data);
+      if (prof.data) setSubscriptionTier(prof.data.subscription_tier);
     };
     fetchData();
   }, [user]);
@@ -42,9 +46,32 @@ export default function Dashboard() {
   const onlineCount = screens.filter((s) => s.status === "online").length;
   const offlineCount = screens.filter((s) => s.status === "offline").length;
 
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to open billing portal");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        {subscriptionTier !== "free" && (
+          <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+            {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
+            Manage Subscription
+          </Button>
+        )}
+      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {/* Quick Pair */}
