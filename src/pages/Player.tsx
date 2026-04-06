@@ -1174,11 +1174,57 @@ export default function Player() {
               </div>
             </div>
           </div>
+          {/* Unpair device */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <button
+              onClick={() => setShowUnpairConfirm(true)}
+              className="w-full text-sm text-red-400 hover:text-red-300 border border-red-400/30 hover:border-red-400/50 rounded-lg px-3 py-2 transition-colors"
+            >
+              Unpair Device
+            </button>
+            <p className="text-white/50 text-[10px] mt-1.5 text-center">
+              Clears stored screen ID and returns to pairing screen
+            </p>
+          </div>
+
           {isColdBoot.current && (
             <p className="text-[hsl(180,100%,45%)] text-xs mt-4 border-t border-white/10 pt-3">
               ⚡ Cold boot detected — skipped splash, playing content immediately.
             </p>
           )}
+        </div>
+      )}
+
+      {/* Unpair confirmation dialog */}
+      {showUnpairConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-black/95 border border-white/10 rounded-xl p-6 w-80 shadow-2xl">
+            <h4 className="text-white font-semibold text-sm mb-2">Unpair this device?</h4>
+            <p className="text-white/50 text-xs mb-5">
+              This will clear the stored screen ID and all cached settings. The device will return to the pairing code screen.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUnpairConfirm(false)}
+                className="flex-1 text-sm text-white/70 border border-white/20 rounded-lg px-3 py-2 hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("glowhub_screen_id");
+                  localStorage.removeItem("glowhub_crossfade_ms");
+                  localStorage.removeItem("glowhub_alerts_muted");
+                  localStorage.removeItem("glowhub_volume");
+                  toast.success("Device unpaired — returning to pairing screen");
+                  window.location.reload();
+                }}
+                className="flex-1 text-sm text-white bg-red-600 hover:bg-red-500 rounded-lg px-3 py-2 transition-colors"
+              >
+                Unpair
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
