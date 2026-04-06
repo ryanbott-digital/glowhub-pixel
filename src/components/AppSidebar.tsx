@@ -17,6 +17,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { checkScreenLimit } from "@/lib/subscription";
 
 const items = [
   { title: "Dashboard", url: "/", icon: BrandCalendarIcon },
@@ -34,15 +36,25 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const [isInstalled, setIsInstalled] = useState(false);
+  const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
       || (navigator as any).standalone === true;
     setIsInstalled(standalone);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchUsage = async () => {
+      const { currentCount, limit } = await checkScreenLimit(user.id);
+      setScreenUsage({ count: currentCount, limit });
+    };
+    fetchUsage();
+  }, [user, location.pathname]);
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -70,6 +82,15 @@ export function AppSidebar() {
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {item.url === "/screens" && !collapsed && screenUsage && (
+                        <span className={`ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          screenUsage.count >= screenUsage.limit
+                            ? "bg-destructive/15 text-destructive"
+                            : "bg-muted text-muted-foreground"
+                        }`}>
+                          {screenUsage.count}/{screenUsage.limit}
+                        </span>
+                      )}
                       {item.url === "/install-app" && !collapsed && isInstalled && (
                         <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
                           <Check className="h-3 w-3" />
