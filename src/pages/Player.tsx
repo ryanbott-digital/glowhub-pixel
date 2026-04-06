@@ -329,7 +329,22 @@ export default function Player() {
     return supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
   };
 
-  // Fetch playlist items for a given playlist ID
+  // Activation sequence: unlock → welcome → handover → paired
+  const triggerActivation = useCallback(() => {
+    setActivating(true);
+    setActivationPhase("unlock");
+    // Phase 1: unlock shimmer + dissolve (2s)
+    setTimeout(() => setActivationPhase("welcome"), 2000);
+    // Phase 2: welcome message (3s)
+    setTimeout(() => setActivationPhase("handover"), 5000);
+    // Phase 3: handover cross-fade to content (0.8s)
+    setTimeout(() => {
+      setActivating(false);
+      setActivationPhase(null);
+      setPaired(true);
+    }, 5800);
+  }, []);
+
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
       .from("playlist_items")
