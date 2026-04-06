@@ -54,6 +54,8 @@ export default function Player() {
   const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
   const [pairingCode, setPairingCode] = useState<string | null>(urlPairingCode || null);
   const [paired, setPaired] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [activationPhase, setActivationPhase] = useState<"unlock" | "welcome" | "handover" | null>(null);
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
