@@ -1033,13 +1033,26 @@ export default function Player() {
               filter: drop-shadow(0 0 45px rgba(0,163,163,0.7)) drop-shadow(0 0 90px rgba(0,163,163,0.35)) drop-shadow(0 0 120px rgba(0,163,163,0.15));
             }
           }
-          @keyframes logoPulse {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 0.35; }
-          }
           @keyframes statusGlow {
             0%, 100% { box-shadow: 0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3); }
             50% { box-shadow: 0 0 12px rgba(34,197,94,0.8), 0 0 30px rgba(34,197,94,0.4), 0 0 50px rgba(34,197,94,0.15); }
+          }
+          @keyframes bloomPulsePair {
+            0%, 100% { transform: scale(0.9); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 1; }
+          }
+          .pairing-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0,163,163,0.2);
+            animation: pairingRingExpand 4s ease-out infinite;
+          }
+          .pairing-ring-1 { width: 80px; height: 80px; animation-delay: 0s; }
+          .pairing-ring-2 { width: 80px; height: 80px; animation-delay: 1.3s; }
+          .pairing-ring-3 { width: 80px; height: 80px; animation-delay: 2.6s; }
+          @keyframes pairingRingExpand {
+            0% { transform: scale(1); opacity: 0.5; border-color: rgba(0,163,163,0.3); }
+            100% { transform: scale(5); opacity: 0; border-color: rgba(0,163,163,0); }
           }
         `}</style>
       </div>
