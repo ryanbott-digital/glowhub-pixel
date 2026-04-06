@@ -14,7 +14,7 @@ import {
   horizontalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import { Card } from "@/components/ui/card";
+// glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Plus, X, Clock } from "lucide-react";

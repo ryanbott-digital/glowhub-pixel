@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
+// glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
