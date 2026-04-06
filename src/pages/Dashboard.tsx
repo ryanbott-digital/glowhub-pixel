@@ -133,7 +133,92 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in relative">
+      {/* Confetti burst */}
+      {confettiActive && (
+        <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-sm"
+              style={{
+                width: `${Math.random() * 8 + 4}px`,
+                height: `${Math.random() * 12 + 6}px`,
+                left: `${Math.random() * 100}%`,
+                top: "-5%",
+                background: [
+                  "hsl(var(--primary))",
+                  "hsl(var(--accent))",
+                  "hsl(180, 100%, 45%)",
+                  "hsl(280, 80%, 60%)",
+                  "hsl(45, 100%, 60%)",
+                  "hsl(330, 80%, 60%)",
+                ][i % 6],
+                animation: `confettiFall ${2 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+              }}
+            />
+          ))}
+          <style>{`
+            @keyframes confettiFall {
+              0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+              100% { transform: translateY(100vh) rotate(${720}deg) scale(0.5); opacity: 0; }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* Celebration Modal */}
+      <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
+        <DialogContent className="glass border-primary/20 sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{
+                background: "rgba(0,163,163,0.1)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid rgba(0,163,163,0.3)",
+                boxShadow: "0 0 30px rgba(0,163,163,0.2), 0 0 60px rgba(0,163,163,0.1)",
+                animation: "celebPulse 2s ease-in-out infinite",
+              }}
+            >
+              <PartyPopper className="h-10 w-10 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-foreground">
+              Your screen is now Glowing! 🚀
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-base mt-2">
+              <span className="font-medium text-foreground">{newScreenName}</span> has been successfully paired and is ready to display content.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              onClick={() => {
+                setShowCelebration(false);
+                navigate("/playlists");
+              }}
+              className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--glow-blue))] text-primary-foreground magnetic-btn w-full gap-2"
+            >
+              <Rocket className="h-4 w-4" />
+              Create your first Playlist
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setShowCelebration(false)}
+              className="text-muted-foreground"
+            >
+              I'll do this later
+            </Button>
+          </div>
+          <style>{`
+            @keyframes celebPulse {
+              0%, 100% { box-shadow: 0 0 30px rgba(0,163,163,0.2), 0 0 60px rgba(0,163,163,0.1); }
+              50% { box-shadow: 0 0 40px rgba(0,163,163,0.35), 0 0 80px rgba(0,163,163,0.2); }
+            }
+          `}</style>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
         {subscriptionTier !== "free" && (
