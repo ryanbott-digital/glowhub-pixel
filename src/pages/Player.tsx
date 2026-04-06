@@ -169,6 +169,22 @@ export default function Player() {
     }
   }, [syncProgress?.done]);
 
+  // Offline/online detection with toast
+  useEffect(() => {
+    const handleOffline = () => {
+      toast.info("You're offline — serving media from cache", { duration: 5000 });
+    };
+    const handleOnline = () => {
+      toast.success("Back online", { duration: 3000 });
+    };
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
+
   // Capacitor autostart detection
   useEffect(() => {
     const native = isNativePlatform();
