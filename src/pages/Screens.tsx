@@ -51,6 +51,9 @@ export default function Screens() {
     ]);
     if (s.data) setScreens(s.data);
     if (p.data) setPlaylists(p.data);
+
+    const { limit } = await checkScreenLimit(user.id);
+    setScreenLimit(limit);
   }, [user]);
 
   useEffect(() => {
