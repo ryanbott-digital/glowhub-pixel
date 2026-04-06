@@ -49,8 +49,9 @@ const TV_STYLES = `
 `;
 
 export default function Player() {
-  const { pairingCode } = useParams<{ pairingCode: string }>();
-  const [screenId, setScreenId] = useState<string | null>(null);
+  const { pairingCode: urlPairingCode } = useParams<{ pairingCode: string }>();
+  const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
+  const [pairingCode, setPairingCode] = useState<string | null>(urlPairingCode || null);
   const [paired, setPaired] = useState(false);
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
