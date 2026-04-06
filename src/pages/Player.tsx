@@ -1486,7 +1486,7 @@ export default function Player() {
         style={{
           opacity: activeBuffer === "A" ? 1 : 0,
           zIndex: activeBuffer === "A" ? 10 : 5,
-          transitionDuration: `${crossfadeDuration}ms`,
+          transitionDuration: `${transitionType === "cut" ? 0 : crossfadeDuration}ms`,
         }}
       >
         <img
@@ -1512,7 +1512,7 @@ export default function Player() {
         style={{
           opacity: activeBuffer === "B" ? 1 : 0,
           zIndex: activeBuffer === "B" ? 10 : 5,
-          transitionDuration: `${crossfadeDuration}ms`,
+          transitionDuration: `${transitionType === "cut" ? 0 : crossfadeDuration}ms`,
         }}
       >
         <img
