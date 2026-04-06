@@ -56,7 +56,11 @@ export default function Player() {
   const { pairingCode: urlPairingCode } = useParams<{ pairingCode: string }>();
   const [updateInterval, setUpdateInterval] = useState(() => {
     const saved = localStorage.getItem("glowhub_update_interval_ms");
-    return saved ? parseInt(saved, 10) : 5 * 60 * 1000; // default 5 min
+    return saved ? parseInt(saved, 10) : 5 * 60 * 1000;
+  });
+  const [screensaverDelay, setScreensaverDelay] = useState(() => {
+    const saved = localStorage.getItem("glowhub_screensaver_delay_ms");
+    return saved ? parseInt(saved, 10) : 30_000;
   });
   useVersionCheck(updateInterval);
   const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
