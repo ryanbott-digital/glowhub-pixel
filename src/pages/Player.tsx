@@ -1262,7 +1262,7 @@ export default function Player() {
         {activationPhase === "unlock" && (
           <div
             className="relative z-10 flex flex-col items-center"
-            style={{ animation: "unlockDissolve 1.8s ease-in forwards" }}
+            style={{ animation: "unlockDissolve 0.9s ease-in forwards" }}
           >
             <div
               className="font-mono font-extrabold tracking-[0.25em] leading-none"
