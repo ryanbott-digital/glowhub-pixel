@@ -178,6 +178,27 @@ export default function Player() {
         if (showSettings) { setShowSettings(false); setFocusIndex(-1); e.preventDefault(); return; }
       }
 
+      // D-pad navigation inside confirmation dialogs
+      if (showClearConfirm || showUnpairConfirm) {
+        const dialog = document.querySelector('[data-dialog-focus]');
+        if (!dialog) return;
+        const buttons = dialog.querySelectorAll<HTMLElement>('button.tv-focusable');
+        if (!buttons || buttons.length === 0) return;
+        const currentIdx = Array.from(buttons).findIndex((b) => b === document.activeElement);
+
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          e.preventDefault();
+          const nextIdx = e.key === "ArrowRight"
+            ? Math.min(currentIdx + 1, buttons.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          buttons[nextIdx]?.focus();
+        } else if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (document.activeElement as HTMLElement)?.click();
+        }
+        return;
+      }
+
       if (!showSettings) return;
 
       const focusable = settingsPanelRef.current?.querySelectorAll<HTMLElement>(
@@ -201,12 +222,10 @@ export default function Player() {
           return next;
         });
       } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        // Let range inputs handle left/right natively
         const active = document.activeElement;
         if (active instanceof HTMLInputElement && active.type === "range") return;
         e.preventDefault();
       } else if (e.key === "Enter" || e.key === " ") {
-        // Click the focused element
         const active = document.activeElement as HTMLElement;
         if (active && settingsPanelRef.current?.contains(active)) {
           if (active instanceof HTMLInputElement && active.type === "range") return;
