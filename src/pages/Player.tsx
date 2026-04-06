@@ -465,20 +465,20 @@ export default function Player() {
     return supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
   };
 
-  // Activation sequence: unlock → welcome → handover → paired
+  // Activation sequence: unlock → welcome → handover → paired (~3s total)
   const triggerActivation = useCallback(() => {
     setActivating(true);
     setActivationPhase("unlock");
-    // Phase 1: unlock shimmer + dissolve (2s)
-    setTimeout(() => setActivationPhase("welcome"), 2000);
-    // Phase 2: welcome message (3s)
-    setTimeout(() => setActivationPhase("handover"), 5000);
-    // Phase 3: handover cross-fade to content (0.8s)
+    // Phase 1: unlock shimmer + dissolve (1s)
+    setTimeout(() => setActivationPhase("welcome"), 1000);
+    // Phase 2: welcome message (1.5s)
+    setTimeout(() => setActivationPhase("handover"), 2500);
+    // Phase 3: handover cross-fade to content (0.5s)
     setTimeout(() => {
       setActivating(false);
       setActivationPhase(null);
       setPaired(true);
-    }, 5800);
+    }, 3000);
   }, []);
 
   const fetchPlaylist = useCallback(async (playlistId: string) => {
@@ -1262,7 +1262,7 @@ export default function Player() {
         {activationPhase === "unlock" && (
           <div
             className="relative z-10 flex flex-col items-center"
-            style={{ animation: "unlockDissolve 1.8s ease-in forwards" }}
+            style={{ animation: "unlockDissolve 0.9s ease-in forwards" }}
           >
             <div
               className="font-mono font-extrabold tracking-[0.25em] leading-none"
@@ -1286,8 +1286,8 @@ export default function Player() {
             className="relative z-10 flex flex-col items-center"
             style={{
               animation: activationPhase === "handover"
-                ? "fadeOutScale 0.8s ease-in forwards"
-                : "powerUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                ? "fadeOutScale 0.5s ease-in forwards"
+                : "powerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
               opacity: activationPhase === "handover" ? 1 : 0,
             }}
           >
