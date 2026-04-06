@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 
@@ -430,6 +431,60 @@ const Home = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section id="faq" className="px-6 py-24 max-w-3xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Frequently Asked Questions
+        </h2>
+        <p className="text-[#94A3B8] text-center mb-12 text-base max-w-lg mx-auto">
+          Everything you need to know before getting started.
+        </p>
+
+        <Accordion type="single" collapsible className="space-y-3">
+          {[
+            {
+              q: "Do I need special hardware?",
+              a: "Nope! GLOW works on any Amazon Fire TV Stick or Android TV device. Just sideload the app using the free Downloader tool — no developer account required.",
+            },
+            {
+              q: "Is the free plan really free forever?",
+              a: "Yes. The Starter plan gives you 1 screen with basic scheduling and 500 MB of storage at no cost, with no time limit and no credit card required.",
+            },
+            {
+              q: "What happens if my internet goes down?",
+              a: "Pro plan screens cache your content locally. If the connection drops, your signage keeps playing the last synced playlist without interruption.",
+            },
+            {
+              q: "Can I cancel Pro anytime?",
+              a: "Absolutely. There are no contracts or cancellation fees. You can downgrade back to the Starter plan at any time from your dashboard.",
+            },
+            {
+              q: "How do I pair a screen?",
+              a: "Open the GLOW app on your Fire Stick, note the 6-digit pairing code, then enter it in your dashboard. The screen connects in under 10 seconds.",
+            },
+            {
+              q: "What content formats are supported?",
+              a: "GLOW supports images (JPEG, PNG, WebP), videos (MP4, WebM), and web URLs. Pro users also get advanced scheduling and playlist transitions.",
+            },
+          ].map((item, i) => (
+            <AccordionItem
+              key={i}
+              value={`faq-${i}`}
+              data-animate
+              className="reveal-card glass-card rounded-xl border-0 px-6 overflow-hidden"
+              style={{ transitionDelay: `${i * 60}ms` }}
+            >
+              <AccordionTrigger className="py-5 text-left text-[#E2E8F0] hover:no-underline hover:text-[#00A3A3] transition-colors [&[data-state=open]>svg]:text-[#00A3A3]">
+                {item.q}
+              </AccordionTrigger>
+              <AccordionContent className="text-[#94A3B8] text-sm leading-relaxed pb-5">
+                {item.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </section>
 
       {/* ── Footer ── */}
