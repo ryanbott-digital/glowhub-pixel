@@ -8,6 +8,7 @@ import { MonitorPreview } from "@/components/MonitorPreview";
 import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2, Rocket, PartyPopper } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
