@@ -380,6 +380,30 @@ export default function Screens() {
           <p className="text-sm">Add a screen or pair one with a 6-digit code</p>
         </div>
       )}
+
+      {/* Upgrade / Limit Modal */}
+      <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-xl">
+              {upgradeMessage.showUpgrade ? <Crown className="h-5 w-5 text-accent" /> : <Sparkles className="h-5 w-5 text-primary" />}
+              {upgradeMessage.title}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground text-sm py-2">{upgradeMessage.description}</p>
+          <div className="flex flex-col gap-2 pt-2">
+            {upgradeMessage.showUpgrade ? (
+              <Button onClick={() => { setUpgradeOpen(false); navigate("/subscription"); }}>
+                <Crown className="h-4 w-4 mr-2" /> View Plans
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => setUpgradeOpen(false)}>
+                Got it
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
