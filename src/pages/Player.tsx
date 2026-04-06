@@ -154,10 +154,98 @@ export default function Player() {
 
   // Inject TV styles + register media cache SW
   const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
+  const [focusIndex, setFocusIndex] = useState(-1);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
+
+  // D-pad navigation for Firestick remote
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Menu key (ContextMenu) or 'M' toggles settings
+      if (e.key === "ContextMenu" || e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        setShowSettings((v) => {
+          if (!v) setFocusIndex(0);
+          return !v;
+        });
+        return;
+      }
+
+      // Back button closes settings/dialogs
+      if (e.key === "Escape" || e.key === "GoBack" || e.key === "Backspace") {
+        if (showClearConfirm) { setShowClearConfirm(false); e.preventDefault(); return; }
+        if (showUnpairConfirm) { setShowUnpairConfirm(false); e.preventDefault(); return; }
+        if (showSettings) { setShowSettings(false); setFocusIndex(-1); e.preventDefault(); return; }
+      }
+
+      if (!showSettings) return;
+
+      const focusable = settingsPanelRef.current?.querySelectorAll<HTMLElement>(
+        'button, input[type="range"], [tabindex="0"]'
+      );
+      if (!focusable || focusable.length === 0) return;
+      const maxIdx = focusable.length - 1;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusIndex((i) => {
+          const next = Math.min(i + 1, maxIdx);
+          focusable[next]?.focus();
+          return next;
+        });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusIndex((i) => {
+          const next = Math.max(i - 1, 0);
+          focusable[next]?.focus();
+          return next;
+        });
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        // Let range inputs handle left/right natively
+        const active = document.activeElement;
+        if (active instanceof HTMLInputElement && active.type === "range") return;
+        e.preventDefault();
+      } else if (e.key === "Enter" || e.key === " ") {
+        // Click the focused element
+        const active = document.activeElement as HTMLElement;
+        if (active && settingsPanelRef.current?.contains(active)) {
+          if (active instanceof HTMLInputElement && active.type === "range") return;
+          e.preventDefault();
+          active.click();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showSettings, showClearConfirm, showUnpairConfirm]);
+
+  // Auto-focus first element when settings opens
+  useEffect(() => {
+    if (showSettings && focusIndex >= 0) {
+      const timer = setTimeout(() => {
+        const focusable = settingsPanelRef.current?.querySelectorAll<HTMLElement>(
+          'button, input[type="range"], [tabindex="0"]'
+        );
+        focusable?.[focusIndex]?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [showSettings, focusIndex]);
 
   useEffect(() => {
     const style = document.createElement("style");
-    style.textContent = TV_STYLES;
+    style.textContent = TV_STYLES + `
+      /* D-pad focus ring for TV navigation */
+      .tv-focusable:focus {
+        outline: 2px solid rgba(0,163,163,0.8);
+        outline-offset: 2px;
+        box-shadow: 0 0 12px rgba(0,163,163,0.4);
+      }
+      .tv-focusable:focus:not(:focus-visible) {
+        outline: none;
+        box-shadow: none;
+      }
+    `;
     document.head.appendChild(style);
     registerMediaSW().then(() => requestPersistentStorage());
     const unsub = onCacheProgress(setSyncProgress);
@@ -182,11 +270,9 @@ export default function Player() {
       requestFullscreen();
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
-      window.removeEventListener("keydown", onInteraction);
     };
     window.addEventListener("click", onInteraction, { once: true });
     window.addEventListener("touchstart", onInteraction, { once: true });
-    window.addEventListener("keydown", onInteraction, { once: true });
 
     // Hide cursor after 3s of inactivity
     let cursorTimer: ReturnType<typeof setTimeout>;
@@ -206,7 +292,6 @@ export default function Player() {
       unsub();
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
-      window.removeEventListener("keydown", onInteraction);
       document.removeEventListener("mousemove", showCursor);
       clearTimeout(cursorTimer);
       document.body.style.cursor = "";
@@ -1492,7 +1577,7 @@ export default function Player() {
 
       {/* Power Settings panel */}
       {showSettings && (
-        <div className="fixed top-16 right-4 z-50 w-72 rounded-xl bg-black/90 backdrop-blur-md border border-white/10 p-5 shadow-2xl">
+        <div ref={settingsPanelRef} className="fixed top-16 right-4 z-50 w-72 rounded-xl bg-black/90 backdrop-blur-md border border-white/10 p-5 shadow-2xl max-h-[85vh] overflow-y-auto">
           <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
             <Settings className="w-4 h-4" /> Power Settings
           </h3>
@@ -1509,7 +1594,7 @@ export default function Player() {
             <button
               disabled={!isNative}
               onClick={handleAutoStartToggle}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+              className={`tv-focusable relative w-11 h-6 rounded-full transition-colors duration-200 ${
                 !isNative
                   ? "bg-white/10 cursor-not-allowed"
                   : autoStartEnabled
@@ -1530,7 +1615,7 @@ export default function Player() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setVolume(volume === 0 ? 1 : 0)}
-                className="text-white/70 hover:text-white transition-colors"
+                className="tv-focusable text-white/70 hover:text-white transition-colors rounded"
               >
                 {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
@@ -1541,7 +1626,7 @@ export default function Player() {
                 step="0.05"
                 value={volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                className="tv-focusable flex-1 h-1 rounded-full appearance-none cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #00A3A3 ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
                 }}
@@ -1566,7 +1651,7 @@ export default function Player() {
                   alertsMutedRef.current = next;
                   localStorage.setItem("glowhub_alerts_muted", next ? "1" : "0");
                 }}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                className={`tv-focusable relative w-11 h-6 rounded-full transition-colors duration-200 ${
                   alertsMuted ? "bg-[hsl(180,100%,35%)]" : "bg-white/20"
                 }`}
               >
@@ -1593,7 +1678,7 @@ export default function Player() {
                   setCrossfadeDuration(val);
                   localStorage.setItem("glowhub_crossfade_ms", String(val));
                 }}
-                className="flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                className="tv-focusable flex-1 h-1 rounded-full appearance-none cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #00A3A3 ${(crossfadeDuration / 2000) * 100}%, rgba(255,255,255,0.15) ${(crossfadeDuration / 2000) * 100}%)`,
                 }}
@@ -1617,7 +1702,7 @@ export default function Player() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowClearConfirm(true)}
-                  className="text-[10px] text-red-400 hover:text-red-300 transition-colors px-1.5 py-0.5 rounded border border-red-400/30 hover:border-red-400/50"
+                  className="tv-focusable text-[10px] text-red-400 hover:text-red-300 transition-colors px-1.5 py-0.5 rounded border border-red-400/30 hover:border-red-400/50"
                 >
                   Clear
                 </button>
@@ -1675,7 +1760,7 @@ export default function Player() {
           <div className="mt-4 pt-4 border-t border-white/10">
             <button
               onClick={() => setShowUnpairConfirm(true)}
-              className="w-full text-sm text-red-400 hover:text-red-300 border border-red-400/30 hover:border-red-400/50 rounded-lg px-3 py-2 transition-colors"
+              className="tv-focusable w-full text-sm text-red-400 hover:text-red-300 border border-red-400/30 hover:border-red-400/50 rounded-lg px-3 py-2 transition-colors"
             >
               Unpair Device
             </button>
