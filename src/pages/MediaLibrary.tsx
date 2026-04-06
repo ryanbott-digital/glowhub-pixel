@@ -111,14 +111,23 @@ export default function MediaLibrary() {
   }, [media.filter((m) => m.mux_status === "preparing").length]);
 
   const uploadFiles = async (files: File[]) => {
-    if (!user) return;
+    if (!user) {
+      toast.error("You must be logged in to upload files");
+      console.error("[Upload] No authenticated user found");
+      return;
+    }
+
+    console.log(`[Upload] Starting upload for ${files.length} file(s), user: ${user.id}`);
+
     const validFiles = files.filter((f) => {
       if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) {
         toast.error(`${f.name}: only images and videos are supported`);
+        console.warn(`[Upload] Rejected ${f.name} — unsupported type: ${f.type}`);
         return false;
       }
       if (f.size > 50 * 1024 * 1024) {
         toast.error(`${f.name}: file exceeds 50 MB — consider compressing before upload`);
+        console.warn(`[Upload] Rejected ${f.name} — size ${(f.size / 1024 / 1024).toFixed(1)} MB exceeds limit`);
         return false;
       }
       return true;
@@ -127,6 +136,7 @@ export default function MediaLibrary() {
 
     setUploading(true);
     setUploadProgress(0);
+    let successCount = 0;
 
     for (let i = 0; i < validFiles.length; i++) {
       const file = validFiles[i];
@@ -134,18 +144,26 @@ export default function MediaLibrary() {
       const path = `${user.id}/${Date.now()}-${i}.${ext}`;
       const isImage = file.type.startsWith("image/");
 
+      console.log(`[Upload] [${i + 1}/${validFiles.length}] Uploading "${file.name}" (${(file.size / 1024).toFixed(0)} KB, ${file.type}) → ${path}`);
+
+      // Step 1: Upload to storage
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
       if (uploadError) {
         toast.error(`Failed to upload ${file.name}: ${uploadError.message}`);
+        console.error(`[Upload] Storage upload failed for "${file.name}":`, uploadError);
         continue;
       }
+      console.log(`[Upload] Storage upload OK for "${file.name}"`);
 
+      // Step 2: Get video duration
       let duration: number | null = null;
       if (!isImage) {
         duration = await getVideoDuration(file);
+        console.log(`[Upload] Video duration for "${file.name}": ${duration}s`);
       }
 
-      const { data: mediaRow } = await supabase.from("media").insert({
+      // Step 3: Insert media record
+      const { data: mediaRow, error: insertError } = await supabase.from("media").insert({
         user_id: user.id,
         name: file.name,
         storage_path: path,
@@ -153,27 +171,43 @@ export default function MediaLibrary() {
         duration,
       }).select("id").single();
 
-      // Send videos to Mux for transcoding
+      if (insertError) {
+        toast.error(`Failed to save ${file.name} to library: ${insertError.message}`);
+        console.error(`[Upload] DB insert failed for "${file.name}":`, insertError);
+        continue;
+      }
+      console.log(`[Upload] DB insert OK for "${file.name}", media_id: ${mediaRow.id}`);
+
+      // Step 4: Send videos to Mux for transcoding
       if (!isImage && mediaRow) {
         toast.info(`Transcoding ${file.name} via Mux…`);
+        console.log(`[Upload] Invoking mux-upload for "${file.name}", media_id: ${mediaRow.id}`);
         try {
           const { data: muxData, error: muxError } = await supabase.functions.invoke("mux-upload", {
             body: { storage_path: path, file_name: file.name, media_id: mediaRow.id },
           });
-          if (muxError) throw muxError;
+          if (muxError) {
+            console.error(`[Upload] Mux function invocation error for "${file.name}":`, muxError);
+            throw muxError;
+          }
+          console.log(`[Upload] Mux response for "${file.name}":`, muxData);
           if (muxData?.stream_url) {
             toast.success(`${file.name} optimized for streaming`);
           }
         } catch (err: any) {
-          console.error("Mux transcoding error:", err);
+          console.error(`[Upload] Mux transcoding error for "${file.name}":`, err);
           toast.warning(`${file.name} uploaded but transcoding failed — raw file will be used`);
         }
       }
 
+      successCount++;
       setUploadProgress(Math.round(((i + 1) / validFiles.length) * 100));
     }
 
-    toast.success(`Uploaded ${validFiles.length} file(s)`);
+    if (successCount > 0) {
+      toast.success(`Uploaded ${successCount} file(s)`);
+    }
+    console.log(`[Upload] Complete: ${successCount}/${validFiles.length} succeeded`);
     setUploading(false);
     setUploadProgress(0);
     fetchMedia();
