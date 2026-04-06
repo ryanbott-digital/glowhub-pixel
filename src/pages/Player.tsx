@@ -1594,7 +1594,7 @@ export default function Player() {
             <button
               disabled={!isNative}
               onClick={handleAutoStartToggle}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+              className={`tv-focusable relative w-11 h-6 rounded-full transition-colors duration-200 ${
                 !isNative
                   ? "bg-white/10 cursor-not-allowed"
                   : autoStartEnabled
