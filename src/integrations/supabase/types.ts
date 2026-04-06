@@ -379,41 +379,50 @@ export type Database = {
       screens: {
         Row: {
           created_at: string
+          crossfade_ms: number
           current_media_id: string | null
           current_playlist_id: string | null
           group_id: string | null
           id: string
           last_ping: string | null
           last_screenshot_url: string | null
+          loop_enabled: boolean
           name: string
           pairing_code: string | null
           status: string
+          transition_type: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          crossfade_ms?: number
           current_media_id?: string | null
           current_playlist_id?: string | null
           group_id?: string | null
           id?: string
           last_ping?: string | null
           last_screenshot_url?: string | null
+          loop_enabled?: boolean
           name?: string
           pairing_code?: string | null
           status?: string
+          transition_type?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          crossfade_ms?: number
           current_media_id?: string | null
           current_playlist_id?: string | null
           group_id?: string | null
           id?: string
           last_ping?: string | null
           last_screenshot_url?: string | null
+          loop_enabled?: boolean
           name?: string
           pairing_code?: string | null
           status?: string
+          transition_type?: string
           user_id?: string
         }
         Relationships: [

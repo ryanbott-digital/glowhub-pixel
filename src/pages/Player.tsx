@@ -82,6 +82,8 @@ export default function Player() {
     const saved = localStorage.getItem("glowhub_crossfade_ms");
     return saved ? parseInt(saved, 10) : 500;
   });
+  const [transitionType, setTransitionType] = useState("crossfade");
+  const [loopEnabled, setLoopEnabled] = useState(true);
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -563,7 +565,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -583,7 +585,10 @@ export default function Player() {
         return;
       }
 
-      // Screen is claimed — go to playback
+      // Screen is claimed — apply settings and go to playback
+      if (screen.transition_type) setTransitionType(screen.transition_type);
+      if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
+      if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
@@ -714,10 +719,14 @@ export default function Player() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
         (payload) => {
-          const newPlaylistId = (payload.new as any).current_playlist_id;
-          if (newPlaylistId) {
-            fetchPlaylist(newPlaylistId);
+          const updated = payload.new as any;
+          if (updated.current_playlist_id) {
+            fetchPlaylist(updated.current_playlist_id);
           }
+          // Apply playback settings in real-time
+          if (updated.transition_type) setTransitionType(updated.transition_type);
+          if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
+          if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
         }
       )
       .subscribe();
@@ -864,22 +873,33 @@ export default function Player() {
   // ── INSTANT SWAP: Single state update swaps buffers ──
   const advanceToNext = useCallback(() => {
     if (swapLockRef.current) return;
+
+    const nextIndex = (currentIndex + 1) % items.length;
+
+    // If loop is off and we've reached the end, stop
+    if (!loopEnabled && nextIndex === 0) {
+      return;
+    }
+
     swapLockRef.current = true;
 
     // Clear any pending timers
     if (timerRef.current) clearTimeout(timerRef.current);
     if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
 
+    // For "cut" transition, use 0ms crossfade
+    const effectiveDuration = transitionType === "cut" ? 0 : crossfadeDuration;
+
     // Single atomic swap: advance index + flip buffer
-    setCurrentIndex((prev) => (prev + 1) % items.length);
+    setCurrentIndex(nextIndex);
     setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
     setBufferLoading(false);
 
     // Unlock after crossfade completes
     setTimeout(() => {
       swapLockRef.current = false;
-    }, Math.max(crossfadeDuration, 100));
-  }, [items.length, crossfadeDuration]);
+    }, Math.max(effectiveDuration, 50));
+  }, [items.length, crossfadeDuration, transitionType, loopEnabled, currentIndex]);
 
   // Error handler: log to Supabase and skip to next item
   const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
@@ -1466,7 +1486,7 @@ export default function Player() {
         style={{
           opacity: activeBuffer === "A" ? 1 : 0,
           zIndex: activeBuffer === "A" ? 10 : 5,
-          transitionDuration: `${crossfadeDuration}ms`,
+          transitionDuration: `${transitionType === "cut" ? 0 : crossfadeDuration}ms`,
         }}
       >
         <img
@@ -1492,7 +1512,7 @@ export default function Player() {
         style={{
           opacity: activeBuffer === "B" ? 1 : 0,
           zIndex: activeBuffer === "B" ? 10 : 5,
-          transitionDuration: `${crossfadeDuration}ms`,
+          transitionDuration: `${transitionType === "cut" ? 0 : crossfadeDuration}ms`,
         }}
       >
         <img
