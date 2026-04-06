@@ -239,6 +239,16 @@ export default function Screens() {
               {screens.length}/{screenLimit} used
             </span>
           )}
+          {screenLimit !== null && screenLimit > 0 && (
+            <div className="w-32 h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  screens.length >= screenLimit ? "bg-destructive" : screens.length >= screenLimit * 0.8 ? "bg-accent" : "bg-primary"
+                }`}
+                style={{ width: `${Math.min((screens.length / screenLimit) * 100, 100)}%` }}
+              />
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           {screens.length > 0 && (
