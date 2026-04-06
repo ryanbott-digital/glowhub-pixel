@@ -23,10 +23,14 @@ async function getPlugin() {
   }
 }
 
-/** Returns true when running inside a Capacitor native shell. */
+/** Returns true when running inside a Capacitor native shell or an Android TV / Firestick WebView. */
 export function isNativePlatform(): boolean {
   try {
-    return !!(window as any).Capacitor?.isNativePlatform?.();
+    if ((window as any).Capacitor?.isNativePlatform?.()) return true;
+    // Detect Amazon Fire TV / Android TV user agents (APK WebView without Capacitor bridge)
+    const ua = navigator.userAgent || "";
+    if (/\bAFT\w*\b/.test(ua) || /\bFireTV\b/i.test(ua) || /\bAndroid TV\b/i.test(ua)) return true;
+    return false;
   } catch {
     return false;
   }
