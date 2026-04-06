@@ -1615,7 +1615,7 @@ export default function Player() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setVolume(volume === 0 ? 1 : 0)}
-                className="text-white/70 hover:text-white transition-colors"
+                className="tv-focusable text-white/70 hover:text-white transition-colors rounded"
               >
                 {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
@@ -1626,7 +1626,7 @@ export default function Player() {
                 step="0.05"
                 value={volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                className="tv-focusable flex-1 h-1 rounded-full appearance-none cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #00A3A3 ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
                 }}
@@ -1651,7 +1651,7 @@ export default function Player() {
                   alertsMutedRef.current = next;
                   localStorage.setItem("glowhub_alerts_muted", next ? "1" : "0");
                 }}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                className={`tv-focusable relative w-11 h-6 rounded-full transition-colors duration-200 ${
                   alertsMuted ? "bg-[hsl(180,100%,35%)]" : "bg-white/20"
                 }`}
               >
@@ -1702,7 +1702,7 @@ export default function Player() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowClearConfirm(true)}
-                  className="text-[10px] text-red-400 hover:text-red-300 transition-colors px-1.5 py-0.5 rounded border border-red-400/30 hover:border-red-400/50"
+                  className="tv-focusable text-[10px] text-red-400 hover:text-red-300 transition-colors px-1.5 py-0.5 rounded border border-red-400/30 hover:border-red-400/50"
                 >
                   Clear
                 </button>
