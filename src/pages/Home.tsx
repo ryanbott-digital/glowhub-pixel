@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag } from "lucide-react";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2 } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -509,6 +509,78 @@ const Home = () => {
             </AccordionItem>
           ))}
         </Accordion>
+      </section>
+
+      {/* ── Contact Us ── */}
+      <section className="px-6 py-24 max-w-2xl mx-auto">
+        <h2 data-animate className="reveal-card text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Get in Touch
+        </h2>
+        <p data-animate className="reveal-card text-[#94A3B8] text-center mb-12 text-base max-w-lg mx-auto">
+          Have a question or want to learn more? Drop us a message and we'll get back to you within 24 hours.
+        </p>
+        <form
+          data-animate
+          className="reveal-card glass-card rounded-2xl p-8 space-y-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Sending…</span>';
+            // Simulate send (replace with real endpoint later)
+            await new Promise((r) => setTimeout(r, 1200));
+            form.reset();
+            btn.disabled = false;
+            btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>Send Message</span>';
+            // Show success feedback
+            const msg = document.createElement('div');
+            msg.className = 'text-center text-sm text-emerald-400 mt-3 animate-fade-in';
+            msg.textContent = '✓ Message sent! We\'ll be in touch soon.';
+            form.appendChild(msg);
+            setTimeout(() => msg.remove(), 4000);
+          }}
+        >
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Name</label>
+              <input
+                type="text"
+                required
+                maxLength={100}
+                placeholder="Your name"
+                className="w-full rounded-lg border border-[#1E293B] bg-[#0F172A]/60 px-4 py-3 text-sm text-[#E2E8F0] placeholder:text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#00A3A3]/50 focus:border-[#00A3A3] transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Email</label>
+              <input
+                type="email"
+                required
+                maxLength={255}
+                placeholder="you@example.com"
+                className="w-full rounded-lg border border-[#1E293B] bg-[#0F172A]/60 px-4 py-3 text-sm text-[#E2E8F0] placeholder:text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#00A3A3]/50 focus:border-[#00A3A3] transition-all"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#CBD5E1] mb-1.5">Message</label>
+            <textarea
+              required
+              maxLength={1000}
+              rows={4}
+              placeholder="How can we help?"
+              className="w-full rounded-lg border border-[#1E293B] bg-[#0F172A]/60 px-4 py-3 text-sm text-[#E2E8F0] placeholder:text-[#475569] focus:outline-none focus:ring-2 focus:ring-[#00A3A3]/50 focus:border-[#00A3A3] transition-all resize-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full sm:w-auto px-8 py-3 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-white font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(0,163,163,0.4)] transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <Send className="h-4 w-4" />
+            Send Message
+          </button>
+        </form>
       </section>
 
       {/* ── Footer ── */}
