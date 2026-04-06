@@ -1019,17 +1019,288 @@ export default function Player() {
     );
   }
 
-  // ── NO CONTENT ──
+  // ── ACTIVATION SEQUENCE ──
+  if (activating && activationPhase) {
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center select-none overflow-hidden relative">
+        {/* Pure black base */}
+        <div className="absolute inset-0 bg-black" />
+
+        {/* Nebula blobs — speed up during unlock phase */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "900px", height: "900px",
+              top: "10%", left: "5%",
+              background: "radial-gradient(circle, rgba(0,163,163,0.55) 0%, transparent 70%)",
+              filter: "blur(150px)",
+              animation: activationPhase === "unlock"
+                ? "nebulaFast1 2s ease-in-out infinite alternate"
+                : "nebulaBlob1 18s ease-in-out infinite alternate",
+              transition: "all 1s ease",
+            }}
+          />
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "1100px", height: "1100px",
+              top: "30%", right: "-10%",
+              background: "radial-gradient(circle, rgba(26,54,93,0.7) 0%, transparent 70%)",
+              filter: "blur(150px)",
+              animation: activationPhase === "unlock"
+                ? "nebulaFast2 1.8s ease-in-out infinite alternate"
+                : "nebulaBlob2 22s ease-in-out infinite alternate",
+              transition: "all 1s ease",
+            }}
+          />
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "800px", height: "800px",
+              bottom: "0%", left: "30%",
+              background: "radial-gradient(circle, rgba(109,40,217,0.45) 0%, transparent 70%)",
+              filter: "blur(150px)",
+              animation: activationPhase === "unlock"
+                ? "nebulaFast3 1.5s ease-in-out infinite alternate"
+                : "nebulaBlob3 20s ease-in-out infinite alternate",
+              transition: "all 1s ease",
+            }}
+          />
+        </div>
+
+        {/* Phase: Unlock — code dissolves */}
+        {activationPhase === "unlock" && (
+          <div
+            className="relative z-10 flex flex-col items-center"
+            style={{ animation: "unlockDissolve 1.8s ease-in forwards" }}
+          >
+            <div
+              className="font-mono font-extrabold tracking-[0.25em] leading-none"
+              style={{
+                fontSize: "clamp(3rem, 8vw, 6rem)",
+                background: "linear-gradient(180deg, #ffffff 20%, #00A3A3 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                animation: "shimmerText 0.6s ease-in-out 3",
+              }}
+            >
+              ✓
+            </div>
+          </div>
+        )}
+
+        {/* Phase: Welcome — checkmark + system activated */}
+        {(activationPhase === "welcome" || activationPhase === "handover") && (
+          <div
+            className="relative z-10 flex flex-col items-center"
+            style={{
+              animation: activationPhase === "handover"
+                ? "fadeOutScale 0.8s ease-in forwards"
+                : "powerUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              opacity: activationPhase === "handover" ? 1 : 0,
+            }}
+          >
+            {/* Glowing checkmark in glass circle */}
+            <div
+              className="w-28 h-28 rounded-full flex items-center justify-center mb-8"
+              style={{
+                background: "rgba(0,163,163,0.08)",
+                backdropFilter: "blur(40px)",
+                border: "1px solid rgba(0,163,163,0.3)",
+                boxShadow: "0 0 40px rgba(0,163,163,0.3), 0 0 80px rgba(0,163,163,0.15), inset 0 0 30px rgba(0,163,163,0.05)",
+              }}
+            >
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="url(#checkGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <defs>
+                  <linearGradient id="checkGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="100%" stopColor="#00A3A3" />
+                  </linearGradient>
+                </defs>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+
+            {/* SYSTEM ACTIVATED text */}
+            <h1
+              className="font-mono font-bold tracking-[0.4em] uppercase mb-3"
+              style={{
+                fontSize: "clamp(1.2rem, 3vw, 2rem)",
+                background: "linear-gradient(180deg, #ffffff 30%, #00A3A3 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                filter: "drop-shadow(0 0 20px rgba(0,163,163,0.5))",
+              }}
+            >
+              System Activated
+            </h1>
+
+            <p className="text-white/40 text-sm tracking-wider">
+              Synchronizing your first playlist…
+            </p>
+
+            {/* Thin glowing progress bar */}
+            <div className="w-64 h-0.5 mt-8 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  background: "linear-gradient(90deg, #00A3A3, #ffffff, #00A3A3)",
+                  backgroundSize: "200% 100%",
+                  animation: "progressShimmer 1.5s ease-in-out infinite, progressGrow 3s ease-out forwards",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Bottom logo — subtle */}
+        <div
+          className="absolute bottom-8 z-10 text-2xl font-bold font-['Poppins'] select-none"
+          style={{ opacity: 0.15, animation: "logoPulse 4s ease-in-out infinite" }}
+        >
+          <span className="text-glow">Glow</span>
+        </div>
+
+        <style>{`
+          @keyframes nebulaBlob1 {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(80px, -60px) scale(1.15) rotate(15deg); }
+          }
+          @keyframes nebulaBlob2 {
+            0% { transform: translate(0, 0) scale(1.05) rotate(0deg); }
+            100% { transform: translate(-70px, 50px) scale(0.9) rotate(-10deg); }
+          }
+          @keyframes nebulaBlob3 {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(60px, -40px) scale(1.2) rotate(20deg); }
+          }
+          @keyframes nebulaFast1 {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(150px, -120px) scale(1.3) rotate(45deg); }
+          }
+          @keyframes nebulaFast2 {
+            0% { transform: translate(0, 0) scale(1.05) rotate(0deg); }
+            100% { transform: translate(-140px, 100px) scale(0.8) rotate(-30deg); }
+          }
+          @keyframes nebulaFast3 {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { transform: translate(120px, -80px) scale(1.4) rotate(60deg); }
+          }
+          @keyframes unlockDissolve {
+            0% { opacity: 1; transform: scale(1); filter: blur(0); }
+            50% { opacity: 0.8; transform: scale(1.1); filter: blur(0); }
+            100% { opacity: 0; transform: scale(1.5); filter: blur(20px); }
+          }
+          @keyframes shimmerText {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(2); }
+          }
+          @keyframes powerUp {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+          @keyframes fadeOutScale {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.95); filter: blur(5px); }
+          }
+          @keyframes progressShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+          @keyframes progressGrow {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+          @keyframes logoPulse {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.3; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ── NO CONTENT (Aurora default) ──
   if (items.length === 0) {
     return (
-      <div className="w-screen h-screen overflow-hidden relative">
-        <img
-          src={fallbackBranding}
-          alt="Glow"
-          className="w-full h-full object-cover"
-          width={1920}
-          height={1080}
-        />
+      <div className="w-screen h-screen overflow-hidden relative bg-black">
+        {/* Aurora: slow-looping teal and blue */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "1200px", height: "1200px",
+              top: "-20%", left: "-10%",
+              background: "radial-gradient(circle, rgba(0,163,163,0.4) 0%, transparent 65%)",
+              filter: "blur(120px)",
+              animation: "auroraA 25s ease-in-out infinite alternate",
+            }}
+          />
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "1000px", height: "1000px",
+              bottom: "-15%", right: "-5%",
+              background: "radial-gradient(circle, rgba(26,54,93,0.5) 0%, transparent 65%)",
+              filter: "blur(120px)",
+              animation: "auroraB 20s ease-in-out infinite alternate",
+            }}
+          />
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "600px", height: "600px",
+              top: "40%", left: "40%",
+              background: "radial-gradient(circle, rgba(0,163,163,0.25) 0%, transparent 70%)",
+              filter: "blur(100px)",
+              animation: "auroraC 18s ease-in-out infinite alternate",
+            }}
+          />
+        </div>
+
+        {/* Welcome to GLOW text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+          <div
+            className="text-5xl font-bold font-['Poppins'] mb-4"
+            style={{
+              animation: "powerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              opacity: 0,
+            }}
+          >
+            <span className="text-glow">Glow</span>
+          </div>
+          <p
+            className="text-white/30 text-sm tracking-[0.3em] uppercase"
+            style={{
+              animation: "powerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards",
+              opacity: 0,
+            }}
+          >
+            Waiting for content…
+          </p>
+        </div>
+
+        <style>{`
+          @keyframes auroraA {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 60px) scale(1.15); }
+          }
+          @keyframes auroraB {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-80px, -50px) scale(1.1); }
+          }
+          @keyframes auroraC {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, -30px) scale(1.2); }
+          }
+          @keyframes powerUp {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
       </div>
     );
   }
