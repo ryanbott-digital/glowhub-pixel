@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.2";
+import { createClient } from "npm:@supabase/supabase-js@2.49.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,10 +21,21 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Missing env vars:", {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!serviceRoleKey,
+      });
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Generate a unique 6-digit pairing code
     let pairingCode = generatePairingCode();
@@ -41,8 +52,7 @@ Deno.serve(async (req) => {
       pairingCode = generatePairingCode();
     }
 
-    // We need a placeholder user_id since the column is NOT NULL.
-    // Use a well-known UUID that represents "unclaimed" screens.
+    // Placeholder user_id for unclaimed screens (NOT NULL column)
     const UNCLAIMED_USER_ID = "00000000-0000-0000-0000-000000000000";
 
     const { data: screen, error } = await supabase
@@ -57,9 +67,9 @@ Deno.serve(async (req) => {
       .single();
 
     if (error) {
-      console.error("Failed to create pending screen:", error);
+      console.error("Failed to create pending screen:", JSON.stringify(error));
       return new Response(
-        JSON.stringify({ error: "Failed to create screen" }),
+        JSON.stringify({ error: "Failed to create screen", detail: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -71,7 +81,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("Unexpected error:", err);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", detail: String(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
