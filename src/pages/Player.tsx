@@ -952,15 +952,15 @@ export default function Player() {
         <div className="absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10">
           {/* Logo center */}
           <div className="flex-1" />
-          <div
-            className="text-3xl font-bold font-['Poppins'] select-none"
+          <img
+            src={(await import("@/assets/glow-logo.png")).default}
+            alt="Glow"
+            className="h-10 w-auto select-none"
             style={{
               opacity: 0.25,
               animation: "logoPulse 4s ease-in-out infinite",
             }}
-          >
-            <span className="text-glow">Glow</span>
-          </div>
+          />
           <div className="flex-1 flex justify-end">
             {/* Connection status dot */}
             <div className="flex items-center gap-2">
