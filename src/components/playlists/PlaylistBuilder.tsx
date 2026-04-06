@@ -14,7 +14,7 @@ import {
   horizontalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Plus, X, Clock } from "lucide-react";
@@ -126,22 +126,22 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <div className="glass glass-spotlight rounded-2xl border border-white/[0.06]">
+      <div className="flex flex-col space-y-1.5 p-6 pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-foreground">{playlistTitle}</CardTitle>
+          <h3 className="text-2xl font-semibold leading-none tracking-tight text-foreground">{playlistTitle}</h3>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
             <span className="font-mono tabular-nums">{formatTime(totalSeconds)}</span>
             <span>· {items.length} items</span>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+      <div className="p-6 pt-0 space-y-4">
         {/* Timeline track */}
         <div className="relative">
           {/* Track background */}
-          <div className="absolute inset-0 rounded-lg bg-muted/50 border border-border" />
+          <div className="absolute inset-0 rounded-lg bg-white/[0.03] border border-white/[0.06]" />
 
           {/* Scrollable timeline */}
           <div
@@ -200,7 +200,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
         </div>
 
         {/* Add media buttons */}
-        <div>
+        <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
           <p className="text-sm font-medium text-muted-foreground mb-2">Add media:</p>
           <div className="flex flex-wrap gap-2">
             {media.map((m) => (
@@ -217,7 +217,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
 
       {/* Lightbox Dialog */}
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black border-secondary">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden glass-strong border-white/[0.06]">
           <button
             onClick={() => setLightbox(null)}
             className="absolute top-3 right-3 z-10 p-1 rounded-full bg-black/60 hover:bg-black/80 transition-colors"
@@ -234,6 +234,6 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
           </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }
