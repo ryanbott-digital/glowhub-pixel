@@ -1330,7 +1330,7 @@ export default function Player() {
   // ── NO CONTENT (Aurora default) ──
   if (items.length === 0) {
     return (
-      <div className="w-screen h-screen overflow-hidden relative bg-black">
+      <div className="w-screen h-screen overflow-hidden relative bg-black" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
         {/* Aurora: slow-looping teal and blue */}
         <div className="absolute inset-0 overflow-hidden">
           <div
@@ -1404,6 +1404,10 @@ export default function Player() {
             0% { opacity: 0; transform: scale(0.9); }
             100% { opacity: 1; transform: scale(1); }
           }
+          @keyframes contentFadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
         `}</style>
       </div>
     );
@@ -1417,7 +1421,7 @@ export default function Player() {
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
   return (
-    <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative">
+    <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
       {/* Branded loading placeholder — shown when media takes >2s to load */}
       {bufferLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
