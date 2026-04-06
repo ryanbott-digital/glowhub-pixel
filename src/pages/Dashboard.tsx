@@ -43,33 +43,12 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
-  const playCelebrationSound = useCallback(() => {
-    try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const notes = [523.25, 659.25, 783.99, 1046.5];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.5);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.12);
-        osc.stop(ctx.currentTime + i * 0.12 + 0.5);
-      });
-    } catch {}
-  }, []);
-
   const triggerCelebration = useCallback((screenName?: string) => {
     setNewScreenName(screenName || "Your screen");
-    const showConfetti = localStorage.getItem("glowhub_pair_confetti") !== "false";
-    const playSound = localStorage.getItem("glowhub_pair_sound") !== "false";
-    if (showConfetti) setConfettiActive(true);
     setShowCelebration(true);
-    if (playSound) playCelebrationSound();
-    if (showConfetti) setTimeout(() => setConfettiActive(false), 4000);
-  }, [playCelebrationSound]);
+    setOnlineFlash(true);
+    setTimeout(() => setOnlineFlash(false), 1500);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
