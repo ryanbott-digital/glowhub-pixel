@@ -82,11 +82,11 @@ export function AppSidebar() {
       <div className="p-4 flex items-center gap-2">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <GHSymbol size={32} />
+            <GlowLogoImage size={32} />
             <GlowHubLogo className="text-xl" />
           </div>
         )}
-        {collapsed && <GHSymbol size={28} />}
+        {collapsed && <GlowLogoImage size={28} />}
       </div>
       <SidebarContent>
         <SidebarGroup>
