@@ -31,6 +31,9 @@ export interface ScreenStatusCardProps {
     current_playlist_id: string | null;
     last_ping: string | null;
     group_id?: string | null;
+    transition_type?: string;
+    crossfade_ms?: number;
+    loop_enabled?: boolean;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
