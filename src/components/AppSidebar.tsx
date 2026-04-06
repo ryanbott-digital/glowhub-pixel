@@ -3,7 +3,7 @@ import { LogOut, Download, Smartphone, Check } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { GlowHubLogo, GHSymbol, BrandCalendarIcon, BrandPlayIcon, BrandGridIcon, BrandMonitorIcon, BrandChartIcon } from "@/components/GlowHubLogo";
+import { GlowHubLogo, GHSymbol, GlowLogoImage, BrandCalendarIcon, BrandPlayIcon, BrandGridIcon, BrandMonitorIcon, BrandChartIcon } from "@/components/GlowHubLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Sidebar,

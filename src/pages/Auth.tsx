@@ -47,11 +47,8 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold">
-            <span className="text-glow">Glow</span>
-            <span className="text-hub">Hub</span>
-          </h1>
-          <p className="text-muted-foreground mt-2">Digital Signage Management</p>
+          <h1 className="text-4xl font-bold text-glow">Glow</h1>
+          <p className="text-muted-foreground mt-2">Digital Signage Platform</p>
         </div>
 
         <Card className="radiant-glow-sm">

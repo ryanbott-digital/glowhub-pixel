@@ -1,30 +1,30 @@
+import glowLogo from "@/assets/glow-logo.png";
+
 export function GlowHubLogo({ className = "" }: { className?: string }) {
   return (
     <span className={`font-bold font-['Poppins'] ${className}`}>
       <span className="text-glow">Glow</span>
-      <span className="text-hub">Hub</span>
     </span>
   );
 }
 
-/** Interwoven geometric GH monogram matching brand asset sheet */
+/** Brand logo image from uploaded asset */
+export function GlowLogoImage({ className = "h-10", alt = "Glow Digital Signage" }: { className?: string; alt?: string }) {
+  return <img src={glowLogo} alt={alt} className={className} />;
+}
+
+/** Interwoven geometric G monogram matching brand asset sheet */
 export function GHSymbol({ size = 40 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="64" height="64" rx="12" fill="hsl(215, 55%, 15%)" />
       {/* G letter - teal, rounded geometric */}
       <path
-        d="M14 32C14 22.06 22.06 14 32 14H34V22H32C26.48 22 22 26.48 22 32C22 37.52 26.48 42 32 42H34V36H28V30H38V48H32C22.06 48 14 41.94 14 32Z"
+        d="M12 32C12 20.95 20.95 12 32 12H35V21H32C25.37 21 20 26.37 20 33C20 39.63 25.37 45 32 45H35V37H27V30H40V52H32C20.95 52 12 43.05 12 32Z"
         fill="hsl(180, 100%, 40%)"
       />
-      {/* H letter - slightly offset, interwoven effect */}
-      <path
-        d="M36 16H44V28H48V16H56V48H48V36H44V48H36V16Z"
-        fill="hsl(180, 100%, 50%)"
-        opacity="0.85"
-      />
       {/* Center glow dot */}
-      <circle cx="40" cy="32" r="2.5" fill="hsl(24, 95%, 53%)" opacity="0.9" />
+      <circle cx="36" cy="32" r="3" fill="hsl(24, 95%, 53%)" opacity="0.9" />
     </svg>
   );
 }
