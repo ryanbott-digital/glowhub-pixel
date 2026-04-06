@@ -298,6 +298,9 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Onboarding Checklist */}
+      <OnboardingChecklist screens={screens} playlists={playlists} mediaCount={mediaCount} />
+
       {/* System Health */}
       <SystemHealth />
 
