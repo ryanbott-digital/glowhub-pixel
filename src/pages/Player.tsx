@@ -11,6 +11,7 @@ import glowLogoPng from "@/assets/glow-text.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 import { useVersionCheck } from "@/hooks/use-version-check";
+import { ScreenSaver } from "@/components/ScreenSaver";
 
 interface PlaylistItem {
   id: string;
