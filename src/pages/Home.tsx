@@ -5,6 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
+import StarField from "@/components/StarField";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 /* ── Scroll reveal hook ── */
