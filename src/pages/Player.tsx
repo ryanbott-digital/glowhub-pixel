@@ -157,6 +157,18 @@ export default function Player() {
     return () => { document.head.removeChild(style); unsub(); };
   }, []);
 
+  // Toast when pre-caching completes
+  useEffect(() => {
+    if (syncProgress?.done && syncProgress.total > 0) {
+      const failed = syncProgress.failed;
+      if (failed > 0) {
+        toast.warning(`Cached ${syncProgress.completed}/${syncProgress.total} files (${failed} failed)`);
+      } else {
+        toast.success(`All ${syncProgress.total} media files cached for offline playback`);
+      }
+    }
+  }, [syncProgress?.done]);
+
   // Capacitor autostart detection
   useEffect(() => {
     const native = isNativePlatform();
