@@ -22,8 +22,8 @@ export default function Dashboard() {
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [portalLoading, setPortalLoading] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [confettiActive, setConfettiActive] = useState(false);
   const [newScreenName, setNewScreenName] = useState("");
+  const [onlineFlash, setOnlineFlash] = useState(false);
   const [mediaCount, setMediaCount] = useState(0);
 
   useEffect(() => {
