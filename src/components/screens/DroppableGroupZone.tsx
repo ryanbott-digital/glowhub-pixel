@@ -17,7 +17,8 @@ export function DroppableGroupZone({ groupId, children, className }: DroppableGr
       ref={setNodeRef}
       className={cn(
         "rounded-xl transition-all duration-200 min-h-[80px]",
-        isOver && "ring-2 ring-primary/50 bg-primary/5"
+        isOver && "ring-2 ring-primary/50 bg-primary/5",
+        className
       )}
     >
       {children}
