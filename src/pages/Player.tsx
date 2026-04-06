@@ -836,7 +836,6 @@ export default function Player() {
         {/* Logo */}
         <div className="relative z-10 text-4xl font-bold font-['Poppins'] mb-6">
           <span className="text-glow">Glow</span>
-          <span style={{ color: "hsl(210, 20%, 95%)" }}>Hub</span>
         </div>
 
         {/* Pairing instruction */}
