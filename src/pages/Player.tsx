@@ -1286,8 +1286,8 @@ export default function Player() {
             className="relative z-10 flex flex-col items-center"
             style={{
               animation: activationPhase === "handover"
-                ? "fadeOutScale 0.8s ease-in forwards"
-                : "powerUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+                ? "fadeOutScale 0.5s ease-in forwards"
+                : "powerUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
               opacity: activationPhase === "handover" ? 1 : 0,
             }}
           >
