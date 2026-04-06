@@ -7,6 +7,7 @@ import { isNativePlatform, enableAutoStart, disableAutoStart, isAutoStartEnabled
 import { Settings, Volume2, VolumeX, Download, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { GHLoader } from "@/components/GHLoader";
+import glowLogoPng from "@/assets/glow-logo.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 
@@ -953,7 +954,7 @@ export default function Player() {
           {/* Logo center */}
           <div className="flex-1" />
           <img
-            src={(await import("@/assets/glow-logo.png")).default}
+            src={glowLogoPng}
             alt="Glow"
             className="h-10 w-auto select-none"
             style={{
