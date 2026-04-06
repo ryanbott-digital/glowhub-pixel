@@ -43,7 +43,7 @@ export function OnboardingChecklist({ screens, playlists, mediaCount }: Onboardi
   };
 
   return (
-    <div className="glass rounded-2xl overflow-hidden">
+    <div className="glass rounded-2xl overflow-hidden animate-scale-in">
       {/* Glowing progress bar */}
       <div className="h-1 w-full bg-muted/30">
         <div
