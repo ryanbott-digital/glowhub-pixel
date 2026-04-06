@@ -154,10 +154,98 @@ export default function Player() {
 
   // Inject TV styles + register media cache SW
   const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
+  const [focusIndex, setFocusIndex] = useState(-1);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
+
+  // D-pad navigation for Firestick remote
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Menu key (ContextMenu) or 'M' toggles settings
+      if (e.key === "ContextMenu" || e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        setShowSettings((v) => {
+          if (!v) setFocusIndex(0);
+          return !v;
+        });
+        return;
+      }
+
+      // Back button closes settings/dialogs
+      if (e.key === "Escape" || e.key === "GoBack" || e.key === "Backspace") {
+        if (showClearConfirm) { setShowClearConfirm(false); e.preventDefault(); return; }
+        if (showUnpairConfirm) { setShowUnpairConfirm(false); e.preventDefault(); return; }
+        if (showSettings) { setShowSettings(false); setFocusIndex(-1); e.preventDefault(); return; }
+      }
+
+      if (!showSettings) return;
+
+      const focusable = settingsPanelRef.current?.querySelectorAll<HTMLElement>(
+        'button, input[type="range"], [tabindex="0"]'
+      );
+      if (!focusable || focusable.length === 0) return;
+      const maxIdx = focusable.length - 1;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusIndex((i) => {
+          const next = Math.min(i + 1, maxIdx);
+          focusable[next]?.focus();
+          return next;
+        });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusIndex((i) => {
+          const next = Math.max(i - 1, 0);
+          focusable[next]?.focus();
+          return next;
+        });
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        // Let range inputs handle left/right natively
+        const active = document.activeElement;
+        if (active instanceof HTMLInputElement && active.type === "range") return;
+        e.preventDefault();
+      } else if (e.key === "Enter" || e.key === " ") {
+        // Click the focused element
+        const active = document.activeElement as HTMLElement;
+        if (active && settingsPanelRef.current?.contains(active)) {
+          if (active instanceof HTMLInputElement && active.type === "range") return;
+          e.preventDefault();
+          active.click();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showSettings, showClearConfirm, showUnpairConfirm]);
+
+  // Auto-focus first element when settings opens
+  useEffect(() => {
+    if (showSettings && focusIndex >= 0) {
+      const timer = setTimeout(() => {
+        const focusable = settingsPanelRef.current?.querySelectorAll<HTMLElement>(
+          'button, input[type="range"], [tabindex="0"]'
+        );
+        focusable?.[focusIndex]?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [showSettings, focusIndex]);
 
   useEffect(() => {
     const style = document.createElement("style");
-    style.textContent = TV_STYLES;
+    style.textContent = TV_STYLES + `
+      /* D-pad focus ring for TV navigation */
+      .tv-focusable:focus {
+        outline: 2px solid rgba(0,163,163,0.8);
+        outline-offset: 2px;
+        box-shadow: 0 0 12px rgba(0,163,163,0.4);
+      }
+      .tv-focusable:focus:not(:focus-visible) {
+        outline: none;
+        box-shadow: none;
+      }
+    `;
     document.head.appendChild(style);
     registerMediaSW().then(() => requestPersistentStorage());
     const unsub = onCacheProgress(setSyncProgress);
@@ -182,11 +270,9 @@ export default function Player() {
       requestFullscreen();
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
-      window.removeEventListener("keydown", onInteraction);
     };
     window.addEventListener("click", onInteraction, { once: true });
     window.addEventListener("touchstart", onInteraction, { once: true });
-    window.addEventListener("keydown", onInteraction, { once: true });
 
     // Hide cursor after 3s of inactivity
     let cursorTimer: ReturnType<typeof setTimeout>;
@@ -206,7 +292,6 @@ export default function Player() {
       unsub();
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
-      window.removeEventListener("keydown", onInteraction);
       document.removeEventListener("mousemove", showCursor);
       clearTimeout(cursorTimer);
       document.body.style.cursor = "";
