@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,9 +63,9 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
         {subscriptionTier !== "free" && (
-          <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+          <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={portalLoading} className="glass">
             {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
             Manage Subscription
           </Button>
@@ -75,60 +74,48 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {/* Quick Pair */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Quick Pair</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Input
-                placeholder="6-digit code"
-                value={pairingCode}
-                onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                maxLength={6}
-                className="font-mono text-lg tracking-widest"
-              />
-              <Button onClick={handlePair} size="sm">
-                Pair
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="glass rounded-2xl p-5">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Pair</h3>
+          <div className="flex gap-2">
+            <Input
+              placeholder="6-digit code"
+              value={pairingCode}
+              onChange={(e) => setPairingCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              maxLength={6}
+              className="font-mono text-lg tracking-widest glow-focus"
+            />
+            <Button onClick={handlePair} size="sm" className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--glow-blue))] text-primary-foreground magnetic-btn">
+              Pair
+            </Button>
+          </div>
+        </div>
 
         {/* Screen Status */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Screens</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Wifi className="h-4 w-4 text-primary" />
-                <span className="text-2xl font-bold text-foreground">{onlineCount}</span>
-                <span className="text-sm text-muted-foreground">Online</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <WifiOff className="h-4 w-4 text-muted-foreground" />
-                <span className="text-2xl font-bold text-foreground">{offlineCount}</span>
-                <span className="text-sm text-muted-foreground">Offline</span>
-              </div>
+        <div className="glass rounded-2xl p-5">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">Screens</h3>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Wifi className="h-4 w-4 text-primary" />
+              <span className="text-2xl font-bold text-foreground">{onlineCount}</span>
+              <span className="text-sm text-muted-foreground">Online</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-2">
+              <WifiOff className="h-4 w-4 text-muted-foreground" />
+              <span className="text-2xl font-bold text-foreground">{offlineCount}</span>
+              <span className="text-sm text-muted-foreground">Offline</span>
+            </div>
+          </div>
+        </div>
 
         {/* Playlists */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Playlists</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <ListVideo className="h-4 w-4 text-accent" />
-              <span className="text-2xl font-bold text-foreground">{playlists.length}</span>
-              <span className="text-sm text-muted-foreground">Total</span>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="glass rounded-2xl p-5">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">Playlists</h3>
+          <div className="flex items-center gap-2">
+            <ListVideo className="h-4 w-4 text-accent" />
+            <span className="text-2xl font-bold text-foreground">{playlists.length}</span>
+            <span className="text-sm text-muted-foreground">Total</span>
+          </div>
+        </div>
       </div>
 
       {/* System Health */}
@@ -136,7 +123,7 @@ export default function Dashboard() {
 
       {/* Tabs: Preview / Insights */}
       <Tabs defaultValue="preview">
-        <TabsList>
+        <TabsList className="glass">
           <TabsTrigger value="preview" className="gap-1.5">
             <Monitor className="h-4 w-4" />
             Preview
@@ -144,21 +131,18 @@ export default function Dashboard() {
           <TabsTrigger value="insights" className="gap-1.5">
             <BarChart3 className="h-4 w-4" />
             Insights
+            <span className="pro-badge">PRO</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="preview">
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <Monitor className="h-4 w-4" />
-                Signage Preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <MonitorPreview />
-            </CardContent>
-          </Card>
+          <div className="glass rounded-2xl overflow-hidden p-5">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-4">
+              <Monitor className="h-4 w-4" />
+              Signage Preview
+            </h3>
+            <MonitorPreview />
+          </div>
         </TabsContent>
 
         <TabsContent value="insights">

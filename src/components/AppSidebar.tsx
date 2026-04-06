@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { LogOut, Download, Smartphone, Check, CreditCard, Shield } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -21,15 +21,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkScreenLimit } from "@/lib/subscription";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: BrandCalendarIcon },
-  { title: "Media Library", url: "/media", icon: BrandGridIcon },
-  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon },
-  { title: "Screens", url: "/screens", icon: BrandMonitorIcon },
-  { title: "Analytics", url: "/analytics", icon: BrandChartIcon },
-  { title: "Subscription", url: "/subscription", icon: ({ className }: { className?: string }) => <CreditCard className={className} /> },
-  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} /> },
-  { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} /> },
-  { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} /> },
+  { title: "Dashboard", url: "/", icon: BrandCalendarIcon, pro: false },
+  { title: "Media Library", url: "/media", icon: BrandGridIcon, pro: false },
+  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false },
+  { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false },
+  { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
+  { title: "Subscription", url: "/subscription", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
+  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
+  { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
+  { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} />, pro: false },
 ];
 
 export function AppSidebar() {
@@ -57,7 +57,7 @@ export function AppSidebar() {
   }, [user, location.pathname]);
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
+    <Sidebar collapsible="icon" className="border-r-0 glass-strong">
       <div className="p-4 flex items-center gap-2">
         {!collapsed && (
           <div className="flex items-center gap-2">
@@ -77,11 +77,16 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      className="hover:bg-sidebar-accent/50 transition-all duration-200"
+                      activeClassName="bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && (
+                        <span className="flex items-center gap-1.5">
+                          {item.title}
+                          {item.pro && <span className="pro-badge">PRO</span>}
+                        </span>
+                      )}
                       {item.url === "/screens" && !collapsed && screenUsage && (
                         <span className={`ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                           screenUsage.count >= screenUsage.limit
@@ -114,7 +119,7 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "default"}
           onClick={signOut}
-          className="w-full justify-start text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent"
+          className="w-full justify-start text-sidebar-foreground hover:text-primary hover:bg-primary/10 transition-all"
         >
           <LogOut className="h-4 w-4" />
           {!collapsed && <span className="ml-2">Sign Out</span>}

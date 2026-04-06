@@ -5,10 +5,10 @@ import { AppSidebar } from "@/components/AppSidebar";
 export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full mesh-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b bg-card px-4">
+          <header className="h-14 flex items-center border-b glass px-4 sticky top-0 z-30">
             <SidebarTrigger className="mr-4" />
           </header>
           <main className="flex-1 p-6 overflow-auto">

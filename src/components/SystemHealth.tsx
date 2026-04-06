@@ -164,15 +164,13 @@ export function SystemHealth() {
   const offlineScreens = screens.filter((s) => isOffline(s.last_ping));
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Activity className="h-4 w-4" />
-          System Health
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+    <div className="glass rounded-2xl p-5">
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-4">
+        <Activity className="h-4 w-4" />
+        System Health
+        <span className="pro-badge">PRO</span>
+      </div>
+      <div className="space-y-3">
           {screens.map((screen) => {
             const offline = isOffline(screen.last_ping);
             const currentMedia = screen.current_media_id ? mediaMap[screen.current_media_id] : null;
@@ -287,7 +285,6 @@ export function SystemHealth() {
             {offlineScreens.length} offline
           </span>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

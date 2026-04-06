@@ -800,7 +800,7 @@ export default function Player() {
   // ── LOADING STATE ──
   if (loading) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-[hsl(215,55%,10%)] overflow-hidden">
+      <div className="w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
         <GHLoader size={80} />
       </div>
     );
@@ -811,9 +811,9 @@ export default function Player() {
     const digits = (pairingCode || "").split("");
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center select-none overflow-hidden relative">
-        {/* Animated mesh gradient background */}
+        {/* Pure black background with radiant glow accents */}
         <div className="absolute inset-0" style={{
-          background: "#1A365D",
+          background: "#000000",
         }}>
           <div className="absolute inset-0" style={{
             background: `
@@ -848,7 +848,7 @@ export default function Player() {
           {digits.map((digit, i) => (
             <div
               key={i}
-              className="w-24 h-32 flex items-center justify-center rounded-2xl text-6xl font-extrabold font-['Poppins'] tracking-wider"
+              className="w-24 h-32 flex items-center justify-center rounded-2xl text-6xl font-extrabold font-['Inter'] tracking-[0.15em]"
               style={{
                 color: "#00A3A3",
                 background: "rgba(26, 54, 93, 0.6)",

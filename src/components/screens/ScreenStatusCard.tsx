@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,6 @@ interface ActivityLog {
   created_at: string;
 }
 
-/** Sync status indicator — shows playlist item count vs screen ping freshness as a proxy. */
 function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playlistId: string }) {
   const [totalItems, setTotalItems] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -71,6 +71,7 @@ function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playl
     <div>
       <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5 mb-1.5">
         <HardDrive className="h-3 w-3 text-primary" /> Sync Status
+        <span className="pro-badge">PRO</span>
       </h4>
       <div className="flex items-center gap-2">
         <Progress value={100} className="h-1.5 flex-1" />
@@ -133,7 +134,14 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     : null;
 
   return (
-    <div className="group relative flex flex-col rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg">
+    <div
+      className="group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg"
+      style={{
+        boxShadow: isAlive
+          ? "0 0 20px hsla(180, 100%, 45%, 0.08), 0 4px 20px rgba(0,0,0,0.1)"
+          : "0 4px 20px rgba(0,0,0,0.1)",
+      }}
+    >
       {/* Clickable top area — monitor + name */}
       <button
         type="button"
@@ -159,7 +167,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
           />
 
           <div
-            className="relative w-full aspect-video rounded-lg overflow-hidden border border-secondary/60 bg-secondary"
+            className="relative w-full aspect-video rounded-lg overflow-hidden border border-border/60 bg-secondary"
             style={{
               boxShadow: `
                 0 0 20px hsla(180, 100%, 45%, 0.1),
@@ -181,23 +189,30 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   </div>
                 </>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-[hsl(215,55%,10%)]">
-                  <div className="text-sm font-bold font-['Poppins']">
-                    <span className="text-glow">Glow</span>
-                    <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[hsl(220,60%,7%)]">
+                  <div className="empty-state-pulse">
+                    <GlowLogoImage className="h-8 drop-shadow-[0_0_15px_hsla(180,100%,45%,0.3)]" />
                   </div>
-                  <p className="text-[8px] text-[hsl(210,20%,50%)]">No content assigned</p>
+                  <p className="text-[9px] text-muted-foreground">No content assigned</p>
                 </div>
               )}
             </div>
 
-            {/* Pulse badge */}
+            {/* Glowing status pulse */}
             <div className="absolute top-1.5 right-1.5 z-10">
-              <span className="relative flex h-3 w-3">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isAlive ? "bg-green-400" : "bg-red-400"}`} />
+              <span className="relative flex h-3.5 w-3.5">
                 <span
-                  className={`relative inline-flex rounded-full h-3 w-3 border border-black/30 ${isAlive ? "bg-green-500" : "bg-red-500"}`}
-                  style={{ boxShadow: isAlive ? "0 0 6px hsla(120, 70%, 50%, 0.6)" : "0 0 6px hsla(0, 70%, 50%, 0.6)" }}
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ backgroundColor: isAlive ? "hsla(150, 70%, 50%, 0.7)" : "hsla(0, 70%, 55%, 0.7)" }}
+                />
+                <span
+                  className="relative inline-flex rounded-full h-3.5 w-3.5 border border-black/30"
+                  style={{
+                    backgroundColor: isAlive ? "hsl(150, 70%, 50%)" : "hsl(0, 70%, 55%)",
+                    boxShadow: isAlive
+                      ? "0 0 8px hsla(150, 70%, 50%, 0.6), 0 0 20px hsla(150, 70%, 50%, 0.3)"
+                      : "0 0 8px hsla(0, 70%, 55%, 0.6), 0 0 20px hsla(0, 70%, 55%, 0.3)",
+                  }}
                 />
               </span>
             </div>
@@ -208,11 +223,13 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         <div className="px-4 pt-2 pb-3 flex items-center justify-between">
           <h3 className="font-semibold text-sm text-foreground truncate">{screen.name}</h3>
           <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-              isAlive
-                ? "bg-green-500/10 text-green-600 dark:text-green-400"
-                : "bg-red-500/10 text-red-600 dark:text-red-400"
-            }`}>
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{
+                background: isAlive ? "hsla(150, 70%, 50%, 0.1)" : "hsla(0, 70%, 55%, 0.1)",
+                color: isAlive ? "hsl(150, 70%, 50%)" : "hsl(0, 70%, 55%)",
+              }}
+            >
               {isAlive ? "Online" : "Offline"}
             </span>
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
@@ -225,8 +242,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         className="overflow-hidden transition-all duration-300 ease-in-out"
         style={{ maxHeight: expanded ? "800px" : "0", opacity: expanded ? 1 : 0 }}
       >
-        <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
-          {/* Quick info */}
+        <div className="px-4 pb-4 space-y-4 border-t border-border/50 pt-3">
           {screen.last_ping && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
@@ -247,7 +263,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               value={screen.current_playlist_id || ""}
               onValueChange={(val) => onPublish(screen.id, val)}
             >
-              <SelectTrigger className="flex-1 h-8 text-xs">
+              <SelectTrigger className="flex-1 h-8 text-xs glass">
                 <SelectValue placeholder="Select playlist" />
               </SelectTrigger>
               <SelectContent>
