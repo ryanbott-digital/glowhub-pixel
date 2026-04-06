@@ -468,47 +468,71 @@ export default function Screens() {
         </div>
       )}
 
-      {/* Ungrouped screens */}
-      {ungroupedScreens.length > 0 && (
-        <div className="space-y-3">
-          {groups.length > 0 && (
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              All Screens
-            </h2>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        {/* Ungrouped screens */}
+        <DroppableGroupZone groupId="ungrouped">
+          {(ungroupedScreens.length > 0 || groups.length > 0) && (
+            <div className="space-y-3">
+              {groups.length > 0 && (
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  All Screens
+                </h2>
+              )}
+              {ungroupedScreens.length > 0 ? (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {ungroupedScreens.map(renderScreenCard)}
+                </div>
+              ) : groups.length > 0 ? (
+                <p className="text-sm text-muted-foreground py-3 pl-2">Drop screens here to ungroup them</p>
+              ) : null}
+            </div>
           )}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {ungroupedScreens.map(renderScreenCard)}
-          </div>
-        </div>
-      )}
+        </DroppableGroupZone>
 
-      {/* Grouped screens */}
-      {groupedScreenMap.map(({ group, screens: groupScreens }) => (
-        <Collapsible
-          key={group.id}
-          open={!collapsedGroups.has(group.id)}
-          onOpenChange={() => toggleGroupCollapse(group.id)}
-        >
-          <CollapsibleTrigger asChild>
-            <button className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors w-full text-left py-1">
-              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-              {group.name}
-              <span className="text-xs font-normal text-muted-foreground">
-                ({groupScreens.length} screen{groupScreens.length !== 1 ? "s" : ""})
-              </span>
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            {groupScreens.length > 0 ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3">
-                {groupScreens.map(renderScreenCard)}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground py-3 pl-6">No screens in this group</p>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
-      ))}
+        {/* Grouped screens */}
+        {groupedScreenMap.map(({ group, screens: groupScreens }) => (
+          <DroppableGroupZone key={group.id} groupId={group.id}>
+            <Collapsible
+              open={!collapsedGroups.has(group.id)}
+              onOpenChange={() => toggleGroupCollapse(group.id)}
+            >
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors w-full text-left py-1">
+                  <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                  {group.name}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({groupScreens.length} screen{groupScreens.length !== 1 ? "s" : ""})
+                  </span>
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                {groupScreens.length > 0 ? (
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3">
+                    {groupScreens.map(renderScreenCard)}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-3 pl-6">Drop screens here</p>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          </DroppableGroupZone>
+        ))}
+
+        {/* Drag overlay */}
+        <DragOverlay>
+          {activeScreen && (
+            <div className="w-[300px] opacity-90 rotate-2 shadow-2xl">
+              <ScreenStatusCard
+                screen={activeScreen}
+                playlists={playlists}
+                onPublish={() => {}}
+                onDelete={() => {}}
+                onCopyUrl={() => {}}
+              />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
 
       {screens.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
