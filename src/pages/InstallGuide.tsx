@@ -18,6 +18,24 @@ const steps = {
       ),
     },
     {
+      title: "Install the GlowHub APK",
+      icon: Download,
+      content: (
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>The easiest way to get Glow on your Firestick:</p>
+          <ol className="list-decimal list-inside space-y-1.5">
+            <li>Install the <strong className="text-foreground">Downloader</strong> app from the Amazon Appstore (free)</li>
+            <li>Open Downloader and enter code: <span className="font-mono text-primary font-bold">1648081</span></li>
+            <li>The GlowHub APK will download and install automatically</li>
+            <li>The app will appear in <strong className="text-foreground">Your Apps & Channels</strong> on the home screen</li>
+          </ol>
+          <p className="text-xs mt-2 text-muted-foreground/70">
+            <strong>Tip:</strong> If the app doesn't appear in your app list, long-press the home button and check "App Library", or move it to the front row from Settings → Applications → Manage Installed Applications.
+          </p>
+        </div>
+      ),
+    },
+    {
       title: "Install a Web Browser",
       icon: Globe,
       content: (
