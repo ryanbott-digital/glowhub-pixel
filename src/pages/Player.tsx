@@ -865,29 +865,10 @@ export default function Player() {
     };
   }, [currentIndex, items, activeBuffer, volume, getBufferRefs, attachHls]);
 
-  // ── LOADING STATE (boot splash with fade-out) ──
-  const [bootFading, setBootFading] = useState(false);
-  const [bootDone, setBootDone] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !bootDone) {
-      setBootFading(true);
-      const timer = setTimeout(() => {
-        setBootDone(true);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, bootDone]);
-
-  if (loading || (bootFading && !bootDone)) {
+  // ── LOADING → PAIRING fade transition ──
+  if (loading) {
     return (
-      <div
-        className="w-screen h-screen flex items-center justify-center bg-black overflow-hidden"
-        style={{
-          opacity: bootFading ? 0 : 1,
-          transition: "opacity 0.8s ease-out",
-        }}
-      >
+      <div className="w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
         <GHLoader size={80} />
       </div>
     );
