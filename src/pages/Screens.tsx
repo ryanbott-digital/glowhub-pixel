@@ -240,7 +240,14 @@ export default function Screens() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Screens</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground">Screens</h1>
+          {screenLimit !== null && (
+            <span className="text-sm text-muted-foreground font-medium">
+              {screens.length}/{screenLimit} used
+            </span>
+          )}
+        </div>
         <div className="flex gap-2">
           {screens.length > 0 && (
             <Button variant="outline" size="sm" onClick={selectAll}>
