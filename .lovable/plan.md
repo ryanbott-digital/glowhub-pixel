@@ -1,33 +1,61 @@
 
 
-## Apply Premium Glassmorphism to Media Library & Playlists
+## Problem
 
-### Overview
-Both pages currently use plain `Card` components with default styling. The Dashboard uses `glass glass-spotlight rounded-2xl` containers throughout. We'll apply the same treatment for visual consistency.
+Fire TV requires apps to declare a **Leanback Launcher** intent filter and provide a **banner** image (320×180px) in the Android manifest. Without these, the OS installs the APK but hides it from the app grid.
 
-### Changes
+## Solution — Native Android Project Changes
 
-**`src/pages/MediaLibrary.tsx`**
-- **Page header area**: Wrap stats subtitle in the same tracking/uppercase style used on Dashboard
-- **Drop zone**: Add `glass glass-spotlight rounded-2xl` classes, replace `border-dashed` with the frosted glass border style, add teal glow on drag-over
-- **Media grid cards**: Replace plain `Card` with `div` using `glass glass-spotlight rounded-2xl` classes, matching the Dashboard stat cards' frosted look. Keep existing selection ring behavior
-- **Empty state**: Wrap in `glass glass-spotlight rounded-2xl` container
-- **Upload button area**: Style the bulk-action bar with `glass-strong rounded-xl` when in selection mode
+These changes must be made in the exported Android project (after `npx cap add android`), not in Lovable:
 
-**`src/pages/Playlists.tsx`**
-- **Playlist sidebar cards**: Replace plain `Card` with `glass glass-spotlight rounded-2xl` styled divs. Selected state uses `ring-2 ring-primary` (already exists), unselected gets the glass hover glow
-- **Empty "Select a playlist" placeholder**: Wrap in `glass glass-spotlight rounded-2xl` container
-- **Empty "No playlists yet" state**: Style with glass container
-- **Create Playlist dialog**: Add `glass-strong` class to `DialogContent`
+### 1. Add Leanback launcher intent to `AndroidManifest.xml`
 
-**`src/components/playlists/PlaylistBuilder.tsx`**
-- **Main card wrapper**: Replace `Card` with `glass glass-spotlight rounded-2xl` container
-- **Timeline track background**: Update from `bg-muted/50 border border-border` to frosted glass style
-- **Add media button section**: Subtle glass background strip
-- **Lightbox dialog**: Add `glass-strong` to `DialogContent`
+In `android/app/src/main/AndroidManifest.xml`, inside the main `<activity>` block, add a second intent filter:
 
-### Technical Details
-- All glass classes (`glass`, `glass-strong`, `glass-spotlight`) are already defined in `src/index.css`
-- The spotlight cursor effect from `DashboardLayout.tsx` (mousemove handler setting `--mouse-x`/`--mouse-y`) already runs globally on all `.glass-spotlight` elements, so no additional JS needed
-- Replace `Card`/`CardContent` imports with plain divs where the glass classes provide the container styling, or keep Card but override its classes
+```xml
+<intent-filter>
+  <action android:name="android.intent.action.MAIN" />
+  <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+</intent-filter>
+```
+
+Also add to the `<application>` tag:
+```xml
+android:banner="@drawable/tv_banner"
+```
+
+### 2. Add a TV banner image
+
+Place a 320×180px PNG at:
+```
+android/app/src/main/res/drawable/tv_banner.png
+```
+
+This is what Fire TV shows in the app grid.
+
+### 3. Declare touchscreen as not required
+
+Add to `AndroidManifest.xml` (inside `<manifest>`):
+```xml
+<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+<uses-feature android:name="android.software.leanback" android:required="false" />
+```
+
+### 4. Rebuild the APK
+
+```bash
+npx cap sync android
+cd android && ./gradlew assembleDebug
+```
+
+Then re-upload the new APK to Lovable's `public/GlowHub.apk`.
+
+## What Lovable Can Do Now
+
+- Generate the 320×180 TV banner image using the GLOW branding
+- Update documentation/install guide to mention these requirements
+
+## Summary
+
+The APK needs native Android manifest changes that happen outside Lovable. Once the Leanback launcher intent and banner are added, the app will appear in Fire TV's app list normally.
 
