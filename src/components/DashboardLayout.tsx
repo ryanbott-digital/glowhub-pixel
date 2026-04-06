@@ -1,8 +1,12 @@
-import { ReactNode, useEffect, useCallback } from "react";
+import { ReactNode, useEffect, useCallback, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
+  const [defaultOpen, setDefaultOpen] = useState(() => {
+    return localStorage.getItem("glowhub_compact_sidebar") !== "true";
+  });
+
   // Spotlight cursor effect for glass cards
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const cards = document.querySelectorAll('.glass-spotlight');
@@ -21,7 +25,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   }, [handleMouseMove]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <div className="min-h-screen flex w-full mesh-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
