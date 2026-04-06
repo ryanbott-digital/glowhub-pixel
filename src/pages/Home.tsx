@@ -261,7 +261,29 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Process: 3 Simple Steps ── */}
+      {/* ── Hardware Compatibility ── */}
+      <section className="px-6 py-20 max-w-4xl mx-auto">
+        <h2 className="text-center text-xs uppercase tracking-[0.25em] text-[#64748B] font-medium mb-10">
+          Designed for the hardware you already own
+        </h2>
+        <div className="flex items-center justify-center gap-12 sm:gap-20">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300">
+              <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
+            </div>
+            <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Fire TV Stick</span>
+          </div>
+          <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
+          <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ transitionDelay: "120ms" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300">
+              <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
+            </div>
+            <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Google TV</span>
+          </div>
+        </div>
+      </section>
+
+
       <section id="process" className="px-6 py-24 max-w-5xl mx-auto">
         <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
           3 Simple Steps
