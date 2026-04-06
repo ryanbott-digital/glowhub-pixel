@@ -234,7 +234,7 @@ const Home = () => {
                 <div className="bg-[#131C2E] rounded-2xl p-2.5 border border-[#1E293B]/60 shadow-2xl">
                   <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-[#00A3A3]/20 via-[#3B82F6]/15 to-[#EC4899]/10 flex items-center justify-center relative">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(0,163,163,0.15),transparent_60%)]" />
-                    <GlowLogoImage className="h-14 sm:h-20 relative z-10 drop-shadow-[0_0_20px_rgba(0,163,163,0.3)]" />
+                    <GlowLogoImage className="h-24 sm:h-32 relative z-10 drop-shadow-[0_0_30px_rgba(0,163,163,0.4)]" />
                   </div>
                 </div>
                 <div className="mx-auto w-20 h-3 bg-[#131C2E] rounded-b-lg border-x border-b border-[#1E293B]/60" />
