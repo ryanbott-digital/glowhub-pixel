@@ -178,6 +178,27 @@ export default function Player() {
         if (showSettings) { setShowSettings(false); setFocusIndex(-1); e.preventDefault(); return; }
       }
 
+      // D-pad navigation inside confirmation dialogs
+      if (showClearConfirm || showUnpairConfirm) {
+        const dialog = document.querySelector('[data-dialog-focus]');
+        if (!dialog) return;
+        const buttons = dialog.querySelectorAll<HTMLElement>('button.tv-focusable');
+        if (!buttons || buttons.length === 0) return;
+        const currentIdx = Array.from(buttons).findIndex((b) => b === document.activeElement);
+
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          e.preventDefault();
+          const nextIdx = e.key === "ArrowRight"
+            ? Math.min(currentIdx + 1, buttons.length - 1)
+            : Math.max(currentIdx - 1, 0);
+          buttons[nextIdx]?.focus();
+        } else if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (document.activeElement as HTMLElement)?.click();
+        }
+        return;
+      }
+
       if (!showSettings) return;
 
       const focusable = settingsPanelRef.current?.querySelectorAll<HTMLElement>(
@@ -201,12 +222,10 @@ export default function Player() {
           return next;
         });
       } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        // Let range inputs handle left/right natively
         const active = document.activeElement;
         if (active instanceof HTMLInputElement && active.type === "range") return;
         e.preventDefault();
       } else if (e.key === "Enter" || e.key === " ") {
-        // Click the focused element
         const active = document.activeElement as HTMLElement;
         if (active && settingsPanelRef.current?.contains(active)) {
           if (active instanceof HTMLInputElement && active.type === "range") return;
@@ -1811,15 +1830,16 @@ export default function Player() {
       {/* Unpair confirmation dialog */}
       {showUnpairConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-black/95 border border-white/10 rounded-xl p-6 w-80 shadow-2xl">
+          <div data-dialog-focus className="bg-black/95 border border-white/10 rounded-xl p-6 w-80 shadow-2xl">
             <h4 className="text-white font-semibold text-sm mb-2">Unpair this device?</h4>
             <p className="text-white/50 text-xs mb-5">
               This will clear the stored screen ID and all cached settings. The device will return to the pairing code screen.
             </p>
             <div className="flex gap-3">
               <button
+                autoFocus
                 onClick={() => setShowUnpairConfirm(false)}
-                className="flex-1 text-sm text-white/70 border border-white/20 rounded-lg px-3 py-2 hover:bg-white/5 transition-colors"
+                className="tv-focusable flex-1 text-sm text-white/70 border border-white/20 rounded-lg px-3 py-2 hover:bg-white/5 transition-colors"
               >
                 Cancel
               </button>
@@ -1832,7 +1852,7 @@ export default function Player() {
                   toast.success("Device unpaired — returning to pairing screen");
                   window.location.reload();
                 }}
-                className="flex-1 text-sm text-white bg-red-600 hover:bg-red-500 rounded-lg px-3 py-2 transition-colors"
+                className="tv-focusable flex-1 text-sm text-white bg-red-600 hover:bg-red-500 rounded-lg px-3 py-2 transition-colors"
               >
                 Unpair
               </button>
@@ -1907,15 +1927,16 @@ export default function Player() {
       {/* Clear cache confirmation dialog */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70">
-          <div className="bg-[hsl(var(--background))] border border-border rounded-lg p-6 max-w-xs w-full mx-4 shadow-xl space-y-4">
+          <div data-dialog-focus className="bg-[hsl(var(--background))] border border-border rounded-lg p-6 max-w-xs w-full mx-4 shadow-xl space-y-4">
             <h3 className="text-foreground text-sm font-semibold">Clear Offline Cache?</h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
               This will delete all cached media files. The player will need to re-download them, which may cause interruptions if the device is offline.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
+                autoFocus
                 onClick={() => setShowClearConfirm(false)}
-                className="text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+                className="tv-focusable text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancel
               </button>
@@ -1927,7 +1948,7 @@ export default function Player() {
                   setShowClearConfirm(false);
                   toast.success("Cache cleared successfully");
                 }}
-                className="text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                className="tv-focusable text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 Clear Cache
               </button>
