@@ -314,7 +314,7 @@ export default function Screens() {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in stagger-in">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
@@ -479,7 +479,7 @@ export default function Screens() {
                 </h2>
               )}
               {ungroupedScreens.length > 0 ? (
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 stagger-in">
                   {ungroupedScreens.map(renderScreenCard)}
                 </div>
               ) : groups.length > 0 ? (
@@ -508,7 +508,7 @@ export default function Screens() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 {groupScreens.length > 0 ? (
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3">
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3 stagger-in">
                     {groupScreens.map(renderScreenCard)}
                   </div>
                 ) : (
