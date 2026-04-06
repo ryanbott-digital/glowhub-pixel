@@ -1158,12 +1158,12 @@ export default function Player() {
         )}
 
         {/* Bottom logo — subtle */}
-        <div
-          className="absolute bottom-8 z-10 text-2xl font-bold font-['Poppins'] select-none"
+        <img
+          src={glowLogoPng}
+          alt="Glow"
+          className="absolute bottom-8 z-10 h-8 w-auto select-none"
           style={{ opacity: 0.15, animation: "logoPulse 4s ease-in-out infinite" }}
-        >
-          <span className="text-glow">Glow</span>
-        </div>
+        />
 
         <style>{`
           @keyframes nebulaBlob1 {
