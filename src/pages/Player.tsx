@@ -11,6 +11,7 @@ import glowLogoPng from "@/assets/glow-text.png";
 import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, getCacheSize, requestPersistentStorage, onCacheProgress, type CacheProgress } from "@/lib/media-cache";
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 import { useVersionCheck } from "@/hooks/use-version-check";
+import { ScreenSaver } from "@/components/ScreenSaver";
 
 interface PlaylistItem {
   id: string;
@@ -1438,90 +1439,9 @@ export default function Player() {
     );
   }
 
-  // ── NO CONTENT (Aurora default) ──
+  // ── NO CONTENT — Screen Saver Mode ──
   if (items.length === 0) {
-    return (
-      <div className="w-screen h-screen overflow-hidden relative bg-black" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
-        {/* Aurora: slow-looping teal and blue */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "1200px", height: "1200px",
-              top: "-20%", left: "-10%",
-              background: "radial-gradient(circle, rgba(0,163,163,0.4) 0%, transparent 65%)",
-              filter: "blur(120px)",
-              animation: "auroraA 25s ease-in-out infinite alternate",
-            }}
-          />
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "1000px", height: "1000px",
-              bottom: "-15%", right: "-5%",
-              background: "radial-gradient(circle, rgba(26,54,93,0.5) 0%, transparent 65%)",
-              filter: "blur(120px)",
-              animation: "auroraB 20s ease-in-out infinite alternate",
-            }}
-          />
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "600px", height: "600px",
-              top: "40%", left: "40%",
-              background: "radial-gradient(circle, rgba(0,163,163,0.25) 0%, transparent 70%)",
-              filter: "blur(100px)",
-              animation: "auroraC 18s ease-in-out infinite alternate",
-            }}
-          />
-        </div>
-
-        {/* Welcome to GLOW text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-          <div
-            className="text-5xl font-bold font-['Poppins'] mb-4"
-            style={{
-              animation: "powerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-              opacity: 0,
-            }}
-          >
-            <span className="text-glow">Glow</span>
-          </div>
-          <p
-            className="text-white/30 text-sm tracking-[0.3em] uppercase"
-            style={{
-              animation: "powerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards",
-              opacity: 0,
-            }}
-          >
-            Waiting for content…
-          </p>
-        </div>
-
-        <style>{`
-          @keyframes auroraA {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(100px, 60px) scale(1.15); }
-          }
-          @keyframes auroraB {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(-80px, -50px) scale(1.1); }
-          }
-          @keyframes auroraC {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(50px, -30px) scale(1.2); }
-          }
-          @keyframes powerUp {
-            0% { opacity: 0; transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-          }
-          @keyframes contentFadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-          }
-        `}</style>
-      </div>
-    );
+    return <ScreenSaver />;
   }
 
   // ── PLAYER ──
