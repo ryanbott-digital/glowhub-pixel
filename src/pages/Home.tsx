@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag } from "lucide-react";
+import firestickIcon from "@/assets/firestick-icon.png";
+import googletvIcon from "@/assets/googletv-remote-icon.png";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 /* ── Scroll reveal hook ── */
