@@ -8,6 +8,7 @@ import { MonitorPreview } from "@/components/MonitorPreview";
 import { Monitor, Wifi, WifiOff, ListVideo, BarChart3, CreditCard, Loader2, Rocket, PartyPopper } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -23,18 +24,21 @@ export default function Dashboard() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
   const [newScreenName, setNewScreenName] = useState("");
+  const [mediaCount, setMediaCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [s, p, prof] = await Promise.all([
+      const [s, p, prof, m] = await Promise.all([
         supabase.from("screens").select("*").eq("user_id", user.id),
         supabase.from("playlists").select("*").eq("user_id", user.id),
         supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
+        supabase.from("media").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       if (s.data) setScreens(s.data);
       if (p.data) setPlaylists(p.data);
       if (prof.data) setSubscriptionTier(prof.data.subscription_tier);
+      setMediaCount(m.count ?? 0);
     };
     fetchData();
   }, [user]);
@@ -293,6 +297,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding Checklist */}
+      <OnboardingChecklist screens={screens} playlists={playlists} mediaCount={mediaCount} />
 
       {/* System Health */}
       <SystemHealth />
