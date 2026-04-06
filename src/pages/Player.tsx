@@ -1155,6 +1155,7 @@ export default function Player() {
                   setCachedCount(0);
                   setCacheBytes(0);
                   setShowClearConfirm(false);
+                  toast.success("Cache cleared successfully");
                 }}
                 className="text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
