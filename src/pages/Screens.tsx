@@ -384,7 +384,7 @@ export default function Screens() {
 
           {/* Pair Dialog */}
           <Dialog open={pairOpen} onOpenChange={setPairOpen}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md glass-strong border-white/10">
               <DialogHeader><DialogTitle>Pair a Screen</DialogTitle></DialogHeader>
               <div className="space-y-6 py-4">
                 <p className="text-sm text-muted-foreground text-center">
@@ -407,7 +407,7 @@ export default function Screens() {
 
           {/* Add Screen Dialog */}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent>
+            <DialogContent className="glass-strong border-white/10">
               <DialogHeader><DialogTitle>Add Screen</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <Input placeholder="Screen name (e.g. Lobby TV)" value={newName} onChange={(e) => setNewName(e.target.value)} />
@@ -433,7 +433,7 @@ export default function Screens() {
 
       {/* Bulk action toolbar */}
       {selectionMode && (
-        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 animate-fade-in flex-wrap">
+        <div className="flex items-center gap-3 rounded-2xl glass glass-spotlight border-primary/20 px-4 py-3 animate-fade-in flex-wrap">
           <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
           <div className="h-4 w-px bg-border" />
 
@@ -472,7 +472,7 @@ export default function Screens() {
         {/* Ungrouped screens */}
         <DroppableGroupZone groupId="ungrouped">
           {(ungroupedScreens.length > 0 || groups.length > 0) && (
-            <div className="space-y-3">
+            <div className="space-y-3 glass glass-spotlight rounded-2xl p-4">
               {groups.length > 0 && (
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   All Screens
@@ -491,7 +491,7 @@ export default function Screens() {
 
         {/* Grouped screens */}
         {groupedScreenMap.map(({ group, screens: groupScreens }) => (
-          <DroppableGroupZone key={group.id} groupId={group.id}>
+          <DroppableGroupZone key={group.id} groupId={group.id} className="glass glass-spotlight rounded-2xl p-4">
             <Collapsible
               open={!collapsedGroups.has(group.id)}
               onOpenChange={() => toggleGroupCollapse(group.id)}
@@ -536,16 +536,16 @@ export default function Screens() {
       </DndContext>
 
       {screens.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <Monitor className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p>No screens paired yet</p>
-          <p className="text-sm">Add a screen or pair one with a 6-digit code</p>
+        <div className="text-center py-16 glass glass-spotlight rounded-2xl neon-aurora">
+          <Monitor className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-60" />
+          <p className="text-foreground font-medium">No screens paired yet</p>
+          <p className="text-sm text-muted-foreground">Add a screen or pair one with a 6-digit code</p>
         </div>
       )}
 
       {/* Upgrade / Limit Modal */}
       <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
-        <DialogContent className="sm:max-w-md text-center">
+        <DialogContent className="sm:max-w-md text-center glass-strong border-white/10">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2 text-xl">
               {upgradeMessage.showUpgrade ? <Crown className="h-5 w-5 text-accent" /> : <Sparkles className="h-5 w-5 text-primary" />}
