@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { LogOut, Download, Smartphone, Check, CreditCard } from "lucide-react";
+import { LogOut, Download, Smartphone, Check, CreditCard, Shield } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +25,7 @@ const items = [
   { title: "Screens", url: "/screens", icon: BrandMonitorIcon },
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon },
   { title: "Subscription", url: "/subscription", icon: ({ className }: { className?: string }) => <CreditCard className={className} /> },
+  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} /> },
   { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} /> },
   { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} /> },
 ];
