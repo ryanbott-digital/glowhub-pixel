@@ -213,7 +213,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
             )}
           </div>
         </div>
-      </CardContent>
+      </div>
 
       {/* Lightbox Dialog */}
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
