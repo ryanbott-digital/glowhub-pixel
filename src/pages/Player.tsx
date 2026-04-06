@@ -72,6 +72,7 @@ export default function Player() {
   });
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
