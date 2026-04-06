@@ -1134,6 +1134,36 @@ export default function Player() {
           </div>
         </div>
       )}
+      {/* Clear cache confirmation dialog */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70">
+          <div className="bg-[hsl(var(--background))] border border-border rounded-lg p-6 max-w-xs w-full mx-4 shadow-xl space-y-4">
+            <h3 className="text-foreground text-sm font-semibold">Clear Offline Cache?</h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              This will delete all cached media files. The player will need to re-download them, which may cause interruptions if the device is offline.
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await caches.delete("glowhub-media-v1");
+                  setCachedCount(0);
+                  setCacheBytes(0);
+                  setShowClearConfirm(false);
+                }}
+                className="text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Clear Cache
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
