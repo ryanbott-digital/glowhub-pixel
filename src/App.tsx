@@ -20,6 +20,8 @@ import InstallGuide from "./pages/InstallGuide";
 import InstallApp from "./pages/InstallApp";
 import ResetPassword from "./pages/ResetPassword";
 import Subscription from "./pages/Subscription";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
