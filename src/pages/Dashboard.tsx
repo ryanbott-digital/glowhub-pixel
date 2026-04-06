@@ -39,12 +39,31 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
+  const playCelebrationSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.5);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.12);
+        osc.stop(ctx.currentTime + i * 0.12 + 0.5);
+      });
+    } catch {}
+  }, []);
+
   const triggerCelebration = useCallback((screenName?: string) => {
     setNewScreenName(screenName || "Your screen");
     setConfettiActive(true);
     setShowCelebration(true);
+    playCelebrationSound();
     setTimeout(() => setConfettiActive(false), 4000);
-  }, []);
+  }, [playCelebrationSound]);
 
   // Realtime: listen for new screens being paired to this user
   useEffect(() => {
