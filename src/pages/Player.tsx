@@ -160,7 +160,56 @@ export default function Player() {
     document.head.appendChild(style);
     registerMediaSW().then(() => requestPersistentStorage());
     const unsub = onCacheProgress(setSyncProgress);
-    return () => { document.head.removeChild(style); unsub(); };
+
+    // Auto-enter fullscreen on first user interaction (required by browsers)
+    const requestFullscreen = () => {
+      const el = document.documentElement;
+      const rfs = el.requestFullscreen
+        || (el as any).webkitRequestFullscreen
+        || (el as any).mozRequestFullScreen
+        || (el as any).msRequestFullscreen;
+      if (rfs) {
+        rfs.call(el).catch(() => {});
+      }
+    };
+
+    // Try immediately (works in native Capacitor / standalone PWA)
+    requestFullscreen();
+
+    // Fallback: enter fullscreen on first touch/click (browser requirement)
+    const onInteraction = () => {
+      requestFullscreen();
+      window.removeEventListener("click", onInteraction);
+      window.removeEventListener("touchstart", onInteraction);
+      window.removeEventListener("keydown", onInteraction);
+    };
+    window.addEventListener("click", onInteraction, { once: true });
+    window.addEventListener("touchstart", onInteraction, { once: true });
+    window.addEventListener("keydown", onInteraction, { once: true });
+
+    // Hide cursor after 3s of inactivity
+    let cursorTimer: ReturnType<typeof setTimeout>;
+    const hideCursor = () => {
+      document.body.style.cursor = "none";
+    };
+    const showCursor = () => {
+      document.body.style.cursor = "";
+      clearTimeout(cursorTimer);
+      cursorTimer = setTimeout(hideCursor, 3000);
+    };
+    document.addEventListener("mousemove", showCursor);
+    cursorTimer = setTimeout(hideCursor, 3000);
+
+    return () => {
+      document.head.removeChild(style);
+      unsub();
+      window.removeEventListener("click", onInteraction);
+      window.removeEventListener("touchstart", onInteraction);
+      window.removeEventListener("keydown", onInteraction);
+      document.removeEventListener("mousemove", showCursor);
+      clearTimeout(cursorTimer);
+      document.body.style.cursor = "";
+    };
   }, []);
 
   // Toast when pre-caching completes
