@@ -56,7 +56,11 @@ export default function Player() {
   const { pairingCode: urlPairingCode } = useParams<{ pairingCode: string }>();
   const [updateInterval, setUpdateInterval] = useState(() => {
     const saved = localStorage.getItem("glowhub_update_interval_ms");
-    return saved ? parseInt(saved, 10) : 5 * 60 * 1000; // default 5 min
+    return saved ? parseInt(saved, 10) : 5 * 60 * 1000;
+  });
+  const [screensaverDelay, setScreensaverDelay] = useState(() => {
+    const saved = localStorage.getItem("glowhub_screensaver_delay_ms");
+    return saved ? parseInt(saved, 10) : 30_000;
   });
   useVersionCheck(updateInterval);
   const [screenId, setScreenId] = useState<string | null>(() => localStorage.getItem("glowhub_screen_id"));
@@ -1461,7 +1465,7 @@ export default function Player() {
 
   // ── NO CONTENT — Screen Saver Mode ──
   if (items.length === 0) {
-    return <ScreenSaver />;
+    return <ScreenSaver delayMs={screensaverDelay} />;
   }
 
   // ── PLAYER ──
@@ -1714,6 +1718,32 @@ export default function Player() {
             <p className="text-white/50 text-xs mt-1">How often to check for new deployments</p>
           </div>
 
+          {/* Screen saver delay */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-white/90 text-sm font-medium mb-2">Screen Saver Delay</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="5"
+                max="120"
+                step="5"
+                value={screensaverDelay / 1000}
+                onChange={(e) => {
+                  const ms = parseInt(e.target.value, 10) * 1000;
+                  setScreensaverDelay(ms);
+                  localStorage.setItem("glowhub_screensaver_delay_ms", String(ms));
+                }}
+                className="tv-focusable flex-1 h-1 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #00A3A3 ${((screensaverDelay / 1000 - 5) / 115) * 100}%, rgba(255,255,255,0.15) ${((screensaverDelay / 1000 - 5) / 115) * 100}%)`,
+                }}
+              />
+              <span className="text-white/40 text-xs font-mono w-12 text-right">
+                {screensaverDelay / 1000}s
+              </span>
+            </div>
+            <p className="text-white/50 text-xs mt-1">Time before screen saver activates (no content)</p>
+          </div>
           {/* Cache status */}
           <div className="mt-4 pt-4 border-t border-white/10">
             <div className="flex items-center justify-between">
