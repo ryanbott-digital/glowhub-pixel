@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
