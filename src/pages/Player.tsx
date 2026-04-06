@@ -79,6 +79,7 @@ export default function Player() {
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
+  const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">("splash");
 
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
