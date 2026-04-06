@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'GlowHub',
   webDir: 'dist',
   server: {
-    url: 'https://ac739cba-0262-443b-bcae-51cf10fbf03b.lovableproject.com?forceHideBadge=true',
+    url: 'https://ac739cba-0262-443b-bcae-51cf10fbf03b.lovableproject.com/player?forceHideBadge=true',
     cleartext: true,
   },
 };
