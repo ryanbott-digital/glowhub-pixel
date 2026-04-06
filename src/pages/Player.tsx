@@ -1818,8 +1818,9 @@ export default function Player() {
             </p>
             <div className="flex gap-3">
               <button
+                autoFocus
                 onClick={() => setShowUnpairConfirm(false)}
-                className="flex-1 text-sm text-white/70 border border-white/20 rounded-lg px-3 py-2 hover:bg-white/5 transition-colors"
+                className="tv-focusable flex-1 text-sm text-white/70 border border-white/20 rounded-lg px-3 py-2 hover:bg-white/5 transition-colors"
               >
                 Cancel
               </button>
@@ -1832,7 +1833,7 @@ export default function Player() {
                   toast.success("Device unpaired — returning to pairing screen");
                   window.location.reload();
                 }}
-                className="flex-1 text-sm text-white bg-red-600 hover:bg-red-500 rounded-lg px-3 py-2 transition-colors"
+                className="tv-focusable flex-1 text-sm text-white bg-red-600 hover:bg-red-500 rounded-lg px-3 py-2 transition-colors"
               >
                 Unpair
               </button>
@@ -1914,8 +1915,9 @@ export default function Player() {
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
+                autoFocus
                 onClick={() => setShowClearConfirm(false)}
-                className="text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
+                className="tv-focusable text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancel
               </button>
@@ -1927,7 +1929,7 @@ export default function Player() {
                   setShowClearConfirm(false);
                   toast.success("Cache cleared successfully");
                 }}
-                className="text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                className="tv-focusable text-xs px-3 py-1.5 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
               >
                 Clear Cache
               </button>
