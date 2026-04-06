@@ -87,6 +87,7 @@ export default function Player() {
     return saved ? parseInt(saved, 10) : 500;
   });
   const [transitionType, setTransitionType] = useState("crossfade");
+  const [fadeToBlackActive, setFadeToBlackActive] = useState(false);
   const [loopEnabled, setLoopEnabled] = useState(true);
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
@@ -894,15 +895,33 @@ export default function Player() {
     // For "cut" transition, use 0ms crossfade
     const effectiveDuration = transitionType === "cut" ? 0 : crossfadeDuration;
 
-    // Single atomic swap: advance index + flip buffer
-    setCurrentIndex(nextIndex);
-    setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
-    setBufferLoading(false);
+    if (transitionType === "fade-to-black") {
+      // Phase 1: fade current buffer to black
+      setFadeToBlackActive(true);
+      setTimeout(() => {
+        // Phase 2: swap buffer while screen is black
+        setCurrentIndex(nextIndex);
+        setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
+        setBufferLoading(false);
+        // Phase 3: fade up from black after a brief hold
+        setTimeout(() => {
+          setFadeToBlackActive(false);
+          setTimeout(() => {
+            swapLockRef.current = false;
+          }, crossfadeDuration);
+        }, 150); // brief black hold
+      }, crossfadeDuration);
+    } else {
+      // Normal crossfade or cut
+      setCurrentIndex(nextIndex);
+      setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
+      setBufferLoading(false);
 
-    // Unlock after crossfade completes
-    setTimeout(() => {
-      swapLockRef.current = false;
-    }, Math.max(effectiveDuration, 50));
+      // Unlock after crossfade completes
+      setTimeout(() => {
+        swapLockRef.current = false;
+      }, Math.max(effectiveDuration, 50));
+    }
   }, [items.length, crossfadeDuration, transitionType, loopEnabled, currentIndex]);
 
   // Error handler: log to Supabase and skip to next item
@@ -1483,6 +1502,16 @@ export default function Player() {
           <GHLoader size={60} />
         </div>
       )}
+
+      {/* Fade-to-black overlay */}
+      <div
+        className="absolute inset-0 bg-black transition-opacity ease-in-out pointer-events-none"
+        style={{
+          opacity: fadeToBlackActive ? 1 : 0,
+          zIndex: 15,
+          transitionDuration: `${crossfadeDuration}ms`,
+        }}
+      />
 
       {/* Buffer A */}
       <div
