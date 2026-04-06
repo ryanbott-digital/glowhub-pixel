@@ -236,6 +236,40 @@ export default function Screens() {
     });
   };
 
+  // ── Drag and drop ──
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveScreenId(event.active.id as string);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveScreenId(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const screenId = active.id as string;
+    const targetGroupId = over.id as string;
+    const newGroupId = targetGroupId === "ungrouped" ? null : targetGroupId;
+
+    const screen = screens.find((s) => s.id === screenId);
+    if (!screen) return;
+    if (screen.group_id === newGroupId) return;
+
+    // Optimistic update
+    setScreens((prev) =>
+      prev.map((s) => (s.id === screenId ? { ...s, group_id: newGroupId } : s))
+    );
+
+    const { error } = await supabase.from("screens").update({ group_id: newGroupId }).eq("id", screenId);
+    if (error) {
+      toast.error(error.message);
+      fetchData();
+      return;
+    }
+
+    const targetName = newGroupId ? groups.find((g) => g.id === newGroupId)?.name : "Ungrouped";
+    toast.success(`Moved "${screen.name}" to ${targetName}`);
+  };
+
   // ── Organize screens by group ──
   const ungroupedScreens = screens.filter((s) => !s.group_id);
   const groupedScreenMap = groups.map((g) => ({
@@ -243,36 +277,40 @@ export default function Screens() {
     screens: screens.filter((s) => s.group_id === g.id),
   }));
 
+  const activeScreen = activeScreenId ? screens.find((s) => s.id === activeScreenId) : null;
+
   const renderScreenCard = (screen: Screen) => (
-    <div key={screen.id} className="relative">
-      {selectionMode && (
-        <div className="absolute top-2 left-2 z-20">
-          <Checkbox
-            checked={selectedIds.has(screen.id)}
-            onCheckedChange={() => toggleSelect(screen.id)}
-            className="h-5 w-5 border-white/50 bg-black/40 backdrop-blur-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+    <DraggableScreenWrapper key={screen.id} screenId={screen.id} disabled={selectionMode}>
+      <div className="relative">
+        {selectionMode && (
+          <div className="absolute top-2 left-2 z-20">
+            <Checkbox
+              checked={selectedIds.has(screen.id)}
+              onCheckedChange={() => toggleSelect(screen.id)}
+              className="h-5 w-5 border-white/50 bg-black/40 backdrop-blur-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+          </div>
+        )}
+        <div
+          className={`transition-all duration-150 ${
+            selectionMode
+              ? selectedIds.has(screen.id) ? "ring-2 ring-primary rounded-xl" : "opacity-60"
+              : ""
+          }`}
+          onClick={selectionMode ? (e) => { e.stopPropagation(); toggleSelect(screen.id); } : undefined}
+        >
+          <ScreenStatusCard
+            screen={screen}
+            playlists={playlists}
+            onPublish={publishPlaylist}
+            onDelete={deleteScreen}
+            onCopyUrl={copyDisplayUrl}
+            groups={groups}
+            onMoveToGroup={moveScreenToGroup}
           />
         </div>
-      )}
-      <div
-        className={`transition-all duration-150 ${
-          selectionMode
-            ? selectedIds.has(screen.id) ? "ring-2 ring-primary rounded-xl" : "opacity-60"
-            : ""
-        }`}
-        onClick={selectionMode ? (e) => { e.stopPropagation(); toggleSelect(screen.id); } : undefined}
-      >
-        <ScreenStatusCard
-          screen={screen}
-          playlists={playlists}
-          onPublish={publishPlaylist}
-          onDelete={deleteScreen}
-          onCopyUrl={copyDisplayUrl}
-          groups={groups}
-          onMoveToGroup={moveScreenToGroup}
-        />
       </div>
-    </div>
+    </DraggableScreenWrapper>
   );
 
   return (
