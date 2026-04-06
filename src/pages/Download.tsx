@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Download, Tv, Globe, Cpu, Lightbulb, CheckCircle2, ExternalLink, Flame } from "lucide-react";
 
-const DOWNLOADER_CODE = "6934153";
+const DOWNLOADER_CODE = "1648081";
 
 export default function DownloadPage() {
   return (
