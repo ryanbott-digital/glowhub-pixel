@@ -1,0 +1,1 @@
+ALTER TABLE public.screen_groups ADD COLUMN color TEXT NOT NULL DEFAULT 'gray';
