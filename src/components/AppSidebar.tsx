@@ -38,11 +38,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, user } = useAuth();
 
   const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
+  const [userTier, setUserTier] = useState("free");
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
@@ -53,8 +55,9 @@ export function AppSidebar() {
   useEffect(() => {
     if (!user) return;
     const fetchUsage = async () => {
-      const { currentCount, limit } = await checkScreenLimit(user.id);
+      const { currentCount, limit, tier } = await checkScreenLimit(user.id);
       setScreenUsage({ count: currentCount, limit });
+      setUserTier(tier);
     };
     fetchUsage();
   }, [user, location.pathname]);
