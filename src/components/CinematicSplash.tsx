@@ -1,21 +1,73 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import glowLogoPng from "@/assets/glow-text.png";
+import { Loader2 } from "lucide-react";
+import type { CacheProgress } from "@/lib/media-cache";
 
 interface CinematicSplashProps {
   onComplete: () => void;
+  syncProgress?: CacheProgress | null;
 }
 
-export function CinematicSplash({ onComplete }: CinematicSplashProps) {
-  const [phase, setPhase] = useState<"ignition" | "bloom" | "hardware" | "exit">("ignition");
+type Phase = "ignition" | "bloom" | "hardware" | "syncing" | "ready" | "exit";
 
+export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashProps) {
+  const [phase, setPhase] = useState<Phase>("ignition");
+  const [autoComplete, setAutoComplete] = useState(false);
+
+  // Compute percentage from syncProgress
+  const percentage = useMemo(() => {
+    if (!syncProgress || syncProgress.total === 0) return null;
+    return Math.round((syncProgress.completed / syncProgress.total) * 100);
+  }, [syncProgress]);
+
+  // Phase timeline
   useEffect(() => {
     const t1 = setTimeout(() => setPhase("bloom"), 1500);
     const t2 = setTimeout(() => setPhase("hardware"), 3000);
-    const t3 = setTimeout(() => setPhase("exit"), 4500);
-    const t4 = setTimeout(onComplete, 5200);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, [onComplete]);
+    const t3 = setTimeout(() => setPhase("syncing"), 4500);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+
+  // When in syncing phase, check if sync is done (or no sync needed)
+  useEffect(() => {
+    if (phase !== "syncing") return;
+
+    // If no sync progress or already complete, auto-advance after a brief delay
+    const noSync = !syncProgress || syncProgress.total === 0;
+    const syncDone = syncProgress && syncProgress.total > 0 && syncProgress.completed >= syncProgress.total;
+
+    if (noSync && !autoComplete) {
+      // Simulate progress for 2s then complete
+      const timer = setTimeout(() => setAutoComplete(true), 2000);
+      return () => clearTimeout(timer);
+    }
+
+    if (syncDone || autoComplete) {
+      setPhase("ready");
+    }
+  }, [phase, syncProgress, autoComplete]);
+
+  // "Ready" phase → exit after 1s
+  useEffect(() => {
+    if (phase !== "ready") return;
+    const t = setTimeout(() => setPhase("exit"), 1000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Exit phase → call onComplete
+  useEffect(() => {
+    if (phase !== "exit") return;
+    const t = setTimeout(onComplete, 700);
+    return () => clearTimeout(t);
+  }, [phase, onComplete]);
+
+  // Simulated percentage when no real sync
+  const displayPercentage = useMemo(() => {
+    if (percentage !== null) return percentage;
+    if (autoComplete) return 100;
+    return null;
+  }, [percentage, autoComplete]);
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black overflow-hidden flex items-center justify-center">
@@ -37,36 +89,38 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
           80% { transform: translateX(0); clip-path: inset(0); }
           100% { opacity: 1; transform: translateX(0); clip-path: inset(0); }
         }
-        @keyframes pipGlow {
-          0% { opacity: 0.2; box-shadow: none; }
-          50% { opacity: 1; box-shadow: 0 0 8px currentColor, 0 0 20px currentColor; }
-          100% { opacity: 1; box-shadow: 0 0 4px currentColor; }
+        @keyframes glitchLoop {
+          0%, 90%, 100% { transform: translateX(0); clip-path: inset(0); }
+          92% { transform: translateX(-2px); clip-path: inset(20% 0 60% 0); }
+          94% { transform: translateX(2px); clip-path: inset(50% 0 10% 0); }
+          96% { transform: translateX(-1px); clip-path: inset(0); }
         }
         @keyframes singularityPulse {
           0%, 100% { transform: scale(1); opacity: 0.8; }
           50% { transform: scale(1.5); opacity: 1; }
         }
+        @keyframes progressGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
       `}</style>
 
-      {/* Phase 1: Ignition - singularity + scan line */}
+      {/* Phase 1: Ignition */}
       <AnimatePresence>
         {phase === "ignition" && (
           <>
-            {/* Singularity pinpoint */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="absolute"
               style={{
-                width: 4, height: 4,
-                borderRadius: "50%",
-                background: "white",
+                width: 4, height: 4, borderRadius: "50%", background: "white",
                 boxShadow: "0 0 20px 8px rgba(255,255,255,0.8), 0 0 60px 20px rgba(0,163,163,0.6)",
                 animation: "singularityPulse 0.8s ease-in-out infinite",
               }}
             />
-            {/* Expanding horizontal line */}
             <motion.div
               initial={{ scaleX: 0, opacity: 0 }}
               animate={{ scaleX: 1, opacity: [0, 1, 1, 0.6] }}
@@ -78,38 +132,28 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
                 transformOrigin: "center",
               }}
             />
-            {/* Scan line sweeping down */}
-            <div
-              className="absolute left-0 right-0"
-              style={{
-                height: 2,
-                background: "linear-gradient(90deg, transparent, rgba(0,163,163,0.6) 20%, rgba(0,163,163,0.9) 50%, rgba(0,163,163,0.6) 80%, transparent)",
-                boxShadow: "0 0 30px 10px rgba(0,163,163,0.3)",
-                animation: "scanLine 1.2s 0.4s ease-out forwards",
-                position: "absolute",
-                top: "-2px",
-              }}
-            />
-            {/* Logo fading in during scan */}
+            <div className="absolute left-0 right-0" style={{
+              height: 2,
+              background: "linear-gradient(90deg, transparent, rgba(0,163,163,0.6) 20%, rgba(0,163,163,0.9) 50%, rgba(0,163,163,0.6) 80%, transparent)",
+              boxShadow: "0 0 30px 10px rgba(0,163,163,0.3)",
+              animation: "scanLine 1.2s 0.4s ease-out forwards",
+              position: "absolute", top: "-2px",
+            }} />
             <motion.img
-              src={glowLogoPng}
-              alt="Glow"
+              src={glowLogoPng} alt="Glow"
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
               className="relative z-10"
-              style={{
-                height: "clamp(48px, 8vw, 80px)",
-                filter: "drop-shadow(0 0 15px rgba(0,163,163,0.4))",
-              }}
+              style={{ height: "clamp(48px, 8vw, 80px)", filter: "drop-shadow(0 0 15px rgba(0,163,163,0.4))" }}
             />
           </>
         )}
       </AnimatePresence>
 
-      {/* Phase 2: Radiant Bloom */}
+      {/* Phase 2+: Bloom with logo, status text, progress bar */}
       <AnimatePresence>
-        {(phase === "bloom" || phase === "hardware") && (
+        {phase !== "ignition" && phase !== "exit" && (
           <motion.div
             className="absolute inset-0 flex flex-col items-center justify-center"
             initial={{ opacity: 0 }}
@@ -124,9 +168,7 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
                 animate={{ scale: 1.2, opacity: 1 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 style={{
-                  width: "min(600px, 80vw)",
-                  height: "min(600px, 80vw)",
-                  borderRadius: "50%",
+                  width: "min(600px, 80vw)", height: "min(600px, 80vw)", borderRadius: "50%",
                   background: "radial-gradient(circle, rgba(0,163,163,0.3) 0%, rgba(60,80,180,0.15) 40%, transparent 70%)",
                   filter: "blur(40px)",
                 }}
@@ -136,8 +178,7 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
             {/* Logo with shimmer */}
             <div className="relative z-10">
               <motion.img
-                src={glowLogoPng}
-                alt="Glow"
+                src={glowLogoPng} alt="Glow"
                 initial={{ scale: 1 }}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -146,45 +187,100 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
                   filter: "drop-shadow(0 0 40px rgba(0,163,163,0.6)) drop-shadow(0 0 80px rgba(60,80,180,0.3))",
                 }}
               />
-              {/* Shimmer overlay */}
-              <div
-                className="absolute inset-0 overflow-hidden pointer-events-none"
-                style={{ borderRadius: 8 }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0, left: 0,
-                    width: "50%", height: "100%",
-                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
-                    animation: "shimmerSlide 2s 0.3s ease-in-out infinite",
-                  }}
-                />
+              <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ borderRadius: 8 }}>
+                <div style={{
+                  position: "absolute", top: 0, left: 0, width: "50%", height: "100%",
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)",
+                  animation: "shimmerSlide 2s 0.3s ease-in-out infinite",
+                }} />
               </div>
             </div>
 
-            {/* Initializing text with glitch effect */}
+            {/* Status text */}
             <motion.p
+              key={phase}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.1 }}
               className="mt-6 text-xs tracking-[0.35em] uppercase"
               style={{
                 fontFamily: "'Courier New', monospace",
-                color: "rgba(0,163,163,0.9)",
-                animation: "glitchIn 0.6s 0.3s ease-out both",
-                textShadow: "0 0 10px rgba(0,163,163,0.5)",
+                color: phase === "ready" ? "#00ff88" : "rgba(0,163,163,0.9)",
+                animation: phase === "ready" ? "none" : "glitchLoop 3s ease-in-out infinite",
+                textShadow: phase === "ready"
+                  ? "0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4)"
+                  : "0 0 10px rgba(0,163,163,0.5)",
+                transition: "color 0.3s, text-shadow 0.3s",
               }}
             >
-              Initializing System...
+              {phase === "bloom" || phase === "hardware" ? "[ System Initializing... ]" : null}
+              {phase === "syncing" ? "[ Synchronizing Assets... ]" : null}
+              {phase === "ready" ? "[ System Ready ]" : null}
             </motion.p>
+
+            {/* Progress bar - visible during syncing & ready phases */}
+            <AnimatePresence>
+              {(phase === "syncing" || phase === "ready") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="mt-6 flex flex-col items-center gap-2 z-10"
+                  style={{ width: "min(320px, 60vw)" }}
+                >
+                  {/* Percentage with spinner */}
+                  <div className="flex items-center gap-2" style={{
+                    fontFamily: "'Courier New', monospace",
+                    fontSize: "clamp(10px, 1.5vw, 13px)",
+                    color: phase === "ready" ? "#00ff88" : "rgba(0,163,163,0.9)",
+                    letterSpacing: "0.15em",
+                    transition: "color 0.3s",
+                  }}>
+                    {phase !== "ready" && (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Loader2 size={12} />
+                      </motion.div>
+                    )}
+                    <span>[ {displayPercentage ?? 0}% ]</span>
+                  </div>
+
+                  {/* Glassmorphism progress bar */}
+                  <div style={{
+                    width: "100%", height: 6, borderRadius: 3,
+                    border: "1px solid rgba(0,163,163,0.3)",
+                    background: "rgba(255,255,255,0.05)",
+                    backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
+                    overflow: "hidden",
+                    boxShadow: "0 0 15px rgba(0,163,163,0.15), inset 0 0 10px rgba(0,163,163,0.05)",
+                  }}>
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${displayPercentage ?? 0}%` }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      style={{
+                        height: "100%", borderRadius: 2,
+                        background: "linear-gradient(90deg, rgba(0,163,163,1), rgba(60,80,180,1), rgba(0,163,163,1))",
+                        backgroundSize: "200% 100%",
+                        animation: "progressGradient 2s ease infinite",
+                        boxShadow: "0 0 10px rgba(0,163,163,0.6), 0 0 20px rgba(0,163,163,0.3)",
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Phase 3: Hardware Check pips */}
+      {/* Hardware check pips */}
       <AnimatePresence>
-        {(phase === "hardware" || phase === "exit") && (
+        {(phase === "hardware" || phase === "syncing") && (
           <motion.div
             className="absolute bottom-[12%] flex gap-6 z-20"
             initial={{ opacity: 0, y: 10 }}
@@ -196,7 +292,7 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
               { label: "NETWORK", status: "OK", delay: 0 },
               { label: "GRAPHICS", status: "READY", delay: 0.4 },
               { label: "ENGINE", status: "ACTIVE", delay: 0.8 },
-            ].map((pip, i) => (
+            ].map((pip) => (
               <motion.div
                 key={pip.label}
                 initial={{ opacity: 0.2 }}
@@ -217,11 +313,7 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
                     boxShadow: ["none", "0 0 8px rgba(0,163,163,0.8), 0 0 20px rgba(0,163,163,0.4)", "0 0 4px rgba(0,163,163,0.6)"],
                   }}
                   transition={{ delay: pip.delay, duration: 0.4 }}
-                  style={{
-                    width: 6, height: 6,
-                    borderRadius: "50%",
-                    background: "rgba(0,163,163,0.9)",
-                  }}
+                  style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(0,163,163,0.9)" }}
                 />
                 <span style={{ color: "rgba(255,255,255,0.4)" }}>{pip.label}:</span>
                 <motion.span
@@ -238,7 +330,7 @@ export function CinematicSplash({ onComplete }: CinematicSplashProps) {
         )}
       </AnimatePresence>
 
-      {/* Phase 4: Exit - zoom through O / fade to black */}
+      {/* Exit fade */}
       {phase === "exit" && (
         <motion.div
           className="absolute inset-0 bg-black z-50"

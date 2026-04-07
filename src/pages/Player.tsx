@@ -1028,7 +1028,7 @@ export default function Player() {
   }, []);
 
   if (bootPhase !== "done") {
-    return <CinematicSplash onComplete={handleSplashComplete} />;
+    return <CinematicSplash onComplete={handleSplashComplete} syncProgress={syncProgress} />;
   }
 
   // ── PAIRING CODE SCREEN ──
