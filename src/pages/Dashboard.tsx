@@ -117,6 +117,7 @@ export default function Dashboard() {
   const onlineCount = screens.filter((s) => s.status === "online").length;
   const offlineCount = screens.filter((s) => s.status === "offline").length;
   const liveCount = screens.filter((s) => s.status === "online" && s.current_playlist_id).length;
+  const activeCount = screens.filter((s) => s.current_playlist_id).length;
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
@@ -205,6 +206,13 @@ export default function Dashboard() {
               <span className="text-2xl font-bold text-foreground tabular-nums">{offlineCount}</span>
               <span className="text-[11px] text-muted-foreground tracking-wider uppercase">Offline</span>
             </div>
+          </div>
+          {/* Active screens count */}
+          <div className={`mt-2 flex items-center gap-1.5 transition-all duration-700 ${onlineFlash ? "animate-scale-in" : ""}`}>
+            <span className={`text-[10px] font-bold tracking-widest uppercase ${activeCount > 0 ? "text-emerald-400" : "text-muted-foreground/50"}`}
+              style={activeCount > 0 && onlineFlash ? { textShadow: "0 0 10px hsl(150, 100%, 50%)" } : {}}>
+              {activeCount} {activeCount === 1 ? "Screen" : "Screens"} Active
+            </span>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
         </div>
