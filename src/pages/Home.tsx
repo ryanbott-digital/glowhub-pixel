@@ -299,11 +299,9 @@ const Home = () => {
                     <div className="absolute inset-0 aurora-screen" />
                     {/* Scanline overlay */}
                     <div className="absolute inset-0 scanline-overlay pointer-events-none" />
-                    {/* Neon GLOW text */}
+                    {/* Brand GLOW logo */}
                     <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <span className="text-4xl sm:text-5xl font-extrabold tracking-[0.2em] uppercase neon-logo-text select-none">
-                        GLOW
-                      </span>
+                      <GlowLogoImage className="h-10 sm:h-14" alt="GLOW" />
                     </div>
                   </div>
                 </div>
