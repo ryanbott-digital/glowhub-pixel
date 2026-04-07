@@ -116,6 +116,7 @@ export default function Dashboard() {
 
   const onlineCount = screens.filter((s) => s.status === "online").length;
   const offlineCount = screens.filter((s) => s.status === "offline").length;
+  const liveCount = screens.filter((s) => s.status === "online" && s.current_playlist_id).length;
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
@@ -179,7 +180,18 @@ export default function Dashboard() {
 
         {/* Screens Status */}
         <div className="glass glass-spotlight rounded-2xl p-5 relative overflow-hidden">
-          <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase mb-3">Screens</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase">Screens</h3>
+            {liveCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase" style={{ color: "hsl(0, 84%, 60%)" }}>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "hsl(0, 84%, 60%)" }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: "hsl(0, 84%, 60%)" }} />
+                </span>
+                LIVE
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-6">
             <div className={`flex items-center gap-2.5 transition-all duration-500 ${onlineFlash ? "neon-online-flash" : ""}`}>
               <div className="relative">

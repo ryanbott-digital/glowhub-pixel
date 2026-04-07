@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { checkScreenLimit } from "@/lib/subscription";
 import { useNavigate } from "react-router-dom";
 import { ScreenGroupManager, type ScreenGroup, getGroupColorClass, getGroupIcon } from "@/components/screens/ScreenGroupManager";
+import { BroadcastSuccessModal } from "@/components/BroadcastSuccessModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { DraggableScreenWrapper } from "@/components/screens/DraggableScreenWrapper";
@@ -54,6 +55,8 @@ export default function Screens() {
   const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
+  const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
+  const [broadcastScreenName, setBroadcastScreenName] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -144,16 +147,26 @@ export default function Screens() {
     } finally { setPairing(false); }
   };
 
+  const triggerFirstBroadcast = useCallback((sName: string) => {
+    if (!localStorage.getItem("glowhub_first_broadcast_done")) {
+      localStorage.setItem("glowhub_first_broadcast_done", "1");
+      setBroadcastScreenName(sName);
+      setBroadcastModalOpen(true);
+    }
+  }, []);
+
   const publishPlaylist = async (screenId: string, playlistId: string) => {
     const { error } = await supabase.from("screens").update({ current_playlist_id: playlistId }).eq("id", screenId);
     if (error) { toast.error(error.message); return; }
     const playlist = playlists.find((p) => p.id === playlistId);
+    const screen = screens.find((s) => s.id === screenId);
     if (user) {
       await supabase.from("screen_activity_logs").insert({
         screen_id: screenId, user_id: user.id, action: "Playlist published",
         playlist_id: playlistId, playlist_title: playlist?.title || "Unknown",
       });
     }
+    triggerFirstBroadcast(screen?.name || "Your screen");
     toast.success("Playlist published to screen!");
     fetchData();
   };
@@ -203,6 +216,8 @@ export default function Screens() {
         playlist_id: bulkPlaylistId, playlist_title: playlist?.title || "Unknown",
       }))
     );
+    const firstScreen = screens.find((s) => ids.includes(s.id));
+    triggerFirstBroadcast(firstScreen?.name || "Your screens");
     toast.success(`Playlist published to ${ids.length} screen(s)`);
     clearSelection();
     fetchData();
@@ -315,6 +330,7 @@ export default function Screens() {
 
   return (
     <div className="space-y-6 animate-fade-in stagger-in">
+      <BroadcastSuccessModal open={broadcastModalOpen} onOpenChange={setBroadcastModalOpen} screenName={broadcastScreenName} />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
