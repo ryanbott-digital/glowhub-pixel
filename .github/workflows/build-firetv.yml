@@ -65,3 +65,13 @@ jobs:
           name: GlowHub-FireTV
           path: ${{ steps.find_apk.outputs.apk_path }}
           retention-days: 90
+
+      - name: Commit APK to repo
+        run: |
+          cp "${{ steps.find_apk.outputs.apk_path }}" public/GlowHub.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/GlowHub.apk
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: update GlowHub.apk with Fire TV patched build"
+          git push
