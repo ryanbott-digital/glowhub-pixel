@@ -41,6 +41,7 @@ export interface ScreenStatusCardProps {
   onCopyUrl: (id: string) => void;
   groups?: ScreenGroup[];
   onMoveToGroup?: (screenId: string, groupId: string | null) => void;
+  tier?: string;
 }
 
 interface CurrentMedia {
