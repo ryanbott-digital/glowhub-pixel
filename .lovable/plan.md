@@ -1,41 +1,44 @@
 
 
-## Cloud APK Build via GitHub Actions
+## Broadcast Success Modal
 
 ### What This Does
-Creates a GitHub Actions workflow that automatically patches and builds a Fire TV-compatible APK whenever you upload a PWABuilder source ZIP — no PC or Android Studio needed.
+Creates a new `BroadcastSuccessModal` component that triggers when a user publishes a playlist to a screen for the first time. It features a spiraling particle burst, glassmorphism card with rotating conic gradient border, 3D checkmark bloom, countdown, shimmer effects, and haptic feedback. The dashboard also gets a live "LIVE" badge on screen cards after the first broadcast.
 
-### Prerequisites
-- Your Lovable project must be connected to GitHub (Settings → GitHub → Connect)
-- You'll need to download the PWABuilder source ZIP to your phone and commit it to the repo
+### Trigger Logic
+- The modal fires from the `publishPlaylist` function in `src/pages/Screens.tsx` (and bulk publish) -- only on the **first time** a playlist is assigned to any screen (check if user has ever had a `current_playlist_id` set before).
+- Store a `glowhub_first_broadcast_done` flag in `localStorage` to ensure it only shows once per account.
 
-### Files to Create/Modify
+### Files to Create
 
-**1. `.github/workflows/build-firetv.yml`** (new)
-A GitHub Actions workflow that:
-- Triggers manually (workflow_dispatch) with an input for the PWABuilder ZIP path
-- Sets up JDK 17 and Android SDK
-- Runs the existing `public/patch-firetv.py` to inject Leanback launcher, banner, and feature declarations
-- Builds the APK using Gradle (`./gradlew assembleDebug`)
-- Uploads the built APK as a downloadable GitHub Actions artifact
+**`src/components/BroadcastSuccessModal.tsx`**
+- Spiraling particle burst in neon teal (#00A3A3) and electric blue, particles move outward in a spiral pattern
+- Glassmorphism card with `backdrop-filter: blur(40px)`, rotating conic gradient border (teal/blue/pink) using `@property --conic-angle`
+- Large geometric 3D checkmark with green heartbeat glow animation
+- Header: "BROADCAST IS ACTIVE" in uppercase, geometric sans-serif
+- Subtext with countdown: "Your screen is now Glowing. Managing the playlist in 3... 2... 1..."
+- "View My Live Screen" button with breathe animation and rocket icon
+- CSS shimmer effect on the logo area and CTA button
+- Haptic vibration pattern on open
+- "I'll do this later" dismiss link
+- Auto-navigates to `/screens` after countdown
 
-**2. `public/patch-firetv.py`** (minor update)
-- Update the output path to work within the GitHub Actions workspace instead of `/mnt/documents/`
-- Make the banner path default to `public/tv_banner.png` from the repo
+### Files to Modify
 
-**3. `src/pages/InstallGuide.tsx`** (update)
-- Add instructions for the cloud build workflow: upload ZIP to repo → Actions tab → download APK
+**`src/pages/Screens.tsx`**
+- Import and render `BroadcastSuccessModal`
+- Add state for modal open/close and the screen name
+- In `publishPlaylist`: check `localStorage` for `glowhub_first_broadcast_done`; if not set, show modal and set the flag
+- Same check in `handleBulkPublish`
 
-### How You'll Use It (from your phone)
-1. Go to pwabuilder.com, download the **Android source ZIP**
-2. Go to your GitHub repo, upload the ZIP file to the root
-3. Go to Actions tab → "Build Fire TV APK" → Run workflow
-4. Wait ~3 minutes, download the built APK artifact
-5. Upload the APK to `public/GlowHub.apk` via GitHub
+**`src/pages/Dashboard.tsx`**
+- Add a "LIVE" pulsing red badge on the screen count stat card when `onlineCount > 0` and screens have an assigned playlist
+- When `onlineFlash` triggers, animate the screen count from 0 to the new value with a neon green flash
 
 ### Technical Details
-- Uses `actions/setup-java@v4` with JDK 17
-- Android SDK setup via `android-actions/setup-android@v3`
-- Gradle wrapper from the PWABuilder source handles the build
-- The patched APK is uploaded as a workflow artifact (available for 90 days)
+- Reuse animation patterns from `PairSuccessModal` (conic border, particle burst, breathe button)
+- Spiral particles: offset angle by golden ratio increments for spiral distribution
+- Shimmer: CSS `@keyframes shimmer` moving a diagonal gradient highlight across elements
+- Green heartbeat: `box-shadow` pulse between `hsla(150, 100%, 45%, 0.3)` and `hsla(150, 100%, 45%, 0.6)` on a 1.5s loop
+- All animations use CSS keyframes (no framer-motion dependency needed) for performance on Fire TV
 
