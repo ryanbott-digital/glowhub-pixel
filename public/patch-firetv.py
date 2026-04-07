@@ -116,8 +116,21 @@ def main():
     else:
         print("⚠ No banner image provided - add tv_banner.png to res/drawable manually")
 
-    # Re-zip
+    # Re-zip or extract to output dir
     base_name = Path(src_zip).stem
+    if output_dir != '/mnt/documents':
+        # CI mode: extract patched files to output_dir for Gradle build
+        os.makedirs(output_dir, exist_ok=True)
+        for item in os.listdir(work_dir):
+            src_item = os.path.join(work_dir, item)
+            dst_item = os.path.join(output_dir, item)
+            if os.path.isdir(src_item):
+                shutil.copytree(src_item, dst_item, dirs_exist_ok=True)
+            else:
+                shutil.copy2(src_item, dst_item)
+        print(f"\n✅ Done! Patched source extracted to: {output_dir}")
+        return
+
     out_zip = f'/mnt/documents/{base_name}-firetv-patched.zip'
     print(f"Creating {out_zip}...")
     with zipfile.ZipFile(out_zip, 'w', zipfile.ZIP_DEFLATED) as zout:

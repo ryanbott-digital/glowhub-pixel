@@ -32,6 +32,19 @@ const steps = {
           <p className="text-xs mt-2 text-muted-foreground/70">
             <strong>Tip:</strong> If the app doesn't appear in your app list, long-press the home button and check "App Library", or move it to the front row from Settings → Applications → Manage Installed Applications.
           </p>
+          <div className="mt-3 p-2.5 rounded-lg bg-accent/10 border border-accent/20">
+            <p className="text-xs font-medium text-foreground mb-1">🔧 Building a Fire TV APK from your phone</p>
+            <p className="text-xs text-muted-foreground">
+              If the APK doesn't show in the Fire TV app grid, you can rebuild it with Leanback support using our automated cloud build:
+            </p>
+            <ol className="list-decimal list-inside text-xs text-muted-foreground mt-1 space-y-0.5">
+              <li>Go to <strong className="text-foreground">pwabuilder.com</strong> and download the <em>Android source ZIP</em></li>
+              <li>Upload the ZIP to your GitHub repo root</li>
+              <li>Go to <strong className="text-foreground">Actions → Build Fire TV APK → Run workflow</strong></li>
+              <li>Download the built APK from the workflow artifacts</li>
+              <li>Sideload the new APK to your Fire TV</li>
+            </ol>
+          </div>
         </div>
       ),
     },
