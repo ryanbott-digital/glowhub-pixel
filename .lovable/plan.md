@@ -1,61 +1,31 @@
 
 
-## Problem
+## Automate Fire TV APK Patching
 
-Fire TV requires apps to declare a **Leanback Launcher** intent filter and provide a **banner** image (320×180px) in the Android manifest. Without these, the OS installs the APK but hides it from the app grid.
+Unfortunately, I can't build Android APKs directly in this environment (no Android SDK). However, I **can** automate the patching step so you don't have to manually edit XML files.
 
-## Solution — Native Android Project Changes
+### How it would work
 
-These changes must be made in the exported Android project (after `npx cap add android`), not in Lovable:
+1. You go to PWABuilder and download the **source code ZIP** (not the pre-built APK)
+2. You upload that ZIP here
+3. I run a script that automatically:
+   - Injects the `LEANBACK_LAUNCHER` intent filter into `AndroidManifest.xml`
+   - Adds `android:banner="@drawable/tv_banner"` to the `<application>` tag
+   - Adds `touchscreen not required` feature declarations
+   - Copies the `tv_banner.png` into the correct `res/drawable/` folder
+4. I give you back the patched ZIP
+5. You open it in Android Studio and hit Build → APK (one click)
 
-### 1. Add Leanback launcher intent to `AndroidManifest.xml`
+### What I'll build
 
-In `android/app/src/main/AndroidManifest.xml`, inside the main `<activity>` block, add a second intent filter:
+- A Python patch script that modifies the PWABuilder Android source ZIP
+- It will handle all the manifest changes and asset placement automatically
 
-```xml
-<intent-filter>
-  <action android:name="android.intent.action.MAIN" />
-  <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-</intent-filter>
-```
+### Limitation
 
-Also add to the `<application>` tag:
-```xml
-android:banner="@drawable/tv_banner"
-```
+You'll still need Android Studio to compile the final APK from the patched source, but all the fiddly XML editing will be done for you.
 
-### 2. Add a TV banner image
+### Alternative
 
-Place a 320×180px PNG at:
-```
-android/app/src/main/res/drawable/tv_banner.png
-```
-
-This is what Fire TV shows in the app grid.
-
-### 3. Declare touchscreen as not required
-
-Add to `AndroidManifest.xml` (inside `<manifest>`):
-```xml
-<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-<uses-feature android:name="android.software.leanback" android:required="false" />
-```
-
-### 4. Rebuild the APK
-
-```bash
-npx cap sync android
-cd android && ./gradlew assembleDebug
-```
-
-Then re-upload the new APK to Lovable's `public/GlowHub.apk`.
-
-## What Lovable Can Do Now
-
-- Generate the 320×180 TV banner image using the GLOW branding
-- Update documentation/install guide to mention these requirements
-
-## Summary
-
-The APK needs native Android manifest changes that happen outside Lovable. Once the Leanback launcher intent and banner are added, the app will appear in Fire TV's app list normally.
+If you want to skip Android Studio entirely, you could use PWABuilder's **cloud build** — but their cloud build doesn't support custom manifest modifications. So the patch-then-build approach is the most reliable path.
 
