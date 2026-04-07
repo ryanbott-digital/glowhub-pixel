@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { isProTier } from "@/lib/subscription";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Monitor, Image, ListVideo, HardDrive } from "lucide-react";
-
-const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#F97316", "#10B981", "#8B5CF6", "#EC4899", "#06B6D4", "#F59E0B"];
+import { Monitor, Image, ListVideo, HardDrive, Crown, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Analytics() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [tier, setTier] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalScreens: 0,
     onlineScreens: 0,
@@ -18,6 +21,12 @@ export default function Analytics() {
   const [playlistSizes, setPlaylistSizes] = useState<{ name: string; items: number }[]>([]);
   const [screenStatus, setScreenStatus] = useState<{ name: string; value: number }[]>([]);
   const [mediaTimeline, setMediaTimeline] = useState<{ date: string; uploads: number }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("subscription_tier").eq("id", user.id).single()
+      .then(({ data }) => setTier(data?.subscription_tier || "free"));
+  }, [user]);
 
   const fetchAnalytics = useCallback(async () => {
     if (!user) return;
