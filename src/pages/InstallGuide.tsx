@@ -48,7 +48,7 @@ const steps = {
           <div className="mt-3 p-2.5 rounded-lg bg-muted/50 border border-border">
             <p className="text-xs font-medium text-foreground mb-1">📺 App not showing in Fire TV grid?</p>
             <p className="text-xs text-muted-foreground">
-              Install the free <strong className="text-foreground">Sideload Launcher</strong> app from the Amazon Appstore — it shows all installed apps including sideloaded ones that are hidden from the default home screen.
+              Install the free <a href="https://www.amazon.com/dp/B01N39YCGP" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">Sideload Launcher</a> from the Amazon Appstore — it shows all installed apps including sideloaded ones that are hidden from the default home screen.
             </p>
           </div>
         </div>
