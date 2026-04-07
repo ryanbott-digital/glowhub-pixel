@@ -90,6 +90,30 @@ export function WeeklyScheduleGrid({ screenId, playlists, tier }: WeeklySchedule
     schedules.filter((s) => s.day_of_week === dayIdx)
   );
 
+  if (tier && !isProTier(tier)) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Calendar className="h-4 w-4 text-primary" />
+            Weekly Schedule
+          </h3>
+          <span className="pro-badge">PRO</span>
+        </div>
+        <div className="rounded-xl border border-primary/10 bg-primary/5 p-4 flex items-center gap-3">
+          <Crown className="h-5 w-5 text-primary shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">Schedule playlists by day & time</p>
+            <p className="text-xs text-muted-foreground">Upgrade to Pro to automate your content schedule.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => navigate("/subscription")} className="shrink-0">
+            <Lock className="h-3 w-3 mr-1" /> Upgrade
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
