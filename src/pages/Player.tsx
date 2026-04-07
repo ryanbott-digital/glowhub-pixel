@@ -1026,6 +1026,7 @@ export default function Player() {
 
   // ── Cinematic Splash on every launch ──
   const handleSplashComplete = useCallback(() => {
+    sessionStorage.setItem("glowhub_splash_seen", "1");
     setBootPhase("done");
   }, []);
 
