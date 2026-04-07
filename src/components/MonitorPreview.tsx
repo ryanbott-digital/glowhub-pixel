@@ -133,11 +133,20 @@ export function MonitorPreview() {
 
   const currentItem = items.length > 0 ? items[currentIndex] : null;
 
+  const cycleScreen = (dir: -1 | 1) => {
+    const idx = screens.findIndex((s) => s.id === selectedScreenId);
+    if (idx === -1) return;
+    setSelectedScreenId(screens[(idx + dir + screens.length) % screens.length].id);
+  };
+
   return (
     <div className="space-y-3">
       {/* Screen selector */}
       {screens.length > 1 && (
         <div className="flex items-center gap-2">
+          <button onClick={() => cycleScreen(-1)} className="p-1 rounded-md hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors" aria-label="Previous screen">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
           <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
           <Select value={selectedScreenId || ""} onValueChange={setSelectedScreenId}>
             <SelectTrigger className="w-48 h-8 text-xs bg-secondary/50 border-border/50 rounded-lg">
@@ -157,6 +166,10 @@ export function MonitorPreview() {
               ))}
             </SelectContent>
           </Select>
+          <button onClick={() => cycleScreen(1)} className="p-1 rounded-md hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors" aria-label="Next screen">
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <span className="text-[10px] text-muted-foreground/60 ml-1">← → to switch</span>
         </div>
       )}
 
