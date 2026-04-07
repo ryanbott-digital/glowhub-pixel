@@ -91,7 +91,7 @@ function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playl
   );
 }
 
-export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCopyUrl, groups, onMoveToGroup }: ScreenStatusCardProps) {
+export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCopyUrl, groups, onMoveToGroup, tier }: ScreenStatusCardProps) {
   const [media, setMedia] = useState<CurrentMedia | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
@@ -399,7 +399,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5 mb-2">
               <Calendar className="h-3 w-3 text-primary" /> Weekly Schedule
             </h4>
-            <WeeklyScheduleGrid screenId={screen.id} playlists={playlists} />
+            <WeeklyScheduleGrid screenId={screen.id} playlists={playlists} tier={tier} />
           </div>
 
           {/* Playback History */}
