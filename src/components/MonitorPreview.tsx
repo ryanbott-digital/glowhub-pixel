@@ -150,7 +150,7 @@ export function MonitorPreview() {
                   src={getPublicUrl(currentItem.media.storage_path)}
                   alt={currentItem.media.name}
                   className="w-full h-full object-cover"
-                  style={{ animation: "monitorFadeIn 0.5s ease-in" }}
+                  style={{ animation: "monitorFadeIn 0.6s ease-out" }}
                 />
               ) : (
                 <video
@@ -163,28 +163,36 @@ export function MonitorPreview() {
                   onEnded={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
                 />
               )}
-              {/* HUD overlay */}
-              <div className="absolute top-2 left-3 flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[9px] font-semibold text-white/80 tracking-widest uppercase">Live</span>
+              {/* LIVE badge - pulsing red */}
+              <div className="absolute top-2 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-md" style={{ background: "hsla(0, 0%, 0%, 0.6)", backdropFilter: "blur(4px)" }}>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: "hsl(0, 84%, 60%)" }} />
+                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: "hsl(0, 84%, 60%)" }} />
+                </span>
+                <span className="text-[9px] font-bold text-white tracking-widest uppercase">LIVE</span>
               </div>
-              <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
-                <span className="text-[8px] text-white/60 font-medium truncate max-w-[60%]">
+              {/* Bottom HUD */}
+              <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between" style={{ background: "linear-gradient(to top, hsla(0,0%,0%,0.7), transparent)" }}>
+                <span className="text-[9px] text-white/80 font-medium truncate max-w-[60%]">
                   {currentItem.media.name}
                 </span>
-                <span className="text-[8px] text-white/40 font-medium">
+                <span className="text-[8px] text-white/50 font-mono">
                   {currentIndex + 1}/{items.length}
                 </span>
               </div>
             </>
           ) : (
-            /* Empty state — GH branding */
-            <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[hsl(215,55%,10%)]">
-              <div className="text-2xl font-bold font-['Poppins']">
+            /* Empty state — GH branding with ambient animation */
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2 relative overflow-hidden" style={{ background: "hsl(215, 55%, 10%)" }}>
+              <div className="absolute inset-0" style={{
+                background: "radial-gradient(ellipse at 50% 50%, hsla(180, 80%, 40%, 0.08) 0%, transparent 70%)",
+                animation: "monitorFadeIn 3s ease-in-out infinite alternate",
+              }} />
+              <div className="text-2xl font-bold font-['Poppins'] relative z-10">
                 <span className="text-glow">Glow</span>
                 <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
               </div>
-              <p className="text-[10px] text-[hsl(210,20%,50%)]">
+              <p className="text-[10px] relative z-10" style={{ color: "hsl(210, 20%, 50%)" }}>
                 {screenName ? `${screenName} — No playlist assigned` : "No screens paired yet"}
               </p>
             </div>
