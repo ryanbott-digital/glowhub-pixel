@@ -85,7 +85,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
   }, [percentage, autoComplete]);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black overflow-hidden flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-black overflow-hidden flex items-center justify-center cursor-pointer" onClick={handleSkip}>
       <style>{`
         @keyframes scanLine {
           0% { top: -2px; opacity: 0; }
