@@ -24,7 +24,7 @@ const steps = {
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>The easiest way to get Glow on your Firestick:</p>
           <ol className="list-decimal list-inside space-y-1.5">
-            <li>Install the <strong className="text-foreground">Downloader</strong> app from the Amazon Appstore (free)</li>
+            <li>Install the <a href="https://www.amazon.com/dp/B01N0BP507" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">Downloader</a> app from the Amazon Appstore (free)</li>
             <li>Open Downloader and enter code: <span className="font-mono text-primary font-bold">1648081</span></li>
             <li>The GlowHub APK will download and install automatically</li>
             <li>The app will appear in <strong className="text-foreground">Your Apps & Channels</strong> on the home screen</li>
@@ -61,8 +61,8 @@ const steps = {
         <div className="space-y-2 text-sm text-muted-foreground">
           <p>You need a fullscreen-capable browser. We recommend:</p>
           <ul className="list-disc list-inside space-y-1">
-            <li><strong className="text-foreground">Amazon Silk Browser</strong> — free on the Appstore, search "Silk Browser"</li>
-            <li><strong className="text-foreground">Firefox for Fire TV</strong> — also free and supports kiosk mode</li>
+            <li><a href="https://www.amazon.com/dp/B01M35MQV4" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">Amazon Silk Browser</a> — free on the Appstore</li>
+            <li><a href="https://www.amazon.com/dp/B01LWPEXHM" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">Firefox for Fire TV</a> — also free and supports kiosk mode</li>
           </ul>
         </div>
       ),
