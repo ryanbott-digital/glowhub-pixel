@@ -12,6 +12,7 @@ import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, ge
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 import { useVersionCheck } from "@/hooks/use-version-check";
 import { ScreenSaver } from "@/components/ScreenSaver";
+import { CinematicSplash } from "@/components/CinematicSplash";
 
 interface PlaylistItem {
   id: string;
