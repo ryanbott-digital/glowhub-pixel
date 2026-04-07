@@ -12,6 +12,7 @@ import { registerMediaSW, precacheMediaUrls, evictStaleMedia, getCacheStatus, ge
 import fallbackBranding from "@/assets/fallback-branding.jpg";
 import { useVersionCheck } from "@/hooks/use-version-check";
 import { ScreenSaver } from "@/components/ScreenSaver";
+import { CinematicSplash } from "@/components/CinematicSplash";
 
 interface PlaylistItem {
   id: string;
@@ -1021,59 +1022,13 @@ export default function Player() {
     };
   }, [currentIndex, items, activeBuffer, volume, getBufferRefs, attachHls]);
 
-  // ── Boot splash fade-out when loading completes ──
-  useEffect(() => {
-    if (!loading && bootPhase === "splash") {
-      setBootPhase("fading");
-      const timer = setTimeout(() => setBootPhase("done"), 900);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, bootPhase]);
+  // ── Cinematic Splash on every launch ──
+  const handleSplashComplete = useCallback(() => {
+    setBootPhase("done");
+  }, []);
 
-  if (loading || bootPhase !== "done") {
-    return (
-      <div
-        className="w-screen h-screen flex items-center justify-center bg-black overflow-hidden"
-        style={{
-          opacity: bootPhase === "fading" ? 0 : 1,
-          transition: "opacity 0.8s ease-out",
-        }}
-      >
-        {/* GLOW logo with light burst */}
-        <div className="relative flex items-center justify-center">
-          {/* Expanding light rings */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div
-              className="absolute rounded-full"
-              style={{
-                width: "200px", height: "200px",
-                background: "radial-gradient(circle, rgba(0,163,163,0.35) 0%, rgba(0,163,163,0.08) 40%, transparent 70%)",
-                animation: "bloomPulsePair 2.5s ease-in-out infinite",
-              }}
-            />
-          </div>
-          <img
-            src={glowLogoPng}
-            alt="Glow"
-            className="h-16 lg:h-20 w-auto relative z-10"
-            style={{
-              filter: "drop-shadow(0 0 30px rgba(0,163,163,0.5)) drop-shadow(0 0 60px rgba(0,163,163,0.25))",
-              animation: "bootLogoEntry 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-            }}
-          />
-        </div>
-        <style>{`
-          @keyframes bootLogoEntry {
-            0% { opacity: 0; transform: scale(0.7); }
-            100% { opacity: 1; transform: scale(1); }
-          }
-          @keyframes bloomPulsePair {
-            0%, 100% { transform: scale(0.9); opacity: 0.5; }
-            50% { transform: scale(1.3); opacity: 1; }
-          }
-        `}</style>
-      </div>
-    );
+  if (bootPhase !== "done") {
+    return <CinematicSplash onComplete={handleSplashComplete} />;
   }
 
   // ── PAIRING CODE SCREEN ──
