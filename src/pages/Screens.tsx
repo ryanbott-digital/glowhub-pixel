@@ -54,6 +54,8 @@ export default function Screens() {
   const [upgradeMessage, setUpgradeMessage] = useState<{ title: string; description: string; showUpgrade: boolean }>({ title: "", description: "", showUpgrade: true });
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
+  const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
+  const [broadcastScreenName, setBroadcastScreenName] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
