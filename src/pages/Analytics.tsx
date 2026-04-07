@@ -6,6 +6,7 @@ import { isProTier } from "@/lib/subscription";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Monitor, Image, ListVideo, HardDrive, Crown, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#F97316", "#10B981", "#8B5CF6", "#EC4899", "#06B6D4", "#F59E0B"];
 
 export default function Analytics() {
   const { user } = useAuth();
