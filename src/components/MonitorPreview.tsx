@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor } from "lucide-react";
+import { Monitor, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PlaylistItem {
   id: string;
