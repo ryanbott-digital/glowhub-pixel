@@ -98,6 +98,24 @@ export function MonitorPreview() {
     return () => { supabase.removeChannel(channel); };
   }, [selectedScreenId, fetchPlaylist]);
 
+  // Keyboard arrow navigation between screens
+  useEffect(() => {
+    if (screens.length <= 1) return;
+    const handleKey = (e: KeyboardEvent) => {
+      const idx = screens.findIndex((s) => s.id === selectedScreenId);
+      if (idx === -1) return;
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedScreenId(screens[(idx - 1 + screens.length) % screens.length].id);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedScreenId(screens[(idx + 1) % screens.length].id);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [screens, selectedScreenId]);
+
   // Playback timer for images
   useEffect(() => {
     if (items.length === 0) return;
