@@ -64,6 +64,8 @@ def main():
     src_zip = sys.argv[1]
     banner_path = sys.argv[2] if len(sys.argv) > 2 else None
 
+    # Support OUTPUT_DIR env var for CI, fallback to /mnt/documents
+    output_dir = os.environ.get('OUTPUT_DIR', '/mnt/documents')
     if not os.path.exists(src_zip):
         print(f"Error: {src_zip} not found")
         sys.exit(1)
