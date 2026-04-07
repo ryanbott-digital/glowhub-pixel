@@ -216,6 +216,8 @@ export default function Screens() {
         playlist_id: bulkPlaylistId, playlist_title: playlist?.title || "Unknown",
       }))
     );
+    const firstScreen = screens.find((s) => ids.includes(s.id));
+    triggerFirstBroadcast(firstScreen?.name || "Your screens");
     toast.success(`Playlist published to ${ids.length} screen(s)`);
     clearSelection();
     fetchData();
