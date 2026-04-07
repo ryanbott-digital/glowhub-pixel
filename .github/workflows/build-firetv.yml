@@ -54,7 +54,8 @@ jobs:
           fi
           cd "$GRADLE_ROOT"
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon || ./gradlew assembleDebug --no-daemon
+          TASK=$( [ "${{ github.event.inputs.build_type }}" = "release" ] && echo "assembleRelease" || echo "assembleDebug" )
+          ./gradlew $TASK --no-daemon
 
       - name: Find built APK
         id: find_apk
