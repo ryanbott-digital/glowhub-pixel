@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import glowLogoPng from "@/assets/glow-text.png";
 import { Loader2 } from "lucide-react";
@@ -14,6 +14,21 @@ type Phase = "ignition" | "bloom" | "hardware" | "syncing" | "ready" | "exit";
 export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashProps) {
   const [phase, setPhase] = useState<Phase>("ignition");
   const [autoComplete, setAutoComplete] = useState(false);
+  const [skipped, setSkipped] = useState(false);
+
+  const handleSkip = useCallback(() => {
+    if (!skipped) {
+      setSkipped(true);
+      onComplete();
+    }
+  }, [skipped, onComplete]);
+
+  // Skip on any key press or touch/click
+  useEffect(() => {
+    const onKey = () => handleSkip();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handleSkip]);
 
   // Compute percentage from syncProgress
   const percentage = useMemo(() => {
