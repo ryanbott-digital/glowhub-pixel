@@ -112,6 +112,25 @@ export default function Analytics() {
     { label: "Uptime", value: stats.totalScreens > 0 ? Math.round((stats.onlineScreens / stats.totalScreens) * 100) + "%" : "—", icon: HardDrive, sub: "screen uptime" },
   ];
 
+  if (tier !== null && !isProTier(tier)) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
+        <div className="glass glass-spotlight rounded-2xl p-10 max-w-md text-center space-y-5">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Crown className="h-8 w-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Pro Feature</h2>
+          <p className="text-sm text-muted-foreground">
+            Analytics & Insights gives you detailed breakdowns of screen usage, media uploads, and playlist performance. Upgrade to Pro to unlock.
+          </p>
+          <Button onClick={() => navigate("/subscription")} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground">
+            <Lock className="h-4 w-4 mr-2" /> Upgrade to Pro
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in stagger-in">
       <h1 className="text-2xl font-bold text-foreground">Analytics & Insights</h1>
