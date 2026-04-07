@@ -147,16 +147,26 @@ export default function Screens() {
     } finally { setPairing(false); }
   };
 
+  const triggerFirstBroadcast = useCallback((sName: string) => {
+    if (!localStorage.getItem("glowhub_first_broadcast_done")) {
+      localStorage.setItem("glowhub_first_broadcast_done", "1");
+      setBroadcastScreenName(sName);
+      setBroadcastModalOpen(true);
+    }
+  }, []);
+
   const publishPlaylist = async (screenId: string, playlistId: string) => {
     const { error } = await supabase.from("screens").update({ current_playlist_id: playlistId }).eq("id", screenId);
     if (error) { toast.error(error.message); return; }
     const playlist = playlists.find((p) => p.id === playlistId);
+    const screen = screens.find((s) => s.id === screenId);
     if (user) {
       await supabase.from("screen_activity_logs").insert({
         screen_id: screenId, user_id: user.id, action: "Playlist published",
         playlist_id: playlistId, playlist_title: playlist?.title || "Unknown",
       });
     }
+    triggerFirstBroadcast(screen?.name || "Your screen");
     toast.success("Playlist published to screen!");
     fetchData();
   };
