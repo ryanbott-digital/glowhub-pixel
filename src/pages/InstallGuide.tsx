@@ -44,6 +44,11 @@ const steps = {
               <li>Download the built APK from the workflow artifacts</li>
               <li>Sideload the new APK to your Fire TV</li>
             </ol>
+          <div className="mt-3 p-2.5 rounded-lg bg-muted/50 border border-border">
+            <p className="text-xs font-medium text-foreground mb-1">📺 App not showing in Fire TV grid?</p>
+            <p className="text-xs text-muted-foreground">
+              Install the free <strong className="text-foreground">Sideload Launcher</strong> app from the Amazon Appstore — it shows all installed apps including sideloaded ones that are hidden from the default home screen.
+            </p>
           </div>
         </div>
       ),
