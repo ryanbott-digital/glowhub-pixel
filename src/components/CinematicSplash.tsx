@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import glowLogoPng from "@/assets/glow-text.png";
 import { Loader2 } from "lucide-react";
@@ -14,6 +14,21 @@ type Phase = "ignition" | "bloom" | "hardware" | "syncing" | "ready" | "exit";
 export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashProps) {
   const [phase, setPhase] = useState<Phase>("ignition");
   const [autoComplete, setAutoComplete] = useState(false);
+  const [skipped, setSkipped] = useState(false);
+
+  const handleSkip = useCallback(() => {
+    if (!skipped) {
+      setSkipped(true);
+      onComplete();
+    }
+  }, [skipped, onComplete]);
+
+  // Skip on any key press or touch/click
+  useEffect(() => {
+    const onKey = () => handleSkip();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handleSkip]);
 
   // Compute percentage from syncProgress
   const percentage = useMemo(() => {
@@ -70,7 +85,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
   }, [percentage, autoComplete]);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black overflow-hidden flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-black overflow-hidden flex items-center justify-center cursor-pointer" onClick={handleSkip}>
       <style>{`
         @keyframes scanLine {
           0% { top: -2px; opacity: 0; }
@@ -320,6 +335,22 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Skip hint */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-[5%] z-30 text-center"
+        style={{
+          fontFamily: "'Courier New', monospace",
+          fontSize: "clamp(9px, 1.2vw, 11px)",
+          color: "rgba(255,255,255,0.4)",
+          letterSpacing: "0.15em",
+        }}
+      >
+        PRESS ANY KEY OR TAP TO SKIP
+      </motion.p>
 
       {/* Exit fade */}
       {phase === "exit" && (
