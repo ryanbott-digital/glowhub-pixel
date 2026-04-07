@@ -94,7 +94,9 @@ export default function Player() {
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
-  const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">("splash");
+  const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">(() =>
+    sessionStorage.getItem("glowhub_splash_seen") ? "done" : "splash"
+  );
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
 
   // ── DOUBLE BUFFER SYSTEM ──
