@@ -117,7 +117,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
               className="absolute"
               style={{
                 width: 4, height: 4, borderRadius: "50%", background: "white",
-                boxShadow: "0 0 20px 8px rgba(255,255,255,0.8), 0 0 60px 20px rgba(0,163,163,0.6)",
+                boxShadow: "0 0 12px 4px rgba(255,255,255,0.6)",
                 animation: "singularityPulse 0.8s ease-in-out infinite",
               }}
             />
@@ -134,8 +134,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
             />
             <div className="absolute left-0 right-0" style={{
               height: 2,
-              background: "linear-gradient(90deg, transparent, rgba(0,163,163,0.6) 20%, rgba(0,163,163,0.9) 50%, rgba(0,163,163,0.6) 80%, transparent)",
-              boxShadow: "0 0 30px 10px rgba(0,163,163,0.3)",
+              background: "linear-gradient(90deg, transparent, rgba(0,163,163,0.8) 50%, transparent)",
               animation: "scanLine 1.2s 0.4s ease-out forwards",
               position: "absolute", top: "-2px",
             }} />
@@ -145,7 +144,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
               className="relative z-10"
-              style={{ height: "clamp(48px, 8vw, 80px)", filter: "drop-shadow(0 0 15px rgba(0,163,163,0.4))" }}
+              style={{ height: "clamp(48px, 8vw, 80px)" }}
             />
           </>
         )}
@@ -169,8 +168,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 style={{
                   width: "min(600px, 80vw)", height: "min(600px, 80vw)", borderRadius: "50%",
-                  background: "radial-gradient(circle, rgba(0,163,163,0.3) 0%, rgba(60,80,180,0.15) 40%, transparent 70%)",
-                  filter: "blur(40px)",
+                  background: "radial-gradient(circle, rgba(0,163,163,0.25) 0%, rgba(60,80,180,0.1) 40%, transparent 70%)",
                 }}
               />
             </div>
@@ -184,7 +182,7 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 style={{
                   height: "clamp(48px, 8vw, 80px)",
-                  filter: "drop-shadow(0 0 40px rgba(0,163,163,0.6)) drop-shadow(0 0 80px rgba(60,80,180,0.3))",
+                  filter: "drop-shadow(0 0 20px rgba(0,163,163,0.4))",
                 }}
               />
               <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ borderRadius: 8 }}>
@@ -207,9 +205,6 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
                 fontFamily: "'Courier New', monospace",
                 color: phase === "ready" ? "#00ff88" : "rgba(0,163,163,0.9)",
                 animation: phase === "ready" ? "none" : "glitchLoop 3s ease-in-out infinite",
-                textShadow: phase === "ready"
-                  ? "0 0 20px rgba(0,255,136,0.8), 0 0 40px rgba(0,255,136,0.4)"
-                  : "0 0 10px rgba(0,163,163,0.5)",
                 transition: "color 0.3s, text-shadow 0.3s",
               }}
             >
@@ -252,11 +247,9 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
                   <div style={{
                     width: "100%", height: 6, borderRadius: 3,
                     border: "1px solid rgba(0,163,163,0.3)",
-                    background: "rgba(255,255,255,0.05)",
-                    backdropFilter: "blur(20px)",
-                    WebkitBackdropFilter: "blur(20px)",
+                    background: "rgba(255,255,255,0.08)",
                     overflow: "hidden",
-                    boxShadow: "0 0 15px rgba(0,163,163,0.15), inset 0 0 10px rgba(0,163,163,0.05)",
+                    boxShadow: "0 0 8px rgba(0,163,163,0.15)",
                   }}>
                     <motion.div
                       initial={{ width: "0%" }}
@@ -264,10 +257,8 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
                       transition={{ duration: 0.5, ease: "easeOut" }}
                       style={{
                         height: "100%", borderRadius: 2,
-                        background: "linear-gradient(90deg, rgba(0,163,163,1), rgba(60,80,180,1), rgba(0,163,163,1))",
-                        backgroundSize: "200% 100%",
-                        animation: "progressGradient 2s ease infinite",
-                        boxShadow: "0 0 10px rgba(0,163,163,0.6), 0 0 20px rgba(0,163,163,0.3)",
+                        background: "linear-gradient(90deg, rgba(0,163,163,1), rgba(60,80,180,1))",
+                        boxShadow: "0 0 6px rgba(0,163,163,0.4)",
                       }}
                     />
                   </div>
