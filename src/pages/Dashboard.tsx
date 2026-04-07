@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { isProTier } from "@/lib/subscription";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -236,15 +237,21 @@ export default function Dashboard() {
       <SystemHealth />
 
       {/* Tabs: Preview / Insights */}
-      <Tabs defaultValue={localStorage.getItem("glowhub_default_tab") || "preview"}>
+      <Tabs defaultValue={localStorage.getItem("glowhub_default_tab") || "preview"} onValueChange={(v) => {
+        if (v === "insights" && !isProTier(subscriptionTier)) {
+          toast("Upgrade to Pro to unlock Playback Insights", { action: { label: "Upgrade", onClick: () => navigate("/subscription") } });
+          return;
+        }
+      }}>
         <TabsList className="glass rounded-xl p-1">
           <TabsTrigger value="preview" className="gap-1.5 rounded-lg text-xs tracking-wider data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
             <Monitor className="h-3.5 w-3.5" />
             Preview
           </TabsTrigger>
-          <TabsTrigger value="insights" className="gap-1.5 rounded-lg text-xs tracking-wider data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+          <TabsTrigger value="insights" className={`gap-1.5 rounded-lg text-xs tracking-wider data-[state=active]:bg-primary/10 data-[state=active]:text-primary ${!isProTier(subscriptionTier) ? "opacity-60" : ""}`}>
             <BarChart3 className="h-3.5 w-3.5" />
             Insights
+            {!isProTier(subscriptionTier) && <Lock className="h-3 w-3 ml-0.5 text-muted-foreground" />}
             <span className="pro-badge">PRO</span>
           </TabsTrigger>
         </TabsList>
@@ -259,9 +266,11 @@ export default function Dashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="insights" className="mt-3">
-          <PlaybackInsights />
-        </TabsContent>
+        {isProTier(subscriptionTier) && (
+          <TabsContent value="insights" className="mt-3">
+            <PlaybackInsights />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

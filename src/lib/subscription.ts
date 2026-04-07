@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export const PRO_TIERS = ["pro", "enterprise"];
+export const isProTier = (tier: string) => PRO_TIERS.includes(tier);
+
 const SCREEN_LIMITS: Record<string, number> = {
   free: 1,
   basic: 2,

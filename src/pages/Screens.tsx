@@ -322,6 +322,7 @@ export default function Screens() {
             onCopyUrl={copyDisplayUrl}
             groups={groups}
             onMoveToGroup={moveScreenToGroup}
+            tier={tierName}
           />
         </div>
       </div>

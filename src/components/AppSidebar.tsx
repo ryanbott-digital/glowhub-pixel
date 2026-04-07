@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { isProTier } from "@/lib/subscription";
+import { toast } from "sonner";
 import { GlowHubLogo, GHSymbol, GlowLogoImage, BrandCalendarIcon, BrandPlayIcon, BrandGridIcon, BrandMonitorIcon, BrandChartIcon } from "@/components/GlowHubLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -37,11 +39,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, user } = useAuth();
 
   const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
+  const [userTier, setUserTier] = useState("free");
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
@@ -52,8 +56,9 @@ export function AppSidebar() {
   useEffect(() => {
     if (!user) return;
     const fetchUsage = async () => {
-      const { currentCount, limit } = await checkScreenLimit(user.id);
+      const { currentCount, limit, tier } = await checkScreenLimit(user.id);
       setScreenUsage({ count: currentCount, limit });
+      setUserTier(tier);
     };
     fetchUsage();
   }, [user, location.pathname]);
@@ -88,12 +93,18 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {items.map((item) => {
+                const isLockedPro = item.pro && !isProTier(userTier);
+                return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
-                      to={item.url}
+                      to={isLockedPro ? "#" : item.url}
                       end={item.url === "/"}
+                      onClick={isLockedPro ? (e: React.MouseEvent) => {
+                        e.preventDefault();
+                        toast("Upgrade to Pro to access " + item.title, { action: { label: "Upgrade", onClick: () => navigate("/subscription") } });
+                      } : undefined}
                       className="hover:bg-sidebar-accent/50 transition-all duration-200"
                       activeClassName="bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]"
                     >
@@ -133,7 +144,8 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

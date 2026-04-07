@@ -1,13 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { isProTier } from "@/lib/subscription";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Monitor, Image, ListVideo, HardDrive } from "lucide-react";
-
+import { Monitor, Image, ListVideo, HardDrive, Crown, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#F97316", "#10B981", "#8B5CF6", "#EC4899", "#06B6D4", "#F59E0B"];
 
 export default function Analytics() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [tier, setTier] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalScreens: 0,
     onlineScreens: 0,
@@ -18,6 +22,12 @@ export default function Analytics() {
   const [playlistSizes, setPlaylistSizes] = useState<{ name: string; items: number }[]>([]);
   const [screenStatus, setScreenStatus] = useState<{ name: string; value: number }[]>([]);
   const [mediaTimeline, setMediaTimeline] = useState<{ date: string; uploads: number }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("subscription_tier").eq("id", user.id).single()
+      .then(({ data }) => setTier(data?.subscription_tier || "free"));
+  }, [user]);
 
   const fetchAnalytics = useCallback(async () => {
     if (!user) return;
@@ -101,6 +111,25 @@ export default function Analytics() {
     { label: "Playlists", value: stats.totalPlaylists, icon: ListVideo, sub: "created" },
     { label: "Uptime", value: stats.totalScreens > 0 ? Math.round((stats.onlineScreens / stats.totalScreens) * 100) + "%" : "—", icon: HardDrive, sub: "screen uptime" },
   ];
+
+  if (tier !== null && !isProTier(tier)) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
+        <div className="glass glass-spotlight rounded-2xl p-10 max-w-md text-center space-y-5">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Crown className="h-8 w-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Pro Feature</h2>
+          <p className="text-sm text-muted-foreground">
+            Analytics & Insights gives you detailed breakdowns of screen usage, media uploads, and playlist performance. Upgrade to Pro to unlock.
+          </p>
+          <Button onClick={() => navigate("/subscription")} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground">
+            <Lock className="h-4 w-4 mr-2" /> Upgrade to Pro
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in stagger-in">
