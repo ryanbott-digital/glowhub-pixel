@@ -92,12 +92,18 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {items.map((item) => {
+                const isLockedPro = item.pro && !isProTier(userTier);
+                return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
-                      to={item.url}
+                      to={isLockedPro ? "#" : item.url}
                       end={item.url === "/"}
+                      onClick={isLockedPro ? (e: React.MouseEvent) => {
+                        e.preventDefault();
+                        toast("Upgrade to Pro to access " + item.title, { action: { label: "Upgrade", onClick: () => navigate("/subscription") } });
+                      } : undefined}
                       className="hover:bg-sidebar-accent/50 transition-all duration-200"
                       activeClassName="bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]"
                     >
