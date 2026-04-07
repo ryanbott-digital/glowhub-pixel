@@ -336,6 +336,22 @@ export function CinematicSplash({ onComplete, syncProgress }: CinematicSplashPro
         )}
       </AnimatePresence>
 
+      {/* Skip hint */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-[5%] z-30 text-center"
+        style={{
+          fontFamily: "'Courier New', monospace",
+          fontSize: "clamp(9px, 1.2vw, 11px)",
+          color: "rgba(255,255,255,0.4)",
+          letterSpacing: "0.15em",
+        }}
+      >
+        PRESS ANY KEY OR TAP TO SKIP
+      </motion.p>
+
       {/* Exit fade */}
       {phase === "exit" && (
         <motion.div
