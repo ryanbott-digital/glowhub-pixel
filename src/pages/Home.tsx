@@ -301,7 +301,7 @@ const Home = () => {
                     <div className="absolute inset-0 scanline-overlay pointer-events-none" />
                     {/* Brand GLOW logo */}
                     <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <GlowLogoImage className="h-10 sm:h-14" alt="GLOW" />
+                      <GlowLogoImage className="h-20 sm:h-28 drop-shadow-[0_0_30px_hsl(180,100%,40%,0.5)]" alt="GLOW" />
                     </div>
                   </div>
                 </div>
