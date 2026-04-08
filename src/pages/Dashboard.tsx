@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -258,10 +258,32 @@ export default function Dashboard() {
 
         <TabsContent value="preview">
           <div className="glass glass-spotlight rounded-2xl overflow-hidden p-5 mt-3">
-            <h3 className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase mb-4">
-              <Monitor className="h-3.5 w-3.5" />
-              Signage Preview
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase">
+                <Monitor className="h-3.5 w-3.5" />
+                Signage Preview
+              </h3>
+              {isProTier(subscriptionTier) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2.5 text-[10px] tracking-wider font-semibold border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 gap-1.5"
+                  onClick={async () => {
+                    const channel = supabase.channel("screen-alerts");
+                    await channel.send({
+                      type: "broadcast",
+                      event: "flash-alert",
+                      payload: { user_id: user!.id, triggered_at: new Date().toISOString() },
+                    });
+                    supabase.removeChannel(channel);
+                    toast.success("⚡ Alert triggered on all screens");
+                  }}
+                >
+                  <Siren className="h-3 w-3" />
+                  Trigger Alert
+                </Button>
+              )}
+            </div>
             <MonitorPreview />
           </div>
         </TabsContent>
