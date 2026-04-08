@@ -165,6 +165,7 @@ export default function Canvas() {
     toast.success(`Playlist pushed to ${screenIds.length} screen${screenIds.length !== 1 ? "s" : ""}`);
   };
 
+  const handleToggleOrientation = async (groupId: string, current: string) => {
     const next = current === "horizontal" ? "vertical" : "horizontal";
     const { error } = await supabase.from("sync_groups").update({ orientation: next }).eq("id", groupId);
     if (error) { toast.error(error.message); return; }
