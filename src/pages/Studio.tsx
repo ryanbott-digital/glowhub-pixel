@@ -12,7 +12,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
-  Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer,
+  Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer, ExternalLink,
   Zap, Sun, CloudRain, CloudDrizzle, Cloud as CloudIcon, Snowflake, CloudLightning, Newspaper, Radio, Siren, MapPin,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -595,6 +595,17 @@ export default function Studio() {
             <Eye className="h-3.5 w-3.5" />
             Preview
           </Button>
+          {currentLayoutId && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => window.open(`/studio/preview/${currentLayoutId}`, "_blank")}
+              className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Live Preview
+            </Button>
+          )}
           <Button size="sm" onClick={handleSave} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider">
             <Save className="h-3.5 w-3.5" />
             Save

@@ -30,6 +30,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Canvas = lazy(() => import("./pages/Canvas"));
 const Studio = lazy(() => import("./pages/Studio"));
+const StudioPreview = lazy(() => import("./pages/StudioPreview"));
 const Download = lazy(() => import("./pages/Download"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -104,6 +105,7 @@ const App = () => (
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
+              <Route path="/studio/preview/:layoutId" element={<StudioPreview />} />
               <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
               <Route path="/install-app" element={<InstallApp />} />
               <Route path="/download" element={<Download />} />
