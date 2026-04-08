@@ -1059,6 +1059,52 @@ export default function Studio() {
         </DialogContent>
       </Dialog>
 
+      {/* ─── Media Picker Modal ─── */}
+      <Dialog open={mediaPickerOpen} onOpenChange={setMediaPickerOpen}>
+        <DialogContent className="bg-card border-border/30 max-w-lg max-h-[70vh] flex flex-col p-0 overflow-hidden">
+          <div className="p-4 border-b border-border/20">
+            <h3 className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide flex items-center gap-2">
+              <Image className="h-4 w-4 text-primary" />
+              Media Library
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-1">Select an image to use on the canvas</p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3">
+            {mediaItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-2">
+                <Image className="h-8 w-8 text-muted-foreground/20" />
+                <p className="text-sm text-muted-foreground/40 font-['Satoshi',sans-serif]">No images in your library</p>
+                <Button size="sm" variant="outline" onClick={() => { setMediaPickerOpen(false); navigate("/media"); }} className="text-xs gap-1.5 mt-2">
+                  <Plus className="h-3 w-3" /> Upload Media
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {mediaItems.map((item) => {
+                  const publicUrl = supabase.storage.from("media").getPublicUrl(item.storage_path).data.publicUrl;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        updateSelected({ content: publicUrl });
+                        setMediaPickerOpen(false);
+                        toast.success(`Added "${item.name}"`);
+                      }}
+                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square hover:border-primary/50 hover:shadow-[0_0_12px_hsla(180,100%,32%,0.15)] transition-all"
+                    >
+                      <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[8px] text-white font-['Satoshi',sans-serif] truncate block">{item.name}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <style>{`
         @keyframes studioBreatheCTA {
           0%, 100% { box-shadow: 0 0 20px hsla(180, 100%, 32%, 0.3); }
