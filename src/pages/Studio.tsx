@@ -935,6 +935,21 @@ export default function Studio() {
                           {cfg.alertMode ? "Alert Active" : "Off"}
                         </span>
                       </div>
+                      {cfg.alertMode && (
+                        <div className="space-y-1.5 mt-2">
+                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: "#FF0033" }}>
+                            <Siren className="h-3 w-3" /> Alert Message
+                          </p>
+                          <Input
+                            value={cfg.alertMessage || ""}
+                            onChange={(e) => updateCfg({ alertMessage: e.target.value.slice(0, 200) })}
+                            placeholder="⚠ BREAKING: Emergency alert text…"
+                            className="glass h-8 text-xs font-mono border-[#FF0033]/30 focus:border-[#FF0033]/60"
+                            maxLength={200}
+                          />
+                          <p className="text-[8px] text-muted-foreground/40 font-mono">{(cfg.alertMessage || "").length}/200</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
