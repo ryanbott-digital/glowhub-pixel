@@ -631,7 +631,7 @@ const Home = () => {
           {/* Starter — glassmorphism */}
           <div
             data-animate
-            className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight"
+            className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight hover:-translate-y-2 hover:shadow-[0_0_40px_hsla(180,100%,45%,0.15),0_20px_40px_-10px_hsla(220,60%,7%,0.5)] hover:border-primary/30"
           >
             <h3 className="text-xl font-semibold mb-1">The Starter</h3>
             <p className="text-sm text-[#94A3B8] mb-6">Free forever</p>
@@ -657,7 +657,7 @@ const Home = () => {
           {/* Pro Glow — rotating conic gradient border */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible mt-4"
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible mt-4 hover:-translate-y-2 hover:shadow-[0_0_50px_hsla(180,100%,45%,0.2),0_0_80px_hsla(220,80%,55%,0.1),0_20px_40px_-10px_hsla(220,60%,7%,0.5)]"
             style={{ transitionDelay: "120ms" }}
           >
             {/* Best Value badge — outside conic wrapper to avoid clipping */}
