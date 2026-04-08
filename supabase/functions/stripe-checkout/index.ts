@@ -71,12 +71,16 @@ serve(async (req) => {
         .eq("id", user.id);
     }
 
+    // Note: Stripe hosted Checkout branding (primary_color, accent_color, background)
+    // must be configured in the Stripe Dashboard under Settings > Branding.
+    // These cannot be set via the API for hosted Checkout pages.
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: PRICE_ID, quantity: 1 }],
-      success_url: `${req.headers.get("origin")}/payment/success`,
+      success_url: `${req.headers.get("origin")}/welcome-pro`,
       cancel_url: `${req.headers.get("origin")}/payment/cancel`,
+      tax_id_collection: { enabled: true },
       subscription_data: {
         metadata: { supabase_user_id: user.id, tier: "pro" },
       },
