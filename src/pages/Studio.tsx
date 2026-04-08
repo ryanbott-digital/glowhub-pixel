@@ -233,6 +233,29 @@ export default function Studio() {
     })();
   }, [user]);
 
+  /* ───── weather preview (London teaser) ───── */
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,weather_code,is_day");
+        const data = await res.json();
+        const code = data.current?.weather_code ?? 0;
+        const WMO: Record<number, { label: string; icon: "sun" | "cloud" | "rain" | "snow" | "storm" }> = {
+          0: { label: "Clear Sky", icon: "sun" }, 1: { label: "Mostly Clear", icon: "sun" }, 2: { label: "Partly Cloudy", icon: "cloud" },
+          3: { label: "Overcast", icon: "cloud" }, 45: { label: "Foggy", icon: "cloud" }, 48: { label: "Icy Fog", icon: "cloud" },
+          51: { label: "Light Drizzle", icon: "rain" }, 53: { label: "Drizzle", icon: "rain" }, 55: { label: "Heavy Drizzle", icon: "rain" },
+          61: { label: "Light Rain", icon: "rain" }, 63: { label: "Rain", icon: "rain" }, 65: { label: "Heavy Rain", icon: "rain" },
+          71: { label: "Light Snow", icon: "snow" }, 73: { label: "Snow", icon: "snow" }, 75: { label: "Heavy Snow", icon: "snow" },
+          80: { label: "Rain Showers", icon: "rain" }, 95: { label: "Thunderstorm", icon: "storm" },
+        };
+        const cond = WMO[code] || { label: "Clear Sky", icon: "sun" as const };
+        setWeatherPreview({ city: "London", temp: Math.round(data.current?.temperature_2m ?? 0), condition: cond.label, icon: cond.icon, isNight: data.current?.is_day === 0 });
+      } catch {
+        setWeatherPreview({ city: "London", temp: 18, condition: "Partly Cloudy", icon: "cloud", isNight: false });
+      }
+    })();
+  }, []);
+
   /* ───── pro gate helper ───── */
   const gatePro = (featureName: string): boolean => {
     if (isPro) return false;
