@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Plus, Trash2, Monitor, Layers, Crown, ArrowRight, ArrowDown,
-  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send,
+  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send, Eye, X,
 } from "lucide-react";
 
 interface Playlist {
@@ -53,6 +53,7 @@ export default function Canvas() {
   const [newOrientation, setNewOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const [addScreenOpen, setAddScreenOpen] = useState<string | null>(null);
   const [groupPreviews, setGroupPreviews] = useState<Record<string, PlaylistPreview | null>>({});
+  const [previewGroupId, setPreviewGroupId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -402,6 +403,16 @@ export default function Canvas() {
                   </Select>
                   <Button
                     size="sm"
+                    variant="outline"
+                    onClick={() => setPreviewGroupId(group.id)}
+                    disabled={!group.playlist_id || group.screens.length === 0}
+                    className="glass text-xs gap-1.5 rounded-lg font-semibold tracking-wider"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    Preview
+                  </Button>
+                  <Button
+                    size="sm"
                     onClick={() => handlePushToAllScreens(group)}
                     disabled={!group.playlist_id || group.screens.length === 0}
                     className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 rounded-lg font-semibold tracking-wider"
@@ -710,6 +721,135 @@ export default function Canvas() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Fullscreen Span Preview */}
+      {previewGroupId && (() => {
+        const group = syncGroups.find(g => g.id === previewGroupId);
+        const preview = group ? groupPreviews[group.id] : null;
+        if (!group) return null;
+        const isHoriz = group.orientation === "horizontal";
+        const total = group.screens.length;
+        return (
+          <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col animate-fade-in">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border/30">
+              <div className="flex items-center gap-3">
+                <Eye className="h-5 w-5 text-primary" />
+                <div>
+                  <h3 className="text-sm font-bold text-foreground tracking-wide">Span Preview — {group.name}</h3>
+                  <p className="text-[10px] text-muted-foreground tracking-widest uppercase">
+                    {total} screen{total !== 1 ? "s" : ""} · {isHoriz ? "Horizontal" : "Vertical"} · {isHoriz ? total * 1920 : 1920}×{isHoriz ? 1080 : total * 1080}
+                  </p>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setPreviewGroupId(null)} className="gap-1.5">
+                <X className="h-4 w-4" /> Close
+              </Button>
+            </div>
+
+            {/* Combined view */}
+            <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6 overflow-auto">
+              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Combined Canvas</p>
+              <div
+                className="relative rounded-xl overflow-hidden border-2 border-primary/40 shadow-[0_0_30px_hsla(180,100%,32%,0.2)]"
+                style={{
+                  aspectRatio: isHoriz ? `${16 * total}/9` : `16/${9 * total}`,
+                  maxWidth: isHoriz ? "90vw" : "40vw",
+                  maxHeight: isHoriz ? "35vh" : "70vh",
+                  width: "100%",
+                }}
+              >
+                {preview ? (
+                  <>
+                    {preview.type === "image" ? (
+                      <img src={preview.url} alt="Span preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <video src={preview.url} muted autoPlay loop className="w-full h-full object-cover" />
+                    )}
+                    {/* Screen divider lines */}
+                    <div className={`absolute inset-0 flex ${isHoriz ? "flex-row" : "flex-col"}`}>
+                      {group.screens.map((member, idx) => (
+                        <div
+                          key={member.id}
+                          className="flex-1 relative"
+                          style={{
+                            borderRight: isHoriz && idx < total - 1 ? "2px dashed hsl(var(--primary))" : undefined,
+                            borderBottom: !isHoriz && idx < total - 1 ? "2px dashed hsl(var(--primary))" : undefined,
+                          }}
+                        >
+                          <div className="absolute top-1 left-1 bg-background/70 backdrop-blur-sm rounded px-1.5 py-0.5">
+                            <span className="text-[8px] font-mono font-bold text-primary">
+                              {member.screen?.name || `Screen ${idx + 1}`}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                    <span className="text-sm text-muted-foreground">No content to preview</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Individual screen crops */}
+              <p className="text-[10px] text-muted-foreground tracking-widest uppercase mt-2">Per-Screen Crops</p>
+              <div className={`flex gap-4 ${isHoriz ? "flex-row" : "flex-col"} items-center`}>
+                {group.screens.map((member, idx) => (
+                  <div key={member.id} className="flex flex-col items-center gap-1.5">
+                    <div
+                      className="relative rounded-lg overflow-hidden border border-border/40"
+                      style={{ width: isHoriz ? `${Math.min(280, 80 / total)}vw` : "200px", aspectRatio: "16/9" }}
+                    >
+                      {preview ? (
+                        <div className="absolute inset-0 overflow-hidden">
+                          {preview.type === "image" ? (
+                            <img
+                              src={preview.url}
+                              alt={`Screen ${idx + 1}`}
+                              className="absolute"
+                              style={{
+                                width: isHoriz ? `${total * 100}%` : "100%",
+                                height: isHoriz ? "100%" : `${total * 100}%`,
+                                left: isHoriz ? `-${idx * 100}%` : "0",
+                                top: isHoriz ? "0" : `-${idx * 100}%`,
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <video
+                              src={preview.url}
+                              muted
+                              autoPlay
+                              loop
+                              className="absolute"
+                              style={{
+                                width: isHoriz ? `${total * 100}%` : "100%",
+                                height: isHoriz ? "100%" : `${total * 100}%`,
+                                left: isHoriz ? `-${idx * 100}%` : "0",
+                                top: isHoriz ? "0" : `-${idx * 100}%`,
+                                objectFit: "cover",
+                              }}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-full h-full bg-muted/50 flex items-center justify-center">
+                          <span className="text-[9px] text-muted-foreground/40">No content</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {member.screen?.name || `Screen ${idx + 1}`} — {Math.round(100 / total)}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <style>{`
         @keyframes syncBorderPulse {
