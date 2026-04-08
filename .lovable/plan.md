@@ -1,35 +1,28 @@
 
 
-## Create /terms Route — Terms of Service & Privacy Policy
+## Glow Cookie Consent Banner
 
 ### What We're Building
-A new `/terms` page with Deep Space background, glassmorphism content blocks, and top tabs to switch between Terms of Service and Privacy Policy. Human-readable tone with summary boxes and placeholder legal content.
+A floating glassmorphism pill banner at bottom-center that slides up 2 seconds after page load, with cookie consent controls. Persists consent to `localStorage` so it only shows once.
 
 ### Changes
 
-**1. Create `src/pages/Terms.tsx`**
-- Deep Space background (`bg-[#0B1120]`), Satoshi font
-- "Last Updated" timestamp at top
-- `Tabs` component (from existing `@/components/ui/tabs`) for "Terms of Service" / "Privacy Policy"
-- Each tab opens with a "Summary for Humans" glassmorphism box (3 bullet points)
-- Content broken into glassmorphism cards (`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl`)
-- Text color `text-[#E2E8F0]`, headers in white
-- Links styled with `hover:text-cyan-400` neon teal effect
-- Sections for Terms: Subscription ($9/mo, 30-day cancel), Content Responsibility, Uptime Disclaimer, Account Termination
-- Sections for Privacy: Data Collection, Data Usage (leads table, consent), Cookie Policy, Data Retention
-- Back link to home, logo at top
+**1. Create `src/components/CookieConsent.tsx`**
+- Floating pill: `fixed bottom-6 left-1/2 -translate-x-1/2 z-50`, rounded-full, glassmorphism (`bg-white/5 backdrop-blur-[15px] border border-cyan-400/20`)
+- Pulsing teal dot using existing `heartbeat-pulse` style or a simple CSS pulse
+- Copy: "We use cookies to optimize your Glow experience. System optimized?"
+- Two buttons: "Accept" (teal filled) and "Customize" (ghost/outline, links to `/terms?tab=privacy`)
+- State: check `localStorage.getItem('glow-cookie-consent')` — if set, don't render
+- Slide-up animation: start off-screen (`translate-y-full opacity-0`), after 2s delay transition to visible with a spring-like cubic-bezier
+- Accept click: trigger a neon flash overlay (small white/teal flash div that fades in/out over 300ms), then set localStorage and unmount
+- Customize click: navigate to `/terms?tab=privacy`
 
 **2. Update `src/App.tsx`**
-- Add lazy import for Terms page
-- Add public route: `<Route path="/terms" element={<Terms />} />`
+- Import and render `<CookieConsent />` alongside `<Toaster />` and `<Sonner />` (outside routes, always visible)
 
-**3. Update Download page footer link**
-- The consent text in `src/pages/Download.tsx` — link "Glow" text or add a link to `/terms`
-
-### Design Details
-- Reuses existing `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` components
-- Each section is a separate glassmorphism card with a clear header and body
-- Summary box uses a slightly different glass tint (cyan/teal border) to stand out
-- Responsive: single column, max-w-4xl centered
-- No authentication required — fully public page
+### Technical Details
+- Spring motion via CSS transition with `cubic-bezier(0.34, 1.56, 0.64, 1)` for overshoot
+- Neon flash: absolute overlay inside the pill that flashes `bg-cyan-400/30` then fades out before hiding
+- No new dependencies needed
+- localStorage key: `glow-cookie-consent`
 
