@@ -12,7 +12,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
-  Clock, MousePointer, Download, Undo2, Redo2, Eye,
+  Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer,
+  Zap, Sun, CloudRain,
 } from "lucide-react";
 
 /* ───── types ───── */
@@ -36,17 +37,116 @@ interface SavedLayout {
   updated_at: string;
 }
 
-/* ───── asset definitions ───── */
-const FREE_ASSETS = [
-  { type: "image" as const, label: "Image", icon: Image, pro: false },
-  { type: "text" as const, label: "Text", icon: Type, pro: false },
-  { type: "widget-clock" as const, label: "Clock", icon: Clock, pro: false },
-];
+/* ───── widget library ───── */
+interface WidgetDef {
+  type: CanvasElement["type"];
+  label: string;
+  description: string;
+  icon: React.FC<{ className?: string }>;
+  pro: boolean;
+  preview: React.ReactNode;
+  defaultW: number;
+  defaultH: number;
+}
 
-const PRO_ASSETS = [
-  { type: "video" as const, label: "Video BG", icon: Video, pro: true },
-  { type: "widget-weather" as const, label: "Weather", icon: Cloud, pro: true },
-  { type: "widget-rss" as const, label: "RSS Feed", icon: Rss, pro: true },
+const WIDGET_LIBRARY: WidgetDef[] = [
+  // ── Free ──
+  {
+    type: "widget-clock", label: "Digital Clock", description: "Minimalist time display with soft glow",
+    icon: Clock, pro: false, defaultW: 220, defaultH: 80,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-0.5">
+        <Clock className="h-5 w-5 text-primary drop-shadow-[0_0_6px_hsl(var(--primary))]" />
+        <span className="text-[11px] font-mono text-foreground font-bold tracking-wider" style={{ textShadow: "0 0 8px hsla(180,100%,32%,0.4)" }}>12:34:56</span>
+      </div>
+    ),
+  },
+  {
+    type: "text", label: "Static Text", description: "Headers, descriptions & labels",
+    icon: Type, pro: false, defaultW: 300, defaultH: 60,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-0.5">
+        <Type className="h-5 w-5 text-primary" />
+        <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">Aa</span>
+      </div>
+    ),
+  },
+  {
+    type: "image", label: "Image Frame", description: "Upload brand assets & photos",
+    icon: Image, pro: false, defaultW: 200, defaultH: 150,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-0.5">
+        <Image className="h-5 w-5 text-primary" />
+        <div className="w-8 h-5 rounded-sm border border-dashed border-muted-foreground/30 mt-0.5" />
+      </div>
+    ),
+  },
+  // ── Pro ──
+  {
+    type: "widget-weather", label: "Live Weather", description: "Animated weather with glassmorphism card",
+    icon: Sun, pro: true, defaultW: 200, defaultH: 160,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-0.5 relative">
+        <div className="relative">
+          <Sun className="h-6 w-6 text-accent drop-shadow-[0_0_10px_hsl(var(--accent))]" style={{ animation: "widgetSunSpin 8s linear infinite" }} />
+          <Cloud className="h-4 w-4 text-primary absolute -bottom-1 -right-1.5 drop-shadow-[0_0_6px_hsl(var(--primary))]" />
+        </div>
+        <span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
+      </div>
+    ),
+  },
+  {
+    type: "widget-rss", label: "RSS Ticker", description: "Scrolling news & announcements",
+    icon: Rss, pro: true, defaultW: 400, defaultH: 50,
+    preview: (
+      <div className="flex items-center justify-center h-full gap-1.5 overflow-hidden">
+        <Rss className="h-4 w-4 text-accent shrink-0 drop-shadow-[0_0_6px_hsl(var(--accent))]" />
+        <div className="overflow-hidden flex-1">
+          <span className="text-[9px] text-muted-foreground whitespace-nowrap inline-block" style={{ animation: "widgetTicker 6s linear infinite" }}>
+            Breaking: New content deployed · Sale ends tomorrow · Welcome to GLOW ···
+          </span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    type: "widget-neon-label", label: "Neon Pulse Label", description: "Flickering neon text animation",
+    icon: Zap, pro: true, defaultW: 280, defaultH: 60,
+    preview: (
+      <div className="flex items-center justify-center h-full">
+        <span
+          className="text-xs font-bold text-primary font-['Satoshi',sans-serif] tracking-wider uppercase"
+          style={{ animation: "studioNeonFlicker 2s infinite", textShadow: "0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))" }}
+        >
+          NEON GLOW
+        </span>
+      </div>
+    ),
+  },
+  {
+    type: "video", label: "Video Background", description: "Dynamic video backgrounds",
+    icon: Video, pro: true, defaultW: 300, defaultH: 200,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-0.5">
+        <Video className="h-5 w-5 text-primary drop-shadow-[0_0_6px_hsl(var(--primary))]" />
+        <span className="text-[9px] text-muted-foreground font-mono">MP4 / HLS</span>
+      </div>
+    ),
+  },
+  {
+    type: "widget-countdown", label: "Live Countdown", description: "Sales, events & launch timers",
+    icon: Timer, pro: true, defaultW: 280, defaultH: 90,
+    preview: (
+      <div className="flex items-center justify-center h-full gap-2">
+        {["12", "34", "56"].map((v, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <span className="text-sm font-mono font-bold text-foreground tracking-wider" style={{ textShadow: "0 0 6px hsla(180,100%,32%,0.4)" }}>{v}</span>
+            <span className="text-[7px] text-muted-foreground/60 uppercase tracking-widest">{["HRS", "MIN", "SEC"][i]}</span>
+          </div>
+        ))}
+      </div>
+    ),
+  },
 ];
 
 const PRO_ANIMATIONS = [
