@@ -61,6 +61,7 @@ export default function StudioPreview() {
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [clockTime, setClockTime] = useState(new Date());
+  const [rssHeadlines, setRssHeadlines] = useState<Record<string, string[]>>({});
 
   /* ── load layout ── */
   useEffect(() => {
