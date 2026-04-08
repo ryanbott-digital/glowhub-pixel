@@ -27,6 +27,11 @@ interface Screen {
   current_playlist_id: string | null;
 }
 
+interface PlaylistPreview {
+  url: string;
+  type: string; // "image" or "video"
+}
+
 interface SyncGroup {
   id: string;
   name: string;
@@ -47,6 +52,7 @@ export default function Canvas() {
   const [newGroupName, setNewGroupName] = useState("Sync Group");
   const [newOrientation, setNewOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const [addScreenOpen, setAddScreenOpen] = useState<string | null>(null);
+  const [groupPreviews, setGroupPreviews] = useState<Record<string, PlaylistPreview | null>>({});
 
   const fetchData = useCallback(async () => {
     if (!user) return;
