@@ -216,6 +216,8 @@ export default function Studio() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const isPro = isProTier(subscriptionTier);
@@ -860,8 +862,28 @@ export default function Studio() {
 
               {selected.type === "image" && (
                 <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image URL</p>
-                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-8 text-xs" />
+                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image Source</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs gap-1.5 border-primary/30 hover:border-primary/60"
+                    onClick={async () => {
+                      if (!user) return;
+                      const { data } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).eq("type", "image").order("created_at", { ascending: false });
+                      setMediaItems(data || []);
+                      setMediaPickerOpen(true);
+                    }}
+                  >
+                    <Image className="h-3.5 w-3.5" />
+                    Pick from Media Library
+                  </Button>
+                  {selected.content && (
+                    <div className="rounded-lg border border-border/20 overflow-hidden">
+                      <img src={selected.content} alt="" className="w-full h-20 object-cover" />
+                    </div>
+                  )}
+                  <p className="text-[8px] text-muted-foreground/40 font-['Satoshi',sans-serif]">Or paste a URL:</p>
+                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-7 text-xs" />
                 </div>
               )}
 
@@ -1033,6 +1055,52 @@ export default function Studio() {
                 Go Pro Now
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Media Picker Modal ─── */}
+      <Dialog open={mediaPickerOpen} onOpenChange={setMediaPickerOpen}>
+        <DialogContent className="bg-card border-border/30 max-w-lg max-h-[70vh] flex flex-col p-0 overflow-hidden">
+          <div className="p-4 border-b border-border/20">
+            <h3 className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide flex items-center gap-2">
+              <Image className="h-4 w-4 text-primary" />
+              Media Library
+            </h3>
+            <p className="text-[10px] text-muted-foreground mt-1">Select an image to use on the canvas</p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3">
+            {mediaItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-2">
+                <Image className="h-8 w-8 text-muted-foreground/20" />
+                <p className="text-sm text-muted-foreground/40 font-['Satoshi',sans-serif]">No images in your library</p>
+                <Button size="sm" variant="outline" onClick={() => { setMediaPickerOpen(false); navigate("/media"); }} className="text-xs gap-1.5 mt-2">
+                  <Plus className="h-3 w-3" /> Upload Media
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {mediaItems.map((item) => {
+                  const publicUrl = supabase.storage.from("media").getPublicUrl(item.storage_path).data.publicUrl;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        updateSelected({ content: publicUrl });
+                        setMediaPickerOpen(false);
+                        toast.success(`Added "${item.name}"`);
+                      }}
+                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square hover:border-primary/50 hover:shadow-[0_0_12px_hsla(180,100%,32%,0.15)] transition-all"
+                    >
+                      <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[8px] text-white font-['Satoshi',sans-serif] truncate block">{item.name}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
