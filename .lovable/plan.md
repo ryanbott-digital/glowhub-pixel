@@ -1,54 +1,46 @@
 
 
-## Build the Smart-Glow Weather Widget
+## Redesign /download as Lead Capture & Installation Funnel
 
 ### What We're Building
-A premium weather widget for the Studio that auto-detects location via IP geolocation, displays animated neon weather icons with an aurora background bloom effect, and shows a live London preview in the sidebar to tease free users.
+A two-phase download page: first an email gate (glassmorphism card with email capture), then a cross-fade reveal of the full installation dashboard with device-specific accordion guides. Emails are saved to a new `leads` table.
 
 ### Changes
 
-**1. Edge Function: `weather-proxy`** (new file)
-- Calls `http://ip-api.com/json` to get city from the TV's IP, then fetches weather from Open-Meteo (free, no API key needed) using the lat/lon returned
-- Returns: `{ city, temp, condition, isNight }` 
-- CORS headers included; no secrets needed (both APIs are free/public)
+**1. Database Migration — Create `leads` table**
+```sql
+CREATE TABLE public.leads (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can insert leads" ON public.leads FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "Admins can view leads" ON public.leads FOR SELECT TO authenticated USING (has_role(auth.uid(), 'admin'));
+```
+No auth required for insert — this is a public lead capture form.
 
-**2. Studio Widget Library — Sidebar Preview** (`src/pages/Studio.tsx`)
-- Replace the existing static weather preview tile with a live-data teaser
-- Add a `useEffect` that fetches weather for London (hardcoded lat/lon via Open-Meteo) on mount and stores `{ temp, condition, icon }` in state
-- The sidebar tile shows the real London temperature with animated neon sun/cloud icon and "London · Live" label — this is the "tease" for free users
+**2. Rewrite `src/pages/Download.tsx`**
 
-**3. Canvas Renderer — Weather Widget** (`src/pages/Studio.tsx`)
-- Replace the current placeholder renderer (lines 358-364) with the full glassmorphism card:
-  - **Container**: `backdrop-blur-[24px]`, thin teal glowing border, rounded-2xl
-  - **Aurora bloom**: A blurred background div whose color shifts based on weather condition:
-    - Sunny → `from-amber-500/20 to-orange-400/10`
-    - Rainy/Cloudy → `from-blue-500/15 to-purple-500/10`
-    - Night → `from-indigo-600/20 to-violet-900/10`
-  - **Neon icon**: Animated SVG-style icon using lucide icons with glow shadows:
-    - Sunny: `Sun` with pulsing golden glow (`animate-pulse`, golden `drop-shadow`)
-    - Rainy: `CloudRain` with teal neon drops animation
-    - Cloudy: `Cloud` with subtle drift animation
-  - **Data display**: Large bold temperature in Satoshi font, city name + condition in small-caps monospace below
-- Config JSON: `{"city":"auto","temp":null,"condition":null,"isNight":false}` — the "auto" flag tells the Player to use IP geolocation
-- In the Studio canvas, fetch London weather data on mount as a preview (same as sidebar)
-
-**4. Right Sidebar — Weather Config Panel** (`src/pages/Studio.tsx`)
-- When a weather widget is selected, show a minimal config section:
-  - Toggle: "Auto-detect location" (default on) vs manual city override input
-  - Display: Current preview city + temp (read-only)
-  - Note: "Location is detected automatically on TV"
-
-**5. CSS Animations** (`src/pages/Studio.tsx` inline styles)
-- `@keyframes weatherSunPulse` — golden glow pulse for sunny icon
-- `@keyframes weatherRainDrop` — falling neon drop effect
-- `@keyframes weatherAuroraShift` — slow color drift for the bloom background
-
-**6. Pro Paywall** — Already handled: `widget-weather` is `pro: true` in the library, so `addElement(w.type, true)` triggers `gatePro()` and shows the "Level Up Your Glow" modal for free users.
+- **State**: `unlocked` boolean, `email` string, `submitting` boolean, `flashActive` boolean
+- **Phase 1 — The Gate**: Centered glassmorphism card with:
+  - Glow logo + "GET THE GLOW PLAYER" headline
+  - Subtext about unlocking download link
+  - Neon-bordered email input (validated with basic regex)
+  - "Unlock Access" button that inserts into `leads` table, then triggers flash animation and sets `unlocked = true`
+- **Transition**: On submit, briefly show a white/neon flash overlay (`flashActive` for ~400ms), then cross-fade to Phase 2 using opacity + CSS transitions
+- **Phase 2 — The Payload**:
+  - Top: Massive glowing Downloader code (reuse existing neon digit style)
+  - Secondary: Download APK button + Browser mode URL
+  - Below: "How to install on your device" section with three device icons (Firestick, Android TV, Tablet/PC) using Accordion components — collapsed by default, each with a 3-step visual guide
+  - Footer: consent note about receiving Glow updates
+- **Design**: Keep Deep Space background, mesh gradients, glass classes, existing nav bar
 
 ### Technical Details
-- Open-Meteo API is free, no key required — perfect for this use case
-- Edge function uses `ip-api.com` for geolocation (free for non-commercial, works for TV devices)
-- Weather code mapping (Open-Meteo WMO codes) → condition strings done in the edge function
-- Single file edit for Studio + one new edge function file
-- No database changes needed
+- One new database table with public INSERT, admin-only SELECT
+- Single page file rewrite — no new components needed
+- Uses existing Accordion, Input, and Button UI components
+- Email validation client-side before insert
+- Flash effect: absolute overlay div with `bg-white/90` that fades in/out over 400ms via CSS transition
+- No authentication required for the email capture
 
