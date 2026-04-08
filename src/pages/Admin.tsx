@@ -228,6 +228,43 @@ export default function Admin() {
             </div>
           )}
         </CardContent>
+      {/* Captured Leads */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5" /> Captured Leads
+            <Badge variant="secondary" className="ml-auto">{leads.length}</Badge>
+          </CardTitle>
+          <CardDescription>Email leads from the download page</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {leadsLoading ? (
+            <p className="text-muted-foreground text-sm">Loading leads…</p>
+          ) : leads.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No leads captured yet</p>
+          ) : (
+            <div className="space-y-2">
+              {leads.map((lead) => (
+                <div
+                  key={lead.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Mail className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm font-medium truncate">{lead.email}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(lead.created_at).toLocaleDateString(undefined, {
+                      month: "short", day: "numeric", year: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
