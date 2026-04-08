@@ -723,53 +723,43 @@ const Home = () => {
           transform: translateY(0);
         }
 
-        /* ── Mesh gradient blobs ── */
+        /* ── Nebula mesh blobs (Teal / Blue / Purple) ── */
         .mesh-blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(120px);
+          filter: blur(140px);
           will-change: transform, translate;
           transition: transform 0.1s linear;
         }
         .mesh-blob-1 {
-          width: 600px; height: 600px;
-          top: -15%; left: 5%;
-          background: rgba(0,163,163,0.08);
-          animation: mesh-drift-1 12s ease-in-out infinite alternate;
+          width: 700px; height: 700px;
+          top: -20%; left: -5%;
+          background: rgba(0,163,163,0.12);
+          animation: mesh-drift-1 14s ease-in-out infinite alternate;
         }
         .mesh-blob-2 {
-          width: 500px; height: 500px;
-          top: 10%; right: 0%;
-          background: rgba(59,130,246,0.07);
-          animation: mesh-drift-2 14s ease-in-out infinite alternate;
+          width: 600px; height: 600px;
+          top: 5%; right: -10%;
+          background: rgba(59,130,246,0.10);
+          animation: mesh-drift-2 18s ease-in-out infinite alternate;
         }
         .mesh-blob-3 {
-          width: 400px; height: 400px;
-          bottom: 5%; left: 25%;
-          background: rgba(236,72,153,0.06);
-          animation: mesh-drift-3 16s ease-in-out infinite alternate;
-        }
-        .mesh-blob-4 {
-          width: 350px; height: 350px;
-          top: 30%; left: 50%;
-          background: rgba(249,115,22,0.04);
-          animation: mesh-drift-4 18s ease-in-out infinite alternate;
+          width: 500px; height: 500px;
+          bottom: -10%; left: 30%;
+          background: rgba(139,92,246,0.08);
+          animation: mesh-drift-3 20s ease-in-out infinite alternate;
         }
         @keyframes mesh-drift-1 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: 60px 40px; scale: 1.15; }
+          0% { translate: 0 0; scale: 1; rotate: 0deg; }
+          100% { translate: 80px 50px; scale: 1.2; rotate: 15deg; }
         }
         @keyframes mesh-drift-2 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: -50px 50px; scale: 1.1; }
+          0% { translate: 0 0; scale: 1; rotate: 0deg; }
+          100% { translate: -60px 60px; scale: 1.15; rotate: -10deg; }
         }
         @keyframes mesh-drift-3 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: 40px -30px; scale: 1.2; }
-        }
-        @keyframes mesh-drift-4 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: -30px 20px; scale: 1.1; }
+          0% { translate: 0 0; scale: 1; rotate: 0deg; }
+          100% { translate: 50px -40px; scale: 1.25; rotate: 20deg; }
         }
 
         /* ── Magnetic CTA ── */
