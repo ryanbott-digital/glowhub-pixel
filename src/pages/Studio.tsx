@@ -862,8 +862,28 @@ export default function Studio() {
 
               {selected.type === "image" && (
                 <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image URL</p>
-                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-8 text-xs" />
+                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image Source</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full text-xs gap-1.5 border-primary/30 hover:border-primary/60"
+                    onClick={async () => {
+                      if (!user) return;
+                      const { data } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).eq("type", "image").order("created_at", { ascending: false });
+                      setMediaItems(data || []);
+                      setMediaPickerOpen(true);
+                    }}
+                  >
+                    <Image className="h-3.5 w-3.5" />
+                    Pick from Media Library
+                  </Button>
+                  {selected.content && (
+                    <div className="rounded-lg border border-border/20 overflow-hidden">
+                      <img src={selected.content} alt="" className="w-full h-20 object-cover" />
+                    </div>
+                  )}
+                  <p className="text-[8px] text-muted-foreground/40 font-['Satoshi',sans-serif]">Or paste a URL:</p>
+                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-7 text-xs" />
                 </div>
               )}
 
