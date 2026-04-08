@@ -215,6 +215,7 @@ export default function Studio() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const isPro = isProTier(subscriptionTier);
@@ -369,8 +370,8 @@ export default function Studio() {
   };
 
   /* ───── element renderer ───── */
-  const renderElement = (el: CanvasElement) => {
-    const isSelected = el.id === selectedId;
+  const renderElement = (el: CanvasElement, previewMode = false) => {
+    const isSelected = !previewMode && el.id === selectedId;
     const animClass = el.animation === "pulse" ? "animate-pulse"
       : el.animation === "neon-flicker" ? "studio-neon-flicker"
       : el.animation === "glow-breathe" ? "studio-glow-breathe"
@@ -380,9 +381,9 @@ export default function Studio() {
     return (
       <div
         key={el.id}
-        className={`absolute cursor-move select-none ${animClass} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : "hover:ring-1 hover:ring-primary/30"}`}
-        style={{ left: el.x, top: el.y, width: el.width, height: el.height, ...el.style }}
-        onMouseDown={(e) => handleCanvasMouseDown(e, el.id)}
+        className={`absolute select-none ${animClass} ${previewMode ? "" : "cursor-move"} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : (!previewMode ? "hover:ring-1 hover:ring-primary/30" : "")}`}
+        style={previewMode ? { left: 0, top: 0, width: "100%", height: "100%" } : { left: el.x, top: el.y, width: el.width, height: el.height, ...el.style }}
+        onMouseDown={previewMode ? undefined : (e) => handleCanvasMouseDown(e, el.id)}
       >
         {el.type === "text" && (
           <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden">
@@ -514,6 +515,10 @@ export default function Studio() {
             onChange={(e) => setLayoutName(e.target.value)}
             className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]"
           />
+          <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
+            <Eye className="h-3.5 w-3.5" />
+            Preview
+          </Button>
           <Button size="sm" onClick={handleSave} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider">
             <Save className="h-3.5 w-3.5" />
             Save
@@ -641,7 +646,7 @@ export default function Studio() {
             />
 
             {/* Elements */}
-            {elements.map(renderElement)}
+            {elements.map((el) => renderElement(el))}
 
             {/* Empty state */}
             {elements.length === 0 && (
@@ -914,6 +919,46 @@ export default function Studio() {
           </div>
         </div>
       </div>
+
+      {/* ─── Fullscreen Preview ─── */}
+      {fullscreenPreview && (
+        <div
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          onClick={() => setFullscreenPreview(false)}
+          onKeyDown={(e) => e.key === "Escape" && setFullscreenPreview(false)}
+          tabIndex={0}
+          ref={(el) => el?.focus()}
+        >
+          <div className="relative" style={{ width: "100vw", height: "100vh" }}>
+            {elements.map((el) => {
+              const scaleX = window.innerWidth / 960;
+              const scaleY = window.innerHeight / 540;
+              const scale = Math.min(scaleX, scaleY);
+              const offsetX = (window.innerWidth - 960 * scale) / 2;
+              const offsetY = (window.innerHeight - 540 * scale) / 2;
+              return (
+                <div
+                  key={`preview-${el.id}`}
+                  className="absolute"
+                  style={{
+                    left: offsetX + el.x * scale,
+                    top: offsetY + el.y * scale,
+                    width: el.width * scale,
+                    height: el.height * scale,
+                    ...el.style,
+                  }}
+                >
+                  {renderElement(el, true)}
+                </div>
+              );
+            })}
+          </div>
+          {/* Exit hint */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-card/60 backdrop-blur-sm border border-border/30 text-xs text-muted-foreground font-['Satoshi',sans-serif] tracking-wider animate-fade-in">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-muted/30 text-foreground font-mono text-[10px]">ESC</kbd> or click anywhere to exit
+          </div>
+        </div>
+      )}
 
       {/* ─── Pro Gate Modal ─── */}
       <Dialog open={proGateOpen} onOpenChange={setProGateOpen}>
