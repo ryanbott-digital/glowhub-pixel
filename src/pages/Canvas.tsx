@@ -96,6 +96,35 @@ export default function Canvas() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Fetch first media thumbnail for each sync group with an assigned playlist
+  useEffect(() => {
+    const fetchPreviews = async () => {
+      const previews: Record<string, PlaylistPreview | null> = {};
+      for (const group of syncGroups) {
+        if (!group.playlist_id) { previews[group.id] = null; continue; }
+        const { data } = await supabase
+          .from("playlist_items")
+          .select("media:media_id(storage_path, type)")
+          .eq("playlist_id", group.playlist_id)
+          .order("position")
+          .limit(1)
+          .maybeSingle();
+        if (data?.media) {
+          const m = data.media as any;
+          const path = m.storage_path as string;
+          const url = path.startsWith("https://")
+            ? path
+            : supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
+          previews[group.id] = { url, type: (m.type as string).startsWith("video") ? "video" : "image" };
+        } else {
+          previews[group.id] = null;
+        }
+      }
+      setGroupPreviews(previews);
+    };
+    if (syncGroups.length > 0) fetchPreviews();
+  }, [syncGroups]);
+
   // Realtime sync heartbeat
   useEffect(() => {
     if (!user) return;
