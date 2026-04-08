@@ -492,7 +492,7 @@ const Home = () => {
         </h2>
         <div className="flex items-center justify-center gap-12 sm:gap-20">
           <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ animationDelay: "0.5s" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative hover:-translate-y-2">
               <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
             {/* Floor reflection */}
@@ -505,7 +505,7 @@ const Home = () => {
           </div>
           <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
           <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative hover:-translate-y-2">
               <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
             {/* Floor reflection */}
@@ -1096,7 +1096,7 @@ function StatCard({ value, suffix, label, icon, delay }: { value: number; suffix
     <div
       ref={counter.ref}
       data-animate
-      className="reveal-card glass-card glass-spotlight rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.12)] transition-all duration-500"
+      className="reveal-card glass-card glass-spotlight rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden group hover:border-[#00A3A3]/30 hover:shadow-[0_0_40px_hsla(180,100%,45%,0.15),0_20px_40px_-10px_hsla(220,60%,7%,0.5)] transition-all duration-500 hover:-translate-y-2"
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[#00A3A3]/5 via-transparent to-[#3B82F6]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
