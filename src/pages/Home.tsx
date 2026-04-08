@@ -573,7 +573,7 @@ const Home = () => {
             <div
               key={f.title}
               data-animate
-              className="reveal-card group rounded-2xl light-catch-border bg-[#0F172A]/60 backdrop-blur-xl p-7 hover:bg-[#0F172A]/80 transition-all duration-300 glass-spotlight"
+              className="reveal-card group rounded-2xl light-catch-border bg-[#0F172A]/60 backdrop-blur-xl p-7 hover:bg-[#0F172A]/80 transition-all duration-300 glass-spotlight hover:-translate-y-2 hover:shadow-[0_0_40px_hsla(180,100%,45%,0.12),0_20px_40px_-10px_hsla(220,60%,7%,0.5)] hover:border-primary/25"
               style={{ transitionDelay: `${i * 120}ms` }}
             >
               <div
