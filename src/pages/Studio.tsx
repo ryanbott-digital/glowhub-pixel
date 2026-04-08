@@ -215,6 +215,7 @@ export default function Studio() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const isPro = isProTier(subscriptionTier);
