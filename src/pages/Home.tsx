@@ -62,6 +62,101 @@ function useMagnetic() {
   return ref;
 }
 
+/* ── Mouse-reactive hero particles ── */
+function HeroParticles({ mousePos }: { mousePos: { x: number; y: number } }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particlesRef = useRef<{ x: number; y: number; vx: number; vy: number; size: number; alpha: number; speed: number }[]>([]);
+  const rafRef = useRef<number>(0);
+  const mousePosRef = useRef(mousePos);
+  mousePosRef.current = mousePos;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+      canvas.width = parent.offsetWidth;
+      canvas.height = parent.offsetHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Init particles
+    const count = 40;
+    particlesRef.current = Array.from({ length: count }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      size: Math.random() * 2 + 0.5,
+      alpha: Math.random() * 0.4 + 0.1,
+      speed: Math.random() * 0.5 + 0.2,
+    }));
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const rect = canvas.getBoundingClientRect();
+      const mx = mousePosRef.current.x - rect.left;
+      const my = mousePosRef.current.y - rect.top;
+
+      for (const p of particlesRef.current) {
+        // Mouse repulsion
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150 && dist > 0) {
+          const force = (150 - dist) / 150 * 0.8;
+          p.vx += (dx / dist) * force * 0.15;
+          p.vy += (dy / dist) * force * 0.15;
+        }
+
+        // Drift
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+
+        // Wrap
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        // Glow near mouse
+        const glowAlpha = dist < 200 ? p.alpha + (200 - dist) / 200 * 0.3 : p.alpha;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 163, 163, ${glowAlpha})`;
+        ctx.shadowColor = "rgba(0, 163, 163, 0.5)";
+        ctx.shadowBlur = p.size * 4;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 pointer-events-none z-0"
+      style={{ opacity: 0.7 }}
+    />
+  );
+}
+
 /* ── Live menu items for the mockup ── */
 const MENU_ITEMS = [
   [
