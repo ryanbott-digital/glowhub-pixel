@@ -440,17 +440,22 @@ export default function Canvas() {
                     <Send className="h-3.5 w-3.5" />
                     Push to All
                   </Button>
+                  {(() => {
+                    const mismatched = getMismatchedScreens(group);
+                    if (mismatched.length === 0) return null;
+                    return (
+                      <Button
+                        size="sm"
+                        onClick={() => handleSyncMismatched(group)}
+                        className="text-xs gap-1.5 rounded-lg font-semibold tracking-wider border-amber-500/50 text-amber-400 hover:bg-amber-500/20 animate-pulse"
+                        variant="outline"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        Sync All ({mismatched.length})
+                      </Button>
+                    );
+                  })()}
                 </div>
-
-                {/* Mini-map: full content with segment overlays */}
-                {group.screens.length > 0 && groupPreviews[group.id] && (
-                  <div className="relative z-10 mb-4">
-                    <p className="text-[10px] text-muted-foreground tracking-widest uppercase mb-2 flex items-center gap-1.5">
-                      <Monitor className="h-3 w-3" /> Content Mini-Map
-                    </p>
-                    <div
-                      className="relative rounded-lg overflow-hidden border border-border/40 bg-muted/30"
-                      style={{
                         aspectRatio: group.orientation === "horizontal"
                           ? `${16 * group.screens.length}/9`
                           : `16/${9 * group.screens.length}`,
