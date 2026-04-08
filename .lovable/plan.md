@@ -1,44 +1,61 @@
 
 
-## Enterprise-Ready Stripe Integration
+## Redesign `/welcome-pro` — Cinematic Pro Activation Page
 
 ### Overview
-Four changes: new welcome page with neon animation, enhanced checkout with tax ID collection, updated portal with return URL, and Stripe Dashboard branding guidance.
+Complete rewrite of `src/pages/WelcomePro.tsx` with a multi-phase cinematic sequence: particle explosion → scan line reveal → logo glow-up → terminal status → glassmorphism card with action buttons. Plus a canvas-based "glowing O confetti" effect and faster-moving Deep Space background blobs.
 
-### Changes
+### Phases (timed sequence)
 
-**1. Create `src/pages/WelcomePro.tsx`**
-- Full-screen dark page (`bg-[#0B1120]`) with a "System Level Up" neon animation on mount
-- Animation: fixed overlay with `bg-cyan-400/25` that pulses outward from center, then fades (1.5s CSS keyframe)
-- After animation completes, reveal content: large Crown icon with cyan glow, heading "System Level Up", subtext about unlocked Pro features
-- "Start Pro Broadcast" button (gradient cyan-to-blue, full width) that navigates to `/` (dashboard)
-- Secondary "Go to Billing" link below
+```text
+0s─1.5s    Black screen → Neon teal/blue particle explosion from center (canvas)
+1.5s─3s    Horizontal "System Scan" line sweeps top-to-bottom
+3s─4s      Giant "O" logo fades in with permanent pulsing glow
+4s─5s      Terminal text types out: [ PRO ACCOUNT ACTIVATED ]
+5s+        Glassmorphism card + buttons slide up; confetti starts
+```
 
-**2. Update `src/App.tsx`**
-- Add lazy import for `WelcomePro`
-- Add route: `<Route path="/welcome-pro" element={<WelcomePro />} />` (no ProtectedRoute wrapper — accessed immediately after Stripe redirect)
+### File: `src/pages/WelcomePro.tsx` (full rewrite)
 
-**3. Update `supabase/functions/stripe-checkout/index.ts`**
-- Change `success_url` from `/payment/success` to `/welcome-pro`
-- Add `tax_id_collection: { enabled: true }` to the checkout session creation
-- Note on branding: Stripe hosted Checkout page colors (brand color, accent color) are configured in the Stripe Dashboard under Branding Settings, not via API parameters. A comment will be added noting this.
+**Background layer:**
+- Deep Space base (`bg-black` initially, transitioning to `#0B1120`)
+- Two large animated blobs (cyan + blue) with faster animation speed than normal pages (e.g., 8s cycle instead of 20s)
 
-**4. Update `supabase/functions/stripe-portal/index.ts`**
-- Update return URL from `/subscription` to `/billing`
-- Update Stripe SDK imports to match the checkout function (latest versions)
-- Update `apiVersion` to `"2025-08-27.basil"`
+**Canvas layer — Particle Explosion:**
+- On mount, spawn ~200 particles from center with radial velocity, colored in teal (`#00E5FF`) and electric blue (`#3B82F6`)
+- Particles fade and decelerate over 1.5s, then canvas clears
 
-**5. Update `src/pages/Billing.tsx`**
-- Add a prominent "Billing Settings" button for Pro users that opens the Stripe Customer Portal (reuses existing `handlePortal` logic)
-- Rename existing "Manage Payment" button to "Billing Settings" with a Settings icon
-- Add subtitle text: "Update card, download invoices, manage subscription"
+**Scan Line:**
+- A thin horizontal gradient line (teal → transparent) animates from `top: 0` to `top: 100%` over ~1.5s using CSS animation
+- Reveals content beneath as it passes
 
-**6. Remove `src/pages/PaymentSuccess.tsx`** (replaced by WelcomePro)
-- Update `App.tsx`: redirect `/payment/success` to `/welcome-pro`
+**Giant "O" Logo:**
+- Large text "O" (8rem+) with `text-shadow` multi-layer glow in teal
+- Permanent breathing pulse animation (reuse existing `glow-text-pulse` pattern)
+
+**Terminal Status:**
+- `font-mono text-green-400` — types out `[ PRO ACCOUNT ACTIVATED ]` character-by-character over ~1s
+
+**Glassmorphism Card:**
+- `bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl`
+- Heading: "Welcome to the Future of Signage."
+- Subtext about Pro features (Sync Canvas, Pro widgets, High-Bitrate streaming)
+
+**Action Buttons:**
+- "🚀 Launch Sync Canvas" → navigates to `/canvas`
+- "🎨 Open Glow Studio" → navigates to `/studio`
+- Both use gradient `from-[#00A3A3] to-[#3B82F6]` with glow hover shadow
+
+**Confetti — Glowing "O" Pixels:**
+- Second canvas layer, starts at phase 5s
+- Spawns small "O" characters rendered on canvas, falling slowly from random x positions
+- Each "O" has a subtle teal glow (shadow blur), random opacity and size
+- Continuous gentle drift downward
+
+### No other files changed
+- Route already exists in `App.tsx`
+- No backend changes needed
 
 ### Technical Notes
-- Stripe hosted Checkout does not accept `primary_color`/`background_color` via the API. These must be set in the Stripe Dashboard under Settings > Branding. The `accent_color` setting in the Dashboard controls the Checkout page background. A code comment will document this for the team.
-- `tax_id_collection: { enabled: true }` is a first-class Stripe Checkout Session parameter
-- No database changes needed
-- Files changed: 4 modified, 1 created
-
+- All animations are CSS keyframes + canvas (no framer-motion dependency needed, keeping it lightweight)
+- Phase timing controlled via `useState` + `setTimeout` chain in a
