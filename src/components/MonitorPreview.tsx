@@ -158,7 +158,7 @@ export function MonitorPreview() {
             <ChevronLeft className="h-4 w-4" />
           </button>
           <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
-          <Select value={selectedScreenId || ""} onValueChange={setSelectedScreenId}>
+          <Select value={selectedScreenId || ""} onValueChange={fadeToScreen}>
             <SelectTrigger className="w-48 h-8 text-xs bg-secondary/50 border-border/50 rounded-lg">
               <SelectValue placeholder="Select screen" />
             </SelectTrigger>
