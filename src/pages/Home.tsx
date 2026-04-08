@@ -657,7 +657,7 @@ const Home = () => {
           {/* Pro Glow — rotating conic gradient border */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible"
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible mt-4"
             style={{ transitionDelay: "120ms" }}
           >
             {/* Best Value badge — outside conic wrapper to avoid clipping */}
