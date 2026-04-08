@@ -268,15 +268,17 @@ export default function Studio() {
   };
 
   /* ───── add element (from widget library) ───── */
-  const addElement = (type: CanvasElement["type"], pro: boolean) => {
+  const addElement = (type: CanvasElement["type"], pro: boolean, dropPos?: { x: number; y: number }) => {
     if (pro && gatePro(type)) return;
     const id = crypto.randomUUID();
     const widget = WIDGET_LIBRARY.find((w) => w.type === type);
+    const w = widget?.defaultW || 200;
+    const h = widget?.defaultH || 150;
     const defaults: Partial<CanvasElement> = {
-      x: 80 + Math.random() * 200,
-      y: 60 + Math.random() * 120,
-      width: widget?.defaultW || 200,
-      height: widget?.defaultH || 150,
+      x: dropPos ? dropPos.x - w / 2 : 80 + Math.random() * 200,
+      y: dropPos ? dropPos.y - h / 2 : 60 + Math.random() * 120,
+      width: w,
+      height: h,
       style: {},
       proOnly: pro,
     };
@@ -293,6 +295,31 @@ export default function Studio() {
     };
     setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
     setSelectedId(id);
+  };
+
+  /* ───── sidebar drag helpers ───── */
+  const handleWidgetDragStart = (e: React.DragEvent, w: WidgetDef) => {
+    e.dataTransfer.setData("widget-type", w.type);
+    e.dataTransfer.setData("widget-pro", String(w.pro));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
+  const handleCanvasDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData("widget-type") as CanvasElement["type"];
+    if (!type) return;
+    const pro = e.dataTransfer.getData("widget-pro") === "true";
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    addElement(type, pro, { x, y });
+  };
+
+  const handleCanvasDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("widget-type")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
   };
 
   /* ───── drag & resize logic ───── */
@@ -595,7 +622,9 @@ export default function Studio() {
                   <button
                     key={w.type}
                     onClick={() => addElement(w.type, false)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden"
+                    draggable
+                    onDragStart={(e) => handleWidgetDragStart(e, w)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing"
                   >
                     <div className="flex-1 flex items-center justify-center w-full">
                       {w.preview}
@@ -617,7 +646,9 @@ export default function Studio() {
                   <button
                     key={w.type}
                     onClick={() => addElement(w.type, true)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)]"
+                    draggable
+                    onDragStart={(e) => handleWidgetDragStart(e, w)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing"
                   >
                     {/* PRO badge */}
                     <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30 shadow-[0_0_8px_hsl(var(--accent)/0.3)] group-hover:shadow-[0_0_14px_hsl(var(--accent)/0.5)] transition-shadow">
@@ -684,6 +715,8 @@ export default function Studio() {
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
+            onDrop={handleCanvasDrop}
+            onDragOver={handleCanvasDragOver}
           >
             {/* Grid pattern */}
             <div
