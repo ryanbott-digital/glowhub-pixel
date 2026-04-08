@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,6 +170,11 @@ export default function Auth() {
                 Back to sign in
               </button>
             )}
+            <div className="flex items-center justify-center gap-3 mt-4 text-[10px] text-[#475569]">
+              <Link to="/terms" className="hover:text-[#94A3B8] transition-colors">Terms</Link>
+              <span>·</span>
+              <Link to="/terms?tab=privacy" className="hover:text-[#94A3B8] transition-colors">Privacy</Link>
+            </div>
           </div>
         </div>
       </div>

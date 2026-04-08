@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Shield, FileText } from "lucide-react";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -41,6 +41,9 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 export default function Terms() {
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "privacy" ? "privacy" : "terms";
+
   return (
     <div className="min-h-screen bg-[#0B1120] font-['Satoshi',sans-serif] relative overflow-hidden">
       {/* Mesh gradient accents */}
@@ -66,7 +69,7 @@ export default function Terms() {
           Legal
         </h1>
 
-        <Tabs defaultValue="terms" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="bg-white/5 border border-white/10 mb-8 w-full sm:w-auto">
             <TabsTrigger value="terms" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
               Terms of Service

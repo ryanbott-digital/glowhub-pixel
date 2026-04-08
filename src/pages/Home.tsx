@@ -833,7 +833,8 @@ const Home = () => {
           <div className="flex items-center gap-6 text-sm text-[#64748B]">
             <Link to="/auth" className="hover:text-[#E2E8F0] transition-colors">Login</Link>
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
-            <span className="hover:text-[#E2E8F0] transition-colors cursor-pointer">Terms</span>
+            <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
+            <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>
           </div>
           <p className="text-xs text-[#475569]">© {new Date().getFullYear()} Glow. All rights reserved.</p>
         </div>
