@@ -216,6 +216,7 @@ export default function Studio() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
+  const [rssCache, setRssCache] = useState<Record<string, string[]>>({});
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -235,6 +236,34 @@ export default function Studio() {
       setSavedLayouts((layoutsRes.data as any[]) || []);
     })();
   }, [user]);
+
+  /* ───── RSS feed fetching ───── */
+  const fetchRss = useCallback(async (feedUrl: string) => {
+    if (rssCache[feedUrl]) return;
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/rss-proxy?url=${encodeURIComponent(feedUrl)}`);
+      const data = await res.json();
+      if (data.headlines?.length) {
+        setRssCache((prev) => ({ ...prev, [feedUrl]: data.headlines }));
+      }
+    } catch (err) {
+      console.error("RSS fetch failed:", err);
+    }
+  }, [rssCache]);
+
+  // Auto-fetch RSS for any ticker with a feed URL
+  useEffect(() => {
+    elements.forEach((el) => {
+      if (el.type !== "widget-ticker") return;
+      try {
+        const cfg = JSON.parse(el.content);
+        if (cfg.source === "rss" && cfg.feedUrl && !rssCache[cfg.feedUrl]) {
+          fetchRss(cfg.feedUrl);
+        }
+      } catch {}
+    });
+  }, [elements, fetchRss, rssCache]);
 
   /* ───── weather preview (London teaser) ───── */
   useEffect(() => {
@@ -504,12 +533,15 @@ export default function Studio() {
           </div>
         )}
         {el.type === "widget-ticker" && (() => {
-          let cfg = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false };
+          let cfg: any = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
           try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
           const isAlert = cfg.alertMode === true;
           const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
           const duration = speedMap[cfg.speed] || "18s";
           const textColor = isAlert ? "text-white uppercase font-extrabold" : (cfg.color === "white" ? "text-white" : "text-primary");
+          const displayText = cfg.source === "rss" && cfg.feedUrl && rssCache[cfg.feedUrl]
+            ? rssCache[cfg.feedUrl].join(" · ")
+            : cfg.messages;
           return (
             <div
               className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
@@ -536,7 +568,7 @@ export default function Studio() {
                     textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none"),
                   }}
                 >
-                  {cfg.messages}
+                  {displayText}
                 </span>
               </div>
             </div>
@@ -801,7 +833,7 @@ export default function Studio() {
 
               {/* Ticker config */}
               {selected.type === "widget-ticker" && (() => {
-                let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false };
+                let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
                 try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
                 const updateCfg = (patch: Record<string, any>) => {
                   const next = { ...cfg, ...patch };
@@ -809,17 +841,64 @@ export default function Studio() {
                 };
                 return (
                   <div className="space-y-3">
+                    {/* Source toggle */}
                     <div className="space-y-1.5">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                        <Radio className="h-3 w-3" /> Messages
-                      </p>
-                      <Input
-                        value={cfg.messages}
-                        onChange={(e) => updateCfg({ messages: e.target.value })}
-                        placeholder="Breaking News · Welcome..."
-                        className="glass h-8 text-xs font-mono"
-                      />
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Source</p>
+                      <Select value={cfg.source || "manual"} onValueChange={(v) => updateCfg({ source: v })}>
+                        <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manual">Manual Text</SelectItem>
+                          <SelectItem value="rss">RSS Feed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+                    {cfg.source === "rss" ? (
+                      <div className="space-y-1.5">
+                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                          <Rss className="h-3 w-3" /> Feed URL
+                        </p>
+                        <Input
+                          value={cfg.feedUrl || ""}
+                          onChange={(e) => updateCfg({ feedUrl: e.target.value })}
+                          placeholder="https://feeds.bbci.co.uk/news/rss.xml"
+                          className="glass h-8 text-xs font-mono"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-7 text-[10px]"
+                          onClick={() => {
+                            if (cfg.feedUrl) {
+                              setRssCache((prev) => { const n = { ...prev }; delete n[cfg.feedUrl]; return n; });
+                              fetchRss(cfg.feedUrl);
+                              toast.success("Fetching headlines…");
+                            }
+                          }}
+                        >
+                          <Rss className="h-3 w-3 mr-1" /> Refresh Feed
+                        </Button>
+                        {rssCache[cfg.feedUrl] && (
+                          <div className="rounded-lg bg-muted/10 border border-border/20 p-2 space-y-0.5">
+                            <p className="text-[9px] text-muted-foreground/60 font-mono uppercase tracking-widest">
+                              {rssCache[cfg.feedUrl].length} headlines loaded
+                            </p>
+                            <p className="text-[10px] text-foreground font-mono truncate">{rssCache[cfg.feedUrl][0]}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                          <Radio className="h-3 w-3" /> Messages
+                        </p>
+                        <Input
+                          value={cfg.messages}
+                          onChange={(e) => updateCfg({ messages: e.target.value })}
+                          placeholder="Breaking News · Welcome..."
+                          className="glass h-8 text-xs font-mono"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-1.5">
                       <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Speed</p>
                       <Select value={cfg.speed} onValueChange={(v) => updateCfg({ speed: v })}>

@@ -61,6 +61,7 @@ export default function StudioPreview() {
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [clockTime, setClockTime] = useState(new Date());
+  const [rssHeadlines, setRssHeadlines] = useState<Record<string, string[]>>({});
 
   /* ── load layout ── */
   useEffect(() => {
@@ -102,7 +103,29 @@ export default function StudioPreview() {
     })();
   }, [elements]);
 
-  /* ── escape to exit ── */
+  /* ── RSS feed fetch ── */
+  useEffect(() => {
+    const feedUrls = new Set<string>();
+    elements.forEach((el) => {
+      if (el.type !== "widget-ticker") return;
+      try {
+        const cfg = JSON.parse(el.content);
+        if (cfg.source === "rss" && cfg.feedUrl) feedUrls.add(cfg.feedUrl);
+      } catch {}
+    });
+    feedUrls.forEach(async (url) => {
+      if (rssHeadlines[url]) return;
+      try {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/rss-proxy?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.headlines?.length) {
+          setRssHeadlines((prev) => ({ ...prev, [url]: data.headlines }));
+        }
+      } catch {}
+    });
+  }, [elements]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") navigate("/studio");
@@ -204,12 +227,15 @@ export default function StudioPreview() {
           </div>
         )}
         {el.type === "widget-ticker" && (() => {
-          let cfg = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false };
+          let cfg: any = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
           try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
           const isAlert = cfg.alertMode;
           const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
           const duration = speedMap[cfg.speed] || "18s";
           const textColor = isAlert ? "text-white uppercase font-extrabold" : (cfg.color === "white" ? "text-white" : "text-primary");
+          const displayText = cfg.source === "rss" && cfg.feedUrl && rssHeadlines[cfg.feedUrl]
+            ? rssHeadlines[cfg.feedUrl].join(" · ")
+            : cfg.messages;
           return (
             <div
               className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
@@ -234,7 +260,7 @@ export default function StudioPreview() {
                     textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none"),
                   }}
                 >
-                  {cfg.messages}
+                  {displayText}
                 </span>
               </div>
             </div>
