@@ -539,9 +539,11 @@ export default function Studio() {
           const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
           const duration = speedMap[cfg.speed] || "18s";
           const textColor = isAlert ? "text-white uppercase font-extrabold" : (cfg.color === "white" ? "text-white" : "text-primary");
-          const displayText = cfg.source === "rss" && cfg.feedUrl && rssCache[cfg.feedUrl]
-            ? rssCache[cfg.feedUrl].join(" · ")
-            : cfg.messages;
+          const displayText = isAlert && cfg.alertMessage
+            ? cfg.alertMessage
+            : cfg.source === "rss" && cfg.feedUrl && rssCache[cfg.feedUrl]
+              ? rssCache[cfg.feedUrl].join(" · ")
+              : cfg.messages;
           return (
             <div
               className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
