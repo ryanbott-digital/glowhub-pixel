@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Download, Tv, Globe, Flame, Monitor, Tablet, Rocket, ChevronRight } from "lucide-react";
@@ -10,11 +10,100 @@ import { toast } from "sonner";
 
 const DOWNLOADER_CODE = "1648081";
 
+// Particle burst config
+const PARTICLE_COUNT = 80;
+const COLORS = [
+  "hsla(180,100%,45%,1)", // teal
+  "hsla(220,80%,55%,1)",  // blue
+  "hsla(280,70%,60%,1)",  // purple
+  "hsla(45,100%,60%,1)",  // gold
+  "hsla(160,80%,50%,1)",  // emerald
+  "hsla(0,0%,100%,1)",    // white
+];
+
+function useConfetti() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>();
+
+  const fire = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height * 0.4;
+
+    const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+      x: cx,
+      y: cy,
+      vx: (Math.random() - 0.5) * 16,
+      vy: Math.random() * -14 - 4,
+      size: Math.random() * 6 + 3,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      life: 1,
+      decay: Math.random() * 0.015 + 0.008,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 12,
+      shape: Math.random() > 0.5 ? "rect" : "circle",
+    }));
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+
+      for (const p of particles) {
+        if (p.life <= 0) continue;
+        alive = true;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.35; // gravity
+        p.vx *= 0.99;
+        p.life -= p.decay;
+        p.rotation += p.rotSpeed;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+
+        if (p.shape === "rect") {
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      if (alive) {
+        animRef.current = requestAnimationFrame(animate);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+  }, []);
+
+  useEffect(() => {
+    return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
+  }, []);
+
+  return { canvasRef, fire };
+}
+
 export default function DownloadPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [flashActive, setFlashActive] = useState(false);
+  const { canvasRef, fire: fireConfetti } = useConfetti();
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -29,6 +118,7 @@ export default function DownloadPage() {
       setTimeout(() => {
         setUnlocked(true);
         setFlashActive(false);
+        fireConfetti();
       }, 400);
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -44,6 +134,8 @@ export default function DownloadPage() {
         className={`fixed inset-0 z-[100] pointer-events-none bg-white/90 transition-opacity duration-400 ${flashActive ? "opacity-100" : "opacity-0"}`}
         style={{ transitionDuration: "400ms" }}
       />
+      {/* Confetti canvas */}
+      <canvas ref={canvasRef} className="fixed inset-0 z-[101] pointer-events-none" />
 
       {/* Mesh gradient background */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
