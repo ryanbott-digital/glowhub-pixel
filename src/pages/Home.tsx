@@ -858,6 +858,7 @@ const Home = () => {
             box-shadow: 0 0 16px rgba(0,163,163,0.6), 0 0 30px rgba(0,163,163,0.2), inset 0 0 12px rgba(0,163,163,0.2);
             border-color: rgba(0,163,163,0.8);
           }
+        }
 
         /* ── Aurora TV screen ── */
         .aurora-screen {
