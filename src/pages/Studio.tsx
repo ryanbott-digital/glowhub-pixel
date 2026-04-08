@@ -929,7 +929,7 @@ export default function Studio() {
           tabIndex={0}
           ref={(el) => el?.focus()}
         >
-          <div className="relative w-full h-full" style={{ aspectRatio: "16/9", maxWidth: "100vw", maxHeight: "100vh" }}>
+          <div className="relative" style={{ width: "100vw", height: "100vh" }}>
             {elements.map((el) => {
               const scaleX = window.innerWidth / 960;
               const scaleY = window.innerHeight / 540;
@@ -938,7 +938,7 @@ export default function Studio() {
               const offsetY = (window.innerHeight - 540 * scale) / 2;
               return (
                 <div
-                  key={el.id}
+                  key={`preview-${el.id}`}
                   className="absolute"
                   style={{
                     left: offsetX + el.x * scale,
@@ -948,7 +948,7 @@ export default function Studio() {
                     ...el.style,
                   }}
                 >
-                  {renderElement({ ...el, id: `preview-${el.id}` })}
+                  {renderElement(el, true)}
                 </div>
               );
             })}
