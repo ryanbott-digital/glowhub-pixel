@@ -208,6 +208,26 @@ export default function Canvas() {
     fetchData();
   };
 
+  const getMismatchedScreens = (group: SyncGroup) => {
+    if (!group.playlist_id) return [];
+    return group.screens.filter(
+      (s) => s.screen?.current_playlist_id !== group.playlist_id
+    );
+  };
+
+  const handleSyncMismatched = async (group: SyncGroup) => {
+    const mismatched = getMismatchedScreens(group);
+    if (mismatched.length === 0) return;
+    const ids = mismatched.map((s) => s.screen_id);
+    const { error } = await supabase
+      .from("screens")
+      .update({ current_playlist_id: group.playlist_id })
+      .in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Synced ${ids.length} screen${ids.length !== 1 ? "s" : ""}`);
+    fetchData();
+  };
+
   // Screens already assigned to any sync group
   const assignedScreenIds = new Set(syncGroups.flatMap((g) => g.screens.map((s) => s.screen_id)));
   const availableScreens = screens.filter((s) => !assignedScreenIds.has(s.id));
