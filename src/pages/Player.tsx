@@ -720,7 +720,42 @@ export default function Player() {
     return () => clearInterval(interval);
   }, [urlPairingCode, paired, screenId, fetchPlaylist]);
 
-  // Realtime: listen for screen updates (playlist changes)
+  // ── SYNC GROUP: Detect if this screen is part of a sync group for offset rendering ──
+  useEffect(() => {
+    if (!screenId || !paired) return;
+    const fetchSyncGroup = async () => {
+      const { data: membership } = await supabase
+        .from("sync_group_screens")
+        .select("sync_group_id, position")
+        .eq("screen_id", screenId)
+        .maybeSingle();
+      if (!membership) { setSyncInfo(null); return; }
+
+      const [groupRes, membersRes] = await Promise.all([
+        supabase.from("sync_groups").select("orientation").eq("id", membership.sync_group_id).single(),
+        supabase.from("sync_group_screens").select("id").eq("sync_group_id", membership.sync_group_id),
+      ]);
+
+      if (groupRes.data && membersRes.data) {
+        setSyncInfo({
+          position: membership.position,
+          total: membersRes.data.length,
+          orientation: groupRes.data.orientation as "horizontal" | "vertical",
+        });
+      }
+    };
+    fetchSyncGroup();
+
+    // Listen for sync group changes
+    const channel = supabase
+      .channel(`sync-group-${screenId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sync_group_screens" }, () => fetchSyncGroup())
+      .on("postgres_changes", { event: "*", schema: "public", table: "sync_groups" }, () => fetchSyncGroup())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [screenId, paired]);
+
+
   useEffect(() => {
     if (!screenId || !paired) return;
 
