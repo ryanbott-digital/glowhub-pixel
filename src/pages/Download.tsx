@@ -366,7 +366,9 @@ export default function DownloadPage() {
               Start Glowing for Free
             </Link>
             <p className="text-[10px] text-muted-foreground/60 max-w-xs mx-auto leading-relaxed">
-              By downloading, you agree to receive Glow updates and pro offers. Unsubscribe anytime.
+              By downloading, you agree to our{" "}
+              <Link to="/terms" className="underline hover:text-cyan-400 transition-colors">Terms of Service & Privacy Policy</Link>{" "}
+              and to receive Glow updates. Unsubscribe anytime.
             </p>
           </div>
         </div>
