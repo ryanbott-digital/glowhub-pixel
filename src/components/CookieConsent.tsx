@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "glow-cookie-consent";
 
@@ -7,7 +6,7 @@ export function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [show, setShow] = useState(false);
   const [flashing, setFlashing] = useState(false);
-  const navigate = useNavigate();
+  
 
   useEffect(() => {
     if (localStorage.getItem(STORAGE_KEY)) return;
@@ -61,12 +60,12 @@ export function CookieConsent() {
           >
             Accept
           </button>
-          <button
-            onClick={() => navigate("/terms?tab=privacy")}
-            className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-semibold text-[#E2E8F0] hover:border-cyan-400/40 hover:text-cyan-400 transition-colors"
+          <a
+            href="/terms?tab=privacy"
+            className="rounded-full border border-white/10 px-4 py-1.5 text-xs font-semibold text-[#E2E8F0] hover:border-cyan-400/40 hover:text-cyan-400 transition-colors inline-block"
           >
             Customize
-          </button>
+          </a>
         </div>
       </div>
 
