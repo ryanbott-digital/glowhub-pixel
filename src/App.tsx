@@ -25,7 +25,7 @@ const InstallGuide = lazy(() => import("./pages/InstallGuide"));
 const InstallApp = lazy(() => import("./pages/InstallApp"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Billing = lazy(() => import("./pages/Billing"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const WelcomePro = lazy(() => import("./pages/WelcomePro"));
 const PaymentCancel = lazy(() => import("./pages/PaymentCancel"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -103,7 +103,8 @@ const App = () => (
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
               <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
               <Route path="/subscription" element={<Navigate to="/billing" replace />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/welcome-pro" element={<WelcomePro />} />
+              <Route path="/payment/success" element={<Navigate to="/welcome-pro" replace />} />
               <Route path="/payment/cancel" element={<PaymentCancel />} />
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

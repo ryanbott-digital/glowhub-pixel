@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2 } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -120,12 +120,13 @@ export default function Billing() {
         <div className="rounded-2xl border border-white/10 bg-white/5 dark:bg-white/5 bg-white/80 backdrop-blur-xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-foreground">Your Pro Subscription</h2>
           <p className="text-sm text-muted-foreground">
-            You have access to all Glow features. Manage your payment method, view invoices, or change your plan below.
+            You have access to all Glow features. Update your card, download invoices, or manage your subscription below.
           </p>
           <Button onClick={handlePortal} disabled={portalLoading} variant="outline" className="border-cyan-400/30 hover:border-cyan-400/60 hover:bg-cyan-400/5">
-            {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCardIcon className="h-4 w-4 mr-2" />}
-            Manage Payment
+            {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Settings className="h-4 w-4 mr-2" />}
+            Billing Settings
           </Button>
+          <p className="text-xs text-muted-foreground">Update card, download invoices, manage subscription</p>
         </div>
       ) : (
         <div className="rounded-2xl border border-cyan-400/20 bg-white/5 dark:bg-white/5 bg-white/80 backdrop-blur-xl p-6 space-y-4">
