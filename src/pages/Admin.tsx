@@ -41,6 +41,8 @@ export default function Admin() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [subsLoading, setSubsLoading] = useState(true);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(true);
 
   const fetchUsers = async () => {
     setLoading(true);
