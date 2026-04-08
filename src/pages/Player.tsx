@@ -463,6 +463,25 @@ export default function Player() {
       window.removeEventListener("online", goOnline);
     };
   }, []);
+  // ── BREAKING ALERT REALTIME LISTENER ──
+  useEffect(() => {
+    const channel = supabase
+      .channel("screen-alerts")
+      .on("broadcast", { event: "flash-alert" }, () => {
+        clearTimeout(alertTimerRef.current);
+        setAlertActive(true);
+        alertTimerRef.current = setTimeout(() => setAlertActive(false), 30_000);
+      })
+      .on("broadcast", { event: "clear-alert" }, () => {
+        clearTimeout(alertTimerRef.current);
+        setAlertActive(false);
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+      clearTimeout(alertTimerRef.current);
+    };
+  }, []);
 
   // Offline duration counter + 60s threshold alert
   const thresholdFiredRef = useRef(false);
