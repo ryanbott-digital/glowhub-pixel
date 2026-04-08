@@ -27,6 +27,11 @@ interface Screen {
   current_playlist_id: string | null;
 }
 
+interface PlaylistPreview {
+  url: string;
+  type: string; // "image" or "video"
+}
+
 interface SyncGroup {
   id: string;
   name: string;
@@ -47,6 +52,7 @@ export default function Canvas() {
   const [newGroupName, setNewGroupName] = useState("Sync Group");
   const [newOrientation, setNewOrientation] = useState<"horizontal" | "vertical">("horizontal");
   const [addScreenOpen, setAddScreenOpen] = useState<string | null>(null);
+  const [groupPreviews, setGroupPreviews] = useState<Record<string, PlaylistPreview | null>>({});
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -89,6 +95,35 @@ export default function Canvas() {
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Fetch first media thumbnail for each sync group with an assigned playlist
+  useEffect(() => {
+    const fetchPreviews = async () => {
+      const previews: Record<string, PlaylistPreview | null> = {};
+      for (const group of syncGroups) {
+        if (!group.playlist_id) { previews[group.id] = null; continue; }
+        const { data } = await supabase
+          .from("playlist_items")
+          .select("media:media_id(storage_path, type)")
+          .eq("playlist_id", group.playlist_id)
+          .order("position")
+          .limit(1)
+          .maybeSingle();
+        if (data?.media) {
+          const m = data.media as any;
+          const path = m.storage_path as string;
+          const url = path.startsWith("https://")
+            ? path
+            : supabase.storage.from("signage-content").getPublicUrl(path).data.publicUrl;
+          previews[group.id] = { url, type: (m.type as string).startsWith("video") ? "video" : "image" };
+        } else {
+          previews[group.id] = null;
+        }
+      }
+      setGroupPreviews(previews);
+    };
+    if (syncGroups.length > 0) fetchPreviews();
+  }, [syncGroups]);
 
   // Realtime sync heartbeat
   useEffect(() => {
@@ -376,6 +411,71 @@ export default function Canvas() {
                   </Button>
                 </div>
 
+                {/* Mini-map: full content with segment overlays */}
+                {group.screens.length > 0 && groupPreviews[group.id] && (
+                  <div className="relative z-10 mb-4">
+                    <p className="text-[10px] text-muted-foreground tracking-widest uppercase mb-2 flex items-center gap-1.5">
+                      <Monitor className="h-3 w-3" /> Content Mini-Map
+                    </p>
+                    <div
+                      className="relative rounded-lg overflow-hidden border border-border/40 bg-muted/30"
+                      style={{
+                        aspectRatio: group.orientation === "horizontal"
+                          ? `${16 * group.screens.length}/9`
+                          : `16/${9 * group.screens.length}`,
+                        maxHeight: "140px",
+                      }}
+                    >
+                      {/* Full content image */}
+                      {groupPreviews[group.id]!.type === "image" ? (
+                        <img
+                          src={groupPreviews[group.id]!.url}
+                          alt="Content preview"
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={groupPreviews[group.id]!.url}
+                          muted
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onLoadedData={(e) => { (e.target as HTMLVideoElement).currentTime = 1; }}
+                        />
+                      )}
+                      {/* Dim overlay */}
+                      <div className="absolute inset-0 bg-background/40" />
+                      {/* Segment dividers + labels */}
+                      <div className={`absolute inset-0 flex ${group.orientation === "vertical" ? "flex-col" : "flex-row"}`}>
+                        {group.screens.map((member, idx) => {
+                          const pct = 100 / group.screens.length;
+                          return (
+                            <div
+                              key={member.id}
+                              className="relative flex-1 flex items-center justify-center"
+                              style={{
+                                borderRight: group.orientation === "horizontal" && idx < group.screens.length - 1
+                                  ? "2px dashed hsl(var(--primary))"
+                                  : undefined,
+                                borderBottom: group.orientation === "vertical" && idx < group.screens.length - 1
+                                  ? "2px dashed hsl(var(--primary))"
+                                  : undefined,
+                              }}
+                            >
+                              <div className="bg-background/70 backdrop-blur-sm rounded px-2 py-0.5 text-center">
+                                <span className="text-[9px] font-mono font-bold text-primary block">
+                                  {member.screen?.name || `Screen ${idx + 1}`}
+                                </span>
+                                <span className="text-[8px] font-mono text-muted-foreground">
+                                  {Math.round(pct)}% {group.orientation === "horizontal" ? "width" : "height"}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Canvas workspace */}
                 <div className="relative z-10">
                   {group.screens.length === 0 ? (
@@ -398,7 +498,11 @@ export default function Canvas() {
                       <div
                         className={`flex gap-0.5 ${group.orientation === "vertical" ? "flex-col" : "flex-row"}`}
                       >
-                        {group.screens.map((member, idx) => (
+                        {group.screens.map((member, idx) => {
+                          const preview = groupPreviews[group.id];
+                          const total = group.screens.length;
+                          const isHoriz = group.orientation === "horizontal";
+                          return (
                           <div
                             key={member.id}
                             className="relative group flex-1 min-w-0"
@@ -421,21 +525,60 @@ export default function Canvas() {
                                 </Button>
                               </div>
 
-                              {/* Screen preview placeholder */}
+                              {/* Per-screen cropped preview */}
                               <div
-                                className="rounded-md overflow-hidden border border-border/30"
+                                className="rounded-md overflow-hidden border border-border/30 relative"
                                 style={{ aspectRatio: "16/9" }}
                               >
-                                <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex flex-col items-center justify-center gap-1">
-                                  <span className="text-[10px] font-mono text-muted-foreground/60 tracking-wider">
-                                    SCREEN {idx + 1} OF {group.screens.length}
-                                  </span>
-                                  <span className="text-[9px] font-mono text-muted-foreground/40">
-                                    {group.orientation === "horizontal"
-                                      ? `Renders ${Math.round(100 / group.screens.length)}% width`
-                                      : `Renders ${Math.round(100 / group.screens.length)}% height`}
-                                  </span>
-                                </div>
+                                {preview ? (
+                                  <div className="absolute inset-0 overflow-hidden">
+                                    {preview.type === "image" ? (
+                                      <img
+                                        src={preview.url}
+                                        alt={`Screen ${idx + 1} crop`}
+                                        className="absolute"
+                                        style={{
+                                          width: isHoriz ? `${total * 100}%` : "100%",
+                                          height: isHoriz ? "100%" : `${total * 100}%`,
+                                          left: isHoriz ? `-${idx * 100}%` : "0",
+                                          top: isHoriz ? "0" : `-${idx * 100}%`,
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                    ) : (
+                                      <video
+                                        src={preview.url}
+                                        muted
+                                        className="absolute"
+                                        style={{
+                                          width: isHoriz ? `${total * 100}%` : "100%",
+                                          height: isHoriz ? "100%" : `${total * 100}%`,
+                                          left: isHoriz ? `-${idx * 100}%` : "0",
+                                          top: isHoriz ? "0" : `-${idx * 100}%`,
+                                          objectFit: "cover",
+                                        }}
+                                        onLoadedData={(e) => { (e.target as HTMLVideoElement).currentTime = 1; }}
+                                      />
+                                    )}
+                                    {/* Crop label overlay */}
+                                    <div className="absolute bottom-1 left-1 bg-background/70 backdrop-blur-sm rounded px-1.5 py-0.5">
+                                      <span className="text-[8px] font-mono text-primary font-bold">
+                                        {Math.round(100 / total)}% {isHoriz ? "W" : "H"} · Pos {idx + 1}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex flex-col items-center justify-center gap-1">
+                                    <span className="text-[10px] font-mono text-muted-foreground/60 tracking-wider">
+                                      SCREEN {idx + 1} OF {total}
+                                    </span>
+                                    <span className="text-[9px] font-mono text-muted-foreground/40">
+                                      {isHoriz
+                                        ? `Renders ${Math.round(100 / total)}% width`
+                                        : `Renders ${Math.round(100 / total)}% height`}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Status dot */}
@@ -444,7 +587,6 @@ export default function Canvas() {
                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                                   {member.screen?.status || "offline"}
                                 </span>
-                                {/* Sync heartbeat indicator */}
                                 {group.screens.length > 1 && member.screen?.status === "online" && (
                                   <Heart
                                     className="h-2.5 w-2.5 text-primary ml-auto"
@@ -454,7 +596,8 @@ export default function Canvas() {
                               </div>
                             </Card>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
