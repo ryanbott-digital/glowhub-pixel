@@ -560,6 +560,12 @@ export default function Canvas() {
                                   <span className="text-sm font-medium text-foreground truncate">
                                     {member.screen?.name || "Unknown"}
                                   </span>
+                                  {group.playlist_id && member.screen?.current_playlist_id !== group.playlist_id && (
+                                    <span
+                                      className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"
+                                      title="Out of sync"
+                                    />
+                                  )}
                                 </div>
                                 <Button
                                   variant="ghost"
