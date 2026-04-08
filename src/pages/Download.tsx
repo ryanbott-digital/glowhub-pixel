@@ -203,7 +203,7 @@ export default function DownloadPage() {
                     className="mt-0.5 border-primary/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   <span className="text-[11px] text-muted-foreground leading-relaxed">
-                    I agree to receive product updates, setup guides, and promotional offers from Glow. You can unsubscribe at any time.
+                    I agree to the <Link to="/terms" className="underline hover:text-cyan-400 transition-colors">Terms of Service</Link> & <Link to="/terms?tab=privacy" className="underline hover:text-cyan-400 transition-colors">Privacy Policy</Link> and to receive product updates, setup guides, and promotional offers from Glow. You can unsubscribe at any time.
                   </span>
                 </label>
                 <Button
