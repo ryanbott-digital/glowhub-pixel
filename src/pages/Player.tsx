@@ -1603,26 +1603,10 @@ export default function Player() {
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
-        <img
-          ref={imgRefA}
-          alt=""
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
-          onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
-        />
-        <video
-          ref={videoRefA}
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
-          muted autoPlay playsInline preload="auto"
-          onEnded={advanceToNext}
-          onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
-        />
-      </div>
 
       {/* Buffer B */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        className="absolute inset-0 overflow-hidden transition-opacity ease-in-out"
         style={{
           opacity: activeBuffer === "B" ? 1 : 0,
           zIndex: activeBuffer === "B" ? 10 : 5,
@@ -1632,14 +1616,20 @@ export default function Player() {
         <img
           ref={imgRefB}
           alt=""
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "B" && currentItem.media.type === "image" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefB}
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "B" && currentItem.media.type === "video" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
           muted autoPlay playsInline preload="auto"
           onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
