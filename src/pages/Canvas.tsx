@@ -12,8 +12,13 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Plus, Trash2, Monitor, Layers, Crown, ArrowRight, ArrowDown,
-  Heart, Link2, Unlink, Sparkles, Lock,
+  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send,
 } from "lucide-react";
+
+interface Playlist {
+  id: string;
+  title: string;
+}
 
 interface Screen {
   id: string;
@@ -26,6 +31,7 @@ interface SyncGroup {
   id: string;
   name: string;
   orientation: "horizontal" | "vertical";
+  playlist_id: string | null;
   screens: { id: string; screen_id: string; position: number; screen?: Screen }[];
 }
 
@@ -33,6 +39,7 @@ export default function Canvas() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [screens, setScreens] = useState<Screen[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [syncGroups, setSyncGroups] = useState<SyncGroup[]>([]);
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [loading, setLoading] = useState(true);
@@ -43,13 +50,15 @@ export default function Canvas() {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [screenRes, profileRes, groupRes] = await Promise.all([
+    const [screenRes, profileRes, groupRes, playlistRes] = await Promise.all([
       supabase.from("screens").select("id, name, status, current_playlist_id").eq("user_id", user.id),
       supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
       supabase.from("sync_groups").select("*").eq("user_id", user.id),
+      supabase.from("playlists").select("id, title").eq("user_id", user.id).order("title"),
     ]);
 
     setScreens(screenRes.data || []);
+    setPlaylists(playlistRes.data || []);
     setSubscriptionTier(profileRes.data?.subscription_tier || "free");
 
     if (groupRes.data) {
@@ -70,6 +79,7 @@ export default function Canvas() {
           id: g.id,
           name: g.name,
           orientation: g.orientation as "horizontal" | "vertical",
+          playlist_id: (g as any).playlist_id ?? null,
           screens: screensInGroup,
         });
       }
