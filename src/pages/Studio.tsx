@@ -546,7 +546,7 @@ export default function Studio() {
               : cfg.messages;
           return (
             <div
-              className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
+              className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in alert-screen-shake" : ""}`}
               style={{
                 background: isAlert ? "#FF0033" : "rgba(255,255,255,0.05)",
                 borderTop: isAlert ? "2px solid #FF0033" : "2px solid hsl(var(--primary))",
