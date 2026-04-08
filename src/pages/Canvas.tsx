@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Plus, Trash2, Monitor, Layers, Crown, ArrowRight, ArrowDown,
-  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send, Eye, X,
+  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send, Eye, X, RefreshCw,
 } from "lucide-react";
 
 interface Playlist {
