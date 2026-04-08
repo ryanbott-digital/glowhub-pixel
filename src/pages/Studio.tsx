@@ -13,9 +13,42 @@ import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
   Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer,
-  Zap, Sun, CloudRain, Newspaper, Radio, Siren,
+  Zap, Sun, CloudRain, CloudDrizzle, Cloud as CloudIcon, Snowflake, CloudLightning, Newspaper, Radio, Siren, MapPin,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+
+/* ───── weather helpers ───── */
+interface WeatherData {
+  city: string;
+  temp: number;
+  condition: string;
+  icon: "sun" | "cloud" | "rain" | "snow" | "storm";
+  isNight: boolean;
+}
+
+const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
+  switch (icon) {
+    case "sun":
+      return <Sun className="h-10 w-10" style={{ color: "#FFB020", filter: "drop-shadow(0 0 12px #FFB020) drop-shadow(0 0 24px #FFB02080)", animation: "weatherSunPulse 3s ease-in-out infinite" }} />;
+    case "rain":
+      return <CloudRain className="h-10 w-10" style={{ color: "hsl(var(--primary))", filter: "drop-shadow(0 0 10px hsl(var(--primary))) drop-shadow(0 0 20px hsl(var(--primary) / 0.5))", animation: "weatherRainDrop 2s ease-in-out infinite" }} />;
+    case "snow":
+      return <Snowflake className="h-10 w-10" style={{ color: "#93C5FD", filter: "drop-shadow(0 0 10px #93C5FD) drop-shadow(0 0 20px #93C5FD80)" }} />;
+    case "storm":
+      return <CloudLightning className="h-10 w-10" style={{ color: "#A78BFA", filter: "drop-shadow(0 0 12px #A78BFA) drop-shadow(0 0 24px #A78BFA80)", animation: "weatherSunPulse 1.5s ease-in-out infinite" }} />;
+    default:
+      return <CloudIcon className="h-10 w-10" style={{ color: "#94A3B8", filter: "drop-shadow(0 0 8px #94A3B8) drop-shadow(0 0 16px #94A3B880)", animation: "weatherAuroraShift 6s ease-in-out infinite" }} />;
+  }
+};
+
+const getAuroraGradient = (icon: string, isNight: boolean) => {
+  if (isNight) return "from-indigo-600/20 to-violet-900/10";
+  switch (icon) {
+    case "sun": return "from-amber-500/20 to-orange-400/10";
+    case "rain": case "storm": return "from-blue-500/15 to-purple-500/10";
+    default: return "from-blue-500/10 to-slate-500/10";
+  }
+};
 
 /* ───── types ───── */
 interface CanvasElement {
