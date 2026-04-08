@@ -145,7 +145,7 @@ export default function Billing() {
       )}
 
       {/* Pricing comparison table */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         {/* Free Card */}
         <div className={`rounded-2xl border p-6 space-y-4 backdrop-blur-xl transition-all ${
           !isPro ? "border-primary/40 ring-2 ring-primary/30 bg-white/5 dark:bg-white/5" : "border-white/10 bg-white/5 dark:bg-white/5"
@@ -227,6 +227,51 @@ export default function Billing() {
               Upgrade to Pro
             </Button>
           )}
+        </div>
+
+        {/* Enterprise Card */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 dark:bg-white/5 p-6 space-y-4 backdrop-blur-xl transition-all">
+          <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-400/15 text-amber-400 px-2 py-0.5 rounded-full mb-2">
+            Enterprise
+          </span>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Enterprise</h3>
+              <p className="text-xs text-muted-foreground">For large-scale deployments</p>
+            </div>
+          </div>
+          <div>
+            <span className="text-3xl font-bold text-foreground">Custom</span>
+            <span className="text-sm text-muted-foreground ml-1">pricing</span>
+          </div>
+          <ul className="space-y-2">
+            {[
+              "Unlimited screens",
+              "Dedicated account manager",
+              "Custom SLA & uptime guarantee",
+              "SSO & team management",
+              "White-label options",
+              "On-premise deployment",
+              "API access & integrations",
+              "24/7 priority support",
+              "Custom training & onboarding",
+            ].map((f) => (
+              <li key={f} className="flex items-center gap-2 text-sm">
+                <Check className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                <span className="text-foreground">{f}</span>
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="outline"
+            className="w-full border-amber-400/30 text-amber-400 hover:bg-amber-400/10 hover:border-amber-400/50"
+            onClick={() => window.location.href = "/home#contact"}
+          >
+            <Building2 className="h-4 w-4 mr-2" /> Contact Sales
+          </Button>
         </div>
       </div>
 
