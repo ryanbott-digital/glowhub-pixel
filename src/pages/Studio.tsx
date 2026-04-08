@@ -118,16 +118,8 @@ const WIDGET_LIBRARY: WidgetDef[] = [
   // ── Pro ──
   {
     type: "widget-weather", label: "Live Weather", description: "Animated weather with glassmorphism card",
-    icon: Sun, pro: true, defaultW: 200, defaultH: 160,
-    preview: (
-      <div className="flex flex-col items-center justify-center h-full gap-0.5 relative">
-        <div className="relative">
-          <Sun className="h-6 w-6 text-accent drop-shadow-[0_0_10px_hsl(var(--accent))]" style={{ animation: "widgetSunSpin 8s linear infinite" }} />
-          <Cloud className="h-4 w-4 text-primary absolute -bottom-1 -right-1.5 drop-shadow-[0_0_6px_hsl(var(--primary))]" />
-        </div>
-        <span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
-      </div>
-    ),
+    icon: Sun, pro: true, defaultW: 220, defaultH: 180,
+    preview: null as any, // replaced at runtime with live data
   },
   {
     type: "widget-rss", label: "RSS Ticker", description: "Scrolling news & announcements",
