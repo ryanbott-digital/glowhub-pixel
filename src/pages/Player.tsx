@@ -99,6 +99,9 @@ export default function Player() {
   );
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
 
+  // ── SYNC GROUP (offset rendering) ──
+  const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
+
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
   // Active buffer: opacity 1, z-index 10
