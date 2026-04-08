@@ -98,6 +98,7 @@ export default function Player() {
     sessionStorage.getItem("glowhub_splash_seen") ? "done" : "splash"
   );
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
+  const [showWatermark, setShowWatermark] = useState(false);
 
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
