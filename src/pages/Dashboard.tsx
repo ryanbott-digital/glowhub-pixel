@@ -230,6 +230,36 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Billing Quick-Link */}
+      <button
+        onClick={() => navigate("/billing")}
+        className="w-full glass glass-spotlight rounded-2xl p-5 relative overflow-hidden text-left group transition-all hover:border-primary/20 hover:shadow-[0_0_20px_hsl(var(--primary)/0.08)]"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <CreditCard className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Billing</h3>
+              <p className="text-[11px] text-muted-foreground tracking-wider">
+                {isProTier(subscriptionTier) ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Crown className="h-3 w-3 text-primary" /> Pro Plan Active
+                  </span>
+                ) : (
+                  "Free Plan — Upgrade to unlock more"
+                )}
+              </p>
+            </div>
+          </div>
+          <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+            Manage →
+          </span>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      </button>
+
       {/* System Boot Sequence (Onboarding) */}
       <OnboardingChecklist screens={screens} playlists={playlists} mediaCount={mediaCount} />
 
