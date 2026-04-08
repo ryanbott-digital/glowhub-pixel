@@ -23,6 +23,7 @@ export default function Display() {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showWatermark, setShowWatermark] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
