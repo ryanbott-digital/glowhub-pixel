@@ -13,13 +13,13 @@ import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
   Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer,
-  Zap, Sun, CloudRain,
+  Zap, Sun, CloudRain, Newspaper, Radio,
 } from "lucide-react";
 
 /* ───── types ───── */
 interface CanvasElement {
   id: string;
-  type: "image" | "video" | "text" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label";
+  type: "image" | "video" | "text" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label" | "widget-ticker";
   x: number;
   y: number;
   width: number;
@@ -147,6 +147,23 @@ const WIDGET_LIBRARY: WidgetDef[] = [
       </div>
     ),
   },
+  {
+    type: "widget-ticker", label: "Pro-Glow Ticker", description: "Live news crawl with smooth scrolling",
+    icon: Newspaper, pro: true, defaultW: 920, defaultH: 50,
+    preview: (
+      <div className="flex items-center h-full gap-1 overflow-hidden w-full px-1">
+        <div className="shrink-0 px-1 py-0.5 rounded-sm bg-red-500/80 flex items-center gap-0.5">
+          <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
+          <span className="text-[6px] font-bold text-white tracking-wider">LIVE</span>
+        </div>
+        <div className="overflow-hidden flex-1">
+          <span className="text-[8px] text-primary font-mono font-bold whitespace-nowrap inline-block" style={{ animation: "widgetTicker 6s linear infinite" }}>
+            Breaking News · Welcome to GLOW · Stay tuned ···
+          </span>
+        </div>
+      </div>
+    ),
+  },
 ];
 
 const PRO_ANIMATIONS = [
@@ -219,6 +236,7 @@ export default function Studio() {
       "widget-clock": '{"format":"24h"}',
       "widget-countdown": '{"target":"2025-12-31T00:00:00"}',
       "widget-neon-label": "GLOW",
+      "widget-ticker": '{"messages":"Breaking News · Welcome to GLOW · Stay tuned","speed":"normal","color":"teal"}',
     };
     setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
     setSelectedId(id);
@@ -372,6 +390,35 @@ export default function Studio() {
             </span>
           </div>
         )}
+        {el.type === "widget-ticker" && (() => {
+          let cfg = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal" };
+          try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
+          const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
+          const duration = speedMap[cfg.speed] || "18s";
+          const textColor = cfg.color === "white" ? "text-white" : "text-primary";
+          return (
+            <div className="w-full h-full rounded-lg backdrop-blur-[25px] bg-white/5 border-t-2 border-primary flex items-center overflow-hidden"
+              style={{ boxShadow: "0 -2px 15px hsla(180,100%,32%,0.3)" }}>
+              <div className="shrink-0 px-2.5 py-1 bg-red-500 flex items-center gap-1.5 h-full">
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                <span className="text-[10px] font-bold text-white tracking-widest font-mono">LIVE</span>
+              </div>
+              <div className="flex-1 overflow-hidden h-full flex items-center">
+                <span
+                  className={`inline-block whitespace-nowrap font-mono font-bold tracking-wider ${textColor}`}
+                  style={{
+                    animation: `tickerScroll ${duration} linear infinite`,
+                    willChange: "transform",
+                    fontSize: "14px",
+                    textShadow: cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none",
+                  }}
+                >
+                  {cfg.messages}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
         {/* Pro badge */}
         {el.proOnly && (
           <div className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[7px] font-bold tracking-widest uppercase bg-accent text-accent-foreground shadow-[0_0_8px_hsl(var(--accent)/0.5)]">
@@ -572,6 +619,52 @@ export default function Studio() {
                 </div>
               )}
 
+              {/* Ticker config */}
+              {selected.type === "widget-ticker" && (() => {
+                let cfg = { messages: "", speed: "normal", color: "teal" };
+                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                const updateCfg = (patch: Record<string, string>) => {
+                  const next = { ...cfg, ...patch };
+                  updateSelected({ content: JSON.stringify(next) });
+                };
+                return (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                        <Radio className="h-3 w-3" /> Messages
+                      </p>
+                      <Input
+                        value={cfg.messages}
+                        onChange={(e) => updateCfg({ messages: e.target.value })}
+                        placeholder="Breaking News · Welcome..."
+                        className="glass h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Speed</p>
+                      <Select value={cfg.speed} onValueChange={(v) => updateCfg({ speed: v })}>
+                        <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="slow">Slow (30s)</SelectItem>
+                          <SelectItem value="normal">Normal (18s)</SelectItem>
+                          <SelectItem value="fast">Fast (10s)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Color</p>
+                      <Select value={cfg.color} onValueChange={(v) => updateCfg({ color: v })}>
+                        <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="teal">Neon Teal</SelectItem>
+                          <SelectItem value="white">Classic White</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Image URL */}
               {selected.type === "image" && (
                 <div className="space-y-2">
@@ -735,6 +828,10 @@ export default function Studio() {
         }
         .studio-neon-flicker { animation: studioNeonFlicker 2s infinite; }
         .studio-glow-breathe { animation: studioGlowBreathe 3s ease-in-out infinite; }
+        @keyframes tickerScroll {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
       `}</style>
     </div>
   );
