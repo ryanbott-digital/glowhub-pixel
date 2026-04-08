@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2 } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 
 const FREE_FEATURES = [
   { name: "1 screen", free: true, pro: true },
@@ -236,6 +236,22 @@ export default function Billing() {
           <span>256-bit SSL · Powered by Stripe</span>
         </div>
       )}
+
+      {/* Enterprise CTA */}
+      <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 flex items-center gap-4">
+        <div className="h-10 w-10 rounded-full bg-cyan-400/10 flex items-center justify-center flex-shrink-0">
+          <Building2 className="h-5 w-5 text-cyan-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-foreground">Have more than 10 locations?</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Contact us for <span className="text-cyan-400 font-medium">Enterprise Glow</span> — custom pricing, dedicated support, and unlimited screens.{" "}
+            <Link to="/home#contact" className="underline text-cyan-400/80 hover:text-cyan-400 transition-colors">
+              Contact Us →
+            </Link>
+          </p>
+        </div>
+      </div>
 
       <style>{`
         @keyframes levelUpFlash {
