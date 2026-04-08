@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers } from "lucide-react";
+import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ const items = [
   { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false },
   { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false },
   { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true },
+  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false },
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
   { title: "Subscription", url: "/subscription", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
