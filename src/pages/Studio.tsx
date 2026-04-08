@@ -519,6 +519,31 @@ export default function Studio() {
             PRO
           </div>
         )}
+        {/* Resize handles */}
+        {isSelected && !previewMode && (
+          <>
+            {["tl","tr","bl","br","t","b","l","r"].map((corner) => {
+              const pos: Record<string, React.CSSProperties> = {
+                tl: { top: -4, left: -4, cursor: "nwse-resize" },
+                tr: { top: -4, right: -4, cursor: "nesw-resize" },
+                bl: { bottom: -4, left: -4, cursor: "nesw-resize" },
+                br: { bottom: -4, right: -4, cursor: "nwse-resize" },
+                t: { top: -4, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+                b: { bottom: -4, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+                l: { top: "50%", left: -4, transform: "translateY(-50%)", cursor: "ew-resize" },
+                r: { top: "50%", right: -4, transform: "translateY(-50%)", cursor: "ew-resize" },
+              };
+              return (
+                <div
+                  key={corner}
+                  className="absolute w-2.5 h-2.5 rounded-full bg-primary border-2 border-background shadow-[0_0_6px_hsl(var(--primary))] z-20"
+                  style={pos[corner]}
+                  onMouseDown={(e) => handleResizeMouseDown(e, el.id, corner)}
+                />
+              );
+            })}
+          </>
+        )}
       </div>
     );
   };
