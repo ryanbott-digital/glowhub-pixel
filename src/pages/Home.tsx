@@ -243,7 +243,6 @@ const Home = () => {
           <div className="mesh-blob mesh-blob-1" data-parallax-speed="-0.15" />
           <div className="mesh-blob mesh-blob-2" data-parallax-speed="-0.25" />
           <div className="mesh-blob mesh-blob-3" data-parallax-speed="-0.1" />
-          <div className="mesh-blob mesh-blob-4" data-parallax-speed="-0.3" />
         </div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -348,20 +347,30 @@ const Home = () => {
           Designed for the hardware you already own
         </h2>
         <div className="flex items-center justify-center gap-12 sm:gap-20">
-          <div data-animate className="reveal-card flex flex-col items-center gap-4 hero-float" style={{ animationDelay: "0.5s" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ animationDelay: "0.5s" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative">
               <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
-            <div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
-            <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Fire TV Stick</span>
+            {/* Floor reflection */}
+            <div className="w-28 sm:w-36 h-14 sm:h-18 -mt-2 overflow-hidden opacity-25 pointer-events-none" style={{ transform: "scaleY(-1)" }}>
+              <div className="w-full h-28 sm:h-36 rounded-2xl overflow-hidden flex items-center justify-center p-4" style={{ maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)", WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)" }}>
+                <img src={firestickIcon} alt="" loading="lazy" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            <span className="text-sm font-medium text-[#94A3B8] tracking-wide -mt-2">Fire TV Stick</span>
           </div>
           <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
-          <div data-animate className="reveal-card flex flex-col items-center gap-4 hero-float" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative">
               <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
-            <div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
-            <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Google TV</span>
+            {/* Floor reflection */}
+            <div className="w-28 sm:w-36 h-14 sm:h-18 -mt-2 overflow-hidden opacity-25 pointer-events-none" style={{ transform: "scaleY(-1)" }}>
+              <div className="w-full h-28 sm:h-36 rounded-2xl overflow-hidden flex items-center justify-center p-4" style={{ maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)", WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)" }}>
+                <img src={googletvIcon} alt="" loading="lazy" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            <span className="text-sm font-medium text-[#94A3B8] tracking-wide -mt-2">Google TV</span>
           </div>
         </div>
       </section>
