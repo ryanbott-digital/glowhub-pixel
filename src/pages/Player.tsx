@@ -2087,10 +2087,10 @@ export default function Player() {
 
       {/* Powered by GLOW watermark for free-tier users */}
       {showWatermark && !showSettings && (
-        <div className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 pointer-events-none select-none">
+        <a href="https://glowhub-pixel.lovable.app/home" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 hover:opacity-70 transition-opacity select-none no-underline">
           <span className="text-white/80 text-[10px] font-medium tracking-wider uppercase">Powered by</span>
           <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
-        </div>
+        </a>
       )}
 
       {/* Offline overlay */}
