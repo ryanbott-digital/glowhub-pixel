@@ -228,6 +228,8 @@ export default function Admin() {
             </div>
           )}
         </CardContent>
+      </Card>
+
       {/* Captured Leads */}
       <Card>
         <CardHeader>
