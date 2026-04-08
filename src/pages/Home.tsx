@@ -287,7 +287,19 @@ const MARQUEE_ITEMS = [
 const Home = () => {
   const wrapperRef = useScrollReveal();
   const ctaRef = useMagnetic();
+  const location = useLocation();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+
+  // Smooth scroll to hash anchor (e.g. /home#contact)
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.slice(1);
+    const timer = setTimeout(() => {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [location.hash]);
   const blobContainerRef = useRef<HTMLDivElement>(null);
   const secondTvRef = useRef<HTMLDivElement>(null);
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
