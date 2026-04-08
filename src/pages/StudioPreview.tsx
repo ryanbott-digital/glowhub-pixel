@@ -103,7 +103,29 @@ export default function StudioPreview() {
     })();
   }, [elements]);
 
-  /* ── escape to exit ── */
+  /* ── RSS feed fetch ── */
+  useEffect(() => {
+    const feedUrls = new Set<string>();
+    elements.forEach((el) => {
+      if (el.type !== "widget-ticker") return;
+      try {
+        const cfg = JSON.parse(el.content);
+        if (cfg.source === "rss" && cfg.feedUrl) feedUrls.add(cfg.feedUrl);
+      } catch {}
+    });
+    feedUrls.forEach(async (url) => {
+      if (rssHeadlines[url]) return;
+      try {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/rss-proxy?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        if (data.headlines?.length) {
+          setRssHeadlines((prev) => ({ ...prev, [url]: data.headlines }));
+        }
+      } catch {}
+    });
+  }, [elements]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") navigate("/studio");
