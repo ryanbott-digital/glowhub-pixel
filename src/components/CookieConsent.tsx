@@ -23,10 +23,31 @@ export function CookieConsent() {
   const [prefs, setPrefs] = useState<CookiePrefs>(DEFAULT_PREFS);
 
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY)) return;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setPrefs({ essential: true, analytics: !!parsed.analytics, marketing: !!parsed.marketing });
+      } catch {}
+      return;
+    }
     setShow(true);
     const t = setTimeout(() => setVisible(true), 2000);
     return () => clearTimeout(t);
+  }, []);
+
+  // Listen for cookie-reset event (from footer links)
+  useEffect(() => {
+    const handleReset = () => {
+      setPrefs(DEFAULT_PREFS);
+      setCustomizing(false);
+      setFlashing(false);
+      setShow(true);
+      // Small delay so the DOM mounts before animating in
+      setTimeout(() => setVisible(true), 100);
+    };
+    window.addEventListener("cookie-reset", handleReset);
+    return () => window.removeEventListener("cookie-reset", handleReset);
   }, []);
 
   if (!show) return null;
