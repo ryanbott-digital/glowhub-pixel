@@ -19,7 +19,7 @@ import {
 /* ───── types ───── */
 interface CanvasElement {
   id: string;
-  type: "image" | "video" | "text" | "widget-weather" | "widget-rss" | "widget-clock";
+  type: "image" | "video" | "text" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label";
   x: number;
   y: number;
   width: number;
@@ -197,15 +197,16 @@ export default function Studio() {
     return true;
   };
 
-  /* ───── add element ───── */
+  /* ───── add element (from widget library) ───── */
   const addElement = (type: CanvasElement["type"], pro: boolean) => {
     if (pro && gatePro(type)) return;
     const id = crypto.randomUUID();
+    const widget = WIDGET_LIBRARY.find((w) => w.type === type);
     const defaults: Partial<CanvasElement> = {
       x: 80 + Math.random() * 200,
       y: 60 + Math.random() * 120,
-      width: type === "text" ? 300 : 200,
-      height: type === "text" ? 60 : 150,
+      width: widget?.defaultW || 200,
+      height: widget?.defaultH || 150,
       style: {},
       proOnly: pro,
     };
@@ -216,6 +217,8 @@ export default function Studio() {
       "widget-weather": '{"city":"London"}',
       "widget-rss": '{"feed":""}',
       "widget-clock": '{"format":"24h"}',
+      "widget-countdown": '{"target":"2025-12-31T00:00:00"}',
+      "widget-neon-label": "GLOW",
     };
     setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
     setSelectedId(id);
@@ -352,6 +355,23 @@ export default function Studio() {
             <span className="text-sm font-mono text-foreground">{new Date().toLocaleTimeString()}</span>
           </div>
         )}
+        {el.type === "widget-countdown" && (
+          <div className="w-full h-full rounded-lg bg-muted/20 border border-primary/20 flex items-center justify-center gap-3 p-2">
+            {["12", "34", "56"].map((v, i) => (
+              <div key={i} className="flex flex-col items-center">
+                <span className="text-lg font-mono font-bold text-foreground" style={{ textShadow: "0 0 8px hsla(180,100%,32%,0.4)" }}>{v}</span>
+                <span className="text-[7px] text-muted-foreground/60 uppercase tracking-widest">{["HRS", "MIN", "SEC"][i]}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {el.type === "widget-neon-label" && (
+          <div className="w-full h-full rounded-lg flex items-center justify-center p-2 studio-neon-flicker">
+            <span className="font-bold text-primary font-['Satoshi',sans-serif] tracking-widest uppercase" style={{ fontSize: el.style.fontSize || "18px", textShadow: "0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--primary))" }}>
+              {el.content || "GLOW"}
+            </span>
+          </div>
+        )}
         {/* Pro badge */}
         {el.proOnly && (
           <div className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[7px] font-bold tracking-widest uppercase bg-accent text-accent-foreground shadow-[0_0_8px_hsl(var(--accent)/0.5)]">
@@ -385,52 +405,73 @@ export default function Studio() {
 
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
-        <div className="w-56 border-r border-border/30 bg-card/30 backdrop-blur-sm flex flex-col overflow-y-auto">
+        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)] flex flex-col overflow-y-auto">
           <div className="p-3 border-b border-border/20">
-            <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground">Assets</h3>
+            <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
+              <Layers className="h-3.5 w-3.5 text-primary" />
+              Widget Library
+            </h3>
           </div>
 
-          {/* Free tools */}
-          <div className="p-2 space-y-1">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 px-2 pt-1">Free Tools</p>
-            {FREE_ASSETS.map((a) => (
-              <button
-                key={a.type}
-                onClick={() => addElement(a.type, false)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-primary/5 transition-colors font-['Satoshi',sans-serif]"
-              >
-                <a.icon className="h-4 w-4 text-primary" />
-                {a.label}
-              </button>
-            ))}
-          </div>
+          {/* Widget grid */}
+          <div className="p-2.5 space-y-4 flex-1">
+            {/* Free section */}
+            <div>
+              <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2">Standard</p>
+              <div className="grid grid-cols-2 gap-2">
+                {WIDGET_LIBRARY.filter(w => !w.pro).map((w) => (
+                  <button
+                    key={w.type}
+                    onClick={() => addElement(w.type, false)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden"
+                  >
+                    <div className="flex-1 flex items-center justify-center w-full">
+                      {w.preview}
+                    </div>
+                    <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* Pro tools */}
-          <div className="p-2 space-y-1 border-t border-border/20">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 px-2 pt-1 flex items-center gap-1">
-              Pro Tools
-              <Crown className="h-3 w-3 text-accent" />
-            </p>
-            {PRO_ASSETS.map((a) => (
-              <button
-                key={a.type}
-                onClick={() => addElement(a.type, true)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-primary/5 transition-colors font-['Satoshi',sans-serif] relative group"
-              >
-                <a.icon className="h-4 w-4 text-primary" />
-                {a.label}
-                <span className="ml-auto px-1.5 py-0.5 rounded text-[7px] font-bold tracking-widest uppercase bg-accent/15 text-accent shadow-[0_0_6px_hsl(var(--accent)/0.3)] group-hover:shadow-[0_0_10px_hsl(var(--accent)/0.5)] transition-shadow">
-                  PRO
-                </span>
-              </button>
-            ))}
+            {/* Pro section */}
+            <div>
+              <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2 flex items-center gap-1">
+                Premium
+                <Crown className="h-3 w-3 text-accent" />
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {WIDGET_LIBRARY.filter(w => w.pro).map((w) => (
+                  <button
+                    key={w.type}
+                    onClick={() => addElement(w.type, true)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)]"
+                  >
+                    {/* PRO badge */}
+                    <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30 shadow-[0_0_8px_hsl(var(--accent)/0.3)] group-hover:shadow-[0_0_14px_hsl(var(--accent)/0.5)] transition-shadow">
+                      PRO
+                    </div>
+                    {/* Lock overlay for non-pro */}
+                    {!isPro && (
+                      <div className="absolute inset-0 z-[5] bg-background/30 backdrop-blur-[1px] flex items-center justify-center rounded-xl opacity-60 group-hover:opacity-30 transition-opacity">
+                        <Lock className="h-4 w-4 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    <div className="flex-1 flex items-center justify-center w-full">
+                      {w.preview}
+                    </div>
+                    <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Saved layouts */}
-          <div className="p-2 space-y-1 border-t border-border/20 mt-auto">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 px-2 pt-1">Saved Layouts</p>
+          <div className="p-2.5 space-y-1 border-t border-border/20">
+            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5">Saved Layouts</p>
             {savedLayouts.length === 0 && (
-              <p className="text-[10px] text-muted-foreground/40 px-2 italic font-['Satoshi',sans-serif]">No layouts yet</p>
+              <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No layouts yet</p>
             )}
             {savedLayouts.map((l) => (
               <div key={l.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-primary/5 transition-colors group">
