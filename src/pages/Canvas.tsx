@@ -144,7 +144,27 @@ export default function Canvas() {
     fetchData();
   };
 
-  const handleToggleOrientation = async (groupId: string, current: string) => {
+  const handleAssignPlaylist = async (groupId: string, playlistId: string | null) => {
+    const { error } = await supabase.from("sync_groups").update({ playlist_id: playlistId } as any).eq("id", groupId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(playlistId ? "Playlist assigned to sync group" : "Playlist removed from sync group");
+    fetchData();
+  };
+
+  const handlePushToAllScreens = async (group: SyncGroup) => {
+    if (!group.playlist_id || group.screens.length === 0) {
+      toast.error("Assign a playlist and add screens first");
+      return;
+    }
+    const screenIds = group.screens.map((s) => s.screen_id);
+    const { error } = await supabase
+      .from("screens")
+      .update({ current_playlist_id: group.playlist_id })
+      .in("id", screenIds);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Playlist pushed to ${screenIds.length} screen${screenIds.length !== 1 ? "s" : ""}`);
+  };
+
     const next = current === "horizontal" ? "vertical" : "horizontal";
     const { error } = await supabase.from("sync_groups").update({ orientation: next }).eq("id", groupId);
     if (error) { toast.error(error.message); return; }
