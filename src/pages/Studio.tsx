@@ -694,19 +694,18 @@ export default function Studio() {
               <div className="flex items-center justify-center gap-2">
                 <Crown className="h-5 w-5 text-accent" />
                 <span className="font-['Satoshi',sans-serif] text-sm font-bold tracking-[0.15em] uppercase text-accent">
-                  Unlock Pro Glow
+                  Level Up Your Glow
                 </span>
               </div>
               <p className="text-muted-foreground text-sm font-['Satoshi',sans-serif] leading-relaxed">
-                <strong className="text-foreground">{proGateFeature}</strong> is exclusive to Pro members.
-                Get unlimited screens and pro tools for just $9/month.
+                This is a <strong className="text-foreground">Pro Feature</strong>. Unlock Weather, RSS Tickers, and unlimited screens for just <strong className="text-foreground">$9/month</strong>.
               </p>
               <Button
                 onClick={() => { setProGateOpen(false); navigate("/subscription"); }}
-                className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground font-['Satoshi',sans-serif] font-semibold tracking-wider rounded-xl h-11 text-base animate-[studioBreatheCTA_3s_ease-in-out_infinite]"
+                className="w-full bg-gradient-to-r from-primary to-glow-blue text-primary-foreground font-['Satoshi',sans-serif] font-semibold tracking-wider rounded-xl h-11 text-base animate-[studioBreatheCTA_3s_ease-in-out_infinite]"
               >
                 <Crown className="h-4 w-4 mr-2" />
-                Upgrade Now
+                Go Pro Now
               </Button>
             </div>
           </div>
@@ -725,6 +724,14 @@ export default function Studio() {
         @keyframes studioGlowBreathe {
           0%, 100% { box-shadow: 0 0 8px hsla(180, 100%, 32%, 0.2); }
           50% { box-shadow: 0 0 20px hsla(180, 100%, 32%, 0.5), 0 0 40px hsla(180, 100%, 32%, 0.15); }
+        }
+        @keyframes widgetSunSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes widgetTicker {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
         }
         .studio-neon-flicker { animation: studioNeonFlicker 2s infinite; }
         .studio-glow-breathe { animation: studioGlowBreathe 3s ease-in-out infinite; }
