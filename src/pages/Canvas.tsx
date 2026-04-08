@@ -12,8 +12,13 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Plus, Trash2, Monitor, Layers, Crown, ArrowRight, ArrowDown,
-  Heart, Link2, Unlink, Sparkles, Lock,
+  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send,
 } from "lucide-react";
+
+interface Playlist {
+  id: string;
+  title: string;
+}
 
 interface Screen {
   id: string;
@@ -26,6 +31,7 @@ interface SyncGroup {
   id: string;
   name: string;
   orientation: "horizontal" | "vertical";
+  playlist_id: string | null;
   screens: { id: string; screen_id: string; position: number; screen?: Screen }[];
 }
 
@@ -33,6 +39,7 @@ export default function Canvas() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [screens, setScreens] = useState<Screen[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [syncGroups, setSyncGroups] = useState<SyncGroup[]>([]);
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [loading, setLoading] = useState(true);
@@ -43,13 +50,15 @@ export default function Canvas() {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [screenRes, profileRes, groupRes] = await Promise.all([
+    const [screenRes, profileRes, groupRes, playlistRes] = await Promise.all([
       supabase.from("screens").select("id, name, status, current_playlist_id").eq("user_id", user.id),
       supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
       supabase.from("sync_groups").select("*").eq("user_id", user.id),
+      supabase.from("playlists").select("id, title").eq("user_id", user.id).order("title"),
     ]);
 
     setScreens(screenRes.data || []);
+    setPlaylists(playlistRes.data || []);
     setSubscriptionTier(profileRes.data?.subscription_tier || "free");
 
     if (groupRes.data) {
@@ -70,6 +79,7 @@ export default function Canvas() {
           id: g.id,
           name: g.name,
           orientation: g.orientation as "horizontal" | "vertical",
+          playlist_id: (g as any).playlist_id ?? null,
           screens: screensInGroup,
         });
       }
@@ -132,6 +142,27 @@ export default function Canvas() {
     if (error) { toast.error(error.message); return; }
     toast.success("Screen removed");
     fetchData();
+  };
+
+  const handleAssignPlaylist = async (groupId: string, playlistId: string | null) => {
+    const { error } = await supabase.from("sync_groups").update({ playlist_id: playlistId } as any).eq("id", groupId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(playlistId ? "Playlist assigned to sync group" : "Playlist removed from sync group");
+    fetchData();
+  };
+
+  const handlePushToAllScreens = async (group: SyncGroup) => {
+    if (!group.playlist_id || group.screens.length === 0) {
+      toast.error("Assign a playlist and add screens first");
+      return;
+    }
+    const screenIds = group.screens.map((s) => s.screen_id);
+    const { error } = await supabase
+      .from("screens")
+      .update({ current_playlist_id: group.playlist_id })
+      .in("id", screenIds);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Playlist pushed to ${screenIds.length} screen${screenIds.length !== 1 ? "s" : ""}`);
   };
 
   const handleToggleOrientation = async (groupId: string, current: string) => {
@@ -315,6 +346,34 @@ export default function Canvas() {
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
+                </div>
+
+                {/* Playlist Assignment */}
+                <div className="flex items-center gap-3 mb-5 relative z-10">
+                  <ListMusic className="h-4 w-4 text-primary shrink-0" />
+                  <Select
+                    value={group.playlist_id || "none"}
+                    onValueChange={(v) => handleAssignPlaylist(group.id, v === "none" ? null : v)}
+                  >
+                    <SelectTrigger className="glass flex-1 h-9 text-xs">
+                      <SelectValue placeholder="Assign a playlist…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No playlist</SelectItem>
+                      {playlists.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    onClick={() => handlePushToAllScreens(group)}
+                    disabled={!group.playlist_id || group.screens.length === 0}
+                    className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 rounded-lg font-semibold tracking-wider"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    Push to All
+                  </Button>
                 </div>
 
                 {/* Canvas workspace */}

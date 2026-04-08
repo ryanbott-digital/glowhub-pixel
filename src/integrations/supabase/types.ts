@@ -487,6 +487,7 @@ export type Database = {
           id: string
           name: string
           orientation: string
+          playlist_id: string | null
           user_id: string
         }
         Insert: {
@@ -494,6 +495,7 @@ export type Database = {
           id?: string
           name?: string
           orientation?: string
+          playlist_id?: string | null
           user_id: string
         }
         Update: {
@@ -501,9 +503,18 @@ export type Database = {
           id?: string
           name?: string
           orientation?: string
+          playlist_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sync_groups_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

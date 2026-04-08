@@ -1,0 +1,1 @@
+ALTER TABLE public.sync_groups ADD COLUMN playlist_id uuid REFERENCES public.playlists(id) ON DELETE SET NULL DEFAULT NULL;
