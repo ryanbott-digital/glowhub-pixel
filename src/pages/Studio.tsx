@@ -576,7 +576,18 @@ export default function Studio() {
                       </div>
                     )}
                     <div className="flex-1 flex items-center justify-center w-full">
-                      {w.preview}
+                      {w.type === "widget-weather" && weatherPreview ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-0.5 relative">
+                          <Sun className="h-5 w-5" style={{ color: "#FFB020", filter: "drop-shadow(0 0 8px #FFB020)", animation: "weatherSunPulse 3s ease-in-out infinite" }} />
+                          <span className="text-[11px] font-bold text-foreground mt-0.5">{weatherPreview.temp}°C</span>
+                          <span className="text-[7px] font-mono text-primary tracking-wider flex items-center gap-0.5"><MapPin className="h-2 w-2" />London · Live</span>
+                        </div>
+                      ) : w.preview ? w.preview : (
+                        <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                          <Sun className="h-5 w-5 text-accent" />
+                          <span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
+                        </div>
+                      )}
                     </div>
                     <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
                   </button>
