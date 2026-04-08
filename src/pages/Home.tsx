@@ -243,21 +243,30 @@ const Home = () => {
           <div className="mesh-blob mesh-blob-1" data-parallax-speed="-0.15" />
           <div className="mesh-blob mesh-blob-2" data-parallax-speed="-0.25" />
           <div className="mesh-blob mesh-blob-3" data-parallax-speed="-0.1" />
-          <div className="mesh-blob mesh-blob-4" data-parallax-speed="-0.3" />
         </div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Left — Copy */}
           <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-sm text-xs text-[#94A3B8] mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
-              Digital signage made simple
+            {/* System Engine Active badge */}
+            <div className="inline-flex items-center gap-3 mb-8">
+              {/* Glowing geometric O */}
+              <div className="relative w-8 h-8 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border border-[#00A3A3]/60 animate-[neonOPulse_3s_ease-in-out_infinite]" />
+                <div className="absolute inset-1 rounded-full border border-[#00A3A3]/30" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+              </div>
+              <span className="text-[10px] sm:text-xs font-mono tracking-[0.3em] text-[#00A3A3]/80 uppercase">
+                [ SYSTEM ENGINE ACTIVE ]
+              </span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-[0.1em] leading-[1.05] mb-6 uppercase font-['Satoshi',system-ui,sans-serif]">
               Your Content.<br /> Any Screen.{" "}
-              <span className="neon-heartbeat-text bg-gradient-to-r from-[#00A3A3] via-[#3B82F6] to-[#00A3A3] bg-clip-text text-transparent bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
-                Pure Glow.
+              <br />
+              <span className="inline-block">
+                <span className="text-[#E2E8F0]">Pure </span>
+                <span className="neon-glow-text">Glow.</span>
               </span>
             </h1>
             <p className="text-base sm:text-lg text-[#94A3B8] max-w-xl mb-10 leading-relaxed lg:mx-0 mx-auto">
@@ -338,20 +347,30 @@ const Home = () => {
           Designed for the hardware you already own
         </h2>
         <div className="flex items-center justify-center gap-12 sm:gap-20">
-          <div data-animate className="reveal-card flex flex-col items-center gap-4 hero-float" style={{ animationDelay: "0.5s" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ animationDelay: "0.5s" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative">
               <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
-            <div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
-            <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Fire TV Stick</span>
+            {/* Floor reflection */}
+            <div className="w-28 sm:w-36 h-14 sm:h-18 -mt-2 overflow-hidden opacity-25 pointer-events-none" style={{ transform: "scaleY(-1)" }}>
+              <div className="w-full h-28 sm:h-36 rounded-2xl overflow-hidden flex items-center justify-center p-4" style={{ maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)", WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)" }}>
+                <img src={firestickIcon} alt="" loading="lazy" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            <span className="text-sm font-medium text-[#94A3B8] tracking-wide -mt-2">Fire TV Stick</span>
           </div>
           <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
-          <div data-animate className="reveal-card flex flex-col items-center gap-4 hero-float" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl frost-card flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.08)] transition-all duration-300 glass-spotlight">
+          <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative">
               <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
-            <div className="w-24 h-4 mx-auto mt-2 rounded-full bg-gradient-to-r from-transparent via-[#00A3A3]/15 to-transparent blur-sm" />
-            <span className="text-sm font-medium text-[#94A3B8] tracking-wide">Google TV</span>
+            {/* Floor reflection */}
+            <div className="w-28 sm:w-36 h-14 sm:h-18 -mt-2 overflow-hidden opacity-25 pointer-events-none" style={{ transform: "scaleY(-1)" }}>
+              <div className="w-full h-28 sm:h-36 rounded-2xl overflow-hidden flex items-center justify-center p-4" style={{ maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)", WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 60%)" }}>
+                <img src={googletvIcon} alt="" loading="lazy" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            <span className="text-sm font-medium text-[#94A3B8] tracking-wide -mt-2">Google TV</span>
           </div>
         </div>
       </section>
@@ -704,53 +723,43 @@ const Home = () => {
           transform: translateY(0);
         }
 
-        /* ── Mesh gradient blobs ── */
+        /* ── Nebula mesh blobs (Teal / Blue / Purple) ── */
         .mesh-blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(120px);
+          filter: blur(140px);
           will-change: transform, translate;
           transition: transform 0.1s linear;
         }
         .mesh-blob-1 {
-          width: 600px; height: 600px;
-          top: -15%; left: 5%;
-          background: rgba(0,163,163,0.08);
-          animation: mesh-drift-1 12s ease-in-out infinite alternate;
+          width: 700px; height: 700px;
+          top: -20%; left: -5%;
+          background: rgba(0,163,163,0.12);
+          animation: mesh-drift-1 14s ease-in-out infinite alternate;
         }
         .mesh-blob-2 {
-          width: 500px; height: 500px;
-          top: 10%; right: 0%;
-          background: rgba(59,130,246,0.07);
-          animation: mesh-drift-2 14s ease-in-out infinite alternate;
+          width: 600px; height: 600px;
+          top: 5%; right: -10%;
+          background: rgba(59,130,246,0.10);
+          animation: mesh-drift-2 18s ease-in-out infinite alternate;
         }
         .mesh-blob-3 {
-          width: 400px; height: 400px;
-          bottom: 5%; left: 25%;
-          background: rgba(236,72,153,0.06);
-          animation: mesh-drift-3 16s ease-in-out infinite alternate;
-        }
-        .mesh-blob-4 {
-          width: 350px; height: 350px;
-          top: 30%; left: 50%;
-          background: rgba(249,115,22,0.04);
-          animation: mesh-drift-4 18s ease-in-out infinite alternate;
+          width: 500px; height: 500px;
+          bottom: -10%; left: 30%;
+          background: rgba(139,92,246,0.08);
+          animation: mesh-drift-3 20s ease-in-out infinite alternate;
         }
         @keyframes mesh-drift-1 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: 60px 40px; scale: 1.15; }
+          0% { translate: 0 0; scale: 1; rotate: 0deg; }
+          100% { translate: 80px 50px; scale: 1.2; rotate: 15deg; }
         }
         @keyframes mesh-drift-2 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: -50px 50px; scale: 1.1; }
+          0% { translate: 0 0; scale: 1; rotate: 0deg; }
+          100% { translate: -60px 60px; scale: 1.15; rotate: -10deg; }
         }
         @keyframes mesh-drift-3 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: 40px -30px; scale: 1.2; }
-        }
-        @keyframes mesh-drift-4 {
-          0% { translate: 0 0; scale: 1; }
-          100% { translate: -30px 20px; scale: 1.1; }
+          0% { translate: 0 0; scale: 1; rotate: 0deg; }
+          100% { translate: 50px -40px; scale: 1.25; rotate: 20deg; }
         }
 
         /* ── Magnetic CTA ── */
@@ -814,30 +823,40 @@ const Home = () => {
           box-shadow: 0 0 40px rgba(0,163,163,0.15), 0 0 80px rgba(59,130,246,0.08);
         }
 
-        /* ── Neon CSS Logo Text ── */
-        .neon-logo-text {
-          color: transparent;
-          -webkit-text-stroke: 1px rgba(0,163,163,0.6);
+        /* ── Neon breathe for "GLOW" text ── */
+        .neon-glow-text {
+          color: #00A3A3;
           text-shadow:
             0 0 10px rgba(0,163,163,0.5),
             0 0 30px rgba(0,163,163,0.3),
-            0 0 60px rgba(0,163,163,0.2),
-            0 0 100px rgba(0,163,163,0.1);
-          animation: neonLogoFlicker 4s ease-in-out infinite;
+            0 0 60px rgba(0,163,163,0.15);
+          animation: neonBreathe 3s ease-in-out infinite;
         }
-        @keyframes neonLogoFlicker {
+        @keyframes neonBreathe {
           0%, 100% {
             text-shadow:
-              0 0 10px rgba(0,163,163,0.5),
-              0 0 30px rgba(0,163,163,0.3),
-              0 0 60px rgba(0,163,163,0.2);
+              0 0 10px rgba(0,163,163,0.4),
+              0 0 30px rgba(0,163,163,0.2),
+              0 0 60px rgba(0,163,163,0.1);
           }
           50% {
             text-shadow:
               0 0 20px rgba(0,163,163,0.8),
               0 0 50px rgba(0,163,163,0.5),
-              0 0 90px rgba(0,163,163,0.3),
-              0 0 140px rgba(0,163,163,0.15);
+              0 0 100px rgba(0,163,163,0.3),
+              0 0 150px rgba(0,163,163,0.15);
+          }
+        }
+
+        /* ── Glowing geometric O ── */
+        @keyframes neonOPulse {
+          0%, 100% {
+            box-shadow: 0 0 6px rgba(0,163,163,0.3), inset 0 0 6px rgba(0,163,163,0.1);
+            border-color: rgba(0,163,163,0.4);
+          }
+          50% {
+            box-shadow: 0 0 16px rgba(0,163,163,0.6), 0 0 30px rgba(0,163,163,0.2), inset 0 0 12px rgba(0,163,163,0.2);
+            border-color: rgba(0,163,163,0.8);
           }
         }
 
@@ -870,18 +889,6 @@ const Home = () => {
           );
         }
 
-        /* ── Neon heartbeat for "Pure Glow" ── */
-        .neon-heartbeat-text {
-          animation: shimmer 3s linear infinite, neonHeartbeat 3s ease-in-out infinite;
-        }
-        @keyframes neonHeartbeat {
-          0%, 100% {
-            filter: drop-shadow(0 0 8px rgba(0,163,163,0.3));
-          }
-          50% {
-            filter: drop-shadow(0 0 20px rgba(0,163,163,0.6)) drop-shadow(0 0 40px rgba(0,163,163,0.3));
-          }
-        }
 
         /* ── Floating animation ── */
         .hero-float {
