@@ -715,6 +715,8 @@ export default function Studio() {
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
+            onDrop={handleCanvasDrop}
+            onDragOver={handleCanvasDragOver}
           >
             {/* Grid pattern */}
             <div
