@@ -738,7 +738,7 @@ const Home = () => {
       </section>
 
       {/* ── Contact Us ── */}
-      <section className="px-6 py-24 max-w-2xl mx-auto">
+      <section id="contact" className="px-6 py-24 max-w-2xl mx-auto">
         <h2 data-animate className="reveal-card text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
           Get in Touch
         </h2>

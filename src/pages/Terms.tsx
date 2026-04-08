@@ -226,12 +226,26 @@ export default function Terms() {
                 <li>Export your data in a portable format</li>
               </ul>
               <p className="mt-3">
-                To exercise any of these rights, reach out via the contact form on our{" "}
-                <Link to="/home" className="text-cyan-400 hover:text-cyan-300 underline transition-colors">
-                  homepage
+                To request data deletion or exercise any of these rights, use our{" "}
+                <Link to="/home#contact" className="text-cyan-400 hover:text-cyan-300 underline transition-colors">
+                  contact form
                 </Link>.
               </p>
             </SectionCard>
+
+            {/* Data Deletion Callout */}
+            <div className="bg-cyan-500/5 backdrop-blur-xl border border-cyan-400/20 rounded-2xl p-6 mb-6">
+              <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Shield className="h-4 w-4" /> Data Deletion Requests
+              </h3>
+              <p className="text-[#E2E8F0] text-sm leading-relaxed">
+                Want your data removed? Submit a request via our{" "}
+                <Link to="/home#contact" className="text-cyan-400 hover:text-cyan-300 underline transition-colors">
+                  contact form
+                </Link>{" "}
+                and we'll process it within 30 days.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
 
@@ -239,6 +253,12 @@ export default function Terms() {
         <div className="mt-12 pt-8 border-t border-white/10 text-center">
           <p className="text-[#E2E8F0]/40 text-xs">
             © {new Date().getFullYear()} Glow Hub. All rights reserved.
+          </p>
+          <p className="text-[#E2E8F0]/30 text-xs mt-2">
+            Need help?{" "}
+            <Link to="/home#contact" className="text-[#E2E8F0]/40 hover:text-cyan-400 underline transition-colors">
+              Contact us
+            </Link>
           </p>
         </div>
       </div>
