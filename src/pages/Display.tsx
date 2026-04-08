@@ -74,6 +74,11 @@ export default function Display() {
 
     loadScreen();
 
+    // Check watermark status
+    supabase.functions.invoke("check-watermark", { body: { screen_id: screenId } })
+      .then(({ data }) => { if (data?.show) setShowWatermark(true); else setShowWatermark(false); })
+      .catch(() => {});
+
     // Realtime subscription
     const channel = supabase
       .channel(`screen-${screenId}`)
