@@ -102,6 +102,10 @@ export default function Player() {
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
 
+  // ── BREAKING ALERT ──
+  const [alertActive, setAlertActive] = useState(false);
+  const alertTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
   // Active buffer: opacity 1, z-index 10
