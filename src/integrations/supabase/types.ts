@@ -40,16 +40,19 @@ export type Database = {
       }
       leads: {
         Row: {
+          consented_at: string
           created_at: string
           email: string
           id: string
         }
         Insert: {
+          consented_at?: string
           created_at?: string
           email: string
           id?: string
         }
         Update: {
+          consented_at?: string
           created_at?: string
           email?: string
           id?: string
