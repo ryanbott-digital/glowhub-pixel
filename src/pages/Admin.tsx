@@ -22,6 +22,13 @@ interface ContactSubmission {
   created_at: string;
 }
 
+interface Lead {
+  id: string;
+  email: string;
+  created_at: string;
+  consented_at: string;
+}
+
 const TIERS = [
   { value: "free", label: "Free", color: "secondary" as const },
   { value: "basic", label: "Basic", color: "default" as const },
