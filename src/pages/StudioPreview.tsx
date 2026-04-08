@@ -113,7 +113,6 @@ export default function StudioPreview() {
 
   /* ── cursor auto-hide ── */
   const [cursorVisible, setCursorVisible] = useState(true);
-  const timerRef = useState<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
     const handleMove = () => {
