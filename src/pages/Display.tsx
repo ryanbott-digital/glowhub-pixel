@@ -23,6 +23,7 @@ export default function Display() {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showWatermark, setShowWatermark] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -72,6 +73,11 @@ export default function Display() {
     };
 
     loadScreen();
+
+    // Check watermark status
+    supabase.functions.invoke("check-watermark", { body: { screen_id: screenId } })
+      .then(({ data }) => { if (data?.show) setShowWatermark(true); else setShowWatermark(false); })
+      .catch(() => {});
 
     // Realtime subscription
     const channel = supabase
@@ -162,6 +168,12 @@ export default function Display() {
           className="max-w-full max-h-screen object-contain"
           onEnded={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
         />
+      )}
+      {showWatermark && (
+        <div className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 pointer-events-none select-none">
+          <span className="text-white/80 text-[10px] font-medium tracking-wider uppercase">Powered by</span>
+          <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
+        </div>
       )}
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
     </div>
