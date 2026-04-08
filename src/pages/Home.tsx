@@ -284,7 +284,7 @@ const Home = () => {
               </Link>
               <button
                 onClick={() => scrollTo("process")}
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold border border-[#1E293B] hover:border-[#00A3A3]/50 hover:shadow-[0_0_16px_rgba(0,163,163,0.1)] transition-all duration-300"
+                className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl font-semibold border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300"
               >
                 See how it works
               </button>
