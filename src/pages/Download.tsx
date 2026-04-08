@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Download, Tv, Globe, Flame, Monitor, Tablet, Rocket, ChevronRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -104,14 +105,15 @@ export default function DownloadPage() {
   const [submitting, setSubmitting] = useState(false);
   const [flashActive, setFlashActive] = useState(false);
   const { canvasRef, fire: fireConfetti } = useConfetti();
+  const [consented, setConsented] = useState(false);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleUnlock = async () => {
-    if (!isValidEmail || submitting) return;
+    if (!isValidEmail || !consented || submitting) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("leads").insert({ email: email.trim() });
+      const { error } = await supabase.from("leads").insert({ email: email.trim(), consented_at: new Date().toISOString() });
       // 23505 = unique_violation — email already exists, still unlock
       if (error && error.code !== "23505") throw error;
       setFlashActive(true);
@@ -191,9 +193,19 @@ export default function DownloadPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
                   className="bg-background/50 border-primary/30 focus:border-primary/60 focus:shadow-[0_0_16px_hsla(180,100%,45%,0.15)] text-center text-base"
                 />
+                <label className="flex items-start gap-2.5 text-left cursor-pointer">
+                  <Checkbox
+                    checked={consented}
+                    onCheckedChange={(v) => setConsented(v === true)}
+                    className="mt-0.5 border-primary/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    I agree to receive product updates, setup guides, and promotional offers from Glow. You can unsubscribe at any time.
+                  </span>
+                </label>
                 <Button
                   onClick={handleUnlock}
-                  disabled={!isValidEmail || submitting}
+                  disabled={!isValidEmail || !consented || submitting}
                   className="w-full bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground font-semibold text-base py-5 hover:shadow-[0_0_30px_hsla(180,100%,45%,0.35)] transition-all"
                 >
                   <Rocket className="h-4 w-4 mr-1" />

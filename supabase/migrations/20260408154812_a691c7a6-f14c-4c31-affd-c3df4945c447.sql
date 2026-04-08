@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD COLUMN consented_at timestamptz NOT NULL DEFAULT now();
