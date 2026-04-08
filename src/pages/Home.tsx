@@ -858,21 +858,6 @@ const Home = () => {
             box-shadow: 0 0 16px rgba(0,163,163,0.6), 0 0 30px rgba(0,163,163,0.2), inset 0 0 12px rgba(0,163,163,0.2);
             border-color: rgba(0,163,163,0.8);
           }
-        }
-          0%, 100% {
-            text-shadow:
-              0 0 10px rgba(0,163,163,0.5),
-              0 0 30px rgba(0,163,163,0.3),
-              0 0 60px rgba(0,163,163,0.2);
-          }
-          50% {
-            text-shadow:
-              0 0 20px rgba(0,163,163,0.8),
-              0 0 50px rgba(0,163,163,0.5),
-              0 0 90px rgba(0,163,163,0.3),
-              0 0 140px rgba(0,163,163,0.15);
-          }
-        }
 
         /* ── Aurora TV screen ── */
         .aurora-screen {
