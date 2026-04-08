@@ -456,6 +456,16 @@ export default function Canvas() {
                     );
                   })()}
                 </div>
+
+                {/* Mini-map: full content with segment overlays */}
+                {group.screens.length > 0 && groupPreviews[group.id] && (
+                  <div className="relative z-10 mb-4">
+                    <p className="text-[10px] text-muted-foreground tracking-widest uppercase mb-2 flex items-center gap-1.5">
+                      <Monitor className="h-3 w-3" /> Content Mini-Map
+                    </p>
+                    <div
+                      className="relative rounded-lg overflow-hidden border border-border/40 bg-muted/30"
+                      style={{
                         aspectRatio: group.orientation === "horizontal"
                           ? `${16 * group.screens.length}/9`
                           : `16/${9 * group.screens.length}`,
