@@ -632,6 +632,13 @@ export default function Player() {
     };
 
     checkStoredScreen();
+
+    // Check watermark status for free-tier users
+    if (screenId) {
+      supabase.functions.invoke("check-watermark", { body: { screen_id: screenId } })
+        .then(({ data }) => { if (data?.show) setShowWatermark(true); else setShowWatermark(false); })
+        .catch(() => {});
+    }
   }, [screenId, urlPairingCode, paired, fetchPlaylist]);
 
   // ── REALTIME: Listen for screen being claimed (pairing_code cleared, user_id set) ──
