@@ -131,8 +131,18 @@ export default function Canvas() {
     if (!user) return;
     const channel = supabase
       .channel("canvas-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "sync_groups", filter: `user_id=eq.${user.id}` }, () => fetchData())
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` }, () => fetchData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "sync_groups", filter: `user_id=eq.${user.id}` }, () => {
+        toast.info("Sync group updated externally", { description: "Canvas refreshed." });
+        fetchData();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` }, (payload) => {
+        const old = payload.old as any;
+        const next = payload.new as any;
+        if (old.current_playlist_id !== next.current_playlist_id) {
+          toast.info(`"${next.name}" playlist changed`, { description: "Canvas refreshed." });
+        }
+        fetchData();
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, fetchData]);
