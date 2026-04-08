@@ -90,7 +90,7 @@ export default function Billing() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
+    <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
       {/* Level Up Flash */}
       {showLevelUp && (
         <div className="fixed inset-0 z-[100] pointer-events-none animate-[levelUpFlash_1.5s_ease-out_forwards]">
@@ -145,7 +145,7 @@ export default function Billing() {
       )}
 
       {/* Pricing comparison table */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Free Card */}
         <div className={`rounded-2xl border p-6 space-y-4 backdrop-blur-xl transition-all ${
           !isPro ? "border-primary/40 ring-2 ring-primary/30 bg-white/5 dark:bg-white/5" : "border-white/10 bg-white/5 dark:bg-white/5"
