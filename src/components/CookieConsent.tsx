@@ -40,7 +40,7 @@ export function CookieConsent() {
       <div className="relative overflow-hidden rounded-2xl sm:rounded-full bg-white/5 backdrop-blur-[15px] border border-cyan-400/20 px-5 py-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 shadow-[0_0_20px_rgba(0,200,200,0.08)]">
         {/* Neon flash overlay */}
         {flashing && (
-          <div className="absolute inset-0 rounded-full bg-cyan-400/30 animate-[flash_300ms_ease-out_forwards] pointer-events-none" />
+          <div className="absolute inset-0 rounded-2xl sm:rounded-full bg-cyan-400/30 animate-[flash_300ms_ease-out_forwards] pointer-events-none" />
         )}
 
         {/* Pulsing dot */}
