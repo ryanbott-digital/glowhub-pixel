@@ -506,8 +506,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Social Proof Stats ── */}
-      <SocialProofStats />
+      {/* ── Social Proof Stats (hidden until we have customers) ── */}
+      {/* <SocialProofStats /> */}
 
 
       <section id="process" className="px-6 py-24 max-w-5xl mx-auto">
