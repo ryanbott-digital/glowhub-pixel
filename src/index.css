@@ -160,7 +160,6 @@ html {
   /* ── Spotlight cursor effect ── */
   .glass-spotlight {
     position: relative;
-    overflow: hidden;
     transition: border-color 0.3s ease;
   }
 
@@ -168,6 +167,8 @@ html {
     content: '';
     position: absolute;
     inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
     background: radial-gradient(
       300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
       hsla(180, 100%, 45%, 0.06),
