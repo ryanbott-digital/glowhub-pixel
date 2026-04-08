@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       .from("screens")
       .insert({
         pairing_code: pairingCode,
-        status: "pending",
+        status: "offline",
         name: "Pending Screen",
         user_id: UNCLAIMED_USER_ID,
       })
