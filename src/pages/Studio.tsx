@@ -515,6 +515,10 @@ export default function Studio() {
             onChange={(e) => setLayoutName(e.target.value)}
             className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]"
           />
+          <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
+            <Eye className="h-3.5 w-3.5" />
+            Preview
+          </Button>
           <Button size="sm" onClick={handleSave} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider">
             <Save className="h-3.5 w-3.5" />
             Save
