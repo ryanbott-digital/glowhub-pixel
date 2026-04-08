@@ -848,6 +848,7 @@ const Home = () => {
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
             <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
             <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>
+            <button onClick={() => { localStorage.removeItem("cookie-consent"); window.dispatchEvent(new Event("cookie-reset")); }} className="hover:text-[#E2E8F0] transition-colors">Cookie Preferences</button>
           </div>
           <p className="text-xs text-[#475569]">© {new Date().getFullYear()} Glow. All rights reserved.</p>
         </div>
