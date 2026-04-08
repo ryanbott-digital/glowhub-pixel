@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { GHLoaderPage } from "@/components/GHLoader";
@@ -8,26 +9,28 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { isNativePlatform } from "@/lib/capacitor-autostart";
-import Auth from "./pages/Auth";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import MediaLibrary from "./pages/MediaLibrary";
-import Playlists from "./pages/Playlists";
-import Screens from "./pages/Screens";
-import Display from "./pages/Display";
-import Player from "./pages/Player";
-import Analytics from "./pages/Analytics";
-import InstallGuide from "./pages/InstallGuide";
-import InstallApp from "./pages/InstallApp";
-import ResetPassword from "./pages/ResetPassword";
-import Subscription from "./pages/Subscription";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/PaymentCancel";
-import Admin from "./pages/Admin";
-import Settings from "./pages/Settings";
-import Canvas from "./pages/Canvas";
-import Download from "./pages/Download";
-import NotFound from "./pages/NotFound";
+
+// Lazy-loaded pages
+const Auth = lazy(() => import("./pages/Auth"));
+const Home = lazy(() => import("./pages/Home"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
+const Playlists = lazy(() => import("./pages/Playlists"));
+const Screens = lazy(() => import("./pages/Screens"));
+const Display = lazy(() => import("./pages/Display"));
+const Player = lazy(() => import("./pages/Player"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const InstallGuide = lazy(() => import("./pages/InstallGuide"));
+const InstallApp = lazy(() => import("./pages/InstallApp"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCancel = lazy(() => import("./pages/PaymentCancel"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Canvas = lazy(() => import("./pages/Canvas"));
+const Download = lazy(() => import("./pages/Download"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -80,29 +83,31 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/home" element={<PublicRoute><Home /></PublicRoute>} />
-            <Route path="/auth" element={<AuthRoute />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/display/:screenId" element={<Display />} />
-            <Route path="/player" element={<Player />} />
-            <Route path="/player/:pairingCode" element={<Player />} />
-            <Route path="/" element={<RootRoute />} />
-            <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
-            <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
-            <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-            <Route path="/payment/success" element={<PaymentSuccess />} />
-            <Route path="/payment/cancel" element={<PaymentCancel />} />
-            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
-            <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
-            <Route path="/install-app" element={<InstallApp />} />
-            <Route path="/download" element={<Download />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<GHLoaderPage />}>
+            <Routes>
+              <Route path="/home" element={<PublicRoute><Home /></PublicRoute>} />
+              <Route path="/auth" element={<AuthRoute />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/display/:screenId" element={<Display />} />
+              <Route path="/player" element={<Player />} />
+              <Route path="/player/:pairingCode" element={<Player />} />
+              <Route path="/" element={<RootRoute />} />
+              <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
+              <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
+              <Route path="/screens" element={<ProtectedRoute><Screens /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/cancel" element={<PaymentCancel />} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
+              <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
+              <Route path="/install-app" element={<InstallApp />} />
+              <Route path="/download" element={<Download />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
