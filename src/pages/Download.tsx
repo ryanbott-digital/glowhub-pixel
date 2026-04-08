@@ -113,7 +113,7 @@ export default function DownloadPage() {
     if (!isValidEmail || !consented || submitting) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("leads").insert({ email: email.trim() });
+      const { error } = await supabase.from("leads").insert({ email: email.trim(), consented_at: new Date().toISOString() });
       // 23505 = unique_violation — email already exists, still unlock
       if (error && error.code !== "23505") throw error;
       setFlashActive(true);
