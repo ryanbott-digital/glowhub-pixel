@@ -134,6 +134,8 @@ export default function DownloadPage() {
         className={`fixed inset-0 z-[100] pointer-events-none bg-white/90 transition-opacity duration-400 ${flashActive ? "opacity-100" : "opacity-0"}`}
         style={{ transitionDuration: "400ms" }}
       />
+      {/* Confetti canvas */}
+      <canvas ref={canvasRef} className="fixed inset-0 z-[101] pointer-events-none" />
 
       {/* Mesh gradient background */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
