@@ -42,7 +42,7 @@ export default function PaymentSuccess() {
         </div>
 
         <Button
-          onClick={() => navigate("/screens")}
+          onClick={() => navigate("/billing?upgraded=true")}
           className="w-full bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] hover:shadow-[0_0_20px_rgba(0,163,163,0.4)] text-white border-0 h-12 text-base"
         >
           Go to Screens <ArrowRight className="ml-2 h-4 w-4" />
