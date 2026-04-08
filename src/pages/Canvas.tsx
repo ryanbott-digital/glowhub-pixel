@@ -594,6 +594,33 @@ export default function Canvas() {
                                   />
                                 )}
                               </div>
+
+                              {/* Currently playing playlist indicator */}
+                              {(() => {
+                                const screenPlaylistId = member.screen?.current_playlist_id;
+                                const screenPlaylist = screenPlaylistId ? playlists.find(p => p.id === screenPlaylistId) : null;
+                                const isSynced = group.playlist_id && screenPlaylistId === group.playlist_id;
+                                const hasPlaylist = !!screenPlaylistId;
+                                return (
+                                  <div className="flex items-center gap-1.5 mt-1.5 px-1.5 py-1 rounded-md bg-muted/30">
+                                    <ListMusic className="h-3 w-3 shrink-0 text-muted-foreground/60" />
+                                    {hasPlaylist ? (
+                                      <>
+                                        <span className="text-[9px] text-muted-foreground truncate flex-1">
+                                          {screenPlaylist?.title || "Unknown playlist"}
+                                        </span>
+                                        {isSynced ? (
+                                          <span className="text-[8px] font-bold text-emerald-400 tracking-wider shrink-0">✓ SYNCED</span>
+                                        ) : (
+                                          <span className="text-[8px] font-bold text-amber-400 tracking-wider shrink-0">⚠ OUT OF SYNC</span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="text-[9px] text-muted-foreground/40 italic">No playlist</span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </Card>
                           </div>
                           );
