@@ -249,15 +249,25 @@ const Home = () => {
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Left — Copy */}
           <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#1E293B] bg-[#0F172A]/60 backdrop-blur-sm text-xs text-[#94A3B8] mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
-              Digital signage made simple
+            {/* System Engine Active badge */}
+            <div className="inline-flex items-center gap-3 mb-8">
+              {/* Glowing geometric O */}
+              <div className="relative w-8 h-8 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border border-[#00A3A3]/60 animate-[neonOPulse_3s_ease-in-out_infinite]" />
+                <div className="absolute inset-1 rounded-full border border-[#00A3A3]/30" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+              </div>
+              <span className="text-[10px] sm:text-xs font-mono tracking-[0.3em] text-[#00A3A3]/80 uppercase">
+                [ SYSTEM ENGINE ACTIVE ]
+              </span>
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-[0.1em] leading-[1.05] mb-6 uppercase font-['Satoshi',system-ui,sans-serif]">
               Your Content.<br /> Any Screen.{" "}
-              <span className="neon-heartbeat-text bg-gradient-to-r from-[#00A3A3] via-[#3B82F6] to-[#00A3A3] bg-clip-text text-transparent bg-[length:200%_auto] animate-[shimmer_3s_linear_infinite]">
-                Pure Glow.
+              <br />
+              <span className="inline-block">
+                <span className="text-[#E2E8F0]">Pure </span>
+                <span className="neon-glow-text">Glow.</span>
               </span>
             </h1>
             <p className="text-base sm:text-lg text-[#94A3B8] max-w-xl mb-10 leading-relaxed lg:mx-0 mx-auto">
