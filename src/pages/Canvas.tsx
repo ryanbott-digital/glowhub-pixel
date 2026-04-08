@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Plus, Trash2, Monitor, Layers, Crown, ArrowRight, ArrowDown,
-  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send, Eye, X,
+  Heart, Link2, Unlink, Sparkles, Lock, ListMusic, Send, Eye, X, RefreshCw,
 } from "lucide-react";
 
 interface Playlist {
@@ -205,6 +205,26 @@ export default function Canvas() {
     const next = current === "horizontal" ? "vertical" : "horizontal";
     const { error } = await supabase.from("sync_groups").update({ orientation: next }).eq("id", groupId);
     if (error) { toast.error(error.message); return; }
+    fetchData();
+  };
+
+  const getMismatchedScreens = (group: SyncGroup) => {
+    if (!group.playlist_id) return [];
+    return group.screens.filter(
+      (s) => s.screen?.current_playlist_id !== group.playlist_id
+    );
+  };
+
+  const handleSyncMismatched = async (group: SyncGroup) => {
+    const mismatched = getMismatchedScreens(group);
+    if (mismatched.length === 0) return;
+    const ids = mismatched.map((s) => s.screen_id);
+    const { error } = await supabase
+      .from("screens")
+      .update({ current_playlist_id: group.playlist_id })
+      .in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Synced ${ids.length} screen${ids.length !== 1 ? "s" : ""}`);
     fetchData();
   };
 
@@ -420,6 +440,21 @@ export default function Canvas() {
                     <Send className="h-3.5 w-3.5" />
                     Push to All
                   </Button>
+                  {(() => {
+                    const mismatched = getMismatchedScreens(group);
+                    if (mismatched.length === 0) return null;
+                    return (
+                      <Button
+                        size="sm"
+                        onClick={() => handleSyncMismatched(group)}
+                        className="text-xs gap-1.5 rounded-lg font-semibold tracking-wider border-amber-500/50 text-amber-400 hover:bg-amber-500/20 animate-pulse"
+                        variant="outline"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        Sync All ({mismatched.length})
+                      </Button>
+                    );
+                  })()}
                 </div>
 
                 {/* Mini-map: full content with segment overlays */}
@@ -525,6 +560,12 @@ export default function Canvas() {
                                   <span className="text-sm font-medium text-foreground truncate">
                                     {member.screen?.name || "Unknown"}
                                   </span>
+                                  {group.playlist_id && member.screen?.current_playlist_id !== group.playlist_id && (
+                                    <span
+                                      className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"
+                                      title="Out of sync"
+                                    />
+                                  )}
                                 </div>
                                 <Button
                                   variant="ghost"
