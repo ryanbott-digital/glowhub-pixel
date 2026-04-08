@@ -388,3 +388,48 @@ html {
 .glow-text-pulse {
   animation: glowTextPulse 5s ease-in-out infinite;
 }
+
+/* ── Emergency Alert Animations ── */
+@keyframes alertGlowSpill {
+  0%, 100% { box-shadow: 0 -20px 60px rgba(255,0,51,0.4), 0 -40px 100px rgba(255,0,51,0.15); }
+  50% { box-shadow: 0 -30px 80px rgba(255,0,51,0.6), 0 -60px 140px rgba(255,0,51,0.25); }
+}
+
+@keyframes alertGlitchIn {
+  0% { transform: translate(0); filter: none; }
+  10% { transform: translate(-3px, 2px) skewX(-2deg); filter: hue-rotate(90deg); }
+  20% { transform: translate(3px, -1px) skewX(1deg); filter: none; }
+  30% { transform: translate(-2px, 0); }
+  40% { transform: translate(0); }
+  100% { transform: translate(0); }
+}
+
+.alert-glitch-in {
+  animation: alertGlitchIn 0.5s ease-out;
+}
+
+@keyframes alertLiveFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.alert-live-flash {
+  animation: alertLiveFlash 0.5s step-end infinite;
+}
+
+@keyframes alertScreenShake {
+  0%, 100% { transform: translate(0); }
+  10% { transform: translate(-4px, 2px); }
+  20% { transform: translate(4px, -2px); }
+  30% { transform: translate(-3px, -1px); }
+  40% { transform: translate(3px, 1px); }
+  50% { transform: translate(-2px, 2px); }
+  60% { transform: translate(2px, -1px); }
+  70% { transform: translate(-1px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(0); }
+}
+
+.alert-screen-shake {
+  animation: alertScreenShake 0.6s ease-out;
+}
