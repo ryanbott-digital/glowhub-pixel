@@ -1066,4 +1066,47 @@ const Home = () => {
   );
 };
 
+/* ── Social Proof Stats Section ── */
+const STATS = [
+  { value: 1000, suffix: "+", label: "Screens Active", icon: "📺" },
+  { value: 99, suffix: ".9%", label: "Uptime", icon: "⚡" },
+  { value: 50, suffix: "+", label: "Countries", icon: "🌍" },
+  { value: 4, suffix: "M+", label: "Hours Played", icon: "▶" },
+];
+
+function StatCard({ value, suffix, label, icon, delay }: { value: number; suffix: string; label: string; icon: string; delay: number }) {
+  const counter = useCountUp(value, 2200);
+  return (
+    <div
+      ref={counter.ref}
+      data-animate
+      className="reveal-card glass-card glass-spotlight rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.12)] transition-all duration-500"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-[#00A3A3]/5 via-transparent to-[#3B82F6]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <span className="text-2xl mb-3">{icon}</span>
+      <span className="text-3xl sm:text-4xl font-extrabold font-['Satoshi',system-ui,sans-serif] tracking-tight text-[#E2E8F0] relative">
+        {counter.value.toLocaleString()}{suffix}
+        <span className="absolute -inset-x-4 -inset-y-2 rounded-xl bg-[#00A3A3]/0 group-hover:bg-[#00A3A3]/5 blur-xl transition-all duration-700 pointer-events-none" />
+      </span>
+      <span className="text-xs sm:text-sm text-[#64748B] mt-2 tracking-wider uppercase font-medium">{label}</span>
+    </div>
+  );
+}
+
+function SocialProofStats() {
+  return (
+    <section className="px-6 py-20 max-w-5xl mx-auto">
+      <p className="text-center text-xs uppercase tracking-[0.25em] text-[#64748B] font-medium mb-10">
+        Trusted by businesses worldwide
+      </p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {STATS.map((s, i) => (
+          <StatCard key={s.label} {...s} delay={0.1 + i * 0.15} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default Home;
