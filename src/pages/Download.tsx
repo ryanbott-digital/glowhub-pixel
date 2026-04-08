@@ -114,13 +114,16 @@ export default function DownloadPage() {
     setSubmitting(true);
     try {
       const { error } = await supabase.from("leads").insert({ email: email.trim(), consented_at: new Date().toISOString() });
-      // 23505 = unique_violation — email already exists, still unlock
-      if (error && error.code !== "23505") throw error;
+      const isReturning = error?.code === "23505";
+      if (error && !isReturning) throw error;
       setFlashActive(true);
       setTimeout(() => {
         setUnlocked(true);
         setFlashActive(false);
         fireConfetti();
+        if (isReturning) {
+          toast("Welcome back! 👋", { description: "Good to see you again." });
+        }
       }, 400);
     } catch {
       toast.error("Something went wrong. Please try again.");
