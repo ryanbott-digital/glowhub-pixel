@@ -763,7 +763,49 @@ export default function Studio() {
                 );
               })()}
 
-              {/* Image URL */}
+              {/* Weather config */}
+              {selected.type === "widget-weather" && (() => {
+                let cfg: any = { city: "auto" };
+                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                const isAuto = cfg.city === "auto";
+                const updateCfg = (patch: Record<string, any>) => {
+                  updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
+                };
+                return (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> Location
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Switch checked={isAuto} onCheckedChange={(v) => updateCfg({ city: v ? "auto" : "London" })} />
+                        <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">
+                          {isAuto ? "Auto-detect" : "Manual"}
+                        </span>
+                      </div>
+                      {!isAuto && (
+                        <Input
+                          value={cfg.city}
+                          onChange={(e) => updateCfg({ city: e.target.value })}
+                          placeholder="City name..."
+                          className="glass h-8 text-xs"
+                        />
+                      )}
+                    </div>
+                    {weatherPreview && (
+                      <div className="rounded-lg bg-muted/10 border border-border/20 p-2 space-y-0.5">
+                        <p className="text-[9px] text-muted-foreground/60 font-mono uppercase tracking-widest">Preview</p>
+                        <p className="text-xs text-foreground font-bold font-['Satoshi',sans-serif]">{weatherPreview.temp}°C — {weatherPreview.condition}</p>
+                        <p className="text-[9px] text-muted-foreground font-mono">{weatherPreview.city}</p>
+                      </div>
+                    )}
+                    <p className="text-[9px] text-muted-foreground/40 font-['Satoshi',sans-serif] italic">
+                      Location is detected automatically on TV
+                    </p>
+                  </div>
+                );
+              })()}
+
               {selected.type === "image" && (
                 <div className="space-y-2">
                   <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image URL</p>
