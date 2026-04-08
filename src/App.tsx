@@ -30,6 +30,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Canvas = lazy(() => import("./pages/Canvas"));
 const Studio = lazy(() => import("./pages/Studio"));
+const StudioPreview = lazy(() => import("./pages/StudioPreview"));
 const Download = lazy(() => import("./pages/Download"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
