@@ -1221,7 +1221,7 @@ export default function Studio() {
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {mediaItems.map((item) => {
-                  const publicUrl = supabase.storage.from("media").getPublicUrl(item.storage_path).data.publicUrl;
+                  const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
                   return (
                     <button
                       key={item.id}
