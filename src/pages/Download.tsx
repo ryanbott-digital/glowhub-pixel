@@ -105,11 +105,12 @@ export default function DownloadPage() {
   const [submitting, setSubmitting] = useState(false);
   const [flashActive, setFlashActive] = useState(false);
   const { canvasRef, fire: fireConfetti } = useConfetti();
+  const [consented, setConsented] = useState(false);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleUnlock = async () => {
-    if (!isValidEmail || submitting) return;
+    if (!isValidEmail || !consented || submitting) return;
     setSubmitting(true);
     try {
       const { error } = await supabase.from("leads").insert({ email: email.trim() });
