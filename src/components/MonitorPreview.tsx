@@ -107,10 +107,10 @@ export function MonitorPreview() {
       if (idx === -1) return;
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedScreenId(screens[(idx - 1 + screens.length) % screens.length].id);
+        fadeToScreen(screens[(idx - 1 + screens.length) % screens.length].id);
       } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedScreenId(screens[(idx + 1) % screens.length].id);
+        fadeToScreen(screens[(idx + 1) % screens.length].id);
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -134,10 +134,19 @@ export function MonitorPreview() {
 
   const currentItem = items.length > 0 ? items[currentIndex] : null;
 
+  const fadeToScreen = useCallback((newId: string) => {
+    if (newId === selectedScreenId) return;
+    setScreenFading(true);
+    setTimeout(() => {
+      setSelectedScreenId(newId);
+      setTimeout(() => setScreenFading(false), 50);
+    }, 300);
+  }, [selectedScreenId]);
+
   const cycleScreen = (dir: -1 | 1) => {
     const idx = screens.findIndex((s) => s.id === selectedScreenId);
     if (idx === -1) return;
-    setSelectedScreenId(screens[(idx + dir + screens.length) % screens.length].id);
+    fadeToScreen(screens[(idx + dir + screens.length) % screens.length].id);
   };
 
   return (
@@ -217,7 +226,7 @@ export function MonitorPreview() {
           `
         }}>
           {/* Inner bezel */}
-          <div className="absolute inset-[6px] rounded-lg bg-black overflow-hidden">
+          <div className="absolute inset-[6px] rounded-lg bg-black overflow-hidden transition-opacity duration-300 ease-in-out" style={{ opacity: screenFading ? 0 : 1 }}>
             {currentItem ? (
               <>
                 {currentItem.media.type === "image" ? (
