@@ -157,6 +157,40 @@ function HeroParticles({ mousePos }: { mousePos: { x: number; y: number } }) {
   );
 }
 
+/* ── Animated counter hook ── */
+function useCountUp(target: number, duration = 2000) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now: number) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setValue(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return { value, ref };
+}
+
 /* ── Live menu items for the mockup ── */
 const MENU_ITEMS = [
   [
@@ -471,6 +505,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* ── Social Proof Stats ── */}
+      <SocialProofStats />
 
 
       <section id="process" className="px-6 py-24 max-w-5xl mx-auto">
