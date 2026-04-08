@@ -259,6 +259,16 @@ export default function Terms() {
             <Link to="/home#contact" className="text-[#E2E8F0]/40 hover:text-cyan-400 underline transition-colors">
               Contact us
             </Link>
+            {" · "}
+            <button
+              onClick={() => {
+                localStorage.removeItem("glow-cookie-consent");
+                window.location.reload();
+              }}
+              className="text-[#E2E8F0]/40 hover:text-cyan-400 underline transition-colors"
+            >
+              Cookie preferences
+            </button>
           </p>
         </div>
       </div>
