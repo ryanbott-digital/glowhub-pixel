@@ -348,6 +348,34 @@ export default function Canvas() {
                   </div>
                 </div>
 
+                {/* Playlist Assignment */}
+                <div className="flex items-center gap-3 mb-5 relative z-10">
+                  <ListMusic className="h-4 w-4 text-primary shrink-0" />
+                  <Select
+                    value={group.playlist_id || "none"}
+                    onValueChange={(v) => handleAssignPlaylist(group.id, v === "none" ? null : v)}
+                  >
+                    <SelectTrigger className="glass flex-1 h-9 text-xs">
+                      <SelectValue placeholder="Assign a playlist…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No playlist</SelectItem>
+                      {playlists.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    onClick={() => handlePushToAllScreens(group)}
+                    disabled={!group.playlist_id || group.screens.length === 0}
+                    className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 rounded-lg font-semibold tracking-wider"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    Push to All
+                  </Button>
+                </div>
+
                 {/* Canvas workspace */}
                 <div className="relative z-10">
                   {group.screens.length === 0 ? (
