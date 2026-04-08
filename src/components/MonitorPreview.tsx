@@ -28,6 +28,7 @@ export function MonitorPreview() {
   const { user } = useAuth();
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [screenFading, setScreenFading] = useState(false);
   const [screens, setScreens] = useState<ScreenOption[]>([]);
   const [selectedScreenId, setSelectedScreenId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -106,10 +107,10 @@ export function MonitorPreview() {
       if (idx === -1) return;
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedScreenId(screens[(idx - 1 + screens.length) % screens.length].id);
+        fadeToScreen(screens[(idx - 1 + screens.length) % screens.length].id);
       } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
-        setSelectedScreenId(screens[(idx + 1) % screens.length].id);
+        fadeToScreen(screens[(idx + 1) % screens.length].id);
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -133,10 +134,19 @@ export function MonitorPreview() {
 
   const currentItem = items.length > 0 ? items[currentIndex] : null;
 
+  const fadeToScreen = useCallback((newId: string) => {
+    if (newId === selectedScreenId) return;
+    setScreenFading(true);
+    setTimeout(() => {
+      setSelectedScreenId(newId);
+      setTimeout(() => setScreenFading(false), 50);
+    }, 300);
+  }, [selectedScreenId]);
+
   const cycleScreen = (dir: -1 | 1) => {
     const idx = screens.findIndex((s) => s.id === selectedScreenId);
     if (idx === -1) return;
-    setSelectedScreenId(screens[(idx + dir + screens.length) % screens.length].id);
+    fadeToScreen(screens[(idx + dir + screens.length) % screens.length].id);
   };
 
   return (
@@ -148,7 +158,7 @@ export function MonitorPreview() {
             <ChevronLeft className="h-4 w-4" />
           </button>
           <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
-          <Select value={selectedScreenId || ""} onValueChange={setSelectedScreenId}>
+          <Select value={selectedScreenId || ""} onValueChange={fadeToScreen}>
             <SelectTrigger className="w-48 h-8 text-xs bg-secondary/50 border-border/50 rounded-lg">
               <SelectValue placeholder="Select screen" />
             </SelectTrigger>
@@ -216,7 +226,7 @@ export function MonitorPreview() {
           `
         }}>
           {/* Inner bezel */}
-          <div className="absolute inset-[6px] rounded-lg bg-black overflow-hidden">
+          <div className="absolute inset-[6px] rounded-lg bg-black overflow-hidden transition-opacity duration-300 ease-in-out" style={{ opacity: screenFading ? 0 : 1 }}>
             {currentItem ? (
               <>
                 {currentItem.media.type === "image" ? (
