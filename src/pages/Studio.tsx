@@ -370,8 +370,8 @@ export default function Studio() {
   };
 
   /* ───── element renderer ───── */
-  const renderElement = (el: CanvasElement) => {
-    const isSelected = el.id === selectedId;
+  const renderElement = (el: CanvasElement, previewMode = false) => {
+    const isSelected = !previewMode && el.id === selectedId;
     const animClass = el.animation === "pulse" ? "animate-pulse"
       : el.animation === "neon-flicker" ? "studio-neon-flicker"
       : el.animation === "glow-breathe" ? "studio-glow-breathe"
@@ -381,9 +381,9 @@ export default function Studio() {
     return (
       <div
         key={el.id}
-        className={`absolute cursor-move select-none ${animClass} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : "hover:ring-1 hover:ring-primary/30"}`}
-        style={{ left: el.x, top: el.y, width: el.width, height: el.height, ...el.style }}
-        onMouseDown={(e) => handleCanvasMouseDown(e, el.id)}
+        className={`absolute select-none ${animClass} ${previewMode ? "" : "cursor-move"} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : (!previewMode ? "hover:ring-1 hover:ring-primary/30" : "")}`}
+        style={previewMode ? { left: 0, top: 0, width: "100%", height: "100%" } : { left: el.x, top: el.y, width: el.width, height: el.height, ...el.style }}
+        onMouseDown={previewMode ? undefined : (e) => handleCanvasMouseDown(e, el.id)}
       >
         {el.type === "text" && (
           <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden">
