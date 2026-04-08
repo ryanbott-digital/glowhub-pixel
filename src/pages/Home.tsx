@@ -823,18 +823,42 @@ const Home = () => {
           box-shadow: 0 0 40px rgba(0,163,163,0.15), 0 0 80px rgba(59,130,246,0.08);
         }
 
-        /* ── Neon CSS Logo Text ── */
-        .neon-logo-text {
-          color: transparent;
-          -webkit-text-stroke: 1px rgba(0,163,163,0.6);
+        /* ── Neon breathe for "GLOW" text ── */
+        .neon-glow-text {
+          color: #00A3A3;
           text-shadow:
             0 0 10px rgba(0,163,163,0.5),
             0 0 30px rgba(0,163,163,0.3),
-            0 0 60px rgba(0,163,163,0.2),
-            0 0 100px rgba(0,163,163,0.1);
-          animation: neonLogoFlicker 4s ease-in-out infinite;
+            0 0 60px rgba(0,163,163,0.15);
+          animation: neonBreathe 3s ease-in-out infinite;
         }
-        @keyframes neonLogoFlicker {
+        @keyframes neonBreathe {
+          0%, 100% {
+            text-shadow:
+              0 0 10px rgba(0,163,163,0.4),
+              0 0 30px rgba(0,163,163,0.2),
+              0 0 60px rgba(0,163,163,0.1);
+          }
+          50% {
+            text-shadow:
+              0 0 20px rgba(0,163,163,0.8),
+              0 0 50px rgba(0,163,163,0.5),
+              0 0 100px rgba(0,163,163,0.3),
+              0 0 150px rgba(0,163,163,0.15);
+          }
+        }
+
+        /* ── Glowing geometric O ── */
+        @keyframes neonOPulse {
+          0%, 100% {
+            box-shadow: 0 0 6px rgba(0,163,163,0.3), inset 0 0 6px rgba(0,163,163,0.1);
+            border-color: rgba(0,163,163,0.4);
+          }
+          50% {
+            box-shadow: 0 0 16px rgba(0,163,163,0.6), 0 0 30px rgba(0,163,163,0.2), inset 0 0 12px rgba(0,163,163,0.2);
+            border-color: rgba(0,163,163,0.8);
+          }
+        }
           0%, 100% {
             text-shadow:
               0 0 10px rgba(0,163,163,0.5),
