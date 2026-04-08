@@ -1522,6 +1522,37 @@ export default function Player() {
   const currentUrl = getPublicUrl(currentItem.media.storage_path);
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
+  // Compute sync offset styles for multi-screen spanning
+  const syncMediaStyle: React.CSSProperties = {};
+  if (syncInfo && syncInfo.total > 1) {
+    const { position, total, orientation } = syncInfo;
+    if (orientation === "horizontal") {
+      // Scale content to total width, offset by position
+      syncMediaStyle.width = `${total * 100}%`;
+      syncMediaStyle.height = "100%";
+      syncMediaStyle.maxWidth = "none";
+      syncMediaStyle.maxHeight = "none";
+      syncMediaStyle.objectFit = "cover";
+      syncMediaStyle.objectPosition = `${(position / (total - 1)) * 100}% center`;
+      syncMediaStyle.position = "absolute";
+      syncMediaStyle.top = "0";
+      syncMediaStyle.left = `-${position * 100}%`;
+    } else {
+      syncMediaStyle.height = `${total * 100}%`;
+      syncMediaStyle.width = "100%";
+      syncMediaStyle.maxWidth = "none";
+      syncMediaStyle.maxHeight = "none";
+      syncMediaStyle.objectFit = "cover";
+      syncMediaStyle.objectPosition = `center ${(position / (total - 1)) * 100}%`;
+      syncMediaStyle.position = "absolute";
+      syncMediaStyle.left = "0";
+      syncMediaStyle.top = `-${position * 100}%`;
+    }
+  }
+  const mediaClassName = syncInfo && syncInfo.total > 1
+    ? "absolute inset-0"
+    : "max-w-full max-h-screen object-contain absolute inset-0 m-auto";
+
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
       {/* Branded loading placeholder — shown when media takes >2s to load */}
@@ -1543,13 +1574,35 @@ export default function Player() {
 
       {/* Buffer A */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        className="absolute inset-0 overflow-hidden transition-opacity ease-in-out"
         style={{
           opacity: activeBuffer === "A" ? 1 : 0,
           zIndex: activeBuffer === "A" ? 10 : 5,
           transitionDuration: `${transitionType === "cut" ? 0 : crossfadeDuration}ms`,
         }}
       >
+        <img
+          ref={imgRefA}
+          alt=""
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "A" && currentItem.media.type === "image" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
+          onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
+        />
+        <video
+          ref={videoRefA}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "A" && currentItem.media.type === "video" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
+          muted autoPlay playsInline preload="auto"
+          onEnded={advanceToNext}
+          onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
+        />
+      </div>
         <img
           ref={imgRefA}
           alt=""
