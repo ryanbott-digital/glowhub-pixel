@@ -193,9 +193,19 @@ export default function DownloadPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
                   className="bg-background/50 border-primary/30 focus:border-primary/60 focus:shadow-[0_0_16px_hsla(180,100%,45%,0.15)] text-center text-base"
                 />
+                <label className="flex items-start gap-2.5 text-left cursor-pointer">
+                  <Checkbox
+                    checked={consented}
+                    onCheckedChange={(v) => setConsented(v === true)}
+                    className="mt-0.5 border-primary/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    I agree to receive product updates, setup guides, and promotional offers from Glow. You can unsubscribe at any time.
+                  </span>
+                </label>
                 <Button
                   onClick={handleUnlock}
-                  disabled={!isValidEmail || submitting}
+                  disabled={!isValidEmail || !consented || submitting}
                   className="w-full bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground font-semibold text-base py-5 hover:shadow-[0_0_30px_hsla(180,100%,45%,0.35)] transition-all"
                 >
                   <Rocket className="h-4 w-4 mr-1" />
