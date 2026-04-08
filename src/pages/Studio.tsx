@@ -159,10 +159,11 @@ export default function Studio() {
   /* ───── save / load ───── */
   const handleSave = async () => {
     if (!user) return;
+    const canvasData = JSON.parse(JSON.stringify({ elements }));
     const payload = {
       user_id: user.id,
       name: layoutName,
-      canvas_data: { elements },
+      canvas_data: canvasData,
       updated_at: new Date().toISOString(),
     };
     if (currentLayoutId) {
