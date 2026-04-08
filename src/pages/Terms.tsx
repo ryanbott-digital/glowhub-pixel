@@ -41,6 +41,9 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 export default function Terms() {
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "privacy" ? "privacy" : "terms";
+
   return (
     <div className="min-h-screen bg-[#0B1120] font-['Satoshi',sans-serif] relative overflow-hidden">
       {/* Mesh gradient accents */}
