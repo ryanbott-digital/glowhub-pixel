@@ -2085,6 +2085,14 @@ export default function Player() {
         </div>
       )}
 
+      {/* Powered by GLOW watermark for free-tier users */}
+      {showWatermark && !showSettings && (
+        <div className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 pointer-events-none select-none">
+          <span className="text-white/80 text-[10px] font-medium tracking-wider uppercase">Powered by</span>
+          <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
+        </div>
+      )}
+
       {/* Offline overlay */}
       {isOffline && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2.5 border border-white/10">
