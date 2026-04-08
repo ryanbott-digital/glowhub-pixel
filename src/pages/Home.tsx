@@ -657,16 +657,17 @@ const Home = () => {
           {/* Pro Glow — rotating conic gradient border */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight"
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible"
             style={{ transitionDelay: "120ms" }}
           >
+            {/* Best Value badge — outside conic wrapper to avoid clipping */}
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] shadow-[0_0_20px_rgba(0,163,163,0.3)] whitespace-nowrap">
+              ✦ Best Value
+            </span>
+
             {/* Rotating conic border wrapper */}
-            <div className="conic-border-wrapper rounded-2xl p-[2px]">
-              <div className="glass-card rounded-[14px] p-8 flex flex-col h-full">
-                {/* Best Value badge */}
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] shadow-[0_0_20px_rgba(0,163,163,0.3)]">
-                  ✦ Best Value
-                </span>
+            <div className="conic-border-wrapper rounded-2xl p-[2px] overflow-hidden">
+              <div className="glass-card rounded-[14px] p-8 flex flex-col h-full pt-10">
 
                 <h3 className="text-xl font-semibold mb-1">The Pro Glow</h3>
                 <p className="text-sm text-[#94A3B8] mb-6">For serious signage</p>
