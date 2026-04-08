@@ -12,8 +12,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
-  Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer, ExternalLink,
+  Clock, MousePointer, Download, Undo2, Redo2, Eye, EyeOff, Timer, ExternalLink,
   Zap, Sun, CloudRain, CloudDrizzle, Cloud as CloudIcon, Snowflake, CloudLightning, Newspaper, Radio, Siren, MapPin,
+  ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
@@ -58,10 +59,15 @@ interface CanvasElement {
   y: number;
   width: number;
   height: number;
-  content: string; // text content, media URL, or widget config
+  content: string;
   style: Record<string, string>;
   animation?: string;
   proOnly?: boolean;
+  visible: boolean;
+  locked: boolean;
+  glowIntensity?: number;
+  flickerSpeed?: number;
+  glassBlur?: number;
 }
 
 interface SavedLayout {
@@ -84,7 +90,6 @@ interface WidgetDef {
 }
 
 const WIDGET_LIBRARY: WidgetDef[] = [
-  // ── Free ──
   {
     type: "widget-clock", label: "Digital Clock", description: "Minimalist time display with soft glow",
     icon: Clock, pro: false, defaultW: 220, defaultH: 80,
@@ -115,11 +120,10 @@ const WIDGET_LIBRARY: WidgetDef[] = [
       </div>
     ),
   },
-  // ── Pro ──
   {
     type: "widget-weather", label: "Live Weather", description: "Animated weather with glassmorphism card",
     icon: Sun, pro: true, defaultW: 220, defaultH: 180,
-    preview: null as any, // replaced at runtime with live data
+    preview: null as any,
   },
   {
     type: "widget-rss", label: "RSS Ticker", description: "Scrolling news & announcements",
@@ -192,6 +196,9 @@ const WIDGET_LIBRARY: WidgetDef[] = [
   },
 ];
 
+const WIDGET_ICON_MAP: Record<string, React.FC<{ className?: string }>> = {};
+WIDGET_LIBRARY.forEach((w) => { WIDGET_ICON_MAP[w.type] = w.icon; });
+
 const PRO_ANIMATIONS = [
   { id: "pulse", label: "Pulse", pro: true },
   { id: "neon-flicker", label: "Neon Flicker", pro: true },
@@ -200,6 +207,8 @@ const PRO_ANIMATIONS = [
   { id: "fade-in", label: "Fade In", pro: false },
 ];
 
+const MAX_HISTORY = 30;
+
 export default function Studio() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -207,6 +216,7 @@ export default function Studio() {
   const [subscriptionTier, setSubscriptionTier] = useState("free");
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [layoutName, setLayoutName] = useState("Untitled Layout");
   const [savedLayouts, setSavedLayouts] = useState<SavedLayout[]>([]);
   const [currentLayoutId, setCurrentLayoutId] = useState<string | null>(null);
@@ -219,10 +229,31 @@ export default function Studio() {
   const [rssCache, setRssCache] = useState<Record<string, string[]>>({});
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
+  const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
+  const [zoom, setZoom] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<CanvasElement[][]>([]);
+  const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<CanvasElement[][]>([]);
 
   const isPro = isProTier(subscriptionTier);
   const selected = elements.find((e) => e.id === selectedId) || null;
+  const multiSelected = selectedIds.size > 1;
+
+  /* ───── history helpers ───── */
+  const pushHistory = useCallback((snapshot: CanvasElement[]) => {
+    historyRef.current = [...historyRef.current, JSON.parse(JSON.stringify(snapshot))].slice(-MAX_HISTORY);
+    setHistory(historyRef.current);
+  }, []);
+
+  const undo = useCallback(() => {
+    if (historyRef.current.length === 0) return;
+    const prev = historyRef.current[historyRef.current.length - 1];
+    historyRef.current = historyRef.current.slice(0, -1);
+    setHistory(historyRef.current);
+    setElements(prev);
+  }, []);
 
   /* ───── data fetching ───── */
   useEffect(() => {
@@ -252,7 +283,6 @@ export default function Studio() {
     }
   }, [rssCache]);
 
-  // Auto-fetch RSS for any ticker with a feed URL
   useEffect(() => {
     elements.forEach((el) => {
       if (el.type !== "widget-ticker") return;
@@ -265,7 +295,7 @@ export default function Studio() {
     });
   }, [elements, fetchRss, rssCache]);
 
-  /* ───── weather preview (London teaser) ───── */
+  /* ───── weather preview ───── */
   useEffect(() => {
     (async () => {
       try {
@@ -288,6 +318,38 @@ export default function Studio() {
     })();
   }, []);
 
+  /* ───── keyboard shortcuts ───── */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+      if (meta && e.key === "z") {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      if (meta && e.key === "s") {
+        e.preventDefault();
+        handleSave();
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) {
+        e.preventDefault();
+        if (selectedIds.size > 0) {
+          pushHistory(elements);
+          setElements((prev) => prev.filter((el) => !selectedIds.has(el.id)));
+          setSelectedIds(new Set());
+          setSelectedId(null);
+        } else if (selectedId) {
+          pushHistory(elements);
+          setElements((prev) => prev.filter((el) => el.id !== selectedId));
+          setSelectedId(null);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedId, selectedIds, elements, undo, pushHistory]);
+
   /* ───── pro gate helper ───── */
   const gatePro = (featureName: string): boolean => {
     if (isPro) return false;
@@ -296,20 +358,23 @@ export default function Studio() {
     return true;
   };
 
-  /* ───── add element (from widget library) ───── */
+  /* ───── add element ───── */
   const addElement = (type: CanvasElement["type"], pro: boolean, dropPos?: { x: number; y: number }) => {
     if (pro && gatePro(type)) return;
+    pushHistory(elements);
     const id = crypto.randomUUID();
     const widget = WIDGET_LIBRARY.find((w) => w.type === type);
     const w = widget?.defaultW || 200;
     const h = widget?.defaultH || 150;
     const defaults: Partial<CanvasElement> = {
-      x: dropPos ? dropPos.x - w / 2 : 80 + Math.random() * 200,
-      y: dropPos ? dropPos.y - h / 2 : 60 + Math.random() * 120,
+      x: dropPos ? dropPos.x / zoom - w / 2 : 80 + Math.random() * 200,
+      y: dropPos ? dropPos.y / zoom - h / 2 : 60 + Math.random() * 120,
       width: w,
       height: h,
       style: {},
       proOnly: pro,
+      visible: true,
+      locked: false,
     };
     const contentMap: Record<string, string> = {
       image: "",
@@ -324,6 +389,7 @@ export default function Studio() {
     };
     setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
     setSelectedId(id);
+    setSelectedIds(new Set([id]));
   };
 
   /* ───── sidebar drag helpers ───── */
@@ -353,20 +419,57 @@ export default function Studio() {
 
   /* ───── drag & resize logic ───── */
   const [resizing, setResizing] = useState<{ id: string; corner: string; startX: number; startY: number; startW: number; startH: number; startElX: number; startElY: number } | null>(null);
+  const [dragStartPositions, setDragStartPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
 
   const handleCanvasMouseDown = (e: React.MouseEvent, elId: string) => {
     e.stopPropagation();
+    const el = elements.find((x) => x.id === elId)!;
+    if (el.locked) return;
+
+    if (e.shiftKey) {
+      // Multi-select
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(elId)) {
+          next.delete(elId);
+        } else {
+          next.add(elId);
+        }
+        return next;
+      });
+      setSelectedId(elId);
+      return;
+    }
+
+    if (!selectedIds.has(elId)) {
+      setSelectedIds(new Set([elId]));
+    }
     setSelectedId(elId);
     setDraggingId(elId);
-    const el = elements.find((x) => x.id === elId)!;
+
+    pushHistory(elements);
+
     const rect = canvasRef.current!.getBoundingClientRect();
-    setDragOffset({ x: e.clientX - rect.left - el.x, y: e.clientY - rect.top - el.y });
+    const mouseX = (e.clientX - rect.left) / zoom;
+    const mouseY = (e.clientY - rect.top) / zoom;
+
+    // Store start positions for all selected elements for group drag
+    const idsToMove = selectedIds.has(elId) ? selectedIds : new Set([elId]);
+    const starts = new Map<string, { x: number; y: number }>();
+    idsToMove.forEach((id) => {
+      const elem = elements.find((x) => x.id === id);
+      if (elem) starts.set(id, { x: elem.x, y: elem.y });
+    });
+    setDragStartPositions(starts);
+    setDragOffset({ x: mouseX - el.x, y: mouseY - el.y });
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent, elId: string, corner: string) => {
     e.stopPropagation();
     e.preventDefault();
     const el = elements.find((x) => x.id === elId)!;
+    if (el.locked) return;
+    pushHistory(elements);
     setResizing({ id: elId, corner, startX: e.clientX, startY: e.clientY, startW: el.width, startH: el.height, startElX: el.x, startElY: el.y });
     setSelectedId(elId);
   };
@@ -374,8 +477,8 @@ export default function Studio() {
   const handleCanvasMouseMove = useCallback(
     (e: React.MouseEvent) => {
       if (resizing && canvasRef.current) {
-        const dx = e.clientX - resizing.startX;
-        const dy = e.clientY - resizing.startY;
+        const dx = (e.clientX - resizing.startX) / zoom;
+        const dy = (e.clientY - resizing.startY) / zoom;
         let { startW: w, startH: h, startElX: x, startElY: y } = resizing;
         const c = resizing.corner;
         if (c.includes("r")) w = Math.max(30, w + dx);
@@ -387,11 +490,24 @@ export default function Studio() {
       }
       if (!draggingId || !canvasRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
-      const x = Math.max(0, Math.min(e.clientX - rect.left - dragOffset.x, rect.width - 50));
-      const y = Math.max(0, Math.min(e.clientY - rect.top - dragOffset.y, rect.height - 50));
-      setElements((prev) => prev.map((el) => (el.id === draggingId ? { ...el, x, y } : el)));
+      const mouseX = (e.clientX - rect.left) / zoom;
+      const mouseY = (e.clientY - rect.top) / zoom;
+      const newX = mouseX - dragOffset.x;
+      const newY = mouseY - dragOffset.y;
+      const dragEl = elements.find((x) => x.id === draggingId);
+      if (!dragEl) return;
+      const dx = newX - dragEl.x;
+      const dy = newY - dragEl.y;
+
+      const idsToMove = dragStartPositions.size > 1 ? new Set(dragStartPositions.keys()) : new Set([draggingId]);
+      setElements((prev) => prev.map((el) => {
+        if (idsToMove.has(el.id) && !el.locked) {
+          return { ...el, x: el.x + dx, y: el.y + dy };
+        }
+        return el;
+      }));
     },
-    [draggingId, dragOffset, resizing],
+    [draggingId, dragOffset, resizing, zoom, dragStartPositions, elements],
   );
 
   const handleCanvasMouseUp = () => { setDraggingId(null); setResizing(null); };
@@ -399,45 +515,60 @@ export default function Studio() {
   /* ───── update selected ───── */
   const updateSelected = (patch: Partial<CanvasElement>) => {
     if (!selectedId) return;
+    pushHistory(elements);
     setElements((prev) => prev.map((el) => (el.id === selectedId ? { ...el, ...patch } : el)));
   };
 
   const deleteSelected = () => {
     if (!selectedId) return;
+    pushHistory(elements);
     setElements((prev) => prev.filter((el) => el.id !== selectedId));
     setSelectedId(null);
+    setSelectedIds(new Set());
   };
 
   /* ───── save / load ───── */
   const handleSave = async () => {
     if (!user) return;
-    const canvasData = JSON.parse(JSON.stringify({ elements }));
-    const payload = {
-      user_id: user.id,
-      name: layoutName,
-      canvas_data: canvasData,
-      updated_at: new Date().toISOString(),
-    };
-    if (currentLayoutId) {
-      const { error } = await supabase.from("studio_layouts").update(payload).eq("id", currentLayoutId);
-      if (error) { toast.error(error.message); return; }
-      toast.success("Layout saved");
-    } else {
-      const { data, error } = await supabase.from("studio_layouts").insert(payload).select("id").single();
-      if (error) { toast.error(error.message); return; }
-      setCurrentLayoutId((data as any).id);
-      toast.success("Layout created");
+    setSaving(true);
+    try {
+      const canvasData = JSON.parse(JSON.stringify({ elements }));
+      const payload = {
+        user_id: user.id,
+        name: layoutName,
+        canvas_data: canvasData,
+        updated_at: new Date().toISOString(),
+      };
+      if (currentLayoutId) {
+        const { error } = await supabase.from("studio_layouts").update(payload).eq("id", currentLayoutId);
+        if (error) { toast.error(error.message); return; }
+        toast.success("Layout saved");
+      } else {
+        const { data, error } = await supabase.from("studio_layouts").insert(payload).select("id").single();
+        if (error) { toast.error(error.message); return; }
+        setCurrentLayoutId((data as any).id);
+        toast.success("Layout created");
+      }
+      const { data: layouts } = await supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
+      setSavedLayouts((layouts as any[]) || []);
+    } finally {
+      setSaving(false);
     }
-    // refresh list
-    const { data: layouts } = await supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
-    setSavedLayouts((layouts as any[]) || []);
   };
 
   const handleLoad = (layout: SavedLayout) => {
     setCurrentLayoutId(layout.id);
     setLayoutName(layout.name);
-    setElements((layout.canvas_data as any).elements || []);
+    const loadedElements = ((layout.canvas_data as any).elements || []).map((el: any) => ({
+      ...el,
+      visible: el.visible ?? true,
+      locked: el.locked ?? false,
+    }));
+    setElements(loadedElements);
     setSelectedId(null);
+    setSelectedIds(new Set());
+    historyRef.current = [];
+    setHistory([]);
     toast.success(`Loaded "${layout.name}"`);
   };
 
@@ -449,30 +580,65 @@ export default function Studio() {
     toast.success("Layout deleted");
   };
 
+  /* ───── layer reorder ───── */
+  const handleLayerDragStart = (idx: number) => {
+    setLayerDragIdx(idx);
+  };
+
+  const handleLayerDrop = (targetIdx: number) => {
+    if (layerDragIdx === null || layerDragIdx === targetIdx) { setLayerDragIdx(null); return; }
+    pushHistory(elements);
+    setElements((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(layerDragIdx, 1);
+      next.splice(targetIdx, 0, moved);
+      return next;
+    });
+    setLayerDragIdx(null);
+  };
+
   /* ───── element renderer ───── */
   const renderElement = (el: CanvasElement, previewMode = false) => {
-    const isSelected = !previewMode && el.id === selectedId;
+    if (!el.visible && previewMode) return null;
+    const isSelected = !previewMode && (el.id === selectedId || selectedIds.has(el.id));
     const animClass = el.animation === "pulse" ? "animate-pulse"
       : el.animation === "neon-flicker" ? "studio-neon-flicker"
       : el.animation === "glow-breathe" ? "studio-glow-breathe"
       : el.animation === "slide-in" ? "animate-fade-in"
       : "";
 
+    const glowStyle: React.CSSProperties = {};
+    if (el.type === "text" && el.glowIntensity) {
+      glowStyle.textShadow = `0 0 ${el.glowIntensity}px hsl(var(--primary)), 0 0 ${el.glowIntensity * 2}px hsl(var(--primary))`;
+    }
+    if (el.type === "text" && el.flickerSpeed && el.flickerSpeed > 0) {
+      glowStyle.animation = `studioNeonFlicker ${Math.max(0.3, 3 - el.flickerSpeed * 0.27)}s infinite`;
+    }
+    if (el.type === "image" && el.glassBlur && el.glassBlur > 0) {
+      glowStyle.filter = `blur(${el.glassBlur}px)`;
+    }
+
     return (
       <div
         key={el.id}
-        className={`absolute select-none ${animClass} ${previewMode ? "" : "cursor-move"} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : (!previewMode ? "hover:ring-1 hover:ring-primary/30" : "")}`}
-        style={previewMode ? { left: 0, top: 0, width: "100%", height: "100%" } : { left: el.x, top: el.y, width: el.width, height: el.height, ...el.style }}
+        className={`absolute select-none ${animClass} ${!el.visible && !previewMode ? "opacity-30" : ""} ${previewMode ? "" : (el.locked ? "cursor-not-allowed" : "cursor-move")} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : (!previewMode ? "hover:ring-1 hover:ring-primary/30" : "")}`}
+        style={previewMode ? { left: 0, top: 0, width: "100%", height: "100%", ...glowStyle } : { left: el.x, top: el.y, width: el.width, height: el.height, ...el.style, ...glowStyle }}
         onMouseDown={previewMode ? undefined : (e) => handleCanvasMouseDown(e, el.id)}
       >
+        {/* Lock badge */}
+        {el.locked && !previewMode && (
+          <div className="absolute top-0.5 left-0.5 z-30 p-0.5 rounded bg-muted/80">
+            <LockIcon className="h-2.5 w-2.5 text-muted-foreground" />
+          </div>
+        )}
         {el.type === "text" && (
-          <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden" style={glowStyle}>
             {el.content}
           </div>
         )}
         {el.type === "image" && (
           el.content ? (
-            <img src={el.content} alt="" className="w-full h-full object-cover rounded" />
+            <img src={el.content} alt="" className="w-full h-full object-cover rounded" style={el.glassBlur ? { filter: `blur(${el.glassBlur}px)` } : undefined} />
           ) : (
             <div className="w-full h-full rounded bg-muted/30 border border-dashed border-muted-foreground/20 flex items-center justify-center">
               <Image className="h-6 w-6 text-muted-foreground/40" />
@@ -492,7 +658,6 @@ export default function Studio() {
           const auroraGrad = getAuroraGradient(wp.icon, wp.isNight);
           return (
             <div className="w-full h-full rounded-2xl overflow-hidden relative border border-primary/30 shadow-[0_0_16px_hsla(180,100%,32%,0.2)]" style={{ backdropFilter: "blur(24px)", background: "rgba(255,255,255,0.03)" }}>
-              {/* Aurora bloom */}
               <div className={`absolute inset-0 bg-gradient-to-br ${auroraGrad} pointer-events-none`} style={{ animation: "weatherAuroraShift 8s ease-in-out infinite" }} />
               <div className="relative z-10 flex flex-col items-center justify-center h-full gap-1 p-3">
                 {getWeatherNeonIcon(wp.icon, wp.isNight)}
@@ -583,7 +748,7 @@ export default function Studio() {
           </div>
         )}
         {/* Resize handles */}
-        {isSelected && !previewMode && (
+        {isSelected && !previewMode && !el.locked && (
           <>
             {["tl","tr","bl","br","t","b","l","r"].map((corner) => {
               const pos: Record<string, React.CSSProperties> = {
@@ -611,6 +776,12 @@ export default function Studio() {
     );
   };
 
+  const getWidgetLabel = (el: CanvasElement) => {
+    if (el.type === "text") return el.content.slice(0, 20) || "Text";
+    const w = WIDGET_LIBRARY.find((w) => w.type === el.type);
+    return w?.label || el.type;
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] animate-fade-in">
       {/* Top bar */}
@@ -625,6 +796,25 @@ export default function Studio() {
             onChange={(e) => setLayoutName(e.target.value)}
             className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]"
           />
+
+          {/* Zoom controls */}
+          <div className="flex items-center gap-0.5 border border-border/30 rounded-md px-1">
+            {[0.5, 0.75, 1].map((z) => (
+              <button
+                key={z}
+                onClick={() => setZoom(z)}
+                className={`text-[10px] font-mono px-1.5 py-1 rounded transition-colors ${zoom === z ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {z * 100}%
+              </button>
+            ))}
+          </div>
+
+          {/* Undo */}
+          <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8" title="Undo (Ctrl+Z)">
+            <Undo2 className="h-3.5 w-3.5" />
+          </Button>
+
           <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
             <Eye className="h-3.5 w-3.5" />
             Preview
@@ -640,11 +830,33 @@ export default function Studio() {
               Live Preview
             </Button>
           )}
-          <Button size="sm" onClick={handleSave} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider">
-            <Save className="h-3.5 w-3.5" />
-            Save
+          <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden">
+            {saving ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-3.5 w-3.5" />
+                Save
+              </>
+            )}
+            {saving && (
+              <div className="absolute inset-0 rounded-md border-2 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin pointer-events-none" />
+            )}
           </Button>
         </div>
+      </div>
+
+      {/* Keyboard shortcuts hint */}
+      <div className="flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
+        <span className="flex items-center gap-1"><Keyboard className="h-3 w-3" /> Shortcuts:</span>
+        <span>⌘Z Undo</span>
+        <span>⌘S Save</span>
+        <span>⌫ Delete</span>
+        <span>⇧Click Multi-select</span>
+        {multiSelected && <span className="text-primary ml-2">{selectedIds.size} selected</span>}
       </div>
 
       <div className="flex flex-1 min-h-0">
@@ -657,9 +869,7 @@ export default function Studio() {
             </h3>
           </div>
 
-          {/* Widget grid */}
           <div className="p-2.5 space-y-4 flex-1">
-            {/* Free section */}
             <div>
               <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2">Standard</p>
               <div className="grid grid-cols-2 gap-2">
@@ -680,7 +890,6 @@ export default function Studio() {
               </div>
             </div>
 
-            {/* Pro section */}
             <div>
               <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2 flex items-center gap-1">
                 Premium
@@ -695,11 +904,9 @@ export default function Studio() {
                     onDragStart={(e) => handleWidgetDragStart(e, w)}
                     className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing"
                   >
-                    {/* PRO badge */}
                     <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30 shadow-[0_0_8px_hsl(var(--accent)/0.3)] group-hover:shadow-[0_0_14px_hsl(var(--accent)/0.5)] transition-shadow">
                       PRO
                     </div>
-                    {/* Lock overlay for non-pro */}
                     {!isPro && (
                       <div className="absolute inset-0 z-[5] bg-background/30 backdrop-blur-[1px] flex items-center justify-center rounded-xl opacity-60 group-hover:opacity-30 transition-opacity">
                         <Lock className="h-4 w-4 text-muted-foreground/50" />
@@ -726,7 +933,6 @@ export default function Studio() {
             </div>
           </div>
 
-          {/* Saved layouts */}
           <div className="p-2.5 space-y-1 border-t border-border/20">
             <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5">Saved Layouts</p>
             {savedLayouts.length === 0 && (
@@ -747,53 +953,131 @@ export default function Studio() {
 
         {/* ─── Center: Canvas ─── */}
         <div className="flex-1 flex items-center justify-center bg-[hsl(220,60%,5%)] relative overflow-hidden">
-          {/* Ambient glow behind canvas */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl bg-primary/5 blur-[80px]" />
           </div>
 
-          <div
-            ref={canvasRef}
-            className="relative bg-card/80 border border-primary/20 rounded-xl overflow-hidden shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"
-            style={{ width: "min(90%, 960px)", aspectRatio: "16/9" }}
-            onClick={() => setSelectedId(null)}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-            onDrop={handleCanvasDrop}
-            onDragOver={handleCanvasDragOver}
-          >
-            {/* Grid pattern */}
+          <div style={{ transform: `scale(${zoom})`, transformOrigin: "center", transition: "transform 0.2s ease" }}>
             <div
-              className="absolute inset-0 opacity-[0.03] pointer-events-none"
-              style={{
-                backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
-                backgroundSize: "30px 30px",
-              }}
-            />
-
-            {/* Elements */}
-            {elements.map((el) => renderElement(el))}
-
-            {/* Empty state */}
-            {elements.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
-                <MousePointer className="h-8 w-8 text-muted-foreground/20" />
-                <p className="text-sm text-muted-foreground/30 font-['Satoshi',sans-serif]">
-                  Drag assets from the sidebar to start designing
-                </p>
-              </div>
-            )}
+              ref={canvasRef}
+              className="relative bg-card/80 border border-primary/20 rounded-xl overflow-hidden shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"
+              style={{ width: 960, height: 540 }}
+              onClick={() => { setSelectedId(null); setSelectedIds(new Set()); }}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              onMouseLeave={handleCanvasMouseUp}
+              onDrop={handleCanvasDrop}
+              onDragOver={handleCanvasDragOver}
+            >
+              <div
+                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{
+                  backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
+                  backgroundSize: "30px 30px",
+                }}
+              />
+              {elements.map((el) => renderElement(el))}
+              {elements.length === 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+                  <MousePointer className="h-8 w-8 text-muted-foreground/20" />
+                  <p className="text-sm text-muted-foreground/30 font-['Satoshi',sans-serif]">
+                    Drag assets from the sidebar to start designing
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* ─── Right Sidebar: Properties ─── */}
+        {/* ─── Right Sidebar ─── */}
         <div className="w-60 border-l border-border/30 bg-card/30 backdrop-blur-sm flex flex-col overflow-y-auto">
-          <div className="p-3 border-b border-border/20">
-            <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground">Properties</h3>
+          {/* Sidebar mode tabs */}
+          <div className="flex border-b border-border/20">
+            <button
+              onClick={() => setSidebarMode("properties")}
+              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Properties
+            </button>
+            <button
+              onClick={() => setSidebarMode("layers")}
+              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Layers
+            </button>
           </div>
 
-          {selected ? (
+          {sidebarMode === "layers" ? (
+            /* ─── Layers Panel ─── */
+            <div className="p-2 space-y-0.5 flex-1">
+              {elements.length === 0 && (
+                <p className="text-[10px] text-muted-foreground/40 text-center py-8 font-['Satoshi',sans-serif]">No layers yet</p>
+              )}
+              {[...elements].reverse().map((el, revIdx) => {
+                const realIdx = elements.length - 1 - revIdx;
+                const WidgetIcon = WIDGET_ICON_MAP[el.type] || Layers;
+                const isActive = el.id === selectedId || selectedIds.has(el.id);
+                return (
+                  <div
+                    key={el.id}
+                    draggable
+                    onDragStart={() => handleLayerDragStart(realIdx)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleLayerDrop(realIdx)}
+                    onClick={() => { setSelectedId(el.id); setSelectedIds(new Set([el.id])); setSidebarMode("properties"); }}
+                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-xs ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}
+                  >
+                    <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0 cursor-grab" />
+                    <WidgetIcon className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className={`flex-1 truncate font-['Satoshi',sans-serif] text-[11px] ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
+                      {getWidgetLabel(el)}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        pushHistory(elements);
+                        setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, visible: !x.visible } : x));
+                      }}
+                      className="p-0.5 rounded hover:bg-muted/30 transition-colors"
+                      title={el.visible ? "Hide" : "Show"}
+                    >
+                      {el.visible ? <Eye className="h-3 w-3 text-muted-foreground/60" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        pushHistory(elements);
+                        setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, locked: !x.locked } : x));
+                      }}
+                      className="p-0.5 rounded hover:bg-muted/30 transition-colors"
+                      title={el.locked ? "Unlock" : "Lock"}
+                    >
+                      {el.locked ? <LockIcon className="h-3 w-3 text-accent/60" /> : <Unlock className="h-3 w-3 text-muted-foreground/30" />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* ─── Properties Panel ─── */
+            <>
+              {multiSelected ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-4 gap-2">
+                  <Layers className="h-6 w-6 text-primary/40" />
+                  <p className="text-[10px] text-muted-foreground/60 font-['Satoshi',sans-serif] text-center">
+                    {selectedIds.size} elements selected
+                  </p>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    pushHistory(elements);
+                    setElements((prev) => prev.filter((el) => !selectedIds.has(el.id)));
+                    setSelectedIds(new Set());
+                    setSelectedId(null);
+                  }} className="text-destructive hover:text-destructive text-xs gap-1.5">
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete All
+                  </Button>
+                </div>
+              ) : selected ? (
             <div className="p-3 space-y-4">
               {/* Position */}
               <div className="space-y-2">
@@ -825,27 +1109,44 @@ export default function Studio() {
                 </div>
               </div>
 
-              {/* Content (text only) */}
-              {selected.type === "text" && (
+              {/* Content */}
+              {(selected.type === "text" || selected.type === "widget-neon-label") && (
                 <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Text Content</p>
-                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-8 text-xs" />
+                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Content</p>
+                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-7 text-xs" />
                 </div>
               )}
+
+              {/* Countdown config */}
+              {selected.type === "widget-countdown" && (() => {
+                let cfg: any = { target: "2025-12-31T00:00:00" };
+                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                return (
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Countdown Target</p>
+                    <Input
+                      type="datetime-local"
+                      value={cfg.target?.slice(0, 16) || ""}
+                      onChange={(e) => updateSelected({ content: JSON.stringify({ ...cfg, target: e.target.value }) })}
+                      className="glass h-8 text-xs font-mono"
+                    />
+                  </div>
+                );
+              })()}
 
               {/* Ticker config */}
               {selected.type === "widget-ticker" && (() => {
                 let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
                 try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
                 const updateCfg = (patch: Record<string, any>) => {
-                  const next = { ...cfg, ...patch };
-                  updateSelected({ content: JSON.stringify(next) });
+                  updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
                 };
                 return (
                   <div className="space-y-3">
-                    {/* Source toggle */}
                     <div className="space-y-1.5">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Source</p>
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                        <Radio className="h-3 w-3" /> Source
+                      </p>
                       <Select value={cfg.source || "manual"} onValueChange={(v) => updateCfg({ source: v })}>
                         <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -854,49 +1155,23 @@ export default function Studio() {
                         </SelectContent>
                       </Select>
                     </div>
-                    {cfg.source === "rss" ? (
+                    {cfg.source === "manual" ? (
                       <div className="space-y-1.5">
-                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                          <Rss className="h-3 w-3" /> Feed URL
-                        </p>
+                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Messages (· separated)</p>
+                        <Input
+                          value={cfg.messages || ""}
+                          onChange={(e) => updateCfg({ messages: e.target.value })}
+                          placeholder="Breaking News · Story 2 · Story 3"
+                          className="glass h-8 text-xs font-mono"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Feed URL</p>
                         <Input
                           value={cfg.feedUrl || ""}
                           onChange={(e) => updateCfg({ feedUrl: e.target.value })}
                           placeholder="https://feeds.bbci.co.uk/news/rss.xml"
-                          className="glass h-8 text-xs font-mono"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full h-7 text-[10px]"
-                          onClick={() => {
-                            if (cfg.feedUrl) {
-                              setRssCache((prev) => { const n = { ...prev }; delete n[cfg.feedUrl]; return n; });
-                              fetchRss(cfg.feedUrl);
-                              toast.success("Fetching headlines…");
-                            }
-                          }}
-                        >
-                          <Rss className="h-3 w-3 mr-1" /> Refresh Feed
-                        </Button>
-                        {rssCache[cfg.feedUrl] && (
-                          <div className="rounded-lg bg-muted/10 border border-border/20 p-2 space-y-0.5">
-                            <p className="text-[9px] text-muted-foreground/60 font-mono uppercase tracking-widest">
-                              {rssCache[cfg.feedUrl].length} headlines loaded
-                            </p>
-                            <p className="text-[10px] text-foreground font-mono truncate">{rssCache[cfg.feedUrl][0]}</p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5">
-                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                          <Radio className="h-3 w-3" /> Messages
-                        </p>
-                        <Input
-                          value={cfg.messages}
-                          onChange={(e) => updateCfg({ messages: e.target.value })}
-                          placeholder="Breaking News · Welcome..."
                           className="glass h-8 text-xs font-mono"
                         />
                       </div>
@@ -1070,6 +1345,60 @@ export default function Studio() {
                 </div>
               )}
 
+              {/* ─── Enhanced: Glow Intensity (Text) ─── */}
+              {selected.type === "text" && (
+                <div className="space-y-2">
+                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                    <Zap className="h-3 w-3" /> Glow Intensity
+                  </p>
+                  <Slider
+                    value={[selected.glowIntensity ?? 0]}
+                    onValueChange={([v]) => updateSelected({ glowIntensity: v })}
+                    min={0}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono">{selected.glowIntensity ?? 0}px</span>
+                </div>
+              )}
+
+              {/* ─── Enhanced: Flicker Speed (Text) ─── */}
+              {selected.type === "text" && (
+                <div className="space-y-2">
+                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Flicker Speed
+                  </p>
+                  <Slider
+                    value={[selected.flickerSpeed ?? 0]}
+                    onValueChange={([v]) => updateSelected({ flickerSpeed: v })}
+                    min={0}
+                    max={10}
+                    step={1}
+                    className="w-full"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono">{selected.flickerSpeed ?? 0 === 0 ? "Off" : selected.flickerSpeed}</span>
+                </div>
+              )}
+
+              {/* ─── Enhanced: Glass Blur (Image) ─── */}
+              {selected.type === "image" && (
+                <div className="space-y-2">
+                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Glass Blur
+                  </p>
+                  <Slider
+                    value={[selected.glassBlur ?? 0]}
+                    onValueChange={([v]) => updateSelected({ glassBlur: v })}
+                    min={0}
+                    max={20}
+                    step={1}
+                    className="w-full"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono">{selected.glassBlur ?? 0}px</span>
+                </div>
+              )}
+
               {/* Animation */}
               <div className="space-y-2">
                 <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
@@ -1116,6 +1445,8 @@ export default function Studio() {
               </p>
             </div>
           )}
+          </>
+          )}
 
           {/* Scheduling note */}
           <div className="p-3 border-t border-border/20 mt-auto">
@@ -1139,7 +1470,7 @@ export default function Studio() {
           ref={(el) => el?.focus()}
         >
           <div className="relative" style={{ width: "100vw", height: "100vh" }}>
-            {elements.map((el) => {
+            {elements.filter((el) => el.visible).map((el) => {
               const scaleX = window.innerWidth / 960;
               const scaleY = window.innerHeight / 540;
               const scale = Math.min(scaleX, scaleY);
@@ -1162,9 +1493,18 @@ export default function Studio() {
               );
             })}
           </div>
-          {/* Exit hint */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-card/60 backdrop-blur-sm border border-border/30 text-xs text-muted-foreground font-['Satoshi',sans-serif] tracking-wider animate-fade-in">
             Press <kbd className="px-1.5 py-0.5 rounded bg-muted/30 text-foreground font-mono text-[10px]">ESC</kbd> or click anywhere to exit
+          </div>
+        </div>
+      )}
+
+      {/* ─── Saving Overlay ─── */}
+      {saving && (
+        <div className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-3 animate-fade-in">
+            <div className="w-16 h-16 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+            <p className="text-sm text-foreground font-['Satoshi',sans-serif] tracking-wider">Saving to Cloud...</p>
           </div>
         </div>
       )}
