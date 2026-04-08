@@ -216,6 +216,7 @@ export default function Studio() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
+  const [rssCache, setRssCache] = useState<Record<string, string[]>>({});
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -235,6 +236,34 @@ export default function Studio() {
       setSavedLayouts((layoutsRes.data as any[]) || []);
     })();
   }, [user]);
+
+  /* ───── RSS feed fetching ───── */
+  const fetchRss = useCallback(async (feedUrl: string) => {
+    if (rssCache[feedUrl]) return;
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(`https://${projectId}.supabase.co/functions/v1/rss-proxy?url=${encodeURIComponent(feedUrl)}`);
+      const data = await res.json();
+      if (data.headlines?.length) {
+        setRssCache((prev) => ({ ...prev, [feedUrl]: data.headlines }));
+      }
+    } catch (err) {
+      console.error("RSS fetch failed:", err);
+    }
+  }, [rssCache]);
+
+  // Auto-fetch RSS for any ticker with a feed URL
+  useEffect(() => {
+    elements.forEach((el) => {
+      if (el.type !== "widget-ticker") return;
+      try {
+        const cfg = JSON.parse(el.content);
+        if (cfg.source === "rss" && cfg.feedUrl && !rssCache[cfg.feedUrl]) {
+          fetchRss(cfg.feedUrl);
+        }
+      } catch {}
+    });
+  }, [elements, fetchRss, rssCache]);
 
   /* ───── weather preview (London teaser) ───── */
   useEffect(() => {
