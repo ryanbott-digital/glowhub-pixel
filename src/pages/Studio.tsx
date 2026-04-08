@@ -13,9 +13,42 @@ import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
   Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer,
-  Zap, Sun, CloudRain, Newspaper, Radio, Siren,
+  Zap, Sun, CloudRain, CloudDrizzle, Cloud as CloudIcon, Snowflake, CloudLightning, Newspaper, Radio, Siren, MapPin,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+
+/* ───── weather helpers ───── */
+interface WeatherData {
+  city: string;
+  temp: number;
+  condition: string;
+  icon: "sun" | "cloud" | "rain" | "snow" | "storm";
+  isNight: boolean;
+}
+
+const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
+  switch (icon) {
+    case "sun":
+      return <Sun className="h-10 w-10" style={{ color: "#FFB020", filter: "drop-shadow(0 0 12px #FFB020) drop-shadow(0 0 24px #FFB02080)", animation: "weatherSunPulse 3s ease-in-out infinite" }} />;
+    case "rain":
+      return <CloudRain className="h-10 w-10" style={{ color: "hsl(var(--primary))", filter: "drop-shadow(0 0 10px hsl(var(--primary))) drop-shadow(0 0 20px hsl(var(--primary) / 0.5))", animation: "weatherRainDrop 2s ease-in-out infinite" }} />;
+    case "snow":
+      return <Snowflake className="h-10 w-10" style={{ color: "#93C5FD", filter: "drop-shadow(0 0 10px #93C5FD) drop-shadow(0 0 20px #93C5FD80)" }} />;
+    case "storm":
+      return <CloudLightning className="h-10 w-10" style={{ color: "#A78BFA", filter: "drop-shadow(0 0 12px #A78BFA) drop-shadow(0 0 24px #A78BFA80)", animation: "weatherSunPulse 1.5s ease-in-out infinite" }} />;
+    default:
+      return <CloudIcon className="h-10 w-10" style={{ color: "#94A3B8", filter: "drop-shadow(0 0 8px #94A3B8) drop-shadow(0 0 16px #94A3B880)", animation: "weatherAuroraShift 6s ease-in-out infinite" }} />;
+  }
+};
+
+const getAuroraGradient = (icon: string, isNight: boolean) => {
+  if (isNight) return "from-indigo-600/20 to-violet-900/10";
+  switch (icon) {
+    case "sun": return "from-amber-500/20 to-orange-400/10";
+    case "rain": case "storm": return "from-blue-500/15 to-purple-500/10";
+    default: return "from-blue-500/10 to-slate-500/10";
+  }
+};
 
 /* ───── types ───── */
 interface CanvasElement {
@@ -85,16 +118,8 @@ const WIDGET_LIBRARY: WidgetDef[] = [
   // ── Pro ──
   {
     type: "widget-weather", label: "Live Weather", description: "Animated weather with glassmorphism card",
-    icon: Sun, pro: true, defaultW: 200, defaultH: 160,
-    preview: (
-      <div className="flex flex-col items-center justify-center h-full gap-0.5 relative">
-        <div className="relative">
-          <Sun className="h-6 w-6 text-accent drop-shadow-[0_0_10px_hsl(var(--accent))]" style={{ animation: "widgetSunSpin 8s linear infinite" }} />
-          <Cloud className="h-4 w-4 text-primary absolute -bottom-1 -right-1.5 drop-shadow-[0_0_6px_hsl(var(--primary))]" />
-        </div>
-        <span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
-      </div>
-    ),
+    icon: Sun, pro: true, defaultW: 220, defaultH: 180,
+    preview: null as any, // replaced at runtime with live data
   },
   {
     type: "widget-rss", label: "RSS Ticker", description: "Scrolling news & announcements",
@@ -189,6 +214,7 @@ export default function Studio() {
   const [proGateFeature, setProGateFeature] = useState("");
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const isPro = isProTier(subscriptionTier);
@@ -206,6 +232,29 @@ export default function Studio() {
       setSavedLayouts((layoutsRes.data as any[]) || []);
     })();
   }, [user]);
+
+  /* ───── weather preview (London teaser) ───── */
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,weather_code,is_day");
+        const data = await res.json();
+        const code = data.current?.weather_code ?? 0;
+        const WMO: Record<number, { label: string; icon: "sun" | "cloud" | "rain" | "snow" | "storm" }> = {
+          0: { label: "Clear Sky", icon: "sun" }, 1: { label: "Mostly Clear", icon: "sun" }, 2: { label: "Partly Cloudy", icon: "cloud" },
+          3: { label: "Overcast", icon: "cloud" }, 45: { label: "Foggy", icon: "cloud" }, 48: { label: "Icy Fog", icon: "cloud" },
+          51: { label: "Light Drizzle", icon: "rain" }, 53: { label: "Drizzle", icon: "rain" }, 55: { label: "Heavy Drizzle", icon: "rain" },
+          61: { label: "Light Rain", icon: "rain" }, 63: { label: "Rain", icon: "rain" }, 65: { label: "Heavy Rain", icon: "rain" },
+          71: { label: "Light Snow", icon: "snow" }, 73: { label: "Snow", icon: "snow" }, 75: { label: "Heavy Snow", icon: "snow" },
+          80: { label: "Rain Showers", icon: "rain" }, 95: { label: "Thunderstorm", icon: "storm" },
+        };
+        const cond = WMO[code] || { label: "Clear Sky", icon: "sun" as const };
+        setWeatherPreview({ city: "London", temp: Math.round(data.current?.temperature_2m ?? 0), condition: cond.label, icon: cond.icon, isNight: data.current?.is_day === 0 });
+      } catch {
+        setWeatherPreview({ city: "London", temp: 18, condition: "Partly Cloudy", icon: "cloud", isNight: false });
+      }
+    })();
+  }, []);
 
   /* ───── pro gate helper ───── */
   const gatePro = (featureName: string): boolean => {
@@ -355,13 +404,24 @@ export default function Studio() {
             <span className="text-[9px] text-primary/60 ml-1 font-mono">VIDEO BG</span>
           </div>
         )}
-        {el.type === "widget-weather" && (
-          <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary/5 to-glow-blue/10 border border-primary/20 flex flex-col items-center justify-center gap-1 p-2">
-            <Cloud className="h-6 w-6 text-primary" />
-            <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">Weather Widget</span>
-            <span className="text-lg font-bold text-foreground">22°C</span>
-          </div>
-        )}
+        {el.type === "widget-weather" && (() => {
+          const wp = weatherPreview || { city: "London", temp: 18, condition: "Partly Cloudy", icon: "cloud" as const, isNight: false };
+          let cfg: any = { city: "auto" };
+          try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
+          const auroraGrad = getAuroraGradient(wp.icon, wp.isNight);
+          return (
+            <div className="w-full h-full rounded-2xl overflow-hidden relative border border-primary/30 shadow-[0_0_16px_hsla(180,100%,32%,0.2)]" style={{ backdropFilter: "blur(24px)", background: "rgba(255,255,255,0.03)" }}>
+              {/* Aurora bloom */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${auroraGrad} pointer-events-none`} style={{ animation: "weatherAuroraShift 8s ease-in-out infinite" }} />
+              <div className="relative z-10 flex flex-col items-center justify-center h-full gap-1 p-3">
+                {getWeatherNeonIcon(wp.icon, wp.isNight)}
+                <span className="text-2xl font-bold text-foreground font-['Satoshi',sans-serif] mt-1" style={{ textShadow: "0 0 10px hsla(180,100%,32%,0.3)" }}>{wp.temp}°C</span>
+                <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-muted-foreground">{wp.city}</span>
+                <span className="text-[8px] font-mono text-muted-foreground/60 tracking-wider">{wp.condition}</span>
+              </div>
+            </div>
+          );
+        })()}
         {el.type === "widget-rss" && (
           <div className="w-full h-full rounded-lg bg-gradient-to-br from-accent/5 to-primary/5 border border-accent/20 flex flex-col items-center justify-center gap-1 p-2">
             <Rss className="h-5 w-5 text-accent" />
@@ -516,7 +576,18 @@ export default function Studio() {
                       </div>
                     )}
                     <div className="flex-1 flex items-center justify-center w-full">
-                      {w.preview}
+                      {w.type === "widget-weather" && weatherPreview ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-0.5 relative">
+                          <Sun className="h-5 w-5" style={{ color: "#FFB020", filter: "drop-shadow(0 0 8px #FFB020)", animation: "weatherSunPulse 3s ease-in-out infinite" }} />
+                          <span className="text-[11px] font-bold text-foreground mt-0.5">{weatherPreview.temp}°C</span>
+                          <span className="text-[7px] font-mono text-primary tracking-wider flex items-center gap-0.5"><MapPin className="h-2 w-2" />London · Live</span>
+                        </div>
+                      ) : w.preview ? w.preview : (
+                        <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                          <Sun className="h-5 w-5 text-accent" />
+                          <span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
+                        </div>
+                      )}
                     </div>
                     <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
                   </button>
@@ -692,7 +763,49 @@ export default function Studio() {
                 );
               })()}
 
-              {/* Image URL */}
+              {/* Weather config */}
+              {selected.type === "widget-weather" && (() => {
+                let cfg: any = { city: "auto" };
+                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                const isAuto = cfg.city === "auto";
+                const updateCfg = (patch: Record<string, any>) => {
+                  updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
+                };
+                return (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> Location
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Switch checked={isAuto} onCheckedChange={(v) => updateCfg({ city: v ? "auto" : "London" })} />
+                        <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">
+                          {isAuto ? "Auto-detect" : "Manual"}
+                        </span>
+                      </div>
+                      {!isAuto && (
+                        <Input
+                          value={cfg.city}
+                          onChange={(e) => updateCfg({ city: e.target.value })}
+                          placeholder="City name..."
+                          className="glass h-8 text-xs"
+                        />
+                      )}
+                    </div>
+                    {weatherPreview && (
+                      <div className="rounded-lg bg-muted/10 border border-border/20 p-2 space-y-0.5">
+                        <p className="text-[9px] text-muted-foreground/60 font-mono uppercase tracking-widest">Preview</p>
+                        <p className="text-xs text-foreground font-bold font-['Satoshi',sans-serif]">{weatherPreview.temp}°C — {weatherPreview.condition}</p>
+                        <p className="text-[9px] text-muted-foreground font-mono">{weatherPreview.city}</p>
+                      </div>
+                    )}
+                    <p className="text-[9px] text-muted-foreground/40 font-['Satoshi',sans-serif] italic">
+                      Location is detected automatically on TV
+                    </p>
+                  </div>
+                );
+              })()}
+
               {selected.type === "image" && (
                 <div className="space-y-2">
                   <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image URL</p>
@@ -876,6 +989,18 @@ export default function Studio() {
         }
         .alert-glitch-in { animation: alertGlitchIn 0.2s ease-out; }
         .alert-live-flash { animation: alertLiveFlash 0.5s ease-in-out infinite; }
+        @keyframes weatherSunPulse {
+          0%, 100% { filter: drop-shadow(0 0 12px #FFB020) drop-shadow(0 0 24px #FFB02080); transform: scale(1); }
+          50% { filter: drop-shadow(0 0 20px #FFB020) drop-shadow(0 0 40px #FFB020AA); transform: scale(1.08); }
+        }
+        @keyframes weatherRainDrop {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(3px); }
+        }
+        @keyframes weatherAuroraShift {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
       `}</style>
     </div>
   );
