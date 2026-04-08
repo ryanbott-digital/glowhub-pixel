@@ -19,6 +19,44 @@ interface CannonPiece {
   rotation: number; rotSpeed: number; gravity: number;
 }
 
+function playPowerUpWhoosh() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Rising swept noise
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    // Low-pass filter for warmth
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(400, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.6);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
+    // Sub-bass thump
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = "sine";
+    sub.frequency.value = 60;
+    subGain.gain.setValueAtTime(0.15, ctx.currentTime);
+    subGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    sub.connect(subGain);
+    subGain.connect(ctx.destination);
+    sub.start(ctx.currentTime);
+    sub.stop(ctx.currentTime + 0.4);
+  } catch {
+    // browser blocked audio — silent fail
+  }
+}
+
 function playDigitalChime() {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -77,6 +115,7 @@ export default function WelcomePro() {
   // Particle explosion
   useEffect(() => {
     if (phase < 1) return;
+    playPowerUpWhoosh();
     const canvas = explosionRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
