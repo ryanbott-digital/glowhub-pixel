@@ -404,13 +404,24 @@ export default function Studio() {
             <span className="text-[9px] text-primary/60 ml-1 font-mono">VIDEO BG</span>
           </div>
         )}
-        {el.type === "widget-weather" && (
-          <div className="w-full h-full rounded-lg bg-gradient-to-br from-primary/5 to-glow-blue/10 border border-primary/20 flex flex-col items-center justify-center gap-1 p-2">
-            <Cloud className="h-6 w-6 text-primary" />
-            <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">Weather Widget</span>
-            <span className="text-lg font-bold text-foreground">22°C</span>
-          </div>
-        )}
+        {el.type === "widget-weather" && (() => {
+          const wp = weatherPreview || { city: "London", temp: 18, condition: "Partly Cloudy", icon: "cloud" as const, isNight: false };
+          let cfg: any = { city: "auto" };
+          try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
+          const auroraGrad = getAuroraGradient(wp.icon, wp.isNight);
+          return (
+            <div className="w-full h-full rounded-2xl overflow-hidden relative border border-primary/30 shadow-[0_0_16px_hsla(180,100%,32%,0.2)]" style={{ backdropFilter: "blur(24px)", background: "rgba(255,255,255,0.03)" }}>
+              {/* Aurora bloom */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${auroraGrad} pointer-events-none`} style={{ animation: "weatherAuroraShift 8s ease-in-out infinite" }} />
+              <div className="relative z-10 flex flex-col items-center justify-center h-full gap-1 p-3">
+                {getWeatherNeonIcon(wp.icon, wp.isNight)}
+                <span className="text-2xl font-bold text-foreground font-['Satoshi',sans-serif] mt-1" style={{ textShadow: "0 0 10px hsla(180,100%,32%,0.3)" }}>{wp.temp}°C</span>
+                <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-muted-foreground">{wp.city}</span>
+                <span className="text-[8px] font-mono text-muted-foreground/60 tracking-wider">{wp.condition}</span>
+              </div>
+            </div>
+          );
+        })()}
         {el.type === "widget-rss" && (
           <div className="w-full h-full rounded-lg bg-gradient-to-br from-accent/5 to-primary/5 border border-accent/20 flex flex-col items-center justify-center gap-1 p-2">
             <Rss className="h-5 w-5 text-accent" />
