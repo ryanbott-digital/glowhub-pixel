@@ -118,6 +118,7 @@ export default function DownloadPage() {
       setTimeout(() => {
         setUnlocked(true);
         setFlashActive(false);
+        fireConfetti();
       }, 400);
     } catch {
       toast.error("Something went wrong. Please try again.");
