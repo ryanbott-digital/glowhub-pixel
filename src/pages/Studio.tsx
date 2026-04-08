@@ -646,7 +646,7 @@ export default function Studio() {
             />
 
             {/* Elements */}
-            {elements.map(renderElement)}
+            {elements.map((el) => renderElement(el))}
 
             {/* Empty state */}
             {elements.length === 0 && (
