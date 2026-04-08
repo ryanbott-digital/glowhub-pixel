@@ -622,7 +622,9 @@ export default function Studio() {
                   <button
                     key={w.type}
                     onClick={() => addElement(w.type, false)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden"
+                    draggable
+                    onDragStart={(e) => handleWidgetDragStart(e, w)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing"
                   >
                     <div className="flex-1 flex items-center justify-center w-full">
                       {w.preview}
