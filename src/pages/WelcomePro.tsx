@@ -115,6 +115,7 @@ export default function WelcomePro() {
   // Particle explosion
   useEffect(() => {
     if (phase < 1) return;
+    playPowerUpWhoosh();
     const canvas = explosionRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
