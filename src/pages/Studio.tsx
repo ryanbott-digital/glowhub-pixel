@@ -268,15 +268,17 @@ export default function Studio() {
   };
 
   /* ───── add element (from widget library) ───── */
-  const addElement = (type: CanvasElement["type"], pro: boolean) => {
+  const addElement = (type: CanvasElement["type"], pro: boolean, dropPos?: { x: number; y: number }) => {
     if (pro && gatePro(type)) return;
     const id = crypto.randomUUID();
     const widget = WIDGET_LIBRARY.find((w) => w.type === type);
+    const w = widget?.defaultW || 200;
+    const h = widget?.defaultH || 150;
     const defaults: Partial<CanvasElement> = {
-      x: 80 + Math.random() * 200,
-      y: 60 + Math.random() * 120,
-      width: widget?.defaultW || 200,
-      height: widget?.defaultH || 150,
+      x: dropPos ? dropPos.x - w / 2 : 80 + Math.random() * 200,
+      y: dropPos ? dropPos.y - h / 2 : 60 + Math.random() * 120,
+      width: w,
+      height: h,
       style: {},
       proOnly: pro,
     };
@@ -293,6 +295,31 @@ export default function Studio() {
     };
     setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
     setSelectedId(id);
+  };
+
+  /* ───── sidebar drag helpers ───── */
+  const handleWidgetDragStart = (e: React.DragEvent, w: WidgetDef) => {
+    e.dataTransfer.setData("widget-type", w.type);
+    e.dataTransfer.setData("widget-pro", String(w.pro));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
+  const handleCanvasDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData("widget-type") as CanvasElement["type"];
+    if (!type) return;
+    const pro = e.dataTransfer.getData("widget-pro") === "true";
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    addElement(type, pro, { x, y });
+  };
+
+  const handleCanvasDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("widget-type")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
   };
 
   /* ───── drag & resize logic ───── */
