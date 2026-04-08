@@ -28,6 +28,7 @@ export function MonitorPreview() {
   const { user } = useAuth();
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [screenFading, setScreenFading] = useState(false);
   const [screens, setScreens] = useState<ScreenOption[]>([]);
   const [selectedScreenId, setSelectedScreenId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
