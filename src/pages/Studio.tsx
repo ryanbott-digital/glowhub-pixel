@@ -920,6 +920,46 @@ export default function Studio() {
         </div>
       </div>
 
+      {/* ─── Fullscreen Preview ─── */}
+      {fullscreenPreview && (
+        <div
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          onClick={() => setFullscreenPreview(false)}
+          onKeyDown={(e) => e.key === "Escape" && setFullscreenPreview(false)}
+          tabIndex={0}
+          ref={(el) => el?.focus()}
+        >
+          <div className="relative w-full h-full" style={{ aspectRatio: "16/9", maxWidth: "100vw", maxHeight: "100vh" }}>
+            {elements.map((el) => {
+              const scaleX = window.innerWidth / 960;
+              const scaleY = window.innerHeight / 540;
+              const scale = Math.min(scaleX, scaleY);
+              const offsetX = (window.innerWidth - 960 * scale) / 2;
+              const offsetY = (window.innerHeight - 540 * scale) / 2;
+              return (
+                <div
+                  key={el.id}
+                  className="absolute"
+                  style={{
+                    left: offsetX + el.x * scale,
+                    top: offsetY + el.y * scale,
+                    width: el.width * scale,
+                    height: el.height * scale,
+                    ...el.style,
+                  }}
+                >
+                  {renderElement({ ...el, id: `preview-${el.id}` })}
+                </div>
+              );
+            })}
+          </div>
+          {/* Exit hint */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-card/60 backdrop-blur-sm border border-border/30 text-xs text-muted-foreground font-['Satoshi',sans-serif] tracking-wider animate-fade-in">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-muted/30 text-foreground font-mono text-[10px]">ESC</kbd> or click anywhere to exit
+          </div>
+        </div>
+      )}
+
       {/* ─── Pro Gate Modal ─── */}
       <Dialog open={proGateOpen} onOpenChange={setProGateOpen}>
         <DialogContent className="bg-transparent border-none shadow-none max-w-md p-0">
