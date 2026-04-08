@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -22,6 +22,13 @@ interface ContactSubmission {
   created_at: string;
 }
 
+interface Lead {
+  id: string;
+  email: string;
+  created_at: string;
+  consented_at: string;
+}
+
 const TIERS = [
   { value: "free", label: "Free", color: "secondary" as const },
   { value: "basic", label: "Basic", color: "default" as const },
@@ -34,6 +41,8 @@ export default function Admin() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [subsLoading, setSubsLoading] = useState(true);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(true);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -70,9 +79,21 @@ export default function Admin() {
     setSubsLoading(false);
   };
 
+  const fetchLeads = async () => {
+    setLeadsLoading(true);
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (!error) setLeads((data as Lead[]) || []);
+    setLeadsLoading(false);
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchSubmissions();
+    fetchLeads();
   }, []);
 
   const updateTier = async (userId: string, tier: string) => {
@@ -202,6 +223,45 @@ export default function Admin() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{sub.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Captured Leads */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5" /> Captured Leads
+            <Badge variant="secondary" className="ml-auto">{leads.length}</Badge>
+          </CardTitle>
+          <CardDescription>Email leads from the download page</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {leadsLoading ? (
+            <p className="text-muted-foreground text-sm">Loading leads…</p>
+          ) : leads.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No leads captured yet</p>
+          ) : (
+            <div className="space-y-2">
+              {leads.map((lead) => (
+                <div
+                  key={lead.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Mail className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm font-medium truncate">{lead.email}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(lead.created_at).toLocaleDateString(undefined, {
+                      month: "short", day: "numeric", year: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    })}
+                  </div>
                 </div>
               ))}
             </div>
