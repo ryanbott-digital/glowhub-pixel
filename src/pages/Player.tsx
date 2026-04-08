@@ -732,7 +732,7 @@ export default function Player() {
       if (!membership) { setSyncInfo(null); return; }
 
       const [groupRes, membersRes] = await Promise.all([
-        supabase.from("sync_groups").select("orientation").eq("id", membership.sync_group_id).single(),
+        supabase.from("sync_groups").select("orientation, playlist_id").eq("id", membership.sync_group_id).single(),
         supabase.from("sync_group_screens").select("id").eq("sync_group_id", membership.sync_group_id),
       ]);
 
@@ -742,6 +742,12 @@ export default function Player() {
           total: membersRes.data.length,
           orientation: groupRes.data.orientation as "horizontal" | "vertical",
         });
+
+        // If sync group has an assigned playlist, use it
+        const groupPlaylistId = (groupRes.data as any).playlist_id;
+        if (groupPlaylistId) {
+          fetchPlaylist(groupPlaylistId);
+        }
       }
     };
     fetchSyncGroup();
@@ -753,7 +759,7 @@ export default function Player() {
       .on("postgres_changes", { event: "*", schema: "public", table: "sync_groups" }, () => fetchSyncGroup())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [screenId, paired]);
+  }, [screenId, paired, fetchPlaylist]);
 
 
   useEffect(() => {
