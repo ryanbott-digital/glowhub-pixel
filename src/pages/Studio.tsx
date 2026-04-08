@@ -293,7 +293,9 @@ export default function Studio() {
     setSelectedId(id);
   };
 
-  /* ───── drag logic ───── */
+  /* ───── drag & resize logic ───── */
+  const [resizing, setResizing] = useState<{ id: string; corner: string; startX: number; startY: number; startW: number; startH: number; startElX: number; startElY: number } | null>(null);
+
   const handleCanvasMouseDown = (e: React.MouseEvent, elId: string) => {
     e.stopPropagation();
     setSelectedId(elId);
@@ -303,18 +305,38 @@ export default function Studio() {
     setDragOffset({ x: e.clientX - rect.left - el.x, y: e.clientY - rect.top - el.y });
   };
 
+  const handleResizeMouseDown = (e: React.MouseEvent, elId: string, corner: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const el = elements.find((x) => x.id === elId)!;
+    setResizing({ id: elId, corner, startX: e.clientX, startY: e.clientY, startW: el.width, startH: el.height, startElX: el.x, startElY: el.y });
+    setSelectedId(elId);
+  };
+
   const handleCanvasMouseMove = useCallback(
     (e: React.MouseEvent) => {
+      if (resizing && canvasRef.current) {
+        const dx = e.clientX - resizing.startX;
+        const dy = e.clientY - resizing.startY;
+        let { startW: w, startH: h, startElX: x, startElY: y } = resizing;
+        const c = resizing.corner;
+        if (c.includes("r")) w = Math.max(30, w + dx);
+        if (c.includes("b")) h = Math.max(30, h + dy);
+        if (c.includes("l")) { w = Math.max(30, w - dx); x = resizing.startElX + dx; if (w <= 30) x = resizing.startElX + resizing.startW - 30; }
+        if (c.includes("t")) { h = Math.max(30, h - dy); y = resizing.startElY + dy; if (h <= 30) y = resizing.startElY + resizing.startH - 30; }
+        setElements((prev) => prev.map((el) => el.id === resizing.id ? { ...el, x, y, width: w, height: h } : el));
+        return;
+      }
       if (!draggingId || !canvasRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(e.clientX - rect.left - dragOffset.x, rect.width - 50));
       const y = Math.max(0, Math.min(e.clientY - rect.top - dragOffset.y, rect.height - 50));
       setElements((prev) => prev.map((el) => (el.id === draggingId ? { ...el, x, y } : el)));
     },
-    [draggingId, dragOffset],
+    [draggingId, dragOffset, resizing],
   );
 
-  const handleCanvasMouseUp = () => setDraggingId(null);
+  const handleCanvasMouseUp = () => { setDraggingId(null); setResizing(null); };
 
   /* ───── update selected ───── */
   const updateSelected = (patch: Partial<CanvasElement>) => {
@@ -496,6 +518,31 @@ export default function Studio() {
           <div className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[7px] font-bold tracking-widest uppercase bg-accent text-accent-foreground shadow-[0_0_8px_hsl(var(--accent)/0.5)]">
             PRO
           </div>
+        )}
+        {/* Resize handles */}
+        {isSelected && !previewMode && (
+          <>
+            {["tl","tr","bl","br","t","b","l","r"].map((corner) => {
+              const pos: Record<string, React.CSSProperties> = {
+                tl: { top: -4, left: -4, cursor: "nwse-resize" },
+                tr: { top: -4, right: -4, cursor: "nesw-resize" },
+                bl: { bottom: -4, left: -4, cursor: "nesw-resize" },
+                br: { bottom: -4, right: -4, cursor: "nwse-resize" },
+                t: { top: -4, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+                b: { bottom: -4, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+                l: { top: "50%", left: -4, transform: "translateY(-50%)", cursor: "ew-resize" },
+                r: { top: "50%", right: -4, transform: "translateY(-50%)", cursor: "ew-resize" },
+              };
+              return (
+                <div
+                  key={corner}
+                  className="absolute w-2.5 h-2.5 rounded-full bg-primary border-2 border-background shadow-[0_0_6px_hsl(var(--primary))] z-20"
+                  style={pos[corner]}
+                  onMouseDown={(e) => handleResizeMouseDown(e, el.id, corner)}
+                />
+              );
+            })}
+          </>
         )}
       </div>
     );
