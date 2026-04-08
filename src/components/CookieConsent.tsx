@@ -37,21 +37,23 @@ export function CookieConsent() {
         transition: "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease",
       }}
     >
-      <div className="relative overflow-hidden rounded-full bg-white/5 backdrop-blur-[15px] border border-cyan-400/20 px-5 py-3 flex items-center gap-3 sm:gap-4 shadow-[0_0_20px_rgba(0,200,200,0.08)]">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-full bg-white/5 backdrop-blur-[15px] border border-cyan-400/20 px-5 py-3 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 shadow-[0_0_20px_rgba(0,200,200,0.08)]">
         {/* Neon flash overlay */}
         {flashing && (
-          <div className="absolute inset-0 rounded-full bg-cyan-400/30 animate-[flash_300ms_ease-out_forwards] pointer-events-none" />
+          <div className="absolute inset-0 rounded-2xl sm:rounded-full bg-cyan-400/30 animate-[flash_300ms_ease-out_forwards] pointer-events-none" />
         )}
 
-        {/* Pulsing dot */}
-        <span className="relative flex h-2.5 w-2.5 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-400" />
-        </span>
+        <div className="flex items-center gap-3 w-full sm:w-auto sm:flex-1">
+          {/* Pulsing dot */}
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-400" />
+          </span>
 
-        <p className="text-xs sm:text-sm text-[#E2E8F0] flex-1">
-          We use cookies to optimize your Glow experience. System optimized?
-        </p>
+          <p className="text-xs sm:text-sm text-[#E2E8F0] flex-1">
+            We use cookies to optimize your Glow experience. System optimized?
+          </p>
+        </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <button
