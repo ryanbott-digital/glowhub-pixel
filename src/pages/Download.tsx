@@ -23,7 +23,8 @@ export default function DownloadPage() {
     setSubmitting(true);
     try {
       const { error } = await supabase.from("leads").insert({ email: email.trim() });
-      if (error) throw error;
+      // 23505 = unique_violation — email already exists, still unlock
+      if (error && error.code !== "23505") throw error;
       setFlashActive(true);
       setTimeout(() => {
         setUnlocked(true);
