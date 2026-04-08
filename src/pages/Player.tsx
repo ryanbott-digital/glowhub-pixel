@@ -99,6 +99,9 @@ export default function Player() {
   );
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
 
+  // ── SYNC GROUP (offset rendering) ──
+  const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
+
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
   // Active buffer: opacity 1, z-index 10
@@ -717,7 +720,42 @@ export default function Player() {
     return () => clearInterval(interval);
   }, [urlPairingCode, paired, screenId, fetchPlaylist]);
 
-  // Realtime: listen for screen updates (playlist changes)
+  // ── SYNC GROUP: Detect if this screen is part of a sync group for offset rendering ──
+  useEffect(() => {
+    if (!screenId || !paired) return;
+    const fetchSyncGroup = async () => {
+      const { data: membership } = await supabase
+        .from("sync_group_screens")
+        .select("sync_group_id, position")
+        .eq("screen_id", screenId)
+        .maybeSingle();
+      if (!membership) { setSyncInfo(null); return; }
+
+      const [groupRes, membersRes] = await Promise.all([
+        supabase.from("sync_groups").select("orientation").eq("id", membership.sync_group_id).single(),
+        supabase.from("sync_group_screens").select("id").eq("sync_group_id", membership.sync_group_id),
+      ]);
+
+      if (groupRes.data && membersRes.data) {
+        setSyncInfo({
+          position: membership.position,
+          total: membersRes.data.length,
+          orientation: groupRes.data.orientation as "horizontal" | "vertical",
+        });
+      }
+    };
+    fetchSyncGroup();
+
+    // Listen for sync group changes
+    const channel = supabase
+      .channel(`sync-group-${screenId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sync_group_screens" }, () => fetchSyncGroup())
+      .on("postgres_changes", { event: "*", schema: "public", table: "sync_groups" }, () => fetchSyncGroup())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [screenId, paired]);
+
+
   useEffect(() => {
     if (!screenId || !paired) return;
 
@@ -1484,6 +1522,37 @@ export default function Player() {
   const currentUrl = getPublicUrl(currentItem.media.storage_path);
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
+  // Compute sync offset styles for multi-screen spanning
+  const syncMediaStyle: React.CSSProperties = {};
+  if (syncInfo && syncInfo.total > 1) {
+    const { position, total, orientation } = syncInfo;
+    if (orientation === "horizontal") {
+      // Scale content to total width, offset by position
+      syncMediaStyle.width = `${total * 100}%`;
+      syncMediaStyle.height = "100%";
+      syncMediaStyle.maxWidth = "none";
+      syncMediaStyle.maxHeight = "none";
+      syncMediaStyle.objectFit = "cover";
+      syncMediaStyle.objectPosition = `${(position / (total - 1)) * 100}% center`;
+      syncMediaStyle.position = "absolute";
+      syncMediaStyle.top = "0";
+      syncMediaStyle.left = `-${position * 100}%`;
+    } else {
+      syncMediaStyle.height = `${total * 100}%`;
+      syncMediaStyle.width = "100%";
+      syncMediaStyle.maxWidth = "none";
+      syncMediaStyle.maxHeight = "none";
+      syncMediaStyle.objectFit = "cover";
+      syncMediaStyle.objectPosition = `center ${(position / (total - 1)) * 100}%`;
+      syncMediaStyle.position = "absolute";
+      syncMediaStyle.left = "0";
+      syncMediaStyle.top = `-${position * 100}%`;
+    }
+  }
+  const mediaClassName = syncInfo && syncInfo.total > 1
+    ? "absolute inset-0"
+    : "max-w-full max-h-screen object-contain absolute inset-0 m-auto";
+
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
       {/* Branded loading placeholder — shown when media takes >2s to load */}
@@ -1505,7 +1574,7 @@ export default function Player() {
 
       {/* Buffer A */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        className="absolute inset-0 overflow-hidden transition-opacity ease-in-out"
         style={{
           opacity: activeBuffer === "A" ? 1 : 0,
           zIndex: activeBuffer === "A" ? 10 : 5,
@@ -1515,14 +1584,20 @@ export default function Player() {
         <img
           ref={imgRefA}
           alt=""
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "A" && currentItem.media.type === "image" ? "block" : "none" }}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "A" && currentItem.media.type === "image" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefA}
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "A" && currentItem.media.type === "video" ? "block" : "none" }}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "A" && currentItem.media.type === "video" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
           muted autoPlay playsInline preload="auto"
           onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
@@ -1531,7 +1606,7 @@ export default function Player() {
 
       {/* Buffer B */}
       <div
-        className="absolute inset-0 flex items-center justify-center transition-opacity ease-in-out"
+        className="absolute inset-0 overflow-hidden transition-opacity ease-in-out"
         style={{
           opacity: activeBuffer === "B" ? 1 : 0,
           zIndex: activeBuffer === "B" ? 10 : 5,
@@ -1541,14 +1616,20 @@ export default function Player() {
         <img
           ref={imgRefB}
           alt=""
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "B" && currentItem.media.type === "image" ? "block" : "none" }}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "B" && currentItem.media.type === "image" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
           onError={() => handleMediaError(currentItem.media.id, `Image failed to load: ${currentItem.media.name}`)}
         />
         <video
           ref={videoRefB}
-          className="max-w-full max-h-screen object-contain absolute inset-0 m-auto"
-          style={{ display: activeBuffer === "B" && currentItem.media.type === "video" ? "block" : "none" }}
+          className={mediaClassName}
+          style={{
+            display: activeBuffer === "B" && currentItem.media.type === "video" ? "block" : "none",
+            ...syncMediaStyle,
+          }}
           muted autoPlay playsInline preload="auto"
           onEnded={advanceToNext}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}

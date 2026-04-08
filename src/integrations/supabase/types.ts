@@ -442,6 +442,69 @@ export type Database = {
           },
         ]
       }
+      sync_group_screens: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          screen_id: string
+          sync_group_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position?: number
+          screen_id: string
+          sync_group_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          screen_id?: string
+          sync_group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_group_screens_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_group_screens_sync_group_id_fkey"
+            columns: ["sync_group_id"]
+            isOneToOne: false
+            referencedRelation: "sync_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          orientation: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          orientation?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          orientation?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

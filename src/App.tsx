@@ -25,6 +25,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
+import Canvas from "./pages/Canvas";
 import Download from "./pages/Download";
 import NotFound from "./pages/NotFound";
 
@@ -96,6 +97,7 @@ const App = () => (
             <Route path="/payment/cancel" element={<PaymentCancel />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
             <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
             <Route path="/install-app" element={<InstallApp />} />
             <Route path="/download" element={<Download />} />
