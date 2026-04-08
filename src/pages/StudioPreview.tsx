@@ -227,12 +227,15 @@ export default function StudioPreview() {
           </div>
         )}
         {el.type === "widget-ticker" && (() => {
-          let cfg = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false };
+          let cfg: any = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
           try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
           const isAlert = cfg.alertMode;
           const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
           const duration = speedMap[cfg.speed] || "18s";
           const textColor = isAlert ? "text-white uppercase font-extrabold" : (cfg.color === "white" ? "text-white" : "text-primary");
+          const displayText = cfg.source === "rss" && cfg.feedUrl && rssHeadlines[cfg.feedUrl]
+            ? rssHeadlines[cfg.feedUrl].join(" · ")
+            : cfg.messages;
           return (
             <div
               className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
@@ -257,7 +260,7 @@ export default function StudioPreview() {
                     textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none"),
                   }}
                 >
-                  {cfg.messages}
+                  {displayText}
                 </span>
               </div>
             </div>
