@@ -30,7 +30,7 @@ const items = [
   { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true },
   { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false },
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
-  { title: "Subscription", url: "/subscription", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
+  { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
   { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
   { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} />, pro: false },
@@ -105,7 +105,7 @@ export function AppSidebar() {
                       end={item.url === "/"}
                       onClick={isLockedPro ? (e: React.MouseEvent) => {
                         e.preventDefault();
-                        toast("Upgrade to Pro to access " + item.title, { action: { label: "Upgrade", onClick: () => navigate("/subscription") } });
+                        toast("Upgrade to Pro to access " + item.title, { action: { label: "Upgrade", onClick: () => navigate("/billing") } });
                       } : undefined}
                       className="hover:bg-sidebar-accent/50 transition-all duration-200"
                       activeClassName="bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]"
