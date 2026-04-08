@@ -485,6 +485,35 @@ export default function Screens() {
         </div>
       )}
 
+      {/* Upgrade banner when at limit (non-pro) */}
+      {atLimit && tierName !== "pro" && (
+        <div className="relative overflow-hidden rounded-2xl glass-strong border border-primary/20 p-5 animate-fade-in">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+          <div className="relative flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center">
+                <Crown className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  You've reached your {tierName === "free" ? "Free" : "Basic"} plan limit of {screenLimit} screen{screenLimit !== 1 ? "s" : ""}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Upgrade to Pro to manage up to 5 screens, plus unlock scheduling, analytics &amp; more.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => navigate("/billing")}
+              className="flex-shrink-0 bg-gradient-to-r from-primary to-accent hover:shadow-[0_0_16px_hsl(var(--primary)/0.4)] border-0 transition-shadow"
+            >
+              <Crown className="h-3.5 w-3.5 mr-1.5" /> Upgrade to Pro
+            </Button>
+          </div>
+        </div>
+      )}
+
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {/* Ungrouped screens */}
         <DroppableGroupZone groupId="ungrouped">
