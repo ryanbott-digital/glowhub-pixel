@@ -1,46 +1,35 @@
 
 
-## Redesign /download as Lead Capture & Installation Funnel
+## Create /terms Route — Terms of Service & Privacy Policy
 
 ### What We're Building
-A two-phase download page: first an email gate (glassmorphism card with email capture), then a cross-fade reveal of the full installation dashboard with device-specific accordion guides. Emails are saved to a new `leads` table.
+A new `/terms` page with Deep Space background, glassmorphism content blocks, and top tabs to switch between Terms of Service and Privacy Policy. Human-readable tone with summary boxes and placeholder legal content.
 
 ### Changes
 
-**1. Database Migration — Create `leads` table**
-```sql
-CREATE TABLE public.leads (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can insert leads" ON public.leads FOR INSERT TO public WITH CHECK (true);
-CREATE POLICY "Admins can view leads" ON public.leads FOR SELECT TO authenticated USING (has_role(auth.uid(), 'admin'));
-```
-No auth required for insert — this is a public lead capture form.
+**1. Create `src/pages/Terms.tsx`**
+- Deep Space background (`bg-[#0B1120]`), Satoshi font
+- "Last Updated" timestamp at top
+- `Tabs` component (from existing `@/components/ui/tabs`) for "Terms of Service" / "Privacy Policy"
+- Each tab opens with a "Summary for Humans" glassmorphism box (3 bullet points)
+- Content broken into glassmorphism cards (`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl`)
+- Text color `text-[#E2E8F0]`, headers in white
+- Links styled with `hover:text-cyan-400` neon teal effect
+- Sections for Terms: Subscription ($9/mo, 30-day cancel), Content Responsibility, Uptime Disclaimer, Account Termination
+- Sections for Privacy: Data Collection, Data Usage (leads table, consent), Cookie Policy, Data Retention
+- Back link to home, logo at top
 
-**2. Rewrite `src/pages/Download.tsx`**
+**2. Update `src/App.tsx`**
+- Add lazy import for Terms page
+- Add public route: `<Route path="/terms" element={<Terms />} />`
 
-- **State**: `unlocked` boolean, `email` string, `submitting` boolean, `flashActive` boolean
-- **Phase 1 — The Gate**: Centered glassmorphism card with:
-  - Glow logo + "GET THE GLOW PLAYER" headline
-  - Subtext about unlocking download link
-  - Neon-bordered email input (validated with basic regex)
-  - "Unlock Access" button that inserts into `leads` table, then triggers flash animation and sets `unlocked = true`
-- **Transition**: On submit, briefly show a white/neon flash overlay (`flashActive` for ~400ms), then cross-fade to Phase 2 using opacity + CSS transitions
-- **Phase 2 — The Payload**:
-  - Top: Massive glowing Downloader code (reuse existing neon digit style)
-  - Secondary: Download APK button + Browser mode URL
-  - Below: "How to install on your device" section with three device icons (Firestick, Android TV, Tablet/PC) using Accordion components — collapsed by default, each with a 3-step visual guide
-  - Footer: consent note about receiving Glow updates
-- **Design**: Keep Deep Space background, mesh gradients, glass classes, existing nav bar
+**3. Update Download page footer link**
+- The consent text in `src/pages/Download.tsx` — link "Glow" text or add a link to `/terms`
 
-### Technical Details
-- One new database table with public INSERT, admin-only SELECT
-- Single page file rewrite — no new components needed
-- Uses existing Accordion, Input, and Button UI components
-- Email validation client-side before insert
-- Flash effect: absolute overlay div with `bg-white/90` that fades in/out over 400ms via CSS transition
-- No authentication required for the email capture
+### Design Details
+- Reuses existing `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` components
+- Each section is a separate glassmorphism card with a clear header and body
+- Summary box uses a slightly different glass tint (cyan/teal border) to stand out
+- Responsive: single column, max-w-4xl centered
+- No authentication required — fully public page
 
