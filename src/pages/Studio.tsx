@@ -13,8 +13,9 @@ import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
   Clock, MousePointer, Download, Undo2, Redo2, Eye, Timer,
-  Zap, Sun, CloudRain, Newspaper, Radio,
+  Zap, Sun, CloudRain, Newspaper, Radio, Siren,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 /* ───── types ───── */
 interface CanvasElement {
@@ -391,26 +392,36 @@ export default function Studio() {
           </div>
         )}
         {el.type === "widget-ticker" && (() => {
-          let cfg = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal" };
+          let cfg = { messages: "Breaking News · Welcome to GLOW · Stay tuned", speed: "normal", color: "teal", alertMode: false };
           try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
+          const isAlert = cfg.alertMode === true;
           const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
           const duration = speedMap[cfg.speed] || "18s";
-          const textColor = cfg.color === "white" ? "text-white" : "text-primary";
+          const textColor = isAlert ? "text-white uppercase font-extrabold" : (cfg.color === "white" ? "text-white" : "text-primary");
           return (
-            <div className="w-full h-full rounded-lg backdrop-blur-[25px] bg-white/5 border-t-2 border-primary flex items-center overflow-hidden"
-              style={{ boxShadow: "0 -2px 15px hsla(180,100%,32%,0.3)" }}>
-              <div className="shrink-0 px-2.5 py-1 bg-red-500 flex items-center gap-1.5 h-full">
-                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <div
+              className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
+              style={{
+                background: isAlert ? "#FF0033" : "rgba(255,255,255,0.05)",
+                borderTop: isAlert ? "2px solid #FF0033" : "2px solid hsl(var(--primary))",
+                boxShadow: isAlert
+                  ? "0 -20px 60px rgba(255,0,51,0.4), 0 -40px 100px rgba(255,0,51,0.2)"
+                  : "0 -2px 15px hsla(180,100%,32%,0.3)",
+                animation: isAlert ? "alertGlowSpill 2s ease-in-out infinite" : undefined,
+              }}
+            >
+              <div className={`shrink-0 px-2.5 py-1 flex items-center gap-1.5 h-full ${isAlert ? "bg-black/30" : "bg-red-500"}`}>
+                <div className={`w-2 h-2 rounded-full bg-white ${isAlert ? "alert-live-flash" : "animate-pulse"}`} />
                 <span className="text-[10px] font-bold text-white tracking-widest font-mono">LIVE</span>
               </div>
               <div className="flex-1 overflow-hidden h-full flex items-center">
                 <span
-                  className={`inline-block whitespace-nowrap font-mono font-bold tracking-wider ${textColor}`}
+                  className={`inline-block whitespace-nowrap font-mono tracking-wider ${textColor}`}
                   style={{
                     animation: `tickerScroll ${duration} linear infinite`,
                     willChange: "transform",
-                    fontSize: "14px",
-                    textShadow: cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none",
+                    fontSize: isAlert ? "16px" : "14px",
+                    textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none"),
                   }}
                 >
                   {cfg.messages}
@@ -621,9 +632,9 @@ export default function Studio() {
 
               {/* Ticker config */}
               {selected.type === "widget-ticker" && (() => {
-                let cfg = { messages: "", speed: "normal", color: "teal" };
+                let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false };
                 try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                const updateCfg = (patch: Record<string, string>) => {
+                const updateCfg = (patch: Record<string, any>) => {
                   const next = { ...cfg, ...patch };
                   updateSelected({ content: JSON.stringify(next) });
                 };
@@ -660,6 +671,22 @@ export default function Studio() {
                           <SelectItem value="white">Classic White</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    {/* Emergency Flash Mode */}
+                    <div className="space-y-1.5 pt-1 border-t border-border/20">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: cfg.alertMode ? "#FF0033" : "hsl(var(--muted-foreground) / 0.6)" }}>
+                        <Siren className="h-3 w-3" /> Emergency Flash
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={!!cfg.alertMode}
+                          onCheckedChange={(v) => updateCfg({ alertMode: v })}
+                          className="data-[state=checked]:bg-[#FF0033]"
+                        />
+                        <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">
+                          {cfg.alertMode ? "Alert Active" : "Off"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -832,6 +859,23 @@ export default function Studio() {
           0% { transform: translateX(100%); }
           100% { transform: translateX(-100%); }
         }
+        @keyframes alertGlitchIn {
+          0% { opacity: 0; background: white; }
+          25% { opacity: 1; background: #FF0033; }
+          50% { opacity: 0.3; background: white; }
+          75% { opacity: 1; background: #FF0033; }
+          100% { opacity: 1; background: #FF0033; }
+        }
+        @keyframes alertLiveFlash {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.2; }
+        }
+        @keyframes alertGlowSpill {
+          0%, 100% { box-shadow: 0 -20px 60px rgba(255,0,51,0.3); }
+          50% { box-shadow: 0 -30px 80px rgba(255,0,51,0.5), 0 -50px 120px rgba(255,0,51,0.2); }
+        }
+        .alert-glitch-in { animation: alertGlitchIn 0.2s ease-out; }
+        .alert-live-flash { animation: alertLiveFlash 0.5s ease-in-out infinite; }
       `}</style>
     </div>
   );
