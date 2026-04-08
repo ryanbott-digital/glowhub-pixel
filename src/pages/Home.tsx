@@ -7,6 +7,7 @@ import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
 import StarField from "@/components/StarField";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 
 /* ── Scroll reveal hook ── */
 function useScrollReveal() {
