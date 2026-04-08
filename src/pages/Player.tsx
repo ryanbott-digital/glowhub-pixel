@@ -2028,6 +2028,55 @@ export default function Player() {
         </div>
       )}
 
+      {/* Breaking Alert Overlay */}
+      {alertActive && (
+        <div className="fixed bottom-0 left-0 right-0 z-[55] alert-glitch-in" style={{ animation: "playerAlertGlowSpill 2s ease-in-out infinite" }}>
+          <div className="w-full h-14 flex items-center overflow-hidden" style={{ background: "#FF0033", boxShadow: "0 -20px 60px rgba(255,0,51,0.4), 0 -40px 100px rgba(255,0,51,0.2)" }}>
+            <div className="shrink-0 px-4 py-1 bg-black/30 flex items-center gap-2 h-full">
+              <div className="w-2.5 h-2.5 rounded-full bg-white" style={{ animation: "playerAlertLiveFlash 0.5s ease-in-out infinite" }} />
+              <span className="text-xs font-bold text-white tracking-widest font-mono">LIVE</span>
+            </div>
+            <div className="flex-1 overflow-hidden h-full flex items-center">
+              <span
+                className="inline-block whitespace-nowrap font-mono font-extrabold tracking-wider text-white uppercase"
+                style={{
+                  animation: "playerTickerScroll 12s linear infinite",
+                  willChange: "transform",
+                  fontSize: "18px",
+                  textShadow: "0 0 10px rgba(255,255,255,0.6)",
+                }}
+              >
+                ⚠ BREAKING ALERT · EMERGENCY BROADCAST · ATTENTION REQUIRED · ⚠ BREAKING ALERT · EMERGENCY BROADCAST ·
+              </span>
+            </div>
+          </div>
+          <style>{`
+            .alert-glitch-in {
+              animation: playerAlertGlitchIn 0.2s ease-out;
+            }
+            @keyframes playerAlertGlitchIn {
+              0% { opacity: 0; background: white; }
+              25% { opacity: 1; background: #FF0033; }
+              50% { opacity: 0.3; background: white; }
+              75% { opacity: 1; background: #FF0033; }
+              100% { opacity: 1; background: #FF0033; }
+            }
+            @keyframes playerAlertLiveFlash {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.2; }
+            }
+            @keyframes playerAlertGlowSpill {
+              0%, 100% { box-shadow: 0 -20px 60px rgba(255,0,51,0.3); }
+              50% { box-shadow: 0 -30px 80px rgba(255,0,51,0.5), 0 -50px 120px rgba(255,0,51,0.2); }
+            }
+            @keyframes playerTickerScroll {
+              0% { transform: translateX(100%); }
+              100% { transform: translateX(-100%); }
+            }
+          `}</style>
+        </div>
+      )}
+
       {/* Offline overlay */}
       {isOffline && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2.5 border border-white/10">
