@@ -989,6 +989,18 @@ export default function Studio() {
         }
         .alert-glitch-in { animation: alertGlitchIn 0.2s ease-out; }
         .alert-live-flash { animation: alertLiveFlash 0.5s ease-in-out infinite; }
+        @keyframes weatherSunPulse {
+          0%, 100% { filter: drop-shadow(0 0 12px #FFB020) drop-shadow(0 0 24px #FFB02080); transform: scale(1); }
+          50% { filter: drop-shadow(0 0 20px #FFB020) drop-shadow(0 0 40px #FFB020AA); transform: scale(1.08); }
+        }
+        @keyframes weatherRainDrop {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(3px); }
+        }
+        @keyframes weatherAuroraShift {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
       `}</style>
     </div>
   );
