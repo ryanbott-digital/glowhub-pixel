@@ -79,9 +79,21 @@ export default function Admin() {
     setSubsLoading(false);
   };
 
+  const fetchLeads = async () => {
+    setLeadsLoading(true);
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (!error) setLeads((data as Lead[]) || []);
+    setLeadsLoading(false);
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchSubmissions();
+    fetchLeads();
   }, []);
 
   const updateTier = async (userId: string, tier: string) => {
