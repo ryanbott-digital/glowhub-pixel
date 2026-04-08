@@ -126,12 +126,13 @@ export default function Canvas() {
     if (syncGroups.length > 0) fetchPreviews();
   }, [syncGroups]);
 
-  // Realtime sync heartbeat
+  // Realtime: refresh when sync_groups OR screen playlist assignments change
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel("sync-groups-realtime")
+      .channel("canvas-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "sync_groups", filter: `user_id=eq.${user.id}` }, () => fetchData())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "screens", filter: `user_id=eq.${user.id}` }, () => fetchData())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, fetchData]);
