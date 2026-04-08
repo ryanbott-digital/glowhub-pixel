@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { isNativePlatform } from "@/lib/capacitor-autostart";
+import { CookieConsent } from "@/components/CookieConsent";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
