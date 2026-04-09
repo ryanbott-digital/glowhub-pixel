@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool } from "lucide-react";
+import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -111,9 +111,10 @@ export function AppSidebar() {
                       >
                         <item.icon className="mr-2 h-4 w-4" />
                         {!collapsed && (
-                          <span className="flex items-center gap-1.5">
+                          <span className="flex items-center gap-1.5 flex-1">
                             {item.title}
                             {item.pro && <span className="pro-badge">PRO</span>}
+                            <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground/50" />
                           </span>
                         )}
                       </a>
