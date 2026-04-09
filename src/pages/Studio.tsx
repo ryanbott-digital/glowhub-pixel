@@ -210,10 +210,10 @@ const PRO_ANIMATIONS = [
 const MAX_HISTORY = 30;
 
 export default function Studio() {
-  const { user } = useAuth();
+  const { user, subscriptionTier: localTier, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const [serverVerifiedPro, setServerVerifiedPro] = useState<boolean | null>(null);
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -237,9 +237,33 @@ export default function Studio() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
-  const isPro = isProTier(subscriptionTier);
+  // Server-verified Pro status — blocks pro widgets until confirmed
+  const isPro = serverVerifiedPro === true;
   const selected = elements.find((e) => e.id === selectedId) || null;
   const multiSelected = selectedIds.size > 1;
+
+  // Server-side tier verification on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) { setServerVerifiedPro(false); return; }
+        const res = await supabase.functions.invoke("verify-tier", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const tier = res.data?.tier || "free";
+        setServerVerifiedPro(isProTier(tier));
+        // Tamper detection
+        if (isProTier(localTier) && !isProTier(tier)) {
+          console.warn("[Studio] Tier mismatch. Forcing sign-out.");
+          await signOut();
+        }
+      } catch {
+        setServerVerifiedPro(isProTier(localTier));
+      }
+    })();
+  }, [user, localTier, signOut]);
 
   /* ───── history helpers ───── */
   const pushHistory = useCallback((snapshot: CanvasElement[]) => {
