@@ -23,35 +23,44 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
+        navigateFallback: "/index.html",
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "pages-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: "GlowHub - Digital Signage",
         short_name: "GlowHub",
         description: "Upload, schedule, and push content to remote screens in real-time.",
-        theme_color: "#000000",
-        background_color: "#000000",
-        display: "fullscreen",
+        theme_color: "#00A3A3",
+        background_color: "#00A3A3",
+        display: "standalone",
         orientation: "landscape",
-        start_url: "/player",
-        scope: "/",
+        start_url: "https://glowhub-pixel.lovable.app/player",
+        scope: "https://glowhub-pixel.lovable.app/",
         icons: [
           {
-            src: "/icon-192x192.png",
+            src: "https://glowhub-pixel.lovable.app/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
           {
-            src: "/icon-512x512.png",
+            src: "https://glowhub-pixel.lovable.app/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
-          },
-          {
-            src: "/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
+            purpose: "any maskable",
           },
         ],
       },
