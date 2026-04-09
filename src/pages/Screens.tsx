@@ -37,6 +37,7 @@ interface Playlist {
 
 export default function Screens() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
