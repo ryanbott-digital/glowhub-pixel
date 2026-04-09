@@ -380,7 +380,7 @@ export default function MediaLibrary() {
                 onClick={openSendDialog}
               >
                 <Send className="h-3 w-3 mr-1" />
-                Send to Screen
+                Send {selected.size} to Screen
               </Button>
               <Button
                 variant="destructive"
