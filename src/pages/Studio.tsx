@@ -379,8 +379,8 @@ export default function Studio() {
     return true;
   };
 
-  /* ───── add element ───── */
-  const addElement = (type: CanvasElement["type"], pro: boolean, dropPos?: { x: number; y: number }) => {
+  /* ───── add element (reads saved widget defaults) ───── */
+  const addElement = async (type: CanvasElement["type"], pro: boolean, dropPos?: { x: number; y: number }) => {
     if (pro && gatePro(type)) return;
     pushHistory(elements);
     const id = crypto.randomUUID();
@@ -397,7 +397,9 @@ export default function Studio() {
       visible: true,
       locked: false,
     };
-    const contentMap: Record<string, string> = {
+
+    // Try to load saved defaults from premium_widgets
+    let contentMap: Record<string, string> = {
       image: "",
       video: "",
       text: "Double-click to edit",
@@ -408,6 +410,27 @@ export default function Studio() {
       "widget-neon-label": "GLOW",
       "widget-ticker": '{"messages":"Breaking News · Welcome to GLOW · Stay tuned","speed":"normal","color":"teal"}',
     };
+
+    if (user && (type === "widget-weather" || type === "widget-rss")) {
+      try {
+        const widgetType = type === "widget-weather" ? "weather" : "rss";
+        const { data } = await supabase
+          .from("premium_widgets")
+          .select("config")
+          .eq("user_id", user.id)
+          .eq("widget_type", widgetType)
+          .maybeSingle();
+        if (data?.config) {
+          const cfg = data.config as Record<string, any>;
+          if (type === "widget-weather" && cfg.city) {
+            contentMap["widget-weather"] = JSON.stringify({ city: cfg.city, unit: cfg.unit || "celsius" });
+          } else if (type === "widget-rss" && cfg.feedUrl) {
+            contentMap["widget-rss"] = JSON.stringify({ feed: cfg.feedUrl, speed: cfg.speed || "normal", count: cfg.count || 5 });
+          }
+        }
+      } catch { /* fall back to defaults */ }
+    }
+
     setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
     setSelectedId(id);
     setSelectedIds(new Set([id]));

@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2, Crown } from "lucide-react";
+import { ProGuard } from "@/components/ProGuard";
+import PremiumWidgetConfig from "@/components/PremiumWidgetConfig";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -234,6 +236,18 @@ export default function Settings() {
             </SelectContent>
           </Select>
         </SettingRow>
+      </div>
+
+      {/* Pro Widgets */}
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Crown className="h-4 w-4 text-primary" />
+          Pro Widget Defaults
+        </h2>
+        <p className="text-xs text-muted-foreground">Configure default settings for Weather and RSS widgets used in Studio.</p>
+        <ProGuard showUpgradePrompt featureName="Widget Configuration">
+          <PremiumWidgetConfig />
+        </ProGuard>
       </div>
 
       {/* Danger Zone */}
