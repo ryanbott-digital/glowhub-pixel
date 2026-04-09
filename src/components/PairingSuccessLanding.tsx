@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import glowLogoPng from "@/assets/glow-text.png";
 
@@ -8,9 +9,50 @@ const BLOBS = [
   { color: "rgba(0,163,163,0.30)", size: 950, x: ["80%", "35%", "65%"], y: ["25%", "75%", "35%"], dur: 20 },
 ];
 
+const STAR_COUNT = 80;
+
+function generateStars() {
+  return Array.from({ length: STAR_COUNT }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: 1 + Math.random() * 2,
+    delay: Math.random() * 6,
+    duration: 3 + Math.random() * 4,
+    brightness: 0.15 + Math.random() * 0.45,
+  }));
+}
+
 export function PairingSuccessLanding() {
+  const stars = useMemo(generateStars, []);
+
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+      {/* Starfield */}
+      <div className="absolute inset-0 z-0">
+        {stars.map((s) => (
+          <motion.div
+            key={s.id}
+            className="absolute rounded-full"
+            style={{
+              left: `${s.x}%`,
+              top: `${s.y}%`,
+              width: s.size,
+              height: s.size,
+              background: `rgba(255,255,255,${s.brightness})`,
+            }}
+            animate={{ opacity: [0, s.brightness, 0] }}
+            transition={{
+              duration: s.duration,
+              delay: s.delay,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Luminous Pulse blobs */}
       {/* Luminous Pulse blobs */}
       {BLOBS.map((b, i) => (
         <motion.div
