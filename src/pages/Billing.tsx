@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
