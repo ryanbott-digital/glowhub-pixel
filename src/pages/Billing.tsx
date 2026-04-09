@@ -19,13 +19,21 @@ const FREE_FEATURES = [
 ];
 
 export default function Billing() {
-  const { user, subscriptionTier } = useAuth();
+  const { user, subscriptionTier, refreshSubscription } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTier = subscriptionTier;
   const loading = !user;
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
+
+  const handleRefreshSubscription = async () => {
+    setRefreshing(true);
+    await refreshSubscription();
+    setRefreshing(false);
+    toast.success("Subscription status refreshed");
+  };
 
   // System Level Up animation on upgrade
   useEffect(() => {
