@@ -9,6 +9,14 @@ const CHEEKY_MESSAGES = [
   "We see you! 👀 Pro features are server-locked. Upgrade to unlock the real deal.",
   "Sneaky sneaky! 🕵️ CSS tricks won't cut it — the backend knows all. Upgrade to Pro!",
   "Almost had it! 🔒 But our cloud says otherwise. $9/mo for the real glow-up.",
+  "Inspect Element won't save you here! 🛡️ The server guards the goods.",
+  "A for effort! 🎓 But Pro lives in the cloud, not the DOM.",
+  "You've got hacker energy! ⚡ Channel it into a Pro subscription instead.",
+  "DOM manipulation detected! 🚨 Our pixels are smarter than that.",
+  "Close, but no cigar! 🎯 Real Pro features need real Pro access.",
+  "That's not how the Glow works! ✨ Upgrade and let the cloud do its thing.",
+  "Our paywall went to the gym 💪 — it's server-side strong now.",
+  "You found the paywall! 🏆 Now find the upgrade button for $9/mo.",
 ];
 
 function getCheekyMessage() {
