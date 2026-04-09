@@ -74,9 +74,13 @@ function AuthRoute() {
 }
 
 function PairRedirect() {
+  const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const code = searchParams.get("code") || "";
-  return <Navigate to={code ? `/screens?pair=${code}` : "/screens"} replace />;
+  const target = code ? `/screens?pair=${code}` : "/screens";
+  if (loading) return <GHLoaderPage />;
+  if (!user) return <Navigate to={`/auth?redirect=${encodeURIComponent(target)}`} replace />;
+  return <Navigate to={target} replace />;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
