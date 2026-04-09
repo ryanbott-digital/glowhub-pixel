@@ -20,7 +20,7 @@ export default function Dashboard() {
   const [pairingCode, setPairingCode] = useState("");
   const [screens, setScreens] = useState<any[]>([]);
   const [playlists, setPlaylists] = useState<any[]>([]);
-  const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const subscriptionTier = useAuth().subscriptionTier;
   const [portalLoading, setPortalLoading] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [newScreenName, setNewScreenName] = useState("");
@@ -30,15 +30,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [s, p, prof, m] = await Promise.all([
+      const [s, p, m] = await Promise.all([
         supabase.from("screens").select("*").eq("user_id", user.id),
         supabase.from("playlists").select("*").eq("user_id", user.id),
-        supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
         supabase.from("media").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       if (s.data) setScreens(s.data);
       if (p.data) setPlaylists(p.data);
-      if (prof.data) setSubscriptionTier(prof.data.subscription_tier);
       setMediaCount(m.count ?? 0);
     };
     fetchData();

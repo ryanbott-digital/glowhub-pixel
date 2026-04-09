@@ -47,7 +47,7 @@ export function AppSidebar() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
-  const [userTier, setUserTier] = useState("free");
+  const userTier = useAuth().subscriptionTier;
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
@@ -58,9 +58,8 @@ export function AppSidebar() {
   useEffect(() => {
     if (!user) return;
     const fetchUsage = async () => {
-      const { currentCount, limit, tier } = await checkScreenLimit(user.id);
+      const { currentCount, limit } = await checkScreenLimit(user.id);
       setScreenUsage({ count: currentCount, limit });
-      setUserTier(tier);
     };
     fetchUsage();
   }, [user, location.pathname]);
