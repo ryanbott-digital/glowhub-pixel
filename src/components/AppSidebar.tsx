@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -101,23 +102,30 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     {isNewTab && !isLockedPro ? (
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-sidebar-accent/50 transition-all duration-200 ${
-                          location.pathname === item.url ? "bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]" : ""
-                        }`}
-                      >
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {!collapsed && (
-                          <span className="flex items-center gap-1.5 flex-1">
-                            {item.title}
-                            {item.pro && <span className="pro-badge">PRO</span>}
-                            <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground/50" />
-                          </span>
-                        )}
-                      </a>
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-sidebar-accent/50 transition-all duration-200 ${
+                                location.pathname === item.url ? "bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]" : ""
+                              }`}
+                            >
+                              <item.icon className="mr-2 h-4 w-4" />
+                              {!collapsed && (
+                                <span className="flex items-center gap-1.5 flex-1">
+                                  {item.title}
+                                  {item.pro && <span className="pro-badge">PRO</span>}
+                                  <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground/50" />
+                                </span>
+                              )}
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">Opens in new tab</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     ) : (
                     <NavLink
                       to={isLockedPro ? "#" : item.url}
