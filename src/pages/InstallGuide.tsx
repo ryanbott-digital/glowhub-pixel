@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Wifi, Globe, Download, Settings, Play, ChevronRight, Smartphone, Tv } from "lucide-react";
@@ -26,7 +27,7 @@ const steps = {
           <ol className="list-decimal list-inside space-y-1.5">
             <li>Install the <a href="https://www.amazon.com/dp/B01N0BP507" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">Downloader</a> app from the Amazon Appstore (free)</li>
             <li>Open Downloader and enter code: <span className="font-mono text-primary font-bold">1648081</span></li>
-            <li>The GlowHub APK will download and install automatically</li>
+            <li>The GlowHub APK <span className="font-mono text-muted-foreground/60 text-[10px]">(v{APK_VERSION} · {APK_DATE})</span> will download and install automatically</li>
             <li>The app will appear in <strong className="text-foreground">Your Apps & Channels</strong> on the home screen</li>
           </ol>
           <p className="text-xs mt-2 text-muted-foreground/70">
