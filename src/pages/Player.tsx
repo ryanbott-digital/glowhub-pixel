@@ -567,20 +567,22 @@ export default function Player() {
     }
   }, []);
 
-  // ── STANDALONE ENTRY: No URL param, no stored screen → create pending screen via edge function ──
+  // ── STANDALONE ENTRY: No URL param, no stored screen → create pairing code via edge function ──
+  const [pendingPairingId, setPendingPairingId] = useState<string | null>(null);
+
   useEffect(() => {
     if (urlPairingCode || screenId) return; // handled by other flows
 
-    const createPendingScreen = async () => {
+    const createPendingPairing = async () => {
       try {
         const res = await supabase.functions.invoke("create-pending-screen");
         if (res.error || !res.data) {
-          console.error("Failed to create pending screen:", res.error);
+          console.error("Failed to create pairing:", res.error);
           setLoading(false);
           return;
         }
-        const { screen_id, pairing_code } = res.data as { screen_id: string; pairing_code: string };
-        setScreenId(screen_id);
+        const { pairing_id, pairing_code } = res.data as { pairing_id: string; pairing_code: string };
+        setPendingPairingId(pairing_id);
         setPairingCode(pairing_code);
         setLoading(false);
       } catch (err) {
@@ -589,8 +591,45 @@ export default function Player() {
       }
     };
 
-    createPendingScreen();
+    createPendingPairing();
   }, [urlPairingCode, screenId]);
+
+  // ── Watch for pairing to be claimed (screen_id gets set on the pairing record) ──
+  useEffect(() => {
+    if (!pendingPairingId || paired || screenId) return;
+
+    const pollInterval = setInterval(async () => {
+      const { data: pairing } = await supabase
+        .from("pairings")
+        .select("screen_id")
+        .eq("id", pendingPairingId)
+        .maybeSingle();
+
+      if (pairing?.screen_id) {
+        clearInterval(pollInterval);
+        setScreenId(pairing.screen_id);
+        localStorage.setItem("glowhub_screen_id", pairing.screen_id);
+        setPendingPairingId(null);
+        triggerActivation();
+
+        // Fetch playlist if assigned
+        const { data: screen } = await supabase
+          .from("screens")
+          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled")
+          .eq("id", pairing.screen_id)
+          .maybeSingle();
+
+        if (screen) {
+          if (screen.transition_type) setTransitionType(screen.transition_type);
+          if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
+          if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
+          if (screen.current_playlist_id) await fetchPlaylist(screen.current_playlist_id);
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [pendingPairingId, paired, screenId, triggerActivation, fetchPlaylist]);
 
   // ── STORED SCREEN: Already paired, jump straight to playback ──
   useEffect(() => {

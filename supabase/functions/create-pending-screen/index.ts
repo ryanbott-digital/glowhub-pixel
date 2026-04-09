@@ -25,10 +25,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!supabaseUrl || !serviceRoleKey) {
-      console.error("Missing env vars:", {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!serviceRoleKey,
-      });
       return new Response(
         JSON.stringify({ error: "Server configuration error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -40,10 +36,10 @@ Deno.serve(async (req) => {
     // Generate a unique 6-digit pairing code
     let pairingCode = generatePairingCode();
 
-    // Check for collision (unlikely but safe)
+    // Check for collision in pairings table
     for (let attempt = 0; attempt < 5; attempt++) {
       const { data: existing } = await supabase
-        .from("screens")
+        .from("pairings")
         .select("id")
         .eq("pairing_code", pairingCode)
         .maybeSingle();
@@ -52,30 +48,27 @@ Deno.serve(async (req) => {
       pairingCode = generatePairingCode();
     }
 
-    // Placeholder user_id for unclaimed screens (NOT NULL column)
-    const UNCLAIMED_USER_ID = "00000000-0000-0000-0000-000000000000";
-
-    const { data: screen, error } = await supabase
-      .from("screens")
+    // Create a pairing record (no screen yet — screen is created when dashboard claims it)
+    const { data: pairing, error } = await supabase
+      .from("pairings")
       .insert({
         pairing_code: pairingCode,
-        status: "offline",
-        name: "Pending Screen",
-        user_id: UNCLAIMED_USER_ID,
+        // screen_id is null — will be set when claimed
+        // expires_at defaults to now() + 15 min
       })
       .select("id, pairing_code")
       .single();
 
     if (error) {
-      console.error("Failed to create pending screen:", JSON.stringify(error));
+      console.error("Failed to create pairing:", JSON.stringify(error));
       return new Response(
-        JSON.stringify({ error: "Failed to create screen", detail: error.message }),
+        JSON.stringify({ error: "Failed to create pairing", detail: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ screen_id: screen.id, pairing_code: screen.pairing_code }),
+      JSON.stringify({ pairing_id: pairing.id, pairing_code: pairing.pairing_code }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
