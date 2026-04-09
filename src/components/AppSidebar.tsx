@@ -47,7 +47,7 @@ export function AppSidebar() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
-  const [userTier, setUserTier] = useState("free");
+  const userTier = useAuth().subscriptionTier;
 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches
