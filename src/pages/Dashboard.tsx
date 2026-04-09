@@ -10,6 +10,7 @@ import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { PairSuccessModal } from "@/components/PairSuccessModal";
+import { ProGuard } from "@/components/ProGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
