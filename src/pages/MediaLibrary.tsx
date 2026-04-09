@@ -76,21 +76,42 @@ export default function MediaLibrary() {
   };
 
   const sendToScreen = async (screenId: string) => {
-    if (selected.size === 0) return;
+    if (selected.size === 0 || !user) return;
     setSending(true);
-    // Send the first selected media item to the screen
-    const mediaId = Array.from(selected)[0];
-    const { error } = await supabase
-      .from("screens")
-      .update({ current_media_id: mediaId })
-      .eq("id", screenId);
-    if (error) {
-      toast.error("Failed to send content to screen");
-    } else {
+    try {
+      const selectedIds = Array.from(selected);
+      const timestamp = new Date().toLocaleString("en-GB", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+      // 1. Create a quick playlist
+      const { data: playlist, error: plErr } = await supabase
+        .from("playlists")
+        .insert({ title: `Quick Send · ${timestamp}`, user_id: user.id })
+        .select("id")
+        .single();
+      if (plErr || !playlist) throw plErr;
+
+      // 2. Batch-insert playlist items with sequential positions
+      const items = selectedIds.map((mediaId, i) => ({
+        playlist_id: playlist.id,
+        media_id: mediaId,
+        position: i,
+      }));
+      const { error: itemErr } = await supabase.from("playlist_items").insert(items);
+      if (itemErr) throw itemErr;
+
+      // 3. Assign playlist to screen
+      const { error: scrErr } = await supabase
+        .from("screens")
+        .update({ current_playlist_id: playlist.id })
+        .eq("id", screenId);
+      if (scrErr) throw scrErr;
+
       const screen = pairedScreens.find((s) => s.id === screenId);
-      toast.success(`Sent to ${screen?.name ?? "screen"}`);
+      toast.success(`Sent ${selectedIds.length} item${selectedIds.length > 1 ? "s" : ""} to ${screen?.name ?? "screen"}`);
       setSendDialogOpen(false);
       setSelected(new Set());
+    } catch {
+      toast.error("Failed to send content to screen");
     }
     setSending(false);
   };
@@ -359,7 +380,7 @@ export default function MediaLibrary() {
                 onClick={openSendDialog}
               >
                 <Send className="h-3 w-3 mr-1" />
-                Send to Screen
+                Send {selected.size} to Screen
               </Button>
               <Button
                 variant="destructive"
