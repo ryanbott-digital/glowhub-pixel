@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 // glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ListVideo, Trash2 } from "lucide-react";
+import { Plus, ListVideo, Trash2, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
