@@ -3,10 +3,17 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+interface PairedScreen {
+  id: string;
+  name: string;
+  status: string;
+}
 
 const BUCKET = "signage-content";
 
@@ -45,9 +52,48 @@ export default function MediaLibrary() {
   const [dragOver, setDragOver] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
+  const [sending, setSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSelecting = selected.size > 0;
+
+  // Fetch user's paired screens
+  const fetchScreens = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("screens")
+      .select("id, name, status")
+      .eq("user_id", user.id)
+      .not("pairing_code", "is", null);
+    if (data) setPairedScreens(data);
+  }, [user]);
+
+  const openSendDialog = () => {
+    fetchScreens();
+    setSendDialogOpen(true);
+  };
+
+  const sendToScreen = async (screenId: string) => {
+    if (selected.size === 0) return;
+    setSending(true);
+    // Send the first selected media item to the screen
+    const mediaId = Array.from(selected)[0];
+    const { error } = await supabase
+      .from("screens")
+      .update({ current_media_id: mediaId })
+      .eq("id", screenId);
+    if (error) {
+      toast.error("Failed to send content to screen");
+    } else {
+      const screen = pairedScreens.find((s) => s.id === screenId);
+      toast.success(`Sent to ${screen?.name ?? "screen"}`);
+      setSendDialogOpen(false);
+      setSelected(new Set());
+    }
+    setSending(false);
+  };
 
   const fetchMedia = useCallback(async () => {
     if (!user) return;
@@ -308,6 +354,14 @@ export default function MediaLibrary() {
                 {selected.size === media.length ? "Deselect All" : "Select All"}
               </Button>
               <Button
+                variant="default"
+                size="sm"
+                onClick={openSendDialog}
+              >
+                <Send className="h-3 w-3 mr-1" />
+                Send to Screen
+              </Button>
+              <Button
                 variant="destructive"
                 size="sm"
                 onClick={bulkDelete}
@@ -501,6 +555,43 @@ export default function MediaLibrary() {
           <p className="text-sm mt-1">Upload images and videos to build your content library</p>
         </div>
       )}
+
+      {/* Send to Screen dialog */}
+      <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Send to Screen</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Select a paired screen to push {selected.size === 1 ? "this item" : `${selected.size} items`} to.
+          </p>
+          {pairedScreens.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Monitor className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No paired screens found</p>
+              <p className="text-xs mt-1">Pair a screen first from the Screens page</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {pairedScreens.map((screen) => (
+                <button
+                  key={screen.id}
+                  onClick={() => sendToScreen(screen.id)}
+                  disabled={sending}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/5 hover:bg-white/10 hover:border-primary/30 transition-all text-left"
+                >
+                  <Monitor className="h-5 w-5 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{screen.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{screen.status}</p>
+                  </div>
+                  <Send className="h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
