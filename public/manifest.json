@@ -1,0 +1,24 @@
+{
+  "name": "GlowHub - Digital Signage",
+  "short_name": "Glow",
+  "description": "Upload, schedule, and push content to remote screens in real-time.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#00A3A3",
+  "background_color": "#00A3A3",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
