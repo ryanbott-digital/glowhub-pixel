@@ -13,6 +13,7 @@ import fallbackBranding from "@/assets/fallback-branding.jpg";
 import { useVersionCheck } from "@/hooks/use-version-check";
 import { ScreenSaver } from "@/components/ScreenSaver";
 import { CinematicSplash } from "@/components/CinematicSplash";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PlaylistItem {
   id: string;
@@ -69,6 +70,7 @@ export default function Player() {
   const [paired, setPaired] = useState(false);
   const [activating, setActivating] = useState(false);
   const [activationPhase, setActivationPhase] = useState<"unlock" | "welcome" | "handover" | null>(null);
+  const [showWhiteFlash, setShowWhiteFlash] = useState(false);
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -542,6 +544,8 @@ export default function Player() {
       setActivating(false);
       setActivationPhase(null);
       setPaired(true);
+      setShowWhiteFlash(true);
+      setTimeout(() => setShowWhiteFlash(false), 600);
     }, 3000);
   }, []);
 
@@ -1625,7 +1629,22 @@ export default function Player() {
 
   // ── NO CONTENT — Screen Saver Mode ──
   if (items.length === 0) {
-    return <ScreenSaver delayMs={screensaverDelay} />;
+    return (
+      <>
+        <AnimatePresence>
+          {showWhiteFlash && (
+            <motion.div
+              className="fixed inset-0 z-[9999] bg-white"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            />
+          )}
+        </AnimatePresence>
+        <ScreenSaver delayMs={screensaverDelay} />
+      </>
+    );
   }
 
   // ── PLAYER ──

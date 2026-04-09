@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import glowLogoPng from "@/assets/glow-text.png";
+import { PairingSuccessLanding } from "@/components/PairingSuccessLanding";
 
 interface ScreenSaverProps {
   delayMs?: number;
@@ -114,30 +115,12 @@ export function ScreenSaver({ delayMs = 30_000 }: ScreenSaverProps) {
         />
       </div>
 
-      {/* "Waiting for content" — fades out when screen saver activates */}
+      {/* Pairing success landing — fades out when screen saver activates */}
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center z-10 transition-opacity duration-[2000ms]"
+        className="absolute inset-0 transition-opacity duration-[2000ms]"
         style={{ opacity: active ? 0 : 1, pointerEvents: active ? "none" : "auto" }}
       >
-        <div
-          className="text-5xl font-bold font-['Poppins'] mb-4"
-          style={{
-            animation: "ssPowerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-            opacity: 0,
-          }}
-        >
-          <span className="text-glow">Glow</span>
-        </div>
-        <p
-          className="text-white/30 text-sm tracking-[0.3em] uppercase"
-          style={{
-            animation:
-              "ssPowerUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards",
-            opacity: 0,
-          }}
-        >
-          Waiting for content…
-        </p>
+        <PairingSuccessLanding />
       </div>
 
       {/* Screen saver — drifting logo + clock */}
@@ -195,10 +178,6 @@ export function ScreenSaver({ delayMs = 30_000 }: ScreenSaverProps) {
         @keyframes ssAuroraC {
           0% { transform: translate(0, 0) scale(1); }
           100% { transform: translate(60px, -40px) scale(1.2); }
-        }
-        @keyframes ssPowerUp {
-          0% { opacity: 0; transform: scale(0.9); }
-          100% { opacity: 1; transform: scale(1); }
         }
         @keyframes ssClockPulse {
           0%, 100% { opacity: 0.15; }
