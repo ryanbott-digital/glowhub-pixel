@@ -59,14 +59,13 @@ export default function MediaLibrary() {
 
   const isSelecting = selected.size > 0;
 
-  // Fetch user's paired screens
+  // Fetch user's screens
   const fetchScreens = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from("screens")
       .select("id, name, status")
-      .eq("user_id", user.id)
-      .not("pairing_code", "is", null);
+      .eq("user_id", user.id);
     if (data) setPairedScreens(data);
   }, [user]);
 
