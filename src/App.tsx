@@ -103,6 +103,7 @@ const App = () => (
               <Route path="/display/:screenId" element={<Display />} />
               <Route path="/player" element={<Player />} />
               <Route path="/player/:pairingCode" element={<Player />} />
+              <Route path="/pair" element={<ProtectedRoute><PairRedirect /></ProtectedRoute>} />
               <Route path="/" element={<RootRoute />} />
               <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
               <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
