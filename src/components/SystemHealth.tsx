@@ -34,8 +34,8 @@ function timeAgo(date: string | null): string {
   return `${hours}h ago`;
 }
 
-function isOffline(lastPing: string | null): boolean {
-  if (!lastPing) return true;
+function isOffline(lastPing: string | null, status?: string): boolean {
+  if (!lastPing) return status !== "online";
   return Date.now() - new Date(lastPing).getTime() > 90_000;
 }
 
@@ -160,8 +160,8 @@ export function SystemHealth() {
 
   if (screens.length === 0) return null;
 
-  const onlineScreens = screens.filter((s) => !isOffline(s.last_ping));
-  const offlineScreens = screens.filter((s) => isOffline(s.last_ping));
+  const onlineScreens = screens.filter((s) => !isOffline(s.last_ping, s.status));
+  const offlineScreens = screens.filter((s) => isOffline(s.last_ping, s.status));
 
   return (
     <div className="glass rounded-2xl p-5">
@@ -172,7 +172,7 @@ export function SystemHealth() {
       </div>
       <div className="space-y-3">
           {screens.map((screen) => {
-            const offline = isOffline(screen.last_ping);
+            const offline = isOffline(screen.last_ping, screen.status);
             const currentMedia = screen.current_media_id ? mediaMap[screen.current_media_id] : null;
             return (
               <div key={screen.id} className="space-y-2">
