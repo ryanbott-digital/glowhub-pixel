@@ -68,15 +68,21 @@ function RootRoute() {
 
 function AuthRoute() {
   const { user, loading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={redirectTo} replace />;
   return <Auth />;
 }
 
 function PairRedirect() {
+  const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const code = searchParams.get("code") || "";
-  return <Navigate to={code ? `/screens?pair=${code}` : "/screens"} replace />;
+  const target = code ? `/screens?pair=${code}` : "/screens";
+  if (loading) return <GHLoaderPage />;
+  if (!user) return <Navigate to={`/auth?redirect=${encodeURIComponent(target)}`} replace />;
+  return <Navigate to={target} replace />;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -103,7 +109,7 @@ const App = () => (
               <Route path="/display/:screenId" element={<Display />} />
               <Route path="/player" element={<Player />} />
               <Route path="/player/:pairingCode" element={<Player />} />
-              <Route path="/pair" element={<ProtectedRoute><PairRedirect /></ProtectedRoute>} />
+              <Route path="/pair" element={<PairRedirect />} />
               <Route path="/" element={<RootRoute />} />
               <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
               <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
