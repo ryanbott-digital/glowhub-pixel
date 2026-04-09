@@ -302,7 +302,7 @@ export default function Studio() {
     } catch (err) {
       console.error("RSS fetch failed:", err);
     }
-  }, [rssCache]);
+  }, [rssCache, isPro]);
 
   useEffect(() => {
     elements.forEach((el) => {
