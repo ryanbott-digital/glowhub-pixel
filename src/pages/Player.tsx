@@ -70,6 +70,7 @@ export default function Player() {
   const [paired, setPaired] = useState(false);
   const [activating, setActivating] = useState(false);
   const [activationPhase, setActivationPhase] = useState<"unlock" | "welcome" | "handover" | null>(null);
+  const [showWhiteFlash, setShowWhiteFlash] = useState(false);
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -543,6 +544,8 @@ export default function Player() {
       setActivating(false);
       setActivationPhase(null);
       setPaired(true);
+      setShowWhiteFlash(true);
+      setTimeout(() => setShowWhiteFlash(false), 600);
     }, 3000);
   }, []);
 
