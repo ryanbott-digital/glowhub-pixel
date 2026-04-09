@@ -262,7 +262,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             <Clock className="h-3 w-3" />
             {screen.last_ping
               ? `Last seen ${formatDistanceToNow(new Date(screen.last_ping), { addSuffix: true })}`
-              : "Just paired"}
+              : <span className="animate-pulse text-primary">Just paired</span>}
           </div>
 
           {screen.pairing_code && (
