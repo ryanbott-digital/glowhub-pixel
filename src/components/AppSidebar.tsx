@@ -28,7 +28,7 @@ const items = [
   { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false },
   { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false },
   { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true },
-  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false },
+  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false, newTab: true },
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
   { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
