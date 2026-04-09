@@ -1,42 +1,40 @@
 
 
-# Send Multiple Media Items to Screen as Quick Playlist
+# Pairing Success Landing State
 
 ## Overview
 
-Currently, "Send to Screen" only sends the first selected media item by setting `current_media_id` on the screen — which is actually only used for status display, not playback. To send multiple items, we need to create a temporary playlist and assign it to the screen via `current_playlist_id`.
+Replace the current `ScreenSaver` component's initial "Waiting for content" state with a premium, immersive "Pairing Success" landing screen. This displays after a device is paired and has no content assigned, featuring generative animated backgrounds and atmospheric UI.
 
-## Implementation
+## What changes
 
-### File: `src/pages/MediaLibrary.tsx`
+### 1. New component: `src/components/PairingSuccessLanding.tsx`
 
-**Replace the `sendToScreen` function** with logic that:
+A Framer Motion-powered landing screen with:
 
-1. **Single item selected**: Create a quick playlist with just that one item, assign to screen (consistent behavior)
-2. **Multiple items selected**: Create a playlist named e.g. `"Quick Send · {timestamp}"`, insert all selected media as `playlist_items` with sequential positions, then update the screen's `current_playlist_id`
+- **Luminous Pulse background**: 4 large soft-edged radial gradients (deep purple `#7c3aed`, electric blue `#2563eb`, neon pink `#ec4899`, teal `#00A3A3`) that slowly drift and morph using Framer Motion `animate` with long durations (15-25s), creating a liquid-light effect on a pure black base
+- **Center message**: "LINK ESTABLISHED" in clean bold sans-serif (`tracking-[0.4em]`), with a CSS `text-shadow` / `filter: drop-shadow` that breathes (expanding/contracting glow over 4s cycle)
+- **Glow logo** above the text, subtle and pulsing
+- **"Status: Ready" indicator** at bottom center: small green dot (`#22c55e`) with a CSS ripple animation (concentric rings expanding outward), plus "STATUS: READY" label in monospace
 
-```text
-sendToScreen(screenId)
-├── Create playlist: "Quick Send · Apr 9, 12:34 PM"
-│   └── user_id, title
-├── Insert playlist_items (one per selected media, ordered)
-│   └── playlist_id, media_id, position
-├── Update screen: current_playlist_id = new playlist ID
-└── Toast: "Sent 5 items to Living Room"
-```
+### 2. Modify `src/components/ScreenSaver.tsx`
 
-**Detailed changes:**
-- Make `sendToScreen` async, create a playlist via `supabase.from("playlists").insert(...)` 
-- Batch-insert playlist items for all selected media IDs with position index
-- Update screen's `current_playlist_id` instead of `current_media_id`
-- Update toast message to show item count (e.g. "Sent 3 items to Living Room")
-- Update the "Send to Screen" button label to show count: `Send {n} to Screen`
+Replace the current "Waiting for content" initial state (the part before the DVD-bounce activates) with the new `PairingSuccessLanding` component. The screen saver drift mode still activates after the configurable delay.
 
-### No database changes needed
+### 3. Add white-out flash transition in `src/pages/Player.tsx`
 
-The `playlists` and `playlist_items` tables already exist with appropriate RLS policies. The screen's `current_playlist_id` column is already used by the player for playback.
+After the activation sequence completes (`activating` → `false`, `paired` → `true`), inject a brief white flash overlay:
+- A full-screen white `div` that fades from `opacity: 1` to `opacity: 0` over ~600ms using Framer Motion, then unmounts
+- This bridges the activation sequence into the pairing success landing seamlessly
 
-### Single file changed
+## Technical details
 
-`src/pages/MediaLibrary.tsx` — ~20 lines modified in the `sendToScreen` function.
+- **Framer Motion** is already installed and used (see `CinematicSplash.tsx`)
+- The `ScreenSaver` component is rendered at line 1627-1628 of `Player.tsx` when `items.length === 0`
+- The activation sequence ends at line 544 with `setPaired(true)` — the white flash state will be tracked with a new `showWhiteFlash` boolean set to `true` at the same time, auto-clearing after 600ms
+- No database changes needed
+
+**Files changed**: 3
+- **New**: `src/components/PairingSuccessLanding.tsx`
+- **Modified**: `src/components/ScreenSaver.tsx`, `src/pages/Player.tsx`
 
