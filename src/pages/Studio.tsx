@@ -283,12 +283,8 @@ export default function Studio() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [profileRes, layoutsRes] = await Promise.all([
-        supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
-        supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
-      ]);
-      setSubscriptionTier(profileRes.data?.subscription_tier || "free");
-      setSavedLayouts((layoutsRes.data as any[]) || []);
+      const { data: layouts } = await supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
+      setSavedLayouts((layouts as any[]) || []);
     })();
   }, [user]);
 
