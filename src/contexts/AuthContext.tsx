@@ -6,6 +6,8 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  subscriptionTier: string;
+  refreshSubscription: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -13,6 +15,8 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
+  subscriptionTier: "free",
+  refreshSubscription: async () => {},
   signOut: async () => {},
 });
 
@@ -21,36 +25,67 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionTier, setSubscriptionTier] = useState("free");
+
+  const fetchTier = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", userId)
+      .single();
+    if (data?.subscription_tier) {
+      setSubscriptionTier(data.subscription_tier);
+    }
+  }, []);
+
+  const refreshSubscription = useCallback(async () => {
+    if (session?.user) {
+      await fetchTier(session.user.id);
+    }
+  }, [session?.user, fetchTier]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setLoading(false);
-      // Ensure profile exists for this user
       if (session?.user) {
         const { data } = await supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle();
         if (!data) {
           await supabase.from("profiles").upsert({ id: session.user.id }, { onConflict: "id" });
         }
+        await fetchTier(session.user.id);
+      } else {
+        setSubscriptionTier("free");
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
+      if (session?.user) {
+        fetchTier(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchTier]);
+
+  // Refresh subscription tier every 60 seconds
+  useEffect(() => {
+    if (!session?.user) return;
+    const interval = setInterval(() => fetchTier(session.user.id), 60_000);
+    return () => clearInterval(interval);
+  }, [session?.user, fetchTier]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setSession(null);
+    setSubscriptionTier("free");
     window.location.href = "/home";
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, subscriptionTier, refreshSubscription, signOut }}>
       {children}
     </AuthContext.Provider>
   );
