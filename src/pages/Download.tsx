@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
+import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { toast } from "sonner";
 
 const DOWNLOADER_CODE = "1648081";
@@ -288,7 +289,7 @@ export default function DownloadPage() {
                 <Download className="h-4 w-4" />
                 Download APK
               </a>
-              <p className="text-[10px] text-muted-foreground/60 font-mono">v2.1.0 · April 2026</p>
+              <p className="text-[10px] text-muted-foreground/60 font-mono">v{APK_VERSION} · {APK_DATE}</p>
             </div>
 
             <div className="glass glass-spotlight rounded-2xl p-6 space-y-4">
