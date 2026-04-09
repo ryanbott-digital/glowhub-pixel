@@ -140,19 +140,32 @@ export default function Screens() {
     if (!allowed) { showUpgradeModal(tier, limit); setPairing(false); return; }
 
     try {
-      const { data: screen, error: findErr } = await supabase
-        .from("screens").select("id, name, user_id")
+      // Look up the code in the pairings table (created by the player edge function)
+      const { data: pairing, error: findErr } = await supabase
+        .from("pairings").select("id, screen_id, expires_at")
         .eq("pairing_code", pairingCode).maybeSingle();
       if (findErr) { toast.error("Error looking up code"); return; }
-      if (!screen) { toast.error("No screen found with that code."); return; }
-      if (screen.user_id === user.id) { toast.error("This screen is already linked to your account."); return; }
+      if (!pairing) { toast.error("Invalid or expired pairing code."); return; }
+      if (new Date(pairing.expires_at) < new Date()) { toast.error("This pairing code has expired."); return; }
+      if (pairing.screen_id) { toast.error("This code has already been used."); return; }
 
-      const { error: updateErr } = await supabase
-        .from("screens").update({ user_id: user.id, pairing_code: null })
-        .eq("id", screen.id).eq("pairing_code", pairingCode);
-      if (updateErr) { toast.error("Failed to pair: " + updateErr.message); return; }
+      // Create a new screen for this user
+      const { data: newScreen, error: createErr } = await supabase
+        .from("screens").insert({
+          user_id: user.id,
+          name: "Paired Screen",
+          pairing_code: pairingCode,
+          status: "online",
+        }).select("id, name").single();
+      if (createErr || !newScreen) { toast.error("Failed to create screen: " + (createErr?.message || "Unknown error")); return; }
 
-      toast.success(`Screen "${screen.name}" linked!`);
+      // Link the pairing record to the new screen so the player detects it
+      const { error: linkErr } = await supabase
+        .from("pairings").update({ screen_id: newScreen.id })
+        .eq("id", pairing.id);
+      if (linkErr) { toast.error("Failed to link screen: " + linkErr.message); return; }
+
+      toast.success(`Screen "${newScreen.name}" paired successfully!`);
       setPairingCode("");
       setPairOpen(false);
       fetchData();
