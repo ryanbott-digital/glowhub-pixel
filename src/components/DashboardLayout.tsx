@@ -1,11 +1,15 @@
 import { ReactNode, useEffect, useCallback, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { useAntiTamper } from "@/hooks/use-anti-tamper";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [defaultOpen, setDefaultOpen] = useState(() => {
     return localStorage.getItem("glowhub_compact_sidebar") !== "true";
   });
+
+  // Anti-tamper protection
+  useAntiTamper();
 
   // Spotlight cursor effect for glass cards
   const handleMouseMove = useCallback((e: MouseEvent) => {
