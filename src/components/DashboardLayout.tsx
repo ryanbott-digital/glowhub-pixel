@@ -8,7 +8,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     return localStorage.getItem("glowhub_compact_sidebar") !== "true";
   });
 
-  // Anti-tamper protection
+  // Anti-tamper protection (DOM + DevTools + server-side)
   useAntiTamper();
 
   // Spotlight cursor effect for glass cards
