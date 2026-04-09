@@ -179,10 +179,6 @@ export function ScreenSaver({ delayMs = 30_000 }: ScreenSaverProps) {
           0% { transform: translate(0, 0) scale(1); }
           100% { transform: translate(60px, -40px) scale(1.2); }
         }
-        @keyframes ssPowerUp {
-          0% { opacity: 0; transform: scale(0.9); }
-          100% { opacity: 1; transform: scale(1); }
-        }
         @keyframes ssClockPulse {
           0%, 100% { opacity: 0.15; }
           50% { opacity: 0.25; }
