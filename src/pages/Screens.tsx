@@ -12,7 +12,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { checkScreenLimit } from "@/lib/subscription";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ScreenGroupManager, type ScreenGroup, getGroupColorClass, getGroupIcon } from "@/components/screens/ScreenGroupManager";
 import { BroadcastSuccessModal } from "@/components/BroadcastSuccessModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -37,6 +37,7 @@ interface Playlist {
 
 export default function Screens() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -61,6 +62,17 @@ export default function Screens() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
+
+  // Auto-open pair dialog from QR code scan (?pair=CODE)
+  useEffect(() => {
+    const code = searchParams.get("pair");
+    if (code && code.length === 6) {
+      setPairingCode(code);
+      setPairOpen(true);
+      searchParams.delete("pair");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const selectionMode = selectedIds.size > 0;
   const atLimit = screenLimit !== null && screens.length >= screenLimit;

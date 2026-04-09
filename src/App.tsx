@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useSearchParams } from "react-router-dom";
 import { GHLoaderPage } from "@/components/GHLoader";
 import { ThemeProvider } from "next-themes";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -72,6 +73,12 @@ function AuthRoute() {
   return <Auth />;
 }
 
+function PairRedirect() {
+  const [searchParams] = useSearchParams();
+  const code = searchParams.get("code") || "";
+  return <Navigate to={code ? `/screens?pair=${code}` : "/screens"} replace />;
+}
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -96,6 +103,7 @@ const App = () => (
               <Route path="/display/:screenId" element={<Display />} />
               <Route path="/player" element={<Player />} />
               <Route path="/player/:pairingCode" element={<Player />} />
+              <Route path="/pair" element={<ProtectedRoute><PairRedirect /></ProtectedRoute>} />
               <Route path="/" element={<RootRoute />} />
               <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
               <Route path="/playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
