@@ -96,21 +96,35 @@ export default function Dashboard() {
       setPairingCode("");
       return;
     }
-    if (!pairing.screen_id) {
-      toast.error("No screen associated with this code.");
-      setPairingCode("");
-      return;
-    }
-    const { error: claimErr } = await supabase
-      .from("screens")
-      .update({ user_id: user!.id, status: "online", pairing_code: null })
-      .eq("id", pairing.screen_id);
 
-    if (claimErr) {
-      toast.error("Failed to pair screen. " + claimErr.message);
+    if (pairing.screen_id) {
+      // Legacy flow: screen already exists, just claim it
+      const { error: claimErr } = await supabase
+        .from("screens")
+        .update({ user_id: user!.id, status: "online", pairing_code: null })
+        .eq("id", pairing.screen_id);
+
+      if (claimErr) {
+        toast.error("Failed to pair screen. " + claimErr.message);
+      } else {
+        await supabase.from("pairings").delete().eq("id", pairing.id);
+        triggerCelebration();
+      }
     } else {
-      await supabase.from("pairings").delete().eq("id", pairing.id);
-      triggerCelebration();
+      // New flow: create screen and link to pairing
+      const { data: newScreen, error: createErr } = await supabase
+        .from("screens")
+        .insert({ user_id: user!.id, name: "New Screen", status: "online" })
+        .select("id, name")
+        .single();
+
+      if (createErr || !newScreen) {
+        toast.error("Failed to create screen. " + (createErr?.message || ""));
+      } else {
+        // Update pairings record with screen_id so the Player can detect it
+        await supabase.from("pairings").update({ screen_id: newScreen.id }).eq("id", pairing.id);
+        triggerCelebration(newScreen.name);
+      }
     }
     setPairingCode("");
   };
