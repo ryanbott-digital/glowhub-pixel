@@ -555,6 +555,43 @@ export default function MediaLibrary() {
           <p className="text-sm mt-1">Upload images and videos to build your content library</p>
         </div>
       )}
+
+      {/* Send to Screen dialog */}
+      <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Send to Screen</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Select a paired screen to push {selected.size === 1 ? "this item" : `${selected.size} items`} to.
+          </p>
+          {pairedScreens.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Monitor className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No paired screens found</p>
+              <p className="text-xs mt-1">Pair a screen first from the Screens page</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {pairedScreens.map((screen) => (
+                <button
+                  key={screen.id}
+                  onClick={() => sendToScreen(screen.id)}
+                  disabled={sending}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/5 hover:bg-white/10 hover:border-primary/30 transition-all text-left"
+                >
+                  <Monitor className="h-5 w-5 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{screen.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{screen.status}</p>
+                  </div>
+                  <Send className="h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
