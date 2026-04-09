@@ -12,7 +12,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { checkScreenLimit } from "@/lib/subscription";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ScreenGroupManager, type ScreenGroup, getGroupColorClass, getGroupIcon } from "@/components/screens/ScreenGroupManager";
 import { BroadcastSuccessModal } from "@/components/BroadcastSuccessModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
