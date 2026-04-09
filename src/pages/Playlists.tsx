@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 // glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ListVideo, Trash2 } from "lucide-react";
+import { Plus, ListVideo, Trash2, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -80,21 +81,31 @@ export default function Playlists() {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2 stagger-in">
-          {playlists.map((pl) => (
-            <div
-              key={pl.id}
-              className={`glass glass-spotlight rounded-2xl cursor-pointer transition-all border p-4 flex items-center justify-between ${selectedPlaylist?.id === pl.id ? "ring-2 ring-primary border-primary" : "border-white/[0.06] hover:border-primary/30"}`}
-              onClick={() => setSelectedPlaylist(pl)}
-            >
-              <div className="flex items-center gap-2">
-                <ListVideo className="h-4 w-4 text-primary" />
-                <span className="font-medium text-foreground">{pl.title}</span>
+          {playlists.map((pl) => {
+            const isQuickSend = pl.title.startsWith("Quick Send ·");
+            return (
+              <div
+                key={pl.id}
+                className={`glass glass-spotlight rounded-2xl cursor-pointer transition-all border p-4 flex items-center justify-between ${selectedPlaylist?.id === pl.id ? "ring-2 ring-primary border-primary" : "border-white/[0.06] hover:border-primary/30"}`}
+                onClick={() => setSelectedPlaylist(pl)}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {isQuickSend ? (
+                    <Send className="h-4 w-4 text-muted-foreground shrink-0" />
+                  ) : (
+                    <ListVideo className="h-4 w-4 text-primary shrink-0" />
+                  )}
+                  <span className={`font-medium truncate ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}>{pl.title}</span>
+                  {isQuickSend && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
+                  )}
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}>
+                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                </button>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}>
-                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
           {playlists.length === 0 && (
             <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] text-center text-muted-foreground py-8">No playlists yet</div>
           )}
