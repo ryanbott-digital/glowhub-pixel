@@ -99,13 +99,25 @@ export default function Billing() {
           <h1 className="text-2xl font-bold text-foreground">Billing</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your Glow subscription</p>
         </div>
-        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-          isPro
-            ? "bg-cyan-400/10 text-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]"
-            : "bg-muted text-muted-foreground ring-1 ring-border"
-        }`}>
-          {isPro ? <Crown className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-          {isPro ? "Glow Pro" : "Free Plan"}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefreshSubscription}
+            disabled={refreshing}
+            className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Checking…" : "Refresh Status"}
+          </Button>
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
+            isPro
+              ? "bg-cyan-400/10 text-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]"
+              : "bg-muted text-muted-foreground ring-1 ring-border"
+          }`}>
+            {isPro ? <Crown className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+            {isPro ? "Glow Pro" : "Free Plan"}
+          </div>
         </div>
       </div>
 
