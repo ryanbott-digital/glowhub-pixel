@@ -97,9 +97,28 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => {
                 const isLockedPro = item.pro && !isProTier(userTier);
+                const isNewTab = 'newTab' in item && item.newTab;
                 return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
+                    {isNewTab && !isLockedPro ? (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-sidebar-accent/50 transition-all duration-200 ${
+                          location.pathname === item.url ? "bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]" : ""
+                        }`}
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && (
+                          <span className="flex items-center gap-1.5">
+                            {item.title}
+                            {item.pro && <span className="pro-badge">PRO</span>}
+                          </span>
+                        )}
+                      </a>
+                    ) : (
                     <NavLink
                       to={isLockedPro ? "#" : item.url}
                       end={item.url === "/"}
@@ -144,6 +163,7 @@ export function AppSidebar() {
                         <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
                       )}
                     </NavLink>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 );
