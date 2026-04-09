@@ -354,6 +354,14 @@ export default function MediaLibrary() {
                 {selected.size === media.length ? "Deselect All" : "Select All"}
               </Button>
               <Button
+                variant="default"
+                size="sm"
+                onClick={openSendDialog}
+              >
+                <Send className="h-3 w-3 mr-1" />
+                Send to Screen
+              </Button>
+              <Button
                 variant="destructive"
                 size="sm"
                 onClick={bulkDelete}
