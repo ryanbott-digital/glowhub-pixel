@@ -62,12 +62,6 @@ export default defineConfig(({ mode }) => ({
             type: "image/png",
             purpose: "any maskable",
           },
-          {
-            src: "https://glowhub-pixel.lovable.app/icon-1024x1024.png",
-            sizes: "1024x1024",
-            type: "image/png",
-            purpose: "any maskable",
-          },
         ],
       },
     }),
