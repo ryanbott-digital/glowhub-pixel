@@ -63,6 +63,17 @@ export default function Screens() {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
+  // Auto-open pair dialog from QR code scan (?pair=CODE)
+  useEffect(() => {
+    const code = searchParams.get("pair");
+    if (code && code.length === 6) {
+      setPairingCode(code);
+      setPairOpen(true);
+      searchParams.delete("pair");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const selectionMode = selectedIds.size > 0;
   const atLimit = screenLimit !== null && screens.length >= screenLimit;
   const limitTooltip = atLimit
