@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import glowLogoPng from "@/assets/glow-text.png";
 
 interface PlaylistItem {
@@ -90,6 +92,7 @@ export default function Display() {
           const newPlaylistId = payload.new.current_playlist_id;
           if (newPlaylistId) {
             fetchPlaylist(newPlaylistId);
+            toast("New content received", { description: "Updating display now…", duration: 3000 });
           }
         }
       )
@@ -177,6 +180,7 @@ export default function Display() {
           <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
         </a>
       )}
+      <Toaster position="bottom-right" theme="dark" />
       <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
     </div>
   );
