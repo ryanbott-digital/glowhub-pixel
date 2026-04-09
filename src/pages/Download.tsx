@@ -288,6 +288,7 @@ export default function DownloadPage() {
                 <Download className="h-4 w-4" />
                 Download APK
               </a>
+              <p className="text-[10px] text-muted-foreground/60 font-mono">v2.1.0 · April 2026</p>
             </div>
 
             <div className="glass glass-spotlight rounded-2xl p-6 space-y-4">
