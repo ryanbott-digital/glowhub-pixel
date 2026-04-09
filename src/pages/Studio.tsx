@@ -620,6 +620,8 @@ export default function Studio() {
 
   /* ───── element renderer ───── */
   const renderElement = (el: CanvasElement, previewMode = false) => {
+    // Don't render pro-only elements if user isn't server-verified pro
+    if (el.proOnly && !isPro) return null;
     if (!el.visible && previewMode) return null;
     const isSelected = !previewMode && (el.id === selectedId || selectedIds.has(el.id));
     const animClass = el.animation === "pulse" ? "animate-pulse"
