@@ -1310,12 +1310,31 @@ export default function Player() {
             </div>
           </div>
 
-          {/* Waiting indicator */}
-          <div className="flex items-center gap-2 mt-10">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
-            <span className="text-white/25 text-xs tracking-widest uppercase">
-              Waiting for pairing…
-            </span>
+          {/* Waiting indicator with countdown */}
+          <div className="flex flex-col items-center gap-3 mt-10">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+              <span className="text-white/25 text-xs tracking-widest uppercase">
+                Waiting for pairing…
+              </span>
+            </div>
+            {pairingExpiresAt && pairingCountdown > 0 && (
+              <div className="flex items-center gap-2">
+                <span className={`font-mono text-sm tracking-wider ${
+                  pairingCountdown <= 60 ? "text-red-400/70" : pairingCountdown <= 180 ? "text-amber-400/60" : "text-white/20"
+                }`}>
+                  {String(Math.floor(pairingCountdown / 60)).padStart(2, "0")}:{String(pairingCountdown % 60).padStart(2, "0")}
+                </span>
+                <span className="text-white/15 text-[10px] tracking-wider uppercase">
+                  until new code
+                </span>
+              </div>
+            )}
+            {pairingExpiresAt && pairingCountdown <= 0 && (
+              <span className="text-[#00A3A3]/50 text-xs tracking-wider animate-pulse">
+                Generating new code…
+              </span>
+            )}
           </div>
         </div>
 
