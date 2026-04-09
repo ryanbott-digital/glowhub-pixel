@@ -19,27 +19,13 @@ const FREE_FEATURES = [
 ];
 
 export default function Billing() {
-  const { user } = useAuth();
+  const { user, subscriptionTier } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [currentTier, setCurrentTier] = useState("free");
-  const [loading, setLoading] = useState(true);
+  const currentTier = subscriptionTier;
+  const loading = !user;
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    const fetchProfile = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("subscription_tier")
-        .eq("id", user.id)
-        .single();
-      if (data) setCurrentTier(data.subscription_tier);
-      setLoading(false);
-    };
-    fetchProfile();
-  }, [user]);
 
   // System Level Up animation on upgrade
   useEffect(() => {
