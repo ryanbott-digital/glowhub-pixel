@@ -73,6 +73,12 @@ function AuthRoute() {
   return <Auth />;
 }
 
+function PairRedirect() {
+  const [searchParams] = useSearchParams();
+  const code = searchParams.get("code") || "";
+  return <Navigate to={code ? `/screens?pair=${code}` : "/screens"} replace />;
+}
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return null;
