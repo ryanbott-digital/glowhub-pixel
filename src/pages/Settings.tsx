@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2, Crown } from "lucide-react";
+import { ProGuard } from "@/components/ProGuard";
+import PremiumWidgetConfig from "@/components/PremiumWidgetConfig";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
