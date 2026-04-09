@@ -123,7 +123,7 @@ export default function Billing() {
 
       {/* Conditional content based on tier */}
       {isPro ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 dark:bg-white/5 bg-white/80 backdrop-blur-xl p-6 space-y-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-foreground">Your Pro Subscription</h2>
           <p className="text-sm text-muted-foreground">
             You have access to all Glow features. Update your card, download invoices, or manage your subscription below.
@@ -135,7 +135,7 @@ export default function Billing() {
           <p className="text-xs text-muted-foreground">Update card, download invoices, manage subscription</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-cyan-400/20 bg-white/5 dark:bg-white/5 bg-white/80 backdrop-blur-xl p-6 space-y-4">
+        <div className="rounded-2xl border border-cyan-400/20 bg-white/5 backdrop-blur-xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Crown className="h-5 w-5 text-cyan-400" /> Why Go Pro?
           </h2>
@@ -154,7 +154,7 @@ export default function Billing() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Free Card */}
         <div className={`rounded-2xl border p-6 space-y-4 backdrop-blur-xl transition-all ${
-          !isPro ? "border-primary/40 ring-2 ring-primary/30 bg-white/5 dark:bg-white/5" : "border-white/10 bg-white/5 dark:bg-white/5"
+          !isPro ? "border-primary/40 ring-2 ring-primary/30 bg-white/5" : "border-white/10 bg-white/5"
         }`}>
           {!isPro && (
             <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-primary/15 text-primary px-2 py-0.5 rounded-full mb-2">
@@ -195,7 +195,7 @@ export default function Billing() {
 
         {/* Pro Card */}
         <div className={`rounded-2xl border p-6 space-y-4 backdrop-blur-xl transition-all relative ${
-          isPro ? "border-cyan-400/40 ring-2 ring-cyan-400/30 shadow-[0_0_25px_rgba(34,211,238,0.1)] bg-white/5 dark:bg-white/5" : "border-cyan-400/20 bg-white/5 dark:bg-white/5"
+          isPro ? "border-cyan-400/40 ring-2 ring-cyan-400/30 shadow-[0_0_25px_rgba(34,211,238,0.1)] bg-white/5" : "border-cyan-400/20 bg-white/5"
         }`}>
           <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-cyan-400/15 text-cyan-400 px-2 py-0.5 rounded-full mb-2">
             {isPro ? "Your Plan" : "Recommended"}
@@ -236,7 +236,7 @@ export default function Billing() {
         </div>
 
         {/* Enterprise Card */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 dark:bg-white/5 p-6 space-y-4 backdrop-blur-xl transition-all">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4 backdrop-blur-xl transition-all">
           <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-amber-400/15 text-amber-400 px-2 py-0.5 rounded-full mb-2">
             Enterprise
           </span>
