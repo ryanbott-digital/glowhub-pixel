@@ -569,30 +569,48 @@ export default function Player() {
 
   // ── STANDALONE ENTRY: No URL param, no stored screen → create pairing code via edge function ──
   const [pendingPairingId, setPendingPairingId] = useState<string | null>(null);
+  const [pairingExpiresAt, setPairingExpiresAt] = useState<number | null>(null);
+  const [pairingCountdown, setPairingCountdown] = useState<number>(0);
+
+  const createPendingPairing = useCallback(async () => {
+    try {
+      const res = await supabase.functions.invoke("create-pending-screen");
+      if (res.error || !res.data) {
+        console.error("Failed to create pairing:", res.error);
+        setLoading(false);
+        return;
+      }
+      const { pairing_id, pairing_code } = res.data as { pairing_id: string; pairing_code: string };
+      setPendingPairingId(pairing_id);
+      setPairingCode(pairing_code);
+      setPairingExpiresAt(Date.now() + 15 * 60 * 1000);
+      setLoading(false);
+    } catch (err) {
+      console.error("Edge function error:", err);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (urlPairingCode || screenId) return; // handled by other flows
+    if (urlPairingCode || screenId) return;
+    createPendingPairing();
+  }, [urlPairingCode, screenId, createPendingPairing]);
 
-    const createPendingPairing = async () => {
-      try {
-        const res = await supabase.functions.invoke("create-pending-screen");
-        if (res.error || !res.data) {
-          console.error("Failed to create pairing:", res.error);
-          setLoading(false);
-          return;
-        }
-        const { pairing_id, pairing_code } = res.data as { pairing_id: string; pairing_code: string };
-        setPendingPairingId(pairing_id);
-        setPairingCode(pairing_code);
-        setLoading(false);
-      } catch (err) {
-        console.error("Edge function error:", err);
-        setLoading(false);
+  // Countdown timer for pairing expiry
+  useEffect(() => {
+    if (!pairingExpiresAt || paired) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.floor((pairingExpiresAt - Date.now()) / 1000));
+      setPairingCountdown(remaining);
+      if (remaining <= 0) {
+        // Auto-regenerate a new pairing code
+        createPendingPairing();
       }
     };
-
-    createPendingPairing();
-  }, [urlPairingCode, screenId]);
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [pairingExpiresAt, paired, createPendingPairing]);
 
   // ── Watch for pairing to be claimed (screen_id gets set on the pairing record) ──
   useEffect(() => {
@@ -1292,12 +1310,31 @@ export default function Player() {
             </div>
           </div>
 
-          {/* Waiting indicator */}
-          <div className="flex items-center gap-2 mt-10">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
-            <span className="text-white/25 text-xs tracking-widest uppercase">
-              Waiting for pairing…
-            </span>
+          {/* Waiting indicator with countdown */}
+          <div className="flex flex-col items-center gap-3 mt-10">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00A3A3] animate-pulse" />
+              <span className="text-white/25 text-xs tracking-widest uppercase">
+                Waiting for pairing…
+              </span>
+            </div>
+            {pairingExpiresAt && pairingCountdown > 0 && (
+              <div className="flex items-center gap-2">
+                <span className={`font-mono text-sm tracking-wider ${
+                  pairingCountdown <= 60 ? "text-red-400/70" : pairingCountdown <= 180 ? "text-amber-400/60" : "text-white/20"
+                }`}>
+                  {String(Math.floor(pairingCountdown / 60)).padStart(2, "0")}:{String(pairingCountdown % 60).padStart(2, "0")}
+                </span>
+                <span className="text-white/15 text-[10px] tracking-wider uppercase">
+                  until new code
+                </span>
+              </div>
+            )}
+            {pairingExpiresAt && pairingCountdown <= 0 && (
+              <span className="text-[#00A3A3]/50 text-xs tracking-wider animate-pulse">
+                Generating new code…
+              </span>
+            )}
           </div>
         </div>
 
