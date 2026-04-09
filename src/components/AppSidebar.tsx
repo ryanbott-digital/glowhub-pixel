@@ -58,9 +58,8 @@ export function AppSidebar() {
   useEffect(() => {
     if (!user) return;
     const fetchUsage = async () => {
-      const { currentCount, limit, tier } = await checkScreenLimit(user.id);
+      const { currentCount, limit } = await checkScreenLimit(user.id);
       setScreenUsage({ count: currentCount, limit });
-      setUserTier(tier);
     };
     fetchUsage();
   }, [user, location.pathname]);
