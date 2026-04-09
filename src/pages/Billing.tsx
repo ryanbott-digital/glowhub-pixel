@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -19,13 +19,21 @@ const FREE_FEATURES = [
 ];
 
 export default function Billing() {
-  const { user, subscriptionTier } = useAuth();
+  const { user, subscriptionTier, refreshSubscription } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTier = subscriptionTier;
   const loading = !user;
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
+
+  const handleRefreshSubscription = async () => {
+    setRefreshing(true);
+    await refreshSubscription();
+    setRefreshing(false);
+    toast.success("Subscription status refreshed");
+  };
 
   // System Level Up animation on upgrade
   useEffect(() => {
@@ -91,13 +99,25 @@ export default function Billing() {
           <h1 className="text-2xl font-bold text-foreground">Billing</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your Glow subscription</p>
         </div>
-        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-          isPro
-            ? "bg-cyan-400/10 text-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]"
-            : "bg-muted text-muted-foreground ring-1 ring-border"
-        }`}>
-          {isPro ? <Crown className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-          {isPro ? "Glow Pro" : "Free Plan"}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefreshSubscription}
+            disabled={refreshing}
+            className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Checking…" : "Refresh Status"}
+          </Button>
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
+            isPro
+              ? "bg-cyan-400/10 text-cyan-400 ring-2 ring-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]"
+              : "bg-muted text-muted-foreground ring-1 ring-border"
+          }`}>
+            {isPro ? <Crown className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+            {isPro ? "Glow Pro" : "Free Plan"}
+          </div>
         </div>
       </div>
 
