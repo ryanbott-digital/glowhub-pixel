@@ -52,9 +52,48 @@ export default function MediaLibrary() {
   const [dragOver, setDragOver] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
+  const [sending, setSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isSelecting = selected.size > 0;
+
+  // Fetch user's paired screens
+  const fetchScreens = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("screens")
+      .select("id, name, status")
+      .eq("user_id", user.id)
+      .not("pairing_code", "is", null);
+    if (data) setPairedScreens(data);
+  }, [user]);
+
+  const openSendDialog = () => {
+    fetchScreens();
+    setSendDialogOpen(true);
+  };
+
+  const sendToScreen = async (screenId: string) => {
+    if (selected.size === 0) return;
+    setSending(true);
+    // Send the first selected media item to the screen
+    const mediaId = Array.from(selected)[0];
+    const { error } = await supabase
+      .from("screens")
+      .update({ current_media_id: mediaId })
+      .eq("id", screenId);
+    if (error) {
+      toast.error("Failed to send content to screen");
+    } else {
+      const screen = pairedScreens.find((s) => s.id === screenId);
+      toast.success(`Sent to ${screen?.name ?? "screen"}`);
+      setSendDialogOpen(false);
+      setSelected(new Set());
+    }
+    setSending(false);
+  };
 
   const fetchMedia = useCallback(async () => {
     if (!user) return;
