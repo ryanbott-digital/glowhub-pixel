@@ -258,12 +258,12 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         style={{ maxHeight: expanded ? "800px" : "0", opacity: expanded ? 1 : 0 }}
       >
         <div className="px-4 pb-4 space-y-4 border-t border-border/50 pt-3">
-          {screen.last_ping && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              Last seen {formatDistanceToNow(new Date(screen.last_ping), { addSuffix: true })}
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            {screen.last_ping
+              ? `Last seen ${formatDistanceToNow(new Date(screen.last_ping), { addSuffix: true })}`
+              : "Just paired"}
+          </div>
 
           {screen.pairing_code && (
             <div className="flex items-center gap-1.5">
