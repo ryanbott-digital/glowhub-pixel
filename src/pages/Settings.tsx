@@ -238,6 +238,18 @@ export default function Settings() {
         </SettingRow>
       </div>
 
+      {/* Pro Widgets */}
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Crown className="h-4 w-4 text-primary" />
+          Pro Widget Defaults
+        </h2>
+        <p className="text-xs text-muted-foreground">Configure default settings for Weather and RSS widgets used in Studio.</p>
+        <ProGuard showUpgradePrompt featureName="Widget Configuration">
+          <PremiumWidgetConfig />
+        </ProGuard>
+      </div>
+
       {/* Danger Zone */}
       <div className="rounded-2xl p-5 space-y-3 border border-destructive/30" style={{ background: "hsla(0, 84%, 60%, 0.04)" }}>
         <h2 className="text-sm font-semibold text-destructive flex items-center gap-2">
