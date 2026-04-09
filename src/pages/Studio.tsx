@@ -290,6 +290,7 @@ export default function Studio() {
 
   /* ───── RSS feed fetching ───── */
   const fetchRss = useCallback(async (feedUrl: string) => {
+    if (!isPro) return; // Don't fetch RSS data for non-pro users
     if (rssCache[feedUrl]) return;
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
