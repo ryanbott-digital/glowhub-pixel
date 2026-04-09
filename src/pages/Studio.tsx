@@ -210,10 +210,10 @@ const PRO_ANIMATIONS = [
 const MAX_HISTORY = 30;
 
 export default function Studio() {
-  const { user } = useAuth();
+  const { user, subscriptionTier: localTier, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const [serverVerifiedPro, setServerVerifiedPro] = useState<boolean | null>(null);
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -237,9 +237,33 @@ export default function Studio() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
-  const isPro = isProTier(subscriptionTier);
+  // Server-verified Pro status — blocks pro widgets until confirmed
+  const isPro = serverVerifiedPro === true;
   const selected = elements.find((e) => e.id === selectedId) || null;
   const multiSelected = selectedIds.size > 1;
+
+  // Server-side tier verification on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) { setServerVerifiedPro(false); return; }
+        const res = await supabase.functions.invoke("verify-tier", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const tier = res.data?.tier || "free";
+        setServerVerifiedPro(isProTier(tier));
+        // Tamper detection
+        if (isProTier(localTier) && !isProTier(tier)) {
+          console.warn("[Studio] Tier mismatch. Forcing sign-out.");
+          await signOut();
+        }
+      } catch {
+        setServerVerifiedPro(isProTier(localTier));
+      }
+    })();
+  }, [user, localTier, signOut]);
 
   /* ───── history helpers ───── */
   const pushHistory = useCallback((snapshot: CanvasElement[]) => {
@@ -259,17 +283,14 @@ export default function Studio() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [profileRes, layoutsRes] = await Promise.all([
-        supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
-        supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
-      ]);
-      setSubscriptionTier(profileRes.data?.subscription_tier || "free");
-      setSavedLayouts((layoutsRes.data as any[]) || []);
+      const { data: layouts } = await supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
+      setSavedLayouts((layouts as any[]) || []);
     })();
   }, [user]);
 
   /* ───── RSS feed fetching ───── */
   const fetchRss = useCallback(async (feedUrl: string) => {
+    if (!isPro) return; // Don't fetch RSS data for non-pro users
     if (rssCache[feedUrl]) return;
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -281,7 +302,7 @@ export default function Studio() {
     } catch (err) {
       console.error("RSS fetch failed:", err);
     }
-  }, [rssCache]);
+  }, [rssCache, isPro]);
 
   useEffect(() => {
     elements.forEach((el) => {
@@ -599,6 +620,8 @@ export default function Studio() {
 
   /* ───── element renderer ───── */
   const renderElement = (el: CanvasElement, previewMode = false) => {
+    // Don't render pro-only elements if user isn't server-verified pro
+    if (el.proOnly && !isPro) return null;
     if (!el.visible && previewMode) return null;
     const isSelected = !previewMode && (el.id === selectedId || selectedIds.has(el.id));
     const animClass = el.animation === "pulse" ? "animate-pulse"
