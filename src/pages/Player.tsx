@@ -569,30 +569,48 @@ export default function Player() {
 
   // ── STANDALONE ENTRY: No URL param, no stored screen → create pairing code via edge function ──
   const [pendingPairingId, setPendingPairingId] = useState<string | null>(null);
+  const [pairingExpiresAt, setPairingExpiresAt] = useState<number | null>(null);
+  const [pairingCountdown, setPairingCountdown] = useState<number>(0);
+
+  const createPendingPairing = useCallback(async () => {
+    try {
+      const res = await supabase.functions.invoke("create-pending-screen");
+      if (res.error || !res.data) {
+        console.error("Failed to create pairing:", res.error);
+        setLoading(false);
+        return;
+      }
+      const { pairing_id, pairing_code } = res.data as { pairing_id: string; pairing_code: string };
+      setPendingPairingId(pairing_id);
+      setPairingCode(pairing_code);
+      setPairingExpiresAt(Date.now() + 15 * 60 * 1000);
+      setLoading(false);
+    } catch (err) {
+      console.error("Edge function error:", err);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (urlPairingCode || screenId) return; // handled by other flows
+    if (urlPairingCode || screenId) return;
+    createPendingPairing();
+  }, [urlPairingCode, screenId, createPendingPairing]);
 
-    const createPendingPairing = async () => {
-      try {
-        const res = await supabase.functions.invoke("create-pending-screen");
-        if (res.error || !res.data) {
-          console.error("Failed to create pairing:", res.error);
-          setLoading(false);
-          return;
-        }
-        const { pairing_id, pairing_code } = res.data as { pairing_id: string; pairing_code: string };
-        setPendingPairingId(pairing_id);
-        setPairingCode(pairing_code);
-        setLoading(false);
-      } catch (err) {
-        console.error("Edge function error:", err);
-        setLoading(false);
+  // Countdown timer for pairing expiry
+  useEffect(() => {
+    if (!pairingExpiresAt || paired) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.floor((pairingExpiresAt - Date.now()) / 1000));
+      setPairingCountdown(remaining);
+      if (remaining <= 0) {
+        // Auto-regenerate a new pairing code
+        createPendingPairing();
       }
     };
-
-    createPendingPairing();
-  }, [urlPairingCode, screenId]);
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [pairingExpiresAt, paired, createPendingPairing]);
 
   // ── Watch for pairing to be claimed (screen_id gets set on the pairing record) ──
   useEffect(() => {
