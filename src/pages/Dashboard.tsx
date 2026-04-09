@@ -10,6 +10,7 @@ import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { PairSuccessModal } from "@/components/PairSuccessModal";
+import { ProGuard } from "@/components/ProGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -330,9 +331,30 @@ export default function Dashboard() {
           </div>
         </TabsContent>
 
-        {isProTier(subscriptionTier) && (
+        {isProTier(subscriptionTier) ? (
           <TabsContent value="insights" className="mt-3">
-            <PlaybackInsights />
+            <ProGuard featureName="Playback Insights" showUpgradePrompt>
+              <PlaybackInsights />
+            </ProGuard>
+          </TabsContent>
+        ) : (
+          <TabsContent value="insights" className="mt-3">
+            <div className="glass rounded-2xl p-8 text-center space-y-4" data-paywall="true">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Playback Insights requires Pro</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                Upgrade to Pro to unlock playback analytics and insights.
+              </p>
+              <Button
+                onClick={() => navigate("/billing")}
+                className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground"
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                Upgrade to Pro
+              </Button>
+            </div>
           </TabsContent>
         )}
       </Tabs>
