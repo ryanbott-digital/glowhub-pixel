@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool } from "lucide-react";
+import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
