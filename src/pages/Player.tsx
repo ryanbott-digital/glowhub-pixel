@@ -1629,7 +1629,22 @@ export default function Player() {
 
   // ── NO CONTENT — Screen Saver Mode ──
   if (items.length === 0) {
-    return <ScreenSaver delayMs={screensaverDelay} />;
+    return (
+      <>
+        <AnimatePresence>
+          {showWhiteFlash && (
+            <motion.div
+              className="fixed inset-0 z-[9999] bg-white"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            />
+          )}
+        </AnimatePresence>
+        <ScreenSaver delayMs={screensaverDelay} />
+      </>
+    );
   }
 
   // ── PLAYER ──
