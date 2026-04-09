@@ -1,61 +1,114 @@
 
 
-## Redesign `/welcome-pro` — Cinematic Pro Activation Page
+# Server-Side Authorization for Pro Features
 
-### Overview
-Complete rewrite of `src/pages/WelcomePro.tsx` with a multi-phase cinematic sequence: particle explosion → scan line reveal → logo glow-up → terminal status → glassmorphism card with action buttons. Plus a canvas-based "glowing O confetti" effect and faster-moving Deep Space background blobs.
+## Overview
 
-### Phases (timed sequence)
+Currently, Pro feature checks are done client-side via `isProTier(subscriptionTier)` which reads from React state. A user can manipulate this in the console or delete paywall DOM elements. This plan adds defense-in-depth across four layers.
 
-```text
-0s─1.5s    Black screen → Neon teal/blue particle explosion from center (canvas)
-1.5s─3s    Horizontal "System Scan" line sweeps top-to-bottom
-3s─4s      Giant "O" logo fades in with permanent pulsing glow
-4s─5s      Terminal text types out: [ PRO ACCOUNT ACTIVATED ]
-5s+        Glassmorphism card + buttons slide up; confetti starts
+## Current State
+
+- **Pro checks**: Client-side only via `isProTier()` from `AuthContext.subscriptionTier`
+- **Pro features**: Playback Insights tab, Weather widget, RSS widget, Studio pro widgets, screen limits
+- **Edge functions**: `weather-proxy` and `rss-proxy` have **no auth checks** -- anyone can call them
+- **Watermark**: Already server-side validated via `check-watermark` edge function (good)
+
+---
+
+## Plan
+
+### 1. Server-Side Tier Verification on Edge Functions
+
+Lock the `weather-proxy` and `rss-proxy` edge functions behind subscription verification:
+
+- Extract the JWT from the `Authorization` header
+- Use the service role client to look up `profiles.subscription_tier` for the authenticated user
+- Return `403 Forbidden` if the user is not on a Pro tier
+- Allow unauthenticated calls only when a valid `screen_id` param is passed (for player devices displaying Pro-owner content), verified server-side against the screen owner's tier
+
+**Files**: `supabase/functions/weather-proxy/index.ts`, `supabase/functions/rss-proxy/index.ts`
+
+### 2. ProGuard Higher-Order Component
+
+Create a `ProGuard` wrapper component that:
+
+- Reads `subscriptionTier` from `AuthContext`
+- On mount and on tier change, makes a **server-side verification call** to a new `verify-tier` edge function that returns the canonical tier from the database
+- If the server says "free" but local state says "pro", forces a sign-out (tamper detected)
+- Renders children only if server-confirmed Pro; otherwise renders an upgrade prompt or nothing
+- Used to wrap: `PlaybackInsights`, Weather/RSS widget panels in Studio, and any other Pro-gated UI
+
+**Files**: `src/components/ProGuard.tsx` (new), updates to `src/pages/Dashboard.tsx`, `src/pages/Studio.tsx`
+
+### 3. New `verify-tier` Edge Function
+
+A lightweight edge function that:
+
+- Accepts an authenticated request (JWT in header)
+- Returns `{ tier: "free" | "pro" | "enterprise" }` from the `profiles` table using the service role
+- Used by `ProGuard` and the anti-tamper logic
+
+**Files**: `supabase/functions/verify-tier/index.ts` (new)
+
+### 4. Anti-Tamper DOM Protection
+
+Add a `useAntiTamper` hook that:
+
+- Uses `MutationObserver` to watch for removal of elements with a `data-paywall` attribute
+- If a paywall element is removed externally (not by React), triggers `window.location.reload()` to force a hard refresh
+- Periodically (every 30s) calls `verify-tier` to re-validate the subscription against the server
+- If a mismatch is detected (local says Pro, server says free), calls `signOut()` from AuthContext
+
+**Files**: `src/hooks/use-anti-tamper.ts` (new), integrate into `App.tsx` or `DashboardLayout.tsx`
+
+### 5. DOM Cleanup for Free Tier
+
+- Ensure Pro-only components are **not rendered at all** (not just hidden with CSS) when the user is on the free tier
+- Replace `opacity-60` / `display:none` patterns with conditional rendering (`{isPro && <Component />}`)
+- Add `data-paywall` attributes to upgrade prompt elements so the anti-tamper observer can monitor them
+
+**Files**: `src/pages/Dashboard.tsx`, `src/pages/Studio.tsx`, `src/components/AppSidebar.tsx`
+
+---
+
+## Technical Details
+
+### Edge Function Auth Check Pattern
+```typescript
+// Extract user from JWT
+const authHeader = req.headers.get("authorization");
+const token = authHeader?.replace("Bearer ", "");
+const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+
+// Check tier
+const { data: profile } = await supabaseAdmin
+  .from("profiles")
+  .select("subscription_tier")
+  .eq("id", user.id)
+  .single();
+
+if (!["pro", "enterprise"].includes(profile?.subscription_tier)) {
+  return new Response(JSON.stringify({ error: "Pro subscription required" }), { status: 403 });
+}
 ```
 
-### File: `src/pages/WelcomePro.tsx` (full rewrite)
+### ProGuard Component Pattern
+```typescript
+export function ProGuard({ children, fallback }: { children: ReactNode; fallback?: ReactNode }) {
+  const { subscriptionTier, signOut } = useAuth();
+  const [serverTier, setServerTier] = useState<string | null>(null);
 
-**Background layer:**
-- Deep Space base (`bg-black` initially, transitioning to `#0B1120`)
-- Two large animated blobs (cyan + blue) with faster animation speed than normal pages (e.g., 8s cycle instead of 20s)
+  useEffect(() => {
+    // Call verify-tier edge function
+    // If mismatch detected, force sign-out
+  }, [subscriptionTier]);
 
-**Canvas layer — Particle Explosion:**
-- On mount, spawn ~200 particles from center with radial velocity, colored in teal (`#00E5FF`) and electric blue (`#3B82F6`)
-- Particles fade and decelerate over 1.5s, then canvas clears
+  if (serverTier && !isProTier(serverTier)) return fallback ?? null;
+  return <>{children}</>;
+}
+```
 
-**Scan Line:**
-- A thin horizontal gradient line (teal → transparent) animates from `top: 0` to `top: 100%` over ~1.5s using CSS animation
-- Reveals content beneath as it passes
+### Summary of Files Changed
+- **New**: `src/components/ProGuard.tsx`, `src/hooks/use-anti-tamper.ts`, `supabase/functions/verify-tier/index.ts`
+- **Modified**: `supabase/functions/weather-proxy/index.ts`, `supabase/functions/rss-proxy/index.ts`, `src/pages/Dashboard.tsx`, `src/pages/Studio.tsx`, `src/components/AppSidebar.tsx`, `src/components/DashboardLayout.tsx`
 
-**Giant "O" Logo:**
-- Large text "O" (8rem+) with `text-shadow` multi-layer glow in teal
-- Permanent breathing pulse animation (reuse existing `glow-text-pulse` pattern)
-
-**Terminal Status:**
-- `font-mono text-green-400` — types out `[ PRO ACCOUNT ACTIVATED ]` character-by-character over ~1s
-
-**Glassmorphism Card:**
-- `bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl`
-- Heading: "Welcome to the Future of Signage."
-- Subtext about Pro features (Sync Canvas, Pro widgets, High-Bitrate streaming)
-
-**Action Buttons:**
-- "🚀 Launch Sync Canvas" → navigates to `/canvas`
-- "🎨 Open Glow Studio" → navigates to `/studio`
-- Both use gradient `from-[#00A3A3] to-[#3B82F6]` with glow hover shadow
-
-**Confetti — Glowing "O" Pixels:**
-- Second canvas layer, starts at phase 5s
-- Spawns small "O" characters rendered on canvas, falling slowly from random x positions
-- Each "O" has a subtle teal glow (shadow blur), random opacity and size
-- Continuous gentle drift downward
-
-### No other files changed
-- Route already exists in `App.tsx`
-- No backend changes needed
-
-### Technical Notes
-- All animations are CSS keyframes + canvas (no framer-motion dependency needed, keeping it lightweight)
-- Phase timing controlled via `useState` + `setTimeout` chain in a
