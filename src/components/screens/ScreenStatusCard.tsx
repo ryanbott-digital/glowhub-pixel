@@ -106,7 +106,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   }, [screen.id]);
 
   const isAlive = (() => {
-    if (!screen.last_ping) return false;
+    if (!screen.last_ping) return screen.status === "online";
     const diff = Date.now() - new Date(screen.last_ping).getTime();
     return diff < 2 * 60 * 1000;
   })();

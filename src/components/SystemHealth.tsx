@@ -34,8 +34,8 @@ function timeAgo(date: string | null): string {
   return `${hours}h ago`;
 }
 
-function isOffline(lastPing: string | null): boolean {
-  if (!lastPing) return true;
+function isOffline(lastPing: string | null, status?: string): boolean {
+  if (!lastPing) return status !== "online";
   return Date.now() - new Date(lastPing).getTime() > 90_000;
 }
 
