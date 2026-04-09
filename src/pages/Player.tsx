@@ -13,6 +13,7 @@ import fallbackBranding from "@/assets/fallback-branding.jpg";
 import { useVersionCheck } from "@/hooks/use-version-check";
 import { ScreenSaver } from "@/components/ScreenSaver";
 import { CinematicSplash } from "@/components/CinematicSplash";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PlaylistItem {
   id: string;
