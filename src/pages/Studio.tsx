@@ -9,24 +9,24 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Rnd } from "react-rnd";
 import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
-  Save, Trash2, Move, GripVertical, Plus, Layers, Palette,
-  Clock, MousePointer, Download, Undo2, Redo2, Eye, EyeOff, Timer, ExternalLink,
-  Zap, Sun, CloudRain, CloudDrizzle, Cloud as CloudIcon, Snowflake, CloudLightning, Newspaper, Radio, Siren, MapPin,
+  Save, Trash2, GripVertical, Plus, Layers, Palette,
+  Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink,
+  Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
+  Square, Circle, Minus, SlidersHorizontal, Undo2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import {
+  CanvasElement, SavedLayout, WeatherData, DEFAULT_FILTERS,
+  MOTION_PRESETS, getFilterCSS, getMotionClass,
+} from "@/components/studio/types";
+import { VisualEffectsPanel } from "@/components/studio/VisualEffectsPanel";
+import { StudioStyles } from "@/components/studio/StudioStyles";
 
 /* ───── weather helpers ───── */
-interface WeatherData {
-  city: string;
-  temp: number;
-  condition: string;
-  icon: "sun" | "cloud" | "rain" | "snow" | "storm";
-  isNight: boolean;
-}
-
 const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
   switch (icon) {
     case "sun":
@@ -50,32 +50,6 @@ const getAuroraGradient = (icon: string, isNight: boolean) => {
     default: return "from-blue-500/10 to-slate-500/10";
   }
 };
-
-/* ───── types ───── */
-interface CanvasElement {
-  id: string;
-  type: "image" | "video" | "text" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label" | "widget-ticker";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content: string;
-  style: Record<string, string>;
-  animation?: string;
-  proOnly?: boolean;
-  visible: boolean;
-  locked: boolean;
-  glowIntensity?: number;
-  flickerSpeed?: number;
-  glassBlur?: number;
-}
-
-interface SavedLayout {
-  id: string;
-  name: string;
-  canvas_data: { elements: CanvasElement[] };
-  updated_at: string;
-}
 
 /* ───── widget library ───── */
 interface WidgetDef {
@@ -121,6 +95,19 @@ const WIDGET_LIBRARY: WidgetDef[] = [
     ),
   },
   {
+    type: "shape", label: "Shape", description: "Rectangles, circles & lines",
+    icon: Square, pro: false, defaultW: 150, defaultH: 150,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-1">
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-4 rounded-sm border-2 border-primary/60" />
+          <div className="w-4 h-4 rounded-full border-2 border-accent/60" />
+        </div>
+        <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Shapes</span>
+      </div>
+    ),
+  },
+  {
     type: "widget-weather", label: "Live Weather", description: "Animated weather with glassmorphism card",
     icon: Sun, pro: true, defaultW: 220, defaultH: 180,
     preview: null as any,
@@ -144,10 +131,8 @@ const WIDGET_LIBRARY: WidgetDef[] = [
     icon: Zap, pro: true, defaultW: 280, defaultH: 60,
     preview: (
       <div className="flex items-center justify-center h-full">
-        <span
-          className="text-xs font-bold text-primary font-['Satoshi',sans-serif] tracking-wider uppercase"
-          style={{ animation: "studioNeonFlicker 2s infinite", textShadow: "0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))" }}
-        >
+        <span className="text-xs font-bold text-primary font-['Satoshi',sans-serif] tracking-wider uppercase"
+          style={{ animation: "studioNeonFlicker 2s infinite", textShadow: "0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary))" }}>
           NEON GLOW
         </span>
       </div>
@@ -199,14 +184,6 @@ const WIDGET_LIBRARY: WidgetDef[] = [
 const WIDGET_ICON_MAP: Record<string, React.FC<{ className?: string }>> = {};
 WIDGET_LIBRARY.forEach((w) => { WIDGET_ICON_MAP[w.type] = w.icon; });
 
-const PRO_ANIMATIONS = [
-  { id: "pulse", label: "Pulse", pro: true },
-  { id: "neon-flicker", label: "Neon Flicker", pro: true },
-  { id: "glow-breathe", label: "Glow Breathe", pro: true },
-  { id: "slide-in", label: "Slide In", pro: false },
-  { id: "fade-in", label: "Fade In", pro: false },
-];
-
 const MAX_HISTORY = 30;
 
 export default function Studio() {
@@ -216,14 +193,11 @@ export default function Studio() {
   const [serverVerifiedPro, setServerVerifiedPro] = useState<boolean | null>(null);
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [layoutName, setLayoutName] = useState("Untitled Layout");
   const [savedLayouts, setSavedLayouts] = useState<SavedLayout[]>([]);
   const [currentLayoutId, setCurrentLayoutId] = useState<string | null>(null);
   const [proGateOpen, setProGateOpen] = useState(false);
   const [proGateFeature, setProGateFeature] = useState("");
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [weatherPreview, setWeatherPreview] = useState<WeatherData | null>(null);
   const [fullscreenPreview, setFullscreenPreview] = useState(false);
   const [rssCache, setRssCache] = useState<Record<string, string[]>>({});
@@ -238,10 +212,8 @@ export default function Studio() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
-  // Server-verified Pro status — blocks pro widgets until confirmed
   const isPro = serverVerifiedPro === true;
   const selected = elements.find((e) => e.id === selectedId) || null;
-  const multiSelected = selectedIds.size > 1;
 
   // Server-side tier verification on mount
   useEffect(() => {
@@ -255,9 +227,7 @@ export default function Studio() {
         });
         const tier = res.data?.tier || "free";
         setServerVerifiedPro(isProTier(tier));
-        // Tamper detection
         if (isProTier(localTier) && !isProTier(tier)) {
-          console.warn("[Studio] Tier mismatch. Forcing sign-out.");
           await signOut();
         }
       } catch {
@@ -291,7 +261,7 @@ export default function Studio() {
 
   /* ───── RSS feed fetching ───── */
   const fetchRss = useCallback(async (feedUrl: string) => {
-    if (!isPro) return; // Don't fetch RSS data for non-pro users
+    if (!isPro) return;
     if (rssCache[feedUrl]) return;
     try {
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -344,24 +314,11 @@ export default function Studio() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
-      if (meta && e.key === "z") {
-        e.preventDefault();
-        undo();
-        return;
-      }
-      if (meta && e.key === "s") {
-        e.preventDefault();
-        handleSave();
-        return;
-      }
+      if (meta && e.key === "z") { e.preventDefault(); undo(); return; }
+      if (meta && e.key === "s") { e.preventDefault(); handleSave(); return; }
       if ((e.key === "Delete" || e.key === "Backspace") && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) {
         e.preventDefault();
-        if (selectedIds.size > 0) {
-          pushHistory(elements);
-          setElements((prev) => prev.filter((el) => !selectedIds.has(el.id)));
-          setSelectedIds(new Set());
-          setSelectedId(null);
-        } else if (selectedId) {
+        if (selectedId) {
           pushHistory(elements);
           setElements((prev) => prev.filter((el) => el.id !== selectedId));
           setSelectedId(null);
@@ -370,7 +327,7 @@ export default function Studio() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedId, selectedIds, elements, undo, pushHistory]);
+  }, [selectedId, elements, undo, pushHistory]);
 
   /* ───── pro gate helper ───── */
   const gatePro = (featureName: string): boolean => {
@@ -380,7 +337,7 @@ export default function Studio() {
     return true;
   };
 
-  /* ───── add element (reads saved widget defaults) ───── */
+  /* ───── add element ───── */
   const addElement = async (type: CanvasElement["type"], pro: boolean, dropPos?: { x: number; y: number }) => {
     if (pro && gatePro(type)) return;
     pushHistory(elements);
@@ -397,13 +354,13 @@ export default function Studio() {
       proOnly: pro,
       visible: true,
       locked: false,
+      filters: { ...DEFAULT_FILTERS },
     };
 
-    // Try to load saved defaults from premium_widgets
     let contentMap: Record<string, string> = {
-      image: "",
-      video: "",
+      image: "", video: "",
       text: "Double-click to edit",
+      shape: "",
       "widget-weather": '{"city":"London"}',
       "widget-rss": '{"feed":""}',
       "widget-clock": '{"format":"24h"}',
@@ -416,11 +373,8 @@ export default function Studio() {
       try {
         const widgetType = type === "widget-weather" ? "weather" : "rss";
         const { data } = await supabase
-          .from("premium_widgets")
-          .select("config")
-          .eq("user_id", user.id)
-          .eq("widget_type", widgetType)
-          .maybeSingle();
+          .from("premium_widgets").select("config")
+          .eq("user_id", user.id).eq("widget_type", widgetType).maybeSingle();
         if (data?.config) {
           const cfg = data.config as Record<string, any>;
           if (type === "widget-weather" && cfg.city) {
@@ -429,12 +383,21 @@ export default function Studio() {
             contentMap["widget-rss"] = JSON.stringify({ feed: cfg.feedUrl, speed: cfg.speed || "normal", count: cfg.count || 5 });
           }
         }
-      } catch { /* fall back to defaults */ }
+      } catch {}
     }
 
-    setElements((prev) => [...prev, { id, type, content: contentMap[type] || "", ...defaults } as CanvasElement]);
+    const newEl: CanvasElement = {
+      id, type,
+      content: contentMap[type] || "",
+      shapeType: type === "shape" ? "rectangle" : undefined,
+      shapeFill: type === "shape" ? "hsl(var(--primary) / 0.3)" : undefined,
+      shapeStroke: type === "shape" ? "hsl(var(--primary))" : undefined,
+      shapeStrokeWidth: type === "shape" ? 2 : undefined,
+      ...defaults,
+    } as CanvasElement;
+
+    setElements((prev) => [...prev, newEl]);
     setSelectedId(id);
-    setSelectedIds(new Set([id]));
   };
 
   /* ───── sidebar drag helpers ───── */
@@ -462,101 +425,6 @@ export default function Studio() {
     }
   };
 
-  /* ───── drag & resize logic ───── */
-  const [resizing, setResizing] = useState<{ id: string; corner: string; startX: number; startY: number; startW: number; startH: number; startElX: number; startElY: number } | null>(null);
-  const [dragStartPositions, setDragStartPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
-
-  const handleCanvasMouseDown = (e: React.MouseEvent, elId: string) => {
-    e.stopPropagation();
-    const el = elements.find((x) => x.id === elId)!;
-    if (el.locked) return;
-
-    if (e.shiftKey) {
-      // Multi-select
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(elId)) {
-          next.delete(elId);
-        } else {
-          next.add(elId);
-        }
-        return next;
-      });
-      setSelectedId(elId);
-      return;
-    }
-
-    if (!selectedIds.has(elId)) {
-      setSelectedIds(new Set([elId]));
-    }
-    setSelectedId(elId);
-    setDraggingId(elId);
-
-    pushHistory(elements);
-
-    const rect = canvasRef.current!.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left) / zoom;
-    const mouseY = (e.clientY - rect.top) / zoom;
-
-    // Store start positions for all selected elements for group drag
-    const idsToMove = selectedIds.has(elId) ? selectedIds : new Set([elId]);
-    const starts = new Map<string, { x: number; y: number }>();
-    idsToMove.forEach((id) => {
-      const elem = elements.find((x) => x.id === id);
-      if (elem) starts.set(id, { x: elem.x, y: elem.y });
-    });
-    setDragStartPositions(starts);
-    setDragOffset({ x: mouseX - el.x, y: mouseY - el.y });
-  };
-
-  const handleResizeMouseDown = (e: React.MouseEvent, elId: string, corner: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const el = elements.find((x) => x.id === elId)!;
-    if (el.locked) return;
-    pushHistory(elements);
-    setResizing({ id: elId, corner, startX: e.clientX, startY: e.clientY, startW: el.width, startH: el.height, startElX: el.x, startElY: el.y });
-    setSelectedId(elId);
-  };
-
-  const handleCanvasMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (resizing && canvasRef.current) {
-        const dx = (e.clientX - resizing.startX) / zoom;
-        const dy = (e.clientY - resizing.startY) / zoom;
-        let { startW: w, startH: h, startElX: x, startElY: y } = resizing;
-        const c = resizing.corner;
-        if (c.includes("r")) w = Math.max(30, w + dx);
-        if (c.includes("b")) h = Math.max(30, h + dy);
-        if (c.includes("l")) { w = Math.max(30, w - dx); x = resizing.startElX + dx; if (w <= 30) x = resizing.startElX + resizing.startW - 30; }
-        if (c.includes("t")) { h = Math.max(30, h - dy); y = resizing.startElY + dy; if (h <= 30) y = resizing.startElY + resizing.startH - 30; }
-        setElements((prev) => prev.map((el) => el.id === resizing.id ? { ...el, x, y, width: w, height: h } : el));
-        return;
-      }
-      if (!draggingId || !canvasRef.current) return;
-      const rect = canvasRef.current.getBoundingClientRect();
-      const mouseX = (e.clientX - rect.left) / zoom;
-      const mouseY = (e.clientY - rect.top) / zoom;
-      const newX = mouseX - dragOffset.x;
-      const newY = mouseY - dragOffset.y;
-      const dragEl = elements.find((x) => x.id === draggingId);
-      if (!dragEl) return;
-      const dx = newX - dragEl.x;
-      const dy = newY - dragEl.y;
-
-      const idsToMove = dragStartPositions.size > 1 ? new Set(dragStartPositions.keys()) : new Set([draggingId]);
-      setElements((prev) => prev.map((el) => {
-        if (idsToMove.has(el.id) && !el.locked) {
-          return { ...el, x: el.x + dx, y: el.y + dy };
-        }
-        return el;
-      }));
-    },
-    [draggingId, dragOffset, resizing, zoom, dragStartPositions, elements],
-  );
-
-  const handleCanvasMouseUp = () => { setDraggingId(null); setResizing(null); };
-
   /* ───── update selected ───── */
   const updateSelected = (patch: Partial<CanvasElement>) => {
     if (!selectedId) return;
@@ -569,7 +437,6 @@ export default function Studio() {
     pushHistory(elements);
     setElements((prev) => prev.filter((el) => el.id !== selectedId));
     setSelectedId(null);
-    setSelectedIds(new Set());
   };
 
   /* ───── save / load ───── */
@@ -579,10 +446,8 @@ export default function Studio() {
     try {
       const canvasData = JSON.parse(JSON.stringify({ elements }));
       const payload = {
-        user_id: user.id,
-        name: layoutName,
-        canvas_data: canvasData,
-        updated_at: new Date().toISOString(),
+        user_id: user.id, name: layoutName,
+        canvas_data: canvasData, updated_at: new Date().toISOString(),
       };
       if (currentLayoutId) {
         const { error } = await supabase.from("studio_layouts").update(payload).eq("id", currentLayoutId);
@@ -605,13 +470,11 @@ export default function Studio() {
     setCurrentLayoutId(layout.id);
     setLayoutName(layout.name);
     const loadedElements = ((layout.canvas_data as any).elements || []).map((el: any) => ({
-      ...el,
-      visible: el.visible ?? true,
-      locked: el.locked ?? false,
+      ...el, visible: el.visible ?? true, locked: el.locked ?? false,
+      filters: el.filters || { ...DEFAULT_FILTERS },
     }));
     setElements(loadedElements);
     setSelectedId(null);
-    setSelectedIds(new Set());
     historyRef.current = [];
     setHistory([]);
     toast.success(`Loaded "${layout.name}"`);
@@ -626,10 +489,7 @@ export default function Studio() {
   };
 
   /* ───── layer reorder ───── */
-  const handleLayerDragStart = (idx: number) => {
-    setLayerDragIdx(idx);
-  };
-
+  const handleLayerDragStart = (idx: number) => setLayerDragIdx(idx);
   const handleLayerDrop = (targetIdx: number) => {
     if (layerDragIdx === null || layerDragIdx === targetIdx) { setLayerDragIdx(null); return; }
     pushHistory(elements);
@@ -642,17 +502,17 @@ export default function Studio() {
     setLayerDragIdx(null);
   };
 
-  /* ───── element renderer ───── */
-  const renderElement = (el: CanvasElement, previewMode = false) => {
-    // Don't render pro-only elements if user isn't server-verified pro
-    if (el.proOnly && !isPro) return null;
-    if (!el.visible && previewMode) return null;
-    const isSelected = !previewMode && (el.id === selectedId || selectedIds.has(el.id));
-    const animClass = el.animation === "pulse" ? "animate-pulse"
-      : el.animation === "neon-flicker" ? "studio-neon-flicker"
-      : el.animation === "glow-breathe" ? "studio-glow-breathe"
-      : el.animation === "slide-in" ? "animate-fade-in"
-      : "";
+  const getWidgetLabel = (el: CanvasElement) => {
+    if (el.type === "text") return el.content.slice(0, 20) || "Text";
+    if (el.type === "shape") return el.shapeType ? el.shapeType.charAt(0).toUpperCase() + el.shapeType.slice(1) : "Shape";
+    const w = WIDGET_LIBRARY.find((w) => w.type === el.type);
+    return w?.label || el.type;
+  };
+
+  /* ───── render element content ───── */
+  const renderElementContent = (el: CanvasElement) => {
+    const filterStr = getFilterCSS(el.filters);
+    const filterStyle: React.CSSProperties = filterStr ? { filter: filterStr } : {};
 
     const glowStyle: React.CSSProperties = {};
     if (el.type === "text" && el.glowIntensity) {
@@ -661,31 +521,32 @@ export default function Studio() {
     if (el.type === "text" && el.flickerSpeed && el.flickerSpeed > 0) {
       glowStyle.animation = `studioNeonFlicker ${Math.max(0.3, 3 - el.flickerSpeed * 0.27)}s infinite`;
     }
-    if (el.type === "image" && el.glassBlur && el.glassBlur > 0) {
-      glowStyle.filter = `blur(${el.glassBlur}px)`;
-    }
 
     return (
-      <div
-        key={el.id}
-        className={`absolute select-none ${animClass} ${!el.visible && !previewMode ? "opacity-30" : ""} ${previewMode ? "" : (el.locked ? "cursor-not-allowed" : "cursor-move")} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)]" : (!previewMode ? "hover:ring-1 hover:ring-primary/30" : "")}`}
-        style={previewMode ? { left: 0, top: 0, width: "100%", height: "100%", ...glowStyle } : { left: el.x, top: el.y, width: el.width, height: el.height, ...el.style, ...glowStyle }}
-        onMouseDown={previewMode ? undefined : (e) => handleCanvasMouseDown(e, el.id)}
-      >
-        {/* Lock badge */}
-        {el.locked && !previewMode && (
-          <div className="absolute top-0.5 left-0.5 z-30 p-0.5 rounded bg-muted/80">
-            <LockIcon className="h-2.5 w-2.5 text-muted-foreground" />
+      <div className="w-full h-full" style={filterStyle}>
+        {el.type === "text" && (
+          <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden" style={{ ...el.style, ...glowStyle }}>
+            {el.content}
           </div>
         )}
-        {el.type === "text" && (
-          <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden" style={glowStyle}>
-            {el.content}
+        {el.type === "shape" && (
+          <div className="w-full h-full flex items-center justify-center">
+            {el.shapeType === "circle" ? (
+              <div className="w-full h-full rounded-full" style={{ background: el.shapeFill, border: `${el.shapeStrokeWidth || 2}px solid ${el.shapeStroke || "hsl(var(--primary))"}` }} />
+            ) : el.shapeType === "rounded-rect" ? (
+              <div className="w-full h-full rounded-2xl" style={{ background: el.shapeFill, border: `${el.shapeStrokeWidth || 2}px solid ${el.shapeStroke || "hsl(var(--primary))"}` }} />
+            ) : el.shapeType === "line" ? (
+              <div className="w-full flex items-center justify-center h-full">
+                <div className="w-full" style={{ height: el.shapeStrokeWidth || 2, background: el.shapeStroke || "hsl(var(--primary))" }} />
+              </div>
+            ) : (
+              <div className="w-full h-full" style={{ background: el.shapeFill, border: `${el.shapeStrokeWidth || 2}px solid ${el.shapeStroke || "hsl(var(--primary))"}` }} />
+            )}
           </div>
         )}
         {el.type === "image" && (
           el.content ? (
-            <img src={el.content} alt="" className="w-full h-full object-cover rounded" style={el.glassBlur ? { filter: `blur(${el.glassBlur}px)` } : undefined} />
+            <img src={el.content} alt="" className="w-full h-full object-cover rounded" />
           ) : (
             <div className="w-full h-full rounded bg-muted/30 border border-dashed border-muted-foreground/20 flex items-center justify-center">
               <Image className="h-6 w-6 text-muted-foreground/40" />
@@ -700,8 +561,6 @@ export default function Studio() {
         )}
         {el.type === "widget-weather" && (() => {
           const wp = weatherPreview || { city: "London", temp: 18, condition: "Partly Cloudy", icon: "cloud" as const, isNight: false };
-          let cfg: any = { city: "auto" };
-          try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
           const auroraGrad = getAuroraGradient(wp.icon, wp.isNight);
           return (
             <div className="w-full h-full rounded-2xl overflow-hidden relative border border-primary/30 shadow-[0_0_16px_hsla(180,100%,32%,0.2)]" style={{ backdropFilter: "blur(24px)", background: "rgba(255,255,255,0.03)" }}>
@@ -758,13 +617,11 @@ export default function Studio() {
               : cfg.messages;
           return (
             <div
-              className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in alert-screen-shake" : ""}`}
+              className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
               style={{
                 background: isAlert ? "#FF0033" : "rgba(255,255,255,0.05)",
                 borderTop: isAlert ? "2px solid #FF0033" : "2px solid hsl(var(--primary))",
-                boxShadow: isAlert
-                  ? "0 -20px 60px rgba(255,0,51,0.4), 0 -40px 100px rgba(255,0,51,0.2)"
-                  : "0 -2px 15px hsla(180,100%,32%,0.3)",
+                boxShadow: isAlert ? "0 -20px 60px rgba(255,0,51,0.4)" : "0 -2px 15px hsla(180,100%,32%,0.3)",
                 animation: isAlert ? "alertGlowSpill 2s ease-in-out infinite" : undefined,
               }}
             >
@@ -773,60 +630,18 @@ export default function Studio() {
                 <span className="text-[10px] font-bold text-white tracking-widest font-mono">LIVE</span>
               </div>
               <div className="flex-1 overflow-hidden h-full flex items-center">
-                <span
-                  className={`inline-block whitespace-nowrap font-mono tracking-wider ${textColor}`}
-                  style={{
-                    animation: `tickerScroll ${duration} linear infinite`,
-                    willChange: "transform",
-                    fontSize: isAlert ? "16px" : "14px",
+                <span className={`inline-block whitespace-nowrap font-mono tracking-wider ${textColor}`}
+                  style={{ animation: `tickerScroll ${duration} linear infinite`, willChange: "transform", fontSize: isAlert ? "16px" : "14px",
                     textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none"),
-                  }}
-                >
+                  }}>
                   {displayText}
                 </span>
               </div>
             </div>
           );
         })()}
-        {/* Pro badge */}
-        {el.proOnly && (
-          <div className="absolute -top-1.5 -right-1.5 px-1 py-0.5 rounded text-[7px] font-bold tracking-widest uppercase bg-accent text-accent-foreground shadow-[0_0_8px_hsl(var(--accent)/0.5)]">
-            PRO
-          </div>
-        )}
-        {/* Resize handles */}
-        {isSelected && !previewMode && !el.locked && (
-          <>
-            {["tl","tr","bl","br","t","b","l","r"].map((corner) => {
-              const pos: Record<string, React.CSSProperties> = {
-                tl: { top: -4, left: -4, cursor: "nwse-resize" },
-                tr: { top: -4, right: -4, cursor: "nesw-resize" },
-                bl: { bottom: -4, left: -4, cursor: "nesw-resize" },
-                br: { bottom: -4, right: -4, cursor: "nwse-resize" },
-                t: { top: -4, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
-                b: { bottom: -4, left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
-                l: { top: "50%", left: -4, transform: "translateY(-50%)", cursor: "ew-resize" },
-                r: { top: "50%", right: -4, transform: "translateY(-50%)", cursor: "ew-resize" },
-              };
-              return (
-                <div
-                  key={corner}
-                  className="absolute w-2.5 h-2.5 rounded-full bg-primary border-2 border-background shadow-[0_0_6px_hsl(var(--primary))] z-20"
-                  style={pos[corner]}
-                  onMouseDown={(e) => handleResizeMouseDown(e, el.id, corner)}
-                />
-              );
-            })}
-          </>
-        )}
       </div>
     );
-  };
-
-  const getWidgetLabel = (el: CanvasElement) => {
-    if (el.type === "text") return el.content.slice(0, 20) || "Text";
-    const w = WIDGET_LIBRARY.find((w) => w.type === el.type);
-    return w?.label || el.type;
   };
 
   return (
@@ -836,85 +651,45 @@ export default function Studio() {
         <div className="flex items-center gap-3">
           <Layers className="h-5 w-5 text-primary" />
           <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide">Glow Studio</span>
+          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+            Creative Suite
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <Input
-            value={layoutName}
-            onChange={(e) => setLayoutName(e.target.value)}
-            className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]"
-          />
-
-          {/* Zoom controls */}
+          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]" />
           <div className="flex items-center gap-0.5 border border-border/30 rounded-md px-1">
             {[0.5, 0.75, 1].map((z) => (
-              <button
-                key={z}
-                onClick={() => setZoom(z)}
-                className={`text-[10px] font-mono px-1.5 py-1 rounded transition-colors ${zoom === z ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              >
+              <button key={z} onClick={() => setZoom(z)}
+                className={`text-[10px] font-mono px-1.5 py-1 rounded transition-colors ${zoom === z ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                 {z * 100}%
               </button>
             ))}
           </div>
-
-          {/* Light/Dark canvas toggle */}
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setLightCanvas(!lightCanvas)}
-            className="h-8 w-8"
-            title={lightCanvas ? "Dark canvas" : "Light canvas"}
-          >
+          <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
             <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
           </Button>
-
-          {/* Undo */}
           <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8" title="Undo (Ctrl+Z)">
             <Undo2 className="h-3.5 w-3.5" />
           </Button>
-
           <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
-            <Eye className="h-3.5 w-3.5" />
-            Preview
+            <Eye className="h-3.5 w-3.5" /> Preview
           </Button>
           {currentLayoutId && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => window.open(`/studio/preview/${currentLayoutId}`, "_blank")}
-              className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Live Preview
+            <Button size="sm" variant="outline" onClick={() => window.open(`/studio/preview/${currentLayoutId}`, "_blank")}
+              className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent">
+              <ExternalLink className="h-3.5 w-3.5" /> Live Preview
             </Button>
           )}
           <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden">
-            {saving ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-3.5 w-3.5" />
-                Save
-              </>
-            )}
-            {saving && (
-              <div className="absolute inset-0 rounded-md border-2 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin pointer-events-none" />
-            )}
+            {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
           </Button>
         </div>
       </div>
 
-      {/* Keyboard shortcuts hint */}
+      {/* Keyboard shortcuts */}
       <div className="flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
         <span className="flex items-center gap-1"><Keyboard className="h-3 w-3" /> Shortcuts:</span>
-        <span>⌘Z Undo</span>
-        <span>⌘S Save</span>
-        <span>⌫ Delete</span>
-        <span>⇧Click Multi-select</span>
-        {multiSelected && <span className="text-primary ml-2">{selectedIds.size} selected</span>}
+        <span>⌘Z Undo</span><span>⌘S Save</span><span>⌫ Delete</span>
       </div>
 
       <div className="flex flex-1 min-h-0">
@@ -922,8 +697,7 @@ export default function Studio() {
         <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)] flex flex-col overflow-y-auto">
           <div className="p-3 border-b border-border/20">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 text-primary" />
-              Widget Library
+              <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
             </h3>
           </div>
 
@@ -932,16 +706,9 @@ export default function Studio() {
               <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2">Standard</p>
               <div className="grid grid-cols-2 gap-2">
                 {WIDGET_LIBRARY.filter(w => !w.pro).map((w) => (
-                  <button
-                    key={w.type}
-                    onClick={() => addElement(w.type, false)}
-                    draggable
-                    onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing"
-                  >
-                    <div className="flex-1 flex items-center justify-center w-full">
-                      {w.preview}
-                    </div>
+                  <button key={w.type} onClick={() => addElement(w.type, false)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing">
+                    <div className="flex-1 flex items-center justify-center w-full">{w.preview}</div>
                     <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
                   </button>
                 ))}
@@ -950,21 +717,15 @@ export default function Studio() {
 
             <div>
               <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2 flex items-center gap-1">
-                Premium
-                <Crown className="h-3 w-3 text-accent" />
+                Premium <Crown className="h-3 w-3 text-accent" />
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {WIDGET_LIBRARY.filter(w => w.pro).map((w) => (
-                  <button
-                    key={w.type}
-                    onClick={() => addElement(w.type, true)}
-                    draggable
-                    onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing"
-                  >
-                    <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30 shadow-[0_0_8px_hsl(var(--accent)/0.3)] group-hover:shadow-[0_0_14px_hsl(var(--accent)/0.5)] transition-shadow">
-                      PRO
-                    </div>
+                  <button key={w.type} onClick={() => addElement(w.type, true)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
+                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing">
+                    {!isPro && (
+                      <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30">PRO</div>
+                    )}
                     {!isPro && (
                       <div className="absolute inset-0 z-[5] bg-background/30 backdrop-blur-[1px] flex items-center justify-center rounded-xl opacity-60 group-hover:opacity-30 transition-opacity">
                         <Lock className="h-4 w-4 text-muted-foreground/50" />
@@ -979,8 +740,7 @@ export default function Studio() {
                         </div>
                       ) : w.preview ? w.preview : (
                         <div className="flex flex-col items-center justify-center h-full gap-0.5">
-                          <Sun className="h-5 w-5 text-accent" />
-                          <span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
+                          <Sun className="h-5 w-5 text-accent" /><span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
                         </div>
                       )}
                     </div>
@@ -993,23 +753,17 @@ export default function Studio() {
 
           <div className="p-2.5 space-y-1 border-t border-border/20">
             <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5">Saved Layouts</p>
-            {savedLayouts.length === 0 && (
-              <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No layouts yet</p>
-            )}
+            {savedLayouts.length === 0 && <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No layouts yet</p>}
             {savedLayouts.map((l) => (
               <div key={l.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-primary/5 transition-colors group">
-                <button onClick={() => handleLoad(l)} className="flex-1 text-left text-xs text-foreground truncate font-['Satoshi',sans-serif]">
-                  {l.name}
-                </button>
-                <button onClick={() => handleDelete(l.id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Trash2 className="h-3 w-3 text-destructive" />
-                </button>
+                <button onClick={() => handleLoad(l)} className="flex-1 text-left text-xs text-foreground truncate font-['Satoshi',sans-serif]">{l.name}</button>
+                <button onClick={() => handleDelete(l.id)} className="opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-3 w-3 text-destructive" /></button>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ─── Center: Canvas ─── */}
+        {/* ─── Center: Canvas with react-rnd layers ─── */}
         <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl blur-[80px] transition-colors duration-300 ${lightCanvas ? "bg-primary/3" : "bg-primary/5"}`} />
@@ -1020,21 +774,75 @@ export default function Studio() {
               ref={canvasRef}
               className={`relative border rounded-xl overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-white border-gray-300 shadow-lg" : "bg-card/80 border-primary/20 shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"}`}
               style={{ width: 960, height: 540 }}
-              onClick={() => { setSelectedId(null); setSelectedIds(new Set()); }}
-              onMouseMove={handleCanvasMouseMove}
-              onMouseUp={handleCanvasMouseUp}
-              onMouseLeave={handleCanvasMouseUp}
+              onClick={() => setSelectedId(null)}
               onDrop={handleCanvasDrop}
               onDragOver={handleCanvasDragOver}
             >
-              <div
-                className={`absolute inset-0 pointer-events-none ${lightCanvas ? "opacity-[0.08]" : "opacity-[0.03]"}`}
-                style={{
-                  backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
-                  backgroundSize: "30px 30px",
-                }}
-              />
-              {elements.map((el) => renderElement(el))}
+              {/* Grid */}
+              <div className={`absolute inset-0 pointer-events-none ${lightCanvas ? "opacity-[0.08]" : "opacity-[0.03]"}`}
+                style={{ backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`, backgroundSize: "30px 30px" }} />
+
+              {/* Elements rendered with react-rnd */}
+              {elements.map((el) => {
+                if (el.proOnly && !isPro) return null;
+                const isSelected = el.id === selectedId;
+                const motionClass = getMotionClass(el.animation);
+
+                return (
+                  <Rnd
+                    key={el.id}
+                    size={{ width: el.width, height: el.height }}
+                    position={{ x: el.x, y: el.y }}
+                    onDragStop={(e, d) => {
+                      pushHistory(elements);
+                      setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: d.x, y: d.y } : x));
+                    }}
+                    onResizeStop={(e, direction, ref, delta, position) => {
+                      pushHistory(elements);
+                      setElements((prev) => prev.map((x) => x.id === el.id ? {
+                        ...x,
+                        width: parseInt(ref.style.width),
+                        height: parseInt(ref.style.height),
+                        x: position.x,
+                        y: position.y,
+                      } : x));
+                    }}
+                    onMouseDown={(e: any) => {
+                      e.stopPropagation();
+                      setSelectedId(el.id);
+                    }}
+                    disableDragging={el.locked}
+                    enableResizing={!el.locked}
+                    bounds="parent"
+                    minWidth={30}
+                    minHeight={30}
+                    className={`${!el.visible ? "opacity-30 pointer-events-none" : ""} ${motionClass} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)] z-10" : "hover:ring-1 hover:ring-primary/30"}`}
+                    style={{ cursor: el.locked ? "not-allowed" : "move" }}
+                    resizeHandleStyles={{
+                      topLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
+                      topRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
+                      bottomLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
+                      bottomRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
+                    }}
+                    resizeHandleClasses={{
+                      topLeft: isSelected ? "" : "!hidden",
+                      topRight: isSelected ? "" : "!hidden",
+                      bottomLeft: isSelected ? "" : "!hidden",
+                      bottomRight: isSelected ? "" : "!hidden",
+                      top: "!hidden", bottom: "!hidden", left: "!hidden", right: "!hidden",
+                    }}
+                  >
+                    {/* Lock badge */}
+                    {el.locked && (
+                      <div className="absolute top-0.5 left-0.5 z-30 p-0.5 rounded bg-muted/80">
+                        <LockIcon className="h-2.5 w-2.5 text-muted-foreground" />
+                      </div>
+                    )}
+                    {renderElementContent(el)}
+                  </Rnd>
+                );
+              })}
+
               {elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                   <MousePointer className="h-8 w-8 text-muted-foreground/20" />
@@ -1047,69 +855,42 @@ export default function Studio() {
           </div>
         </div>
 
-        {/* ─── Right Sidebar ─── */}
-        <div className="w-60 border-l border-border/30 bg-card/30 backdrop-blur-sm flex flex-col overflow-y-auto">
-          {/* Sidebar mode tabs */}
+        {/* ─── Right Sidebar: Properties Panel ─── */}
+        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)] flex flex-col overflow-y-auto">
+          {/* Tabs */}
           <div className="flex border-b border-border/20">
-            <button
-              onClick={() => setSidebarMode("properties")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
+            <button onClick={() => setSidebarMode("properties")}
+              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
               Properties
             </button>
-            <button
-              onClick={() => setSidebarMode("layers")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
+            <button onClick={() => setSidebarMode("layers")}
+              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
               Layers
             </button>
           </div>
 
           {sidebarMode === "layers" ? (
-            /* ─── Layers Panel ─── */
             <div className="p-2 space-y-0.5 flex-1">
-              {elements.length === 0 && (
-                <p className="text-[10px] text-muted-foreground/40 text-center py-8 font-['Satoshi',sans-serif]">No layers yet</p>
-              )}
+              {elements.length === 0 && <p className="text-[10px] text-muted-foreground/40 text-center py-8 font-['Satoshi',sans-serif]">No layers yet</p>}
               {[...elements].reverse().map((el, revIdx) => {
                 const realIdx = elements.length - 1 - revIdx;
-                const WidgetIcon = WIDGET_ICON_MAP[el.type] || Layers;
-                const isActive = el.id === selectedId || selectedIds.has(el.id);
+                const WidgetIcon = WIDGET_ICON_MAP[el.type] || (el.type === "shape" ? Square : Layers);
+                const isActive = el.id === selectedId;
                 return (
-                  <div
-                    key={el.id}
-                    draggable
-                    onDragStart={() => handleLayerDragStart(realIdx)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => handleLayerDrop(realIdx)}
-                    onClick={() => { setSelectedId(el.id); setSelectedIds(new Set([el.id])); setSidebarMode("properties"); }}
-                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-xs ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}
-                  >
+                  <div key={el.id} draggable onDragStart={() => handleLayerDragStart(realIdx)} onDragOver={(e) => e.preventDefault()} onDrop={() => handleLayerDrop(realIdx)}
+                    onClick={() => { setSelectedId(el.id); setSidebarMode("properties"); }}
+                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-xs ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}>
                     <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0 cursor-grab" />
                     <WidgetIcon className="h-3.5 w-3.5 text-primary shrink-0" />
                     <span className={`flex-1 truncate font-['Satoshi',sans-serif] text-[11px] ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
                       {getWidgetLabel(el)}
                     </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        pushHistory(elements);
-                        setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, visible: !x.visible } : x));
-                      }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors"
-                      title={el.visible ? "Hide" : "Show"}
-                    >
+                    <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, visible: !x.visible } : x)); }}
+                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.visible ? "Hide" : "Show"}>
                       {el.visible ? <Eye className="h-3 w-3 text-muted-foreground/60" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        pushHistory(elements);
-                        setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, locked: !x.locked } : x));
-                      }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors"
-                      title={el.locked ? "Unlock" : "Lock"}
-                    >
+                    <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, locked: !x.locked } : x)); }}
+                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.locked ? "Unlock" : "Lock"}>
                       {el.locked ? <LockIcon className="h-3 w-3 text-accent/60" /> : <Unlock className="h-3 w-3 text-muted-foreground/30" />}
                     </button>
                   </div>
@@ -1117,393 +898,234 @@ export default function Studio() {
               })}
             </div>
           ) : (
-            /* ─── Properties Panel ─── */
             <>
-              {multiSelected ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-4 gap-2">
-                  <Layers className="h-6 w-6 text-primary/40" />
-                  <p className="text-[10px] text-muted-foreground/60 font-['Satoshi',sans-serif] text-center">
-                    {selectedIds.size} elements selected
-                  </p>
-                  <Button variant="ghost" size="sm" onClick={() => {
-                    pushHistory(elements);
-                    setElements((prev) => prev.filter((el) => !selectedIds.has(el.id)));
-                    setSelectedIds(new Set());
-                    setSelectedId(null);
-                  }} className="text-destructive hover:text-destructive text-xs gap-1.5">
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Delete All
-                  </Button>
-                </div>
-              ) : selected ? (
-            <div className="p-3 space-y-4">
-              {/* Position */}
-              <div className="space-y-2">
-                <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Position</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">X</label>
-                    <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: +e.target.value })} className="glass h-7 text-xs" />
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Y</label>
-                    <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: +e.target.value })} className="glass h-7 text-xs" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Size */}
-              <div className="space-y-2">
-                <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Size</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">W</label>
-                    <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: +e.target.value })} className="glass h-7 text-xs" />
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">H</label>
-                    <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: +e.target.value })} className="glass h-7 text-xs" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Content */}
-              {(selected.type === "text" || selected.type === "widget-neon-label") && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Content</p>
-                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-7 text-xs" />
-                </div>
-              )}
-
-              {/* Countdown config */}
-              {selected.type === "widget-countdown" && (() => {
-                let cfg: any = { target: "2025-12-31T00:00:00" };
-                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                return (
-                  <div className="space-y-2">
-                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Countdown Target</p>
-                    <Input
-                      type="datetime-local"
-                      value={cfg.target?.slice(0, 16) || ""}
-                      onChange={(e) => updateSelected({ content: JSON.stringify({ ...cfg, target: e.target.value }) })}
-                      className="glass h-8 text-xs font-mono"
-                    />
-                  </div>
-                );
-              })()}
-
-              {/* Ticker config */}
-              {selected.type === "widget-ticker" && (() => {
-                let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
-                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                const updateCfg = (patch: Record<string, any>) => {
-                  updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
-                };
-                return (
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                        <Radio className="h-3 w-3" /> Source
-                      </p>
-                      <Select value={cfg.source || "manual"} onValueChange={(v) => updateCfg({ source: v })}>
-                        <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="manual">Manual Text</SelectItem>
-                          <SelectItem value="rss">RSS Feed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {cfg.source === "manual" ? (
-                      <div className="space-y-1.5">
-                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Messages (· separated)</p>
-                        <Input
-                          value={cfg.messages || ""}
-                          onChange={(e) => updateCfg({ messages: e.target.value })}
-                          placeholder="Breaking News · Story 2 · Story 3"
-                          className="glass h-8 text-xs font-mono"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5">
-                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Feed URL</p>
-                        <Input
-                          value={cfg.feedUrl || ""}
-                          onChange={(e) => updateCfg({ feedUrl: e.target.value })}
-                          placeholder="https://feeds.bbci.co.uk/news/rss.xml"
-                          className="glass h-8 text-xs font-mono"
-                        />
-                      </div>
-                    )}
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Speed</p>
-                      <Select value={cfg.speed} onValueChange={(v) => updateCfg({ speed: v })}>
-                        <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="slow">Slow (30s)</SelectItem>
-                          <SelectItem value="normal">Normal (18s)</SelectItem>
-                          <SelectItem value="fast">Fast (10s)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Color</p>
-                      <Select value={cfg.color} onValueChange={(v) => updateCfg({ color: v })}>
-                        <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="teal">Neon Teal</SelectItem>
-                          <SelectItem value="white">Classic White</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {/* Emergency Flash Mode */}
-                    <div className="space-y-1.5 pt-1 border-t border-border/20">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: cfg.alertMode ? "#FF0033" : "hsl(var(--muted-foreground) / 0.6)" }}>
-                        <Siren className="h-3 w-3" /> Emergency Flash
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={!!cfg.alertMode}
-                          onCheckedChange={(v) => updateCfg({ alertMode: v })}
-                          className="data-[state=checked]:bg-[#FF0033]"
-                        />
-                        <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">
-                          {cfg.alertMode ? "Alert Active" : "Off"}
-                        </span>
-                      </div>
-                      {cfg.alertMode && (
-                        <div className="space-y-1.5 mt-2">
-                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: "#FF0033" }}>
-                            <Siren className="h-3 w-3" /> Alert Message
-                          </p>
-                          <Input
-                            value={cfg.alertMessage || ""}
-                            onChange={(e) => updateCfg({ alertMessage: e.target.value.slice(0, 200) })}
-                            placeholder="⚠ BREAKING: Emergency alert text…"
-                            className="glass h-8 text-xs font-mono border-[#FF0033]/30 focus:border-[#FF0033]/60"
-                            maxLength={200}
-                          />
-                          <p className="text-[8px] text-muted-foreground/40 font-mono">{(cfg.alertMessage || "").length}/200</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Weather config */}
-              {selected.type === "widget-weather" && (() => {
-                let cfg: any = { city: "auto" };
-                try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                const isAuto = cfg.city === "auto";
-                const updateCfg = (patch: Record<string, any>) => {
-                  updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
-                };
-                return (
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> Location
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Switch checked={isAuto} onCheckedChange={(v) => updateCfg({ city: v ? "auto" : "London" })} />
-                        <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">
-                          {isAuto ? "Auto-detect" : "Manual"}
-                        </span>
-                      </div>
-                      {!isAuto && (
-                        <Input
-                          value={cfg.city}
-                          onChange={(e) => updateCfg({ city: e.target.value })}
-                          placeholder="City name..."
-                          className="glass h-8 text-xs"
-                        />
-                      )}
-                    </div>
-                    {weatherPreview && (
-                      <div className="rounded-lg bg-muted/10 border border-border/20 p-2 space-y-0.5">
-                        <p className="text-[9px] text-muted-foreground/60 font-mono uppercase tracking-widest">Preview</p>
-                        <p className="text-xs text-foreground font-bold font-['Satoshi',sans-serif]">{weatherPreview.temp}°C — {weatherPreview.condition}</p>
-                        <p className="text-[9px] text-muted-foreground font-mono">{weatherPreview.city}</p>
-                      </div>
-                    )}
-                    <p className="text-[9px] text-muted-foreground/40 font-['Satoshi',sans-serif] italic">
-                      Location is detected automatically on TV
+              {selected ? (
+                <div className="p-3 space-y-4 flex-1 overflow-y-auto">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase text-primary">
+                      {getWidgetLabel(selected)}
                     </p>
+                    <span className="text-[8px] font-mono text-muted-foreground/40">{selected.type}</span>
                   </div>
-                );
-              })()}
 
-              {selected.type === "image" && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image Source</p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs gap-1.5 border-primary/30 hover:border-primary/60"
-                    onClick={async () => {
-                      if (!user) return;
-                      const { data } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).eq("type", "image").order("created_at", { ascending: false });
-                      setMediaItems(data || []);
-                      setMediaPickerOpen(true);
-                    }}
-                  >
-                    <Image className="h-3.5 w-3.5" />
-                    Pick from Media Library
-                  </Button>
-                  {selected.content && (
-                    <div className="rounded-lg border border-border/20 overflow-hidden">
-                      <img src={selected.content} alt="" className="w-full h-20 object-cover" />
+                  {/* Position & Size */}
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Position & Size</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[8px] text-muted-foreground font-mono">X</label>
+                        <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                      </div>
+                      <div>
+                        <label className="text-[8px] text-muted-foreground font-mono">Y</label>
+                        <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                      </div>
+                      <div>
+                        <label className="text-[8px] text-muted-foreground font-mono">W</label>
+                        <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                      </div>
+                      <div>
+                        <label className="text-[8px] text-muted-foreground font-mono">H</label>
+                        <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Text content */}
+                  {selected.type === "text" && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Content</p>
+                      <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-8 text-xs" />
                     </div>
                   )}
-                  <p className="text-[8px] text-muted-foreground/40 font-['Satoshi',sans-serif]">Or paste a URL:</p>
-                  <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-7 text-xs" />
-                </div>
-              )}
+                  {selected.type === "widget-neon-label" && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Label Text</p>
+                      <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-8 text-xs" />
+                    </div>
+                  )}
 
-              {/* Colors */}
-              <div className="space-y-2">
-                <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                  <Palette className="h-3 w-3" /> Colors
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">BG</label>
-                    <input
-                      type="color"
-                      value={selected.style.backgroundColor || "#1a1a2e"}
-                      onChange={(e) => updateSelected({ style: { ...selected.style, backgroundColor: e.target.value } })}
-                      className="w-full h-7 rounded cursor-pointer bg-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Text</label>
-                    <input
-                      type="color"
-                      value={selected.style.color || "#ffffff"}
-                      onChange={(e) => updateSelected({ style: { ...selected.style, color: e.target.value } })}
-                      className="w-full h-7 rounded cursor-pointer bg-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
+                  {/* Shape config */}
+                  {selected.type === "shape" && (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Shape Type</p>
+                        <Select value={selected.shapeType || "rectangle"} onValueChange={(v) => updateSelected({ shapeType: v as any })}>
+                          <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="rectangle"><span className="flex items-center gap-1.5"><Square className="h-3 w-3" /> Rectangle</span></SelectItem>
+                            <SelectItem value="rounded-rect"><span className="flex items-center gap-1.5"><Square className="h-3 w-3" /> Rounded Rect</span></SelectItem>
+                            <SelectItem value="circle"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Circle</span></SelectItem>
+                            <SelectItem value="line"><span className="flex items-center gap-1.5"><Minus className="h-3 w-3" /> Line</span></SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Fill</label>
+                          <input type="color" value={selected.shapeFill?.startsWith("#") ? selected.shapeFill : "#00b4d8"}
+                            onChange={(e) => updateSelected({ shapeFill: e.target.value })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
+                        </div>
+                        <div>
+                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Stroke</label>
+                          <input type="color" value={selected.shapeStroke?.startsWith("#") ? selected.shapeStroke : "#00b4d8"}
+                            onChange={(e) => updateSelected({ shapeStroke: e.target.value })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Stroke Width</span>
+                          <span className="text-[9px] text-muted-foreground/50 font-mono">{selected.shapeStrokeWidth ?? 2}px</span>
+                        </div>
+                        <Slider value={[selected.shapeStrokeWidth ?? 2]} onValueChange={([v]) => updateSelected({ shapeStrokeWidth: v })} min={0} max={20} step={1} className="w-full" />
+                      </div>
+                    </div>
+                  )}
 
-              {/* Font size */}
-              {selected.type === "text" && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Font Size</p>
-                  <Slider
-                    value={[parseInt(selected.style.fontSize || "14")]}
-                    onValueChange={([v]) => updateSelected({ style: { ...selected.style, fontSize: `${v}px` } })}
-                    min={8}
-                    max={120}
-                    step={1}
-                    className="w-full"
-                  />
-                  <span className="text-[10px] text-muted-foreground font-mono">{selected.style.fontSize || "14px"}</span>
-                </div>
-              )}
-
-              {/* ─── Enhanced: Glow Intensity (Text) ─── */}
-              {selected.type === "text" && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                    <Zap className="h-3 w-3" /> Glow Intensity
-                  </p>
-                  <Slider
-                    value={[selected.glowIntensity ?? 0]}
-                    onValueChange={([v]) => updateSelected({ glowIntensity: v })}
-                    min={0}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
-                  <span className="text-[10px] text-muted-foreground font-mono">{selected.glowIntensity ?? 0}px</span>
-                </div>
-              )}
-
-              {/* ─── Enhanced: Flicker Speed (Text) ─── */}
-              {selected.type === "text" && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> Flicker Speed
-                  </p>
-                  <Slider
-                    value={[selected.flickerSpeed ?? 0]}
-                    onValueChange={([v]) => updateSelected({ flickerSpeed: v })}
-                    min={0}
-                    max={10}
-                    step={1}
-                    className="w-full"
-                  />
-                  <span className="text-[10px] text-muted-foreground font-mono">{selected.flickerSpeed ?? 0 === 0 ? "Off" : selected.flickerSpeed}</span>
-                </div>
-              )}
-
-              {/* ─── Enhanced: Glass Blur (Image) ─── */}
-              {selected.type === "image" && (
-                <div className="space-y-2">
-                  <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> Glass Blur
-                  </p>
-                  <Slider
-                    value={[selected.glassBlur ?? 0]}
-                    onValueChange={([v]) => updateSelected({ glassBlur: v })}
-                    min={0}
-                    max={20}
-                    step={1}
-                    className="w-full"
-                  />
-                  <span className="text-[10px] text-muted-foreground font-mono">{selected.glassBlur ?? 0}px</span>
-                </div>
-              )}
-
-              {/* Animation */}
-              <div className="space-y-2">
-                <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Animation
-                </p>
-                <Select
-                  value={selected.animation || "none"}
-                  onValueChange={(v) => {
-                    const anim = PRO_ANIMATIONS.find((a) => a.id === v);
-                    if (anim?.pro && gatePro("Glow Animation: " + anim.label)) return;
-                    updateSelected({ animation: v === "none" ? undefined : v });
-                  }}
-                >
-                  <SelectTrigger className="glass h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {PRO_ANIMATIONS.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        <span className="flex items-center gap-1.5">
-                          {a.label}
-                          {a.pro && (
-                            <span className="px-1 py-0.5 rounded text-[7px] font-bold tracking-widest uppercase bg-accent/15 text-accent">PRO</span>
+                  {/* Ticker config */}
+                  {selected.type === "widget-ticker" && (() => {
+                    let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
+                    try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                    const updateCfg = (patch: Record<string, any>) => updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
+                    return (
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><Radio className="h-3 w-3" /> Source</p>
+                          <Select value={cfg.source || "manual"} onValueChange={(v) => updateCfg({ source: v })}>
+                            <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="manual">Manual Text</SelectItem>
+                              <SelectItem value="rss">RSS Feed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {cfg.source === "manual" ? (
+                          <div className="space-y-1.5">
+                            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Messages (· separated)</p>
+                            <Input value={cfg.messages || ""} onChange={(e) => updateCfg({ messages: e.target.value })} placeholder="Breaking News · Story 2" className="glass h-8 text-xs font-mono" />
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Feed URL</p>
+                            <Input value={cfg.feedUrl || ""} onChange={(e) => updateCfg({ feedUrl: e.target.value })} placeholder="https://feeds.bbci.co.uk/news/rss.xml" className="glass h-8 text-xs font-mono" />
+                          </div>
+                        )}
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Speed</p>
+                          <Select value={cfg.speed} onValueChange={(v) => updateCfg({ speed: v })}>
+                            <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="slow">Slow</SelectItem>
+                              <SelectItem value="normal">Normal</SelectItem>
+                              <SelectItem value="fast">Fast</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5 pt-1 border-t border-border/20">
+                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: cfg.alertMode ? "#FF0033" : "hsl(var(--muted-foreground) / 0.6)" }}>
+                            <Siren className="h-3 w-3" /> Emergency Flash
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Switch checked={!!cfg.alertMode} onCheckedChange={(v) => updateCfg({ alertMode: v })} className="data-[state=checked]:bg-[#FF0033]" />
+                            <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">{cfg.alertMode ? "Alert Active" : "Off"}</span>
+                          </div>
+                          {cfg.alertMode && (
+                            <Input value={cfg.alertMessage || ""} onChange={(e) => updateCfg({ alertMessage: e.target.value.slice(0, 200) })} placeholder="⚠ BREAKING..." className="glass h-8 text-xs font-mono border-[#FF0033]/30" maxLength={200} />
                           )}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
-              {/* Delete */}
-              <Button variant="ghost" size="sm" onClick={deleteSelected} className="w-full text-destructive hover:text-destructive text-xs gap-1.5 mt-2">
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete Element
-              </Button>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-4 gap-2">
-              <MousePointer className="h-6 w-6 text-muted-foreground/20" />
-              <p className="text-[10px] text-muted-foreground/40 font-['Satoshi',sans-serif] text-center">
-                Select an element on the canvas to edit its properties
-              </p>
-            </div>
-          )}
-          </>
+                  {/* Weather config */}
+                  {selected.type === "widget-weather" && (() => {
+                    let cfg: any = { city: "auto" };
+                    try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                    const isAuto = cfg.city === "auto";
+                    const updateCfg = (patch: Record<string, any>) => updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
+                    return (
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><MapPin className="h-3 w-3" /> Location</p>
+                          <div className="flex items-center gap-2">
+                            <Switch checked={isAuto} onCheckedChange={(v) => updateCfg({ city: v ? "auto" : "London" })} />
+                            <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">{isAuto ? "Auto-detect" : "Manual"}</span>
+                          </div>
+                          {!isAuto && <Input value={cfg.city} onChange={(e) => updateCfg({ city: e.target.value })} placeholder="City name..." className="glass h-8 text-xs" />}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Image source */}
+                  {selected.type === "image" && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image Source</p>
+                      <Button size="sm" variant="outline" className="w-full text-xs gap-1.5 border-primary/30 hover:border-primary/60"
+                        onClick={async () => {
+                          if (!user) return;
+                          const { data } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).eq("type", "image").order("created_at", { ascending: false });
+                          setMediaItems(data || []);
+                          setMediaPickerOpen(true);
+                        }}>
+                        <Image className="h-3.5 w-3.5" /> Pick from Media Library
+                      </Button>
+                      {selected.content && <div className="rounded-lg border border-border/20 overflow-hidden"><img src={selected.content} alt="" className="w-full h-20 object-cover" /></div>}
+                      <p className="text-[8px] text-muted-foreground/40 font-['Satoshi',sans-serif]">Or paste a URL:</p>
+                      <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-7 text-xs" />
+                    </div>
+                  )}
+
+                  {/* Colors */}
+                  {selected.type !== "shape" && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><Palette className="h-3 w-3" /> Colors</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">BG</label>
+                          <input type="color" value={selected.style.backgroundColor || "#1a1a2e"} onChange={(e) => updateSelected({ style: { ...selected.style, backgroundColor: e.target.value } })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
+                        </div>
+                        <div>
+                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Text</label>
+                          <input type="color" value={selected.style.color || "#ffffff"} onChange={(e) => updateSelected({ style: { ...selected.style, color: e.target.value } })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Font size */}
+                  {selected.type === "text" && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Font Size</p>
+                      <Slider value={[parseInt(selected.style.fontSize || "14")]} onValueChange={([v]) => updateSelected({ style: { ...selected.style, fontSize: `${v}px` } })} min={8} max={120} step={1} className="w-full" />
+                      <span className="text-[10px] text-muted-foreground font-mono">{selected.style.fontSize || "14px"}</span>
+                    </div>
+                  )}
+
+                  {/* ─── Visual Effects & Motion ─── */}
+                  <div className="pt-2 border-t border-border/20">
+                    <VisualEffectsPanel
+                      element={selected}
+                      isPro={isPro}
+                      onUpdate={updateSelected}
+                      onGatePro={gatePro}
+                    />
+                  </div>
+
+                  {/* Delete */}
+                  <Button variant="ghost" size="sm" onClick={deleteSelected} className="w-full text-destructive hover:text-destructive text-xs gap-1.5 mt-2">
+                    <Trash2 className="h-3.5 w-3.5" /> Delete Element
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-4 gap-2">
+                  <MousePointer className="h-6 w-6 text-muted-foreground/20" />
+                  <p className="text-[10px] text-muted-foreground/40 font-['Satoshi',sans-serif] text-center">
+                    Select an element on the canvas to edit its properties
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
           {/* Scheduling note */}
@@ -1520,13 +1142,8 @@ export default function Studio() {
 
       {/* ─── Fullscreen Preview ─── */}
       {fullscreenPreview && (
-        <div
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
-          onClick={() => setFullscreenPreview(false)}
-          onKeyDown={(e) => e.key === "Escape" && setFullscreenPreview(false)}
-          tabIndex={0}
-          ref={(el) => el?.focus()}
-        >
+        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setFullscreenPreview(false)}
+          onKeyDown={(e) => e.key === "Escape" && setFullscreenPreview(false)} tabIndex={0} ref={(el) => el?.focus()}>
           <div className="relative" style={{ width: "100vw", height: "100vh" }}>
             {elements.filter((el) => el.visible).map((el) => {
               const scaleX = window.innerWidth / 960;
@@ -1534,19 +1151,12 @@ export default function Studio() {
               const scale = Math.min(scaleX, scaleY);
               const offsetX = (window.innerWidth - 960 * scale) / 2;
               const offsetY = (window.innerHeight - 540 * scale) / 2;
+              const motionClass = getMotionClass(el.animation);
+              const filterStr = getFilterCSS(el.filters);
               return (
-                <div
-                  key={`preview-${el.id}`}
-                  className="absolute"
-                  style={{
-                    left: offsetX + el.x * scale,
-                    top: offsetY + el.y * scale,
-                    width: el.width * scale,
-                    height: el.height * scale,
-                    ...el.style,
-                  }}
-                >
-                  {renderElement(el, true)}
+                <div key={`preview-${el.id}`} className={`absolute ${motionClass}`}
+                  style={{ left: offsetX + el.x * scale, top: offsetY + el.y * scale, width: el.width * scale, height: el.height * scale, filter: filterStr || undefined }}>
+                  {renderElementContent(el)}
                 </div>
               );
             })}
@@ -1557,7 +1167,7 @@ export default function Studio() {
         </div>
       )}
 
-      {/* ─── Saving Overlay ─── */}
+      {/* Saving Overlay */}
       {saving && (
         <div className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm flex items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-3 animate-fade-in">
@@ -1567,7 +1177,7 @@ export default function Studio() {
         </div>
       )}
 
-      {/* ─── Pro Gate Modal ─── */}
+      {/* Pro Gate Modal */}
       <Dialog open={proGateOpen} onOpenChange={setProGateOpen}>
         <DialogContent className="bg-transparent border-none shadow-none max-w-md p-0">
           <div className="glass glass-spotlight rounded-3xl p-8 relative overflow-hidden text-center">
@@ -1578,34 +1188,27 @@ export default function Studio() {
               </div>
               <div className="flex items-center justify-center gap-2">
                 <Crown className="h-5 w-5 text-accent" />
-                <span className="font-['Satoshi',sans-serif] text-sm font-bold tracking-[0.15em] uppercase text-accent">
-                  Level Up Your Glow
-                </span>
+                <span className="font-['Satoshi',sans-serif] text-sm font-bold tracking-[0.15em] uppercase text-accent">Level Up Your Glow</span>
               </div>
               <p className="text-muted-foreground text-sm font-['Satoshi',sans-serif] leading-relaxed">
                 This is a <strong className="text-foreground">Pro Feature</strong>. Unlock Weather, RSS Tickers, and unlimited screens for just <strong className="text-foreground">$9/month</strong>.
               </p>
-              <Button
-                onClick={() => { setProGateOpen(false); navigate("/subscription"); }}
-                className="w-full bg-gradient-to-r from-primary to-glow-blue text-primary-foreground font-['Satoshi',sans-serif] font-semibold tracking-wider rounded-xl h-11 text-base animate-[studioBreatheCTA_3s_ease-in-out_infinite]"
-              >
-                <Crown className="h-4 w-4 mr-2" />
-                Go Pro Now
+              <Button onClick={() => { setProGateOpen(false); navigate("/subscription"); }}
+                className="w-full bg-gradient-to-r from-primary to-glow-blue text-primary-foreground font-['Satoshi',sans-serif] font-semibold tracking-wider rounded-xl h-11 text-base">
+                <Crown className="h-4 w-4 mr-2" /> Go Pro Now
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* ─── Media Picker Modal ─── */}
+      {/* Media Picker Modal */}
       <Dialog open={mediaPickerOpen} onOpenChange={setMediaPickerOpen}>
         <DialogContent className="bg-card border-border/30 max-w-lg max-h-[70vh] flex flex-col p-0 overflow-hidden">
           <div className="p-4 border-b border-border/20">
             <h3 className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide flex items-center gap-2">
-              <Image className="h-4 w-4 text-primary" />
-              Media Library
+              <Image className="h-4 w-4 text-primary" /> Media Library
             </h3>
-            <p className="text-[10px] text-muted-foreground mt-1">Select an image to use on the canvas</p>
           </div>
           <div className="flex-1 overflow-y-auto p-3">
             {mediaItems.length === 0 ? (
@@ -1621,15 +1224,8 @@ export default function Studio() {
                 {mediaItems.map((item) => {
                   const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
                   return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        updateSelected({ content: publicUrl });
-                        setMediaPickerOpen(false);
-                        toast.success(`Added "${item.name}"`);
-                      }}
-                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square hover:border-primary/50 hover:shadow-[0_0_12px_hsla(180,100%,32%,0.15)] transition-all"
-                    >
+                    <button key={item.id} onClick={() => { updateSelected({ content: publicUrl }); setMediaPickerOpen(false); toast.success(`Added "${item.name}"`); }}
+                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square hover:border-primary/50 hover:shadow-[0_0_12px_hsla(180,100%,32%,0.15)] transition-all">
                       <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="text-[8px] text-white font-['Satoshi',sans-serif] truncate block">{item.name}</span>
@@ -1643,63 +1239,7 @@ export default function Studio() {
         </DialogContent>
       </Dialog>
 
-      <style>{`
-        @keyframes studioBreatheCTA {
-          0%, 100% { box-shadow: 0 0 20px hsla(180, 100%, 32%, 0.3); }
-          50% { box-shadow: 0 0 35px hsla(180, 100%, 32%, 0.5), 0 0 60px hsla(180, 100%, 32%, 0.2); }
-        }
-        @keyframes studioNeonFlicker {
-          0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--primary)); }
-          20%, 24%, 55% { opacity: 0.6; text-shadow: none; }
-        }
-        @keyframes studioGlowBreathe {
-          0%, 100% { box-shadow: 0 0 8px hsla(180, 100%, 32%, 0.2); }
-          50% { box-shadow: 0 0 20px hsla(180, 100%, 32%, 0.5), 0 0 40px hsla(180, 100%, 32%, 0.15); }
-        }
-        @keyframes widgetSunSpin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        @keyframes widgetTicker {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        .studio-neon-flicker { animation: studioNeonFlicker 2s infinite; }
-        .studio-glow-breathe { animation: studioGlowBreathe 3s ease-in-out infinite; }
-        @keyframes tickerScroll {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        @keyframes alertGlitchIn {
-          0% { opacity: 0; background: white; }
-          25% { opacity: 1; background: #FF0033; }
-          50% { opacity: 0.3; background: white; }
-          75% { opacity: 1; background: #FF0033; }
-          100% { opacity: 1; background: #FF0033; }
-        }
-        @keyframes alertLiveFlash {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.2; }
-        }
-        @keyframes alertGlowSpill {
-          0%, 100% { box-shadow: 0 -20px 60px rgba(255,0,51,0.3); }
-          50% { box-shadow: 0 -30px 80px rgba(255,0,51,0.5), 0 -50px 120px rgba(255,0,51,0.2); }
-        }
-        .alert-glitch-in { animation: alertGlitchIn 0.2s ease-out; }
-        .alert-live-flash { animation: alertLiveFlash 0.5s ease-in-out infinite; }
-        @keyframes weatherSunPulse {
-          0%, 100% { filter: drop-shadow(0 0 12px #FFB020) drop-shadow(0 0 24px #FFB02080); transform: scale(1); }
-          50% { filter: drop-shadow(0 0 20px #FFB020) drop-shadow(0 0 40px #FFB020AA); transform: scale(1.08); }
-        }
-        @keyframes weatherRainDrop {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(3px); }
-        }
-        @keyframes weatherAuroraShift {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
-      `}</style>
+      <StudioStyles />
     </div>
   );
 }
