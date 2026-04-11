@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
-import { Download, Tv, Globe, Flame, Monitor, Tablet, Rocket, ChevronRight } from "lucide-react";
+import { Download, Tv, Globe, Flame, Monitor, Tablet, Rocket, ChevronRight, Sparkles, Bug, Zap, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,36 @@ import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { toast } from "sonner";
 
 const DOWNLOADER_CODE = "1648081";
+
+const CHANGELOG = [
+  {
+    version: APK_VERSION,
+    date: APK_DATE,
+    changes: [
+      { icon: Zap, text: "Improved player stability and performance on Fire TV devices" },
+      { icon: Shield, text: "Enhanced offline caching for smoother playback" },
+      { icon: Sparkles, text: "Updated PWA manifest for better installability" },
+    ],
+  },
+  {
+    version: "2.1.0",
+    date: "March 2026",
+    changes: [
+      { icon: Zap, text: "Added crossfade and transition effects between media items" },
+      { icon: Bug, text: "Fixed screen wake-lock dropping on certain Android TV models" },
+      { icon: Sparkles, text: "New pairing flow with animated success screen" },
+    ],
+  },
+  {
+    version: "2.0.0",
+    date: "February 2026",
+    changes: [
+      { icon: Rocket, text: "Complete UI redesign with the new Glow design system" },
+      { icon: Zap, text: "Multi-screen sync support for video walls" },
+      { icon: Shield, text: "Added proof-of-play logging and error reporting" },
+    ],
+  },
+];
 
 // Particle burst config
 const PARTICLE_COUNT = 80;
@@ -358,7 +388,33 @@ export default function DownloadPage() {
             </Accordion>
           </div>
 
-          {/* CTA + footer */}
+          {/* ── WHAT'S NEW ── */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold tracking-wide text-center flex items-center justify-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              What's New
+            </h3>
+
+            <div className="space-y-3">
+              {CHANGELOG.map((entry, i) => (
+                <div key={i} className="glass rounded-xl border-primary/15 p-5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-primary font-mono">v{entry.version}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{entry.date}</span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {entry.changes.map((change, j) => (
+                      <li key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <change.icon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-primary/70" />
+                        <span>{change.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="text-center pt-4 pb-8 space-y-4">
             <Link
               to="/auth"
