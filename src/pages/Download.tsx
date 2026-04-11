@@ -6,7 +6,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { supabase } from "@/integrations/supabase/client";
 import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { toast } from "sonner";
 
