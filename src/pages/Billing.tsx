@@ -19,7 +19,7 @@ const FREE_FEATURES = [
 ];
 
 export default function Billing() {
-  const { user, subscriptionTier, refreshSubscription } = useAuth();
+  const { user, subscriptionTier, refreshSubscription, grantedProUntil, isGrantExpired } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTier = subscriptionTier;
   const loading = !user;
