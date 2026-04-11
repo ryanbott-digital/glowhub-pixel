@@ -1423,6 +1423,10 @@ export default function Studio() {
                         className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "gradient" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
                         Gradient
                       </button>
+                      <button onClick={() => setCanvasBg((prev) => ({ ...prev, type: "image" }))}
+                        className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "image" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
+                        Image
+                      </button>
                     </div>
 
                     {canvasBg.type === "solid" ? (
