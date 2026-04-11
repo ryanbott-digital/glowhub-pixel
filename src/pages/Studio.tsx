@@ -257,6 +257,8 @@ export default function Studio() {
     (async () => {
       const { data: layouts } = await supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
       setSavedLayouts((layouts as any[]) || []);
+      const { data: media } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).order("created_at", { ascending: false });
+      setMediaItems((media as any[]) || []);
     })();
   }, [user]);
 
@@ -408,19 +410,55 @@ export default function Studio() {
     e.dataTransfer.effectAllowed = "copy";
   };
 
+  const handleMediaDragStart = (e: React.DragEvent, item: { name: string; storage_path: string; type: string }) => {
+    const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
+    e.dataTransfer.setData("media-url", publicUrl);
+    e.dataTransfer.setData("media-name", item.name);
+    e.dataTransfer.setData("media-type", item.type);
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
   const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const type = e.dataTransfer.getData("widget-type") as CanvasElement["type"];
-    if (!type) return;
-    const pro = e.dataTransfer.getData("widget-pro") === "true";
     const rect = canvasRef.current!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check for media library drop
+    const mediaUrl = e.dataTransfer.getData("media-url");
+    if (mediaUrl) {
+      pushHistory(elements);
+      const mediaType = e.dataTransfer.getData("media-type");
+      const isVideo = mediaType.startsWith("video");
+      const id = crypto.randomUUID();
+      const newEl: CanvasElement = {
+        id,
+        type: isVideo ? "video" : "image",
+        content: mediaUrl,
+        x: x / zoom - 150,
+        y: y / zoom - 100,
+        width: 300,
+        height: 200,
+        style: {},
+        visible: true,
+        locked: false,
+        filters: { ...DEFAULT_FILTERS },
+      };
+      setElements((prev) => [...prev, newEl]);
+      setSelectedId(id);
+      toast.success(`Added "${e.dataTransfer.getData("media-name")}"`);
+      return;
+    }
+
+    // Check for widget drop
+    const type = e.dataTransfer.getData("widget-type") as CanvasElement["type"];
+    if (!type) return;
+    const pro = e.dataTransfer.getData("widget-pro") === "true";
     addElement(type, pro, { x, y });
   };
 
   const handleCanvasDragOver = (e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes("widget-type")) {
+    if (e.dataTransfer.types.includes("widget-type") || e.dataTransfer.types.includes("media-url")) {
       e.preventDefault();
       e.dataTransfer.dropEffect = "copy";
     }
@@ -752,6 +790,38 @@ export default function Studio() {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Media Library */}
+          <div className="p-2.5 space-y-1.5 border-t border-border/20">
+            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5 flex items-center gap-1">
+              <Image className="h-3 w-3 text-primary" /> Media Library
+            </p>
+            {mediaItems.length === 0 ? (
+              <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No media uploaded yet</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
+                {mediaItems.filter(m => m.type.startsWith("image") || m.type.startsWith("video")).slice(0, 30).map((item) => {
+                  const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
+                  const isVideo = item.type.startsWith("video");
+                  return (
+                    <div key={item.id} draggable onDragStart={(e) => handleMediaDragStart(e, item)}
+                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square cursor-grab active:cursor-grabbing hover:border-primary/50 hover:shadow-[0_0_10px_hsla(180,100%,32%,0.15)] transition-all">
+                      {isVideo ? (
+                        <div className="w-full h-full bg-muted/20 flex items-center justify-center">
+                          <Video className="h-4 w-4 text-primary/60" />
+                        </div>
+                      ) : (
+                        <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[6px] text-white font-['Satoshi',sans-serif] truncate block">{item.name}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="p-2.5 space-y-1 border-t border-border/20">
