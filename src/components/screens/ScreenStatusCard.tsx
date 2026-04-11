@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { isProTier } from "@/lib/subscription";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -58,6 +60,7 @@ interface ActivityLog {
 }
 
 function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playlistId: string }) {
+  const { subscriptionTier } = useAuth();
   const [totalItems, setTotalItems] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
@@ -78,7 +81,7 @@ function SyncStatusIndicator({ screenId, playlistId }: { screenId: string; playl
     <div>
       <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5 mb-1.5">
         <HardDrive className="h-3 w-3 text-primary" /> Sync Status
-        <span className="pro-badge">PRO</span>
+        {!isProTier(subscriptionTier) && <span className="pro-badge">PRO</span>}
       </h4>
       <div className="flex items-center gap-2">
         <Progress value={100} className="h-1.5 flex-1" />
