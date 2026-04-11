@@ -26,6 +26,8 @@ import {
 import { VisualEffectsPanel } from "@/components/studio/VisualEffectsPanel";
 import { StudioStyles } from "@/components/studio/StudioStyles";
 import { GlowFieldCanvas, DEFAULT_GLOW_FIELD } from "@/components/studio/GlowFieldCanvas";
+import { SmartGuides, computeSnapGuides, type GuideLine } from "@/components/studio/SmartGuides";
+import { StudioTimeline } from "@/components/studio/StudioTimeline";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
@@ -233,6 +235,9 @@ export default function Studio() {
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
+  const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [timelineCollapsed, setTimelineCollapsed] = useState(false);
+  const [timelineDuration, setTimelineDuration] = useState(30);
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
