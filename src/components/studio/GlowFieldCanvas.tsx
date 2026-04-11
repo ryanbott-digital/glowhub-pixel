@@ -14,7 +14,10 @@ export interface GlowFieldConfig {
   colorGradient?: boolean;
   color2?: string;
   gradientSpeed?: number;
+  direction?: ParticleDirection;
 }
+
+export type ParticleDirection = "random" | "up" | "down" | "left" | "right" | "radial" | "swirl";
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
   density: 30,
@@ -75,21 +78,45 @@ function lerpColor(a: { r: number; g: number; b: number }, b: { r: number; g: nu
   };
 }
 
+function getDirectionVelocity(dir: ParticleDirection, speed: number, w: number, h: number, x: number, y: number) {
+  const jitter = () => (Math.random() - 0.5) * speed * 0.3;
+  switch (dir) {
+    case "up": return { vx: jitter(), vy: -Math.random() * speed };
+    case "down": return { vx: jitter(), vy: Math.random() * speed };
+    case "left": return { vx: -Math.random() * speed, vy: jitter() };
+    case "right": return { vx: Math.random() * speed, vy: jitter() };
+    case "radial": {
+      const cx = w / 2, cy = h / 2;
+      const dx = x - cx, dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      return { vx: (dx / dist) * speed * (0.5 + Math.random() * 0.5), vy: (dy / dist) * speed * (0.5 + Math.random() * 0.5) };
+    }
+    case "swirl": {
+      const cx2 = w / 2, cy2 = h / 2;
+      const dx2 = x - cx2, dy2 = y - cy2;
+      const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2) || 1;
+      return { vx: (-dy2 / dist2) * speed * (0.5 + Math.random() * 0.5), vy: (dx2 / dist2) * speed * (0.5 + Math.random() * 0.5) };
+    }
+    default: return { vx: (Math.random() - 0.5) * speed, vy: (Math.random() - 0.5) * speed };
+  }
+}
+
 export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
 
-  const initParticles = useCallback((w: number, h: number, count: number, speedMul: number) => {
+  const initParticles = useCallback((w: number, h: number, count: number, speedMul: number, direction: ParticleDirection = "random") => {
     const particles: Particle[] = [];
     for (let i = 0; i < count; i++) {
+      const { vx, vy } = getDirectionVelocity(direction, speedMul, w, h, Math.random() * w, Math.random() * h);
       particles.push({
         x: Math.random() * w,
         y: Math.random() * h,
         r: 1.5 + Math.random() * 3,
-        vx: (Math.random() - 0.5) * speedMul,
-        vy: (Math.random() - 0.5) * speedMul,
+        vx,
+        vy,
         alpha: 0.3 + Math.random() * 0.7,
         alphaDir: (Math.random() > 0.5 ? 1 : -1) * (0.003 + Math.random() * 0.008),
         rotation: Math.random() * Math.PI * 2,
@@ -118,7 +145,8 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const h = canvas.getBoundingClientRect().height;
     const count = Math.max(5, Math.round(config.density * (w * h) / (960 * 540)));
     const speedMul = config.speed * 0.15;
-    particlesRef.current = initParticles(w, h, count, speedMul);
+    const direction = config.direction || "random";
+    particlesRef.current = initParticles(w, h, count, speedMul, direction);
 
     const rgb1 = hexToRgb(config.color);
     const rgb2 = config.colorGradient ? hexToRgb(config.color2 || "#ff006e") : rgb1;
@@ -144,6 +172,12 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
       }
 
       for (const p of particlesRef.current) {
+        // For swirl/radial, continuously update velocity based on position
+        if (direction === "swirl" || direction === "radial") {
+          const vel = getDirectionVelocity(direction, speedMul, rw, rh, p.x, p.y);
+          p.vx = vel.vx;
+          p.vy = vel.vy;
+        }
         p.x += p.vx;
         p.y += p.vy;
         p.rotation += p.rotSpeed;
