@@ -231,6 +231,7 @@ export default function Studio() {
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
+  const [lightCanvas, setLightCanvas] = useState(false);
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
