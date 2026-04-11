@@ -207,7 +207,10 @@ export default function DownloadPage() {
               <div className="relative inline-block">
                 <GlowLogoImage className="h-16 mx-auto" />
                 <div className="absolute inset-0 bg-primary/10 blur-[20px] animate-pulse" />
-              </div>
+               </div>
+               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-[11px] font-mono font-semibold text-primary">
+                 v{APK_VERSION} · {APK_DATE}
+               </span>
 
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-[0.08em] uppercase">
