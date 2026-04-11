@@ -131,6 +131,55 @@ export default function Billing() {
         </div>
       </div>
 
+      {/* Expiry warning banner for granted Pro users */}
+      {grantedProUntil && (() => {
+        const expiryDate = new Date(grantedProUntil);
+        const now = new Date();
+        const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const expired = daysLeft <= 0;
+        const expiringSoon = daysLeft > 0 && daysLeft <= 14;
+
+        if (expired) {
+          return (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 backdrop-blur-xl p-4 flex items-start gap-3 animate-fade-in">
+              <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Your complimentary Pro access has expired</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your granted Pro access ended on {expiryDate.toLocaleDateString()}. Upgrade below to keep all Pro features.
+                </p>
+              </div>
+              <Button size="sm" onClick={handleCheckout} disabled={checkoutLoading} className="flex-shrink-0 bg-gradient-to-r from-[hsl(180,100%,32%)] to-[hsl(217,91%,60%)] text-white border-0">
+                {checkoutLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crown className="h-3.5 w-3.5 mr-1" />}
+                Subscribe
+              </Button>
+            </div>
+          );
+        }
+
+        if (expiringSoon) {
+          return (
+            <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 backdrop-blur-xl p-4 flex items-start gap-3 animate-fade-in">
+              <Clock className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  Pro access expires in {daysLeft} day{daysLeft !== 1 ? "s" : ""}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your complimentary Pro access ends on {expiryDate.toLocaleDateString()}. Subscribe now to avoid losing Pro features.
+                </p>
+              </div>
+              <Button size="sm" onClick={handleCheckout} disabled={checkoutLoading} variant="outline" className="flex-shrink-0 border-amber-400/30 text-amber-400 hover:bg-amber-400/10">
+                {checkoutLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crown className="h-3.5 w-3.5 mr-1" />}
+                Subscribe
+              </Button>
+            </div>
+          );
+        }
+
+        return null;
+      })()}
+
       {/* Conditional content based on tier */}
       {isPro ? (
         <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
