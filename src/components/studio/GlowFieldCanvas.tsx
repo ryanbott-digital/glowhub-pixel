@@ -78,6 +78,29 @@ function lerpColor(a: { r: number; g: number; b: number }, b: { r: number; g: nu
   };
 }
 
+function getDirectionVelocity(dir: ParticleDirection, speed: number, w: number, h: number, x: number, y: number) {
+  const jitter = () => (Math.random() - 0.5) * speed * 0.3;
+  switch (dir) {
+    case "up": return { vx: jitter(), vy: -Math.random() * speed };
+    case "down": return { vx: jitter(), vy: Math.random() * speed };
+    case "left": return { vx: -Math.random() * speed, vy: jitter() };
+    case "right": return { vx: Math.random() * speed, vy: jitter() };
+    case "radial": {
+      const cx = w / 2, cy = h / 2;
+      const dx = x - cx, dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      return { vx: (dx / dist) * speed * (0.5 + Math.random() * 0.5), vy: (dy / dist) * speed * (0.5 + Math.random() * 0.5) };
+    }
+    case "swirl": {
+      const cx2 = w / 2, cy2 = h / 2;
+      const dx2 = x - cx2, dy2 = y - cy2;
+      const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2) || 1;
+      return { vx: (-dy2 / dist2) * speed * (0.5 + Math.random() * 0.5), vy: (dx2 / dist2) * speed * (0.5 + Math.random() * 0.5) };
+    }
+    default: return { vx: (Math.random() - 0.5) * speed, vy: (Math.random() - 0.5) * speed };
+  }
+}
+
 export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
