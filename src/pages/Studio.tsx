@@ -949,7 +949,8 @@ export default function Studio() {
                   );
                 })}
               </div>
-            )}
+              );
+            })()}
           </div>
 
           <div className="p-2.5 space-y-1 border-t border-border/20">
