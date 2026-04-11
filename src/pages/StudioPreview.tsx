@@ -312,7 +312,7 @@ export default function StudioPreview() {
       <div className="absolute bg-card" style={{
         left: offsetX, top: offsetY, width: 960 * scale, height: 540 * scale,
         background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined,
-        backgroundImage: canvasBg.type === "image" && (canvasBg as any).imageUrl ? `url(${(canvasBg as any).imageUrl})` : undefined,
+        backgroundImage: canvasBg.type === "image" && canvasBg.imageUrl ? `url(${canvasBg.imageUrl})` : undefined,
         backgroundSize: canvasBg.type === "image" ? "cover" : undefined,
         backgroundPosition: canvasBg.type === "image" ? "center" : undefined,
       }} />
