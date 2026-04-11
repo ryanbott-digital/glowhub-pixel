@@ -80,8 +80,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r-0 glass-strong">
       <div className="p-4 flex items-center justify-center">
-        {!collapsed && <GlowLogoImage className="h-7 w-auto drop-shadow-[0_0_12px_hsl(180,100%,40%,0.35)]" />}
-        {collapsed && <GlowLogoImage className="h-6 w-auto drop-shadow-[0_0_10px_hsl(180,100%,40%,0.35)]" />}
+        {collapsed ? <GHSymbol size={28} /> : <GlowLogoImage className="h-7 w-auto drop-shadow-[0_0_12px_hsl(180,100%,40%,0.35)]" />}
       </div>
       <SidebarContent>
         <SidebarGroup>
