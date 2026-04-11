@@ -145,7 +145,8 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const h = canvas.getBoundingClientRect().height;
     const count = Math.max(5, Math.round(config.density * (w * h) / (960 * 540)));
     const speedMul = config.speed * 0.15;
-    particlesRef.current = initParticles(w, h, count, speedMul);
+    const direction = config.direction || "random";
+    particlesRef.current = initParticles(w, h, count, speedMul, direction);
 
     const rgb1 = hexToRgb(config.color);
     const rgb2 = config.colorGradient ? hexToRgb(config.color2 || "#ff006e") : rgb1;
@@ -171,6 +172,12 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
       }
 
       for (const p of particlesRef.current) {
+        // For swirl/radial, continuously update velocity based on position
+        if (direction === "swirl" || direction === "radial") {
+          const vel = getDirectionVelocity(direction, speedMul, rw, rh, p.x, p.y);
+          p.vx = vel.vx;
+          p.vy = vel.vy;
+        }
         p.x += p.vx;
         p.y += p.vy;
         p.rotation += p.rotSpeed;
