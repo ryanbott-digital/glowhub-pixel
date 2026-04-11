@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, X, Eye } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 interface AdminUser {
   id: string;
@@ -14,6 +14,7 @@ interface AdminUser {
   created_at: string;
   subscription_status: string;
   subscription_tier: string;
+  granted_pro_until: string | null;
 }
 
 interface ContactSubmission {
@@ -37,6 +38,34 @@ const TIERS = [
   { value: "pro", label: "Pro", color: "default" as const },
 ];
 
+const GRANT_DURATIONS = [
+  { value: "1m", label: "1 Month" },
+  { value: "3m", label: "3 Months" },
+  { value: "6m", label: "6 Months" },
+  { value: "1y", label: "1 Year" },
+  { value: "2y", label: "2 Years" },
+  { value: "forever", label: "Forever" },
+];
+
+function computeGrantExpiry(duration: string): string | null {
+  if (duration === "forever") return null; // null = forever in DB
+  const now = new Date();
+  const match = duration.match(/^(\d+)(m|y)$/);
+  if (!match) return null;
+  const amount = parseInt(match[1]);
+  const unit = match[2];
+  if (unit === "m") now.setMonth(now.getMonth() + amount);
+  else if (unit === "y") now.setFullYear(now.getFullYear() + amount);
+  return now.toISOString();
+}
+
+function formatGrantExpiry(dateStr: string | null): string {
+  if (!dateStr) return "Forever";
+  const d = new Date(dateStr);
+  if (d < new Date()) return "Expired";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
 export default function Admin() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +75,10 @@ export default function Admin() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(true);
   const [selectedSub, setSelectedSub] = useState<ContactSubmission | null>(null);
+
+  // Grant dialog state
+  const [grantUser, setGrantUser] = useState<AdminUser | null>(null);
+  const [grantDuration, setGrantDuration] = useState("1m");
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -99,26 +132,58 @@ export default function Admin() {
     fetchLeads();
   }, []);
 
-  const updateTier = async (userId: string, tier: string) => {
+  const handleTierChange = (user: AdminUser, tier: string) => {
+    if (tier === "pro" && user.subscription_tier !== "pro") {
+      // Open grant dialog to choose duration
+      setGrantUser({ ...user });
+      setGrantDuration("1m");
+    } else {
+      updateTier(user.id, tier, undefined);
+    }
+  };
+
+  const updateTier = async (userId: string, tier: string, grantedProUntil: string | null | undefined) => {
     setUpdating(userId);
+    const body: Record<string, any> = { user_id: userId, subscription_tier: tier };
+    if (grantedProUntil !== undefined) {
+      body.granted_pro_until = grantedProUntil;
+    }
+
     const { error } = await supabase.functions.invoke("admin-users", {
       method: "POST",
-      body: { user_id: userId, subscription_tier: tier },
+      body,
     });
 
     if (error) {
       toast.error("Failed to update tier");
     } else {
-      toast.success(`Tier updated to ${tier}`);
+      const durationLabel = grantedProUntil === null
+        ? "forever"
+        : grantedProUntil
+          ? `until ${new Date(grantedProUntil).toLocaleDateString()}`
+          : "";
+      toast.success(`Tier updated to ${tier}${durationLabel ? ` (${durationLabel})` : ""}`);
       setUsers((prev) =>
         prev.map((u) =>
           u.id === userId
-            ? { ...u, subscription_tier: tier, subscription_status: tier === "free" ? "free" : tier }
+            ? {
+                ...u,
+                subscription_tier: tier,
+                subscription_status: tier === "free" ? "free" : tier,
+                granted_pro_until: grantedProUntil !== undefined ? grantedProUntil : u.granted_pro_until,
+              }
             : u
         )
       );
     }
     setUpdating(null);
+    setGrantUser(null);
+  };
+
+  const confirmGrant = () => {
+    if (!grantUser) return;
+    const expiry = computeGrantExpiry(grantDuration);
+    updateTier(grantUser.id, "pro", expiry);
   };
 
   const deleteLead = async (id: string) => {
@@ -142,13 +207,29 @@ export default function Admin() {
     }
   };
 
-  const tierBadge = (tier: string) => {
+  const tierBadge = (user: AdminUser) => {
+    const tier = user.subscription_tier;
     const t = TIERS.find((t) => t.value === tier) || TIERS[0];
+    const isGranted = tier === "pro" && user.granted_pro_until !== null && user.granted_pro_until !== undefined;
+    const isForever = tier === "pro" && user.granted_pro_until === null;
+    const isExpired = isGranted && new Date(user.granted_pro_until!) < new Date();
+
     return (
-      <Badge variant={t.color} className={tier === "pro" ? "bg-primary text-primary-foreground" : ""}>
-        {tier === "pro" && <Crown className="h-3 w-3 mr-1" />}
-        {t.label}
-      </Badge>
+      <div className="flex items-center gap-1.5">
+        <Badge variant={t.color} className={tier === "pro" ? "bg-primary text-primary-foreground" : ""}>
+          {tier === "pro" && <Crown className="h-3 w-3 mr-1" />}
+          {t.label}
+        </Badge>
+        {tier === "pro" && (
+          <span className={`text-[10px] flex items-center gap-0.5 ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
+            {user.granted_pro_until === null ? (
+              <><Infinity className="h-3 w-3" /></>
+            ) : (
+              <><Clock className="h-3 w-3" /> {formatGrantExpiry(user.granted_pro_until)}</>
+            )}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -188,11 +269,11 @@ export default function Admin() {
                         Joined {new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    {tierBadge(user.subscription_tier)}
+                    {tierBadge(user)}
                   </div>
                   <Select
                     value={user.subscription_tier}
-                    onValueChange={(val) => updateTier(user.id, val)}
+                    onValueChange={(val) => handleTierChange(user, val)}
                     disabled={updating === user.id}
                   >
                     <SelectTrigger className="w-28">
@@ -212,6 +293,65 @@ export default function Admin() {
           )}
         </CardContent>
       </Card>
+
+      {/* Grant Duration Dialog */}
+      <Dialog open={!!grantUser} onOpenChange={(open) => !open && setGrantUser(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              Grant Pro Access
+            </DialogTitle>
+          </DialogHeader>
+          {grantUser && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                How long should <span className="font-medium text-foreground">{grantUser.email}</span> have Pro access?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {GRANT_DURATIONS.map((d) => (
+                  <button
+                    key={d.value}
+                    onClick={() => setGrantDuration(d.value)}
+                    className={`h-10 rounded-lg border text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+                      grantDuration === d.value
+                        ? "border-primary bg-primary/15 text-primary"
+                        : "border-border/40 text-muted-foreground hover:border-border/70"
+                    }`}
+                  >
+                    {d.value === "forever" && <Infinity className="h-3.5 w-3.5" />}
+                    {d.value !== "forever" && <Clock className="h-3.5 w-3.5" />}
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+              {grantDuration !== "forever" && (
+                <p className="text-xs text-muted-foreground">
+                  Access expires on{" "}
+                  <span className="font-medium text-foreground">
+                    {new Date(computeGrantExpiry(grantDuration)!).toLocaleDateString(undefined, {
+                      month: "long", day: "numeric", year: "numeric",
+                    })}
+                  </span>
+                  . After expiry, they'll be prompted to subscribe.
+                </p>
+              )}
+              {grantDuration === "forever" && (
+                <p className="text-xs text-muted-foreground">
+                  This user will have Pro access indefinitely until you manually revoke it.
+                </p>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setGrantUser(null)}>Cancel</Button>
+            <Button onClick={confirmGrant} disabled={updating === grantUser?.id}>
+              <Crown className="h-4 w-4 mr-1.5" />
+              Grant Pro
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Contact Submissions */}
       <Card>
