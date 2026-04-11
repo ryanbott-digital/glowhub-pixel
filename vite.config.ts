@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import type { Connect, Plugin } from "vite";
+import type { Connect, Plugin, PreviewServer, ViteDevServer } from "vite";
 import type { ServerResponse } from "node:http";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -25,10 +25,10 @@ const staticAssetCorpHeader = (): Plugin => {
 
   return {
     name: "static-asset-corp-header",
-    configureServer(server: Parameters<NonNullable<Plugin["configureServer"]>>[0]) {
+    configureServer(server: ViteDevServer) {
       server.middlewares.use(applyCorpHeader);
     },
-    configurePreviewServer(server: Parameters<NonNullable<Plugin["configurePreviewServer"]>>[0]) {
+    configurePreviewServer(server: PreviewServer) {
       server.middlewares.use(applyCorpHeader);
     },
   };
