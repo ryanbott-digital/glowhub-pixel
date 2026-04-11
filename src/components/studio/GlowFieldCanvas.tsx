@@ -15,6 +15,7 @@ export interface GlowFieldConfig {
   color2?: string;
   gradientSpeed?: number;
   direction?: ParticleDirection;
+  turbulence?: number;
 }
 
 export type ParticleDirection = "random" | "up" | "down" | "left" | "right" | "radial" | "swirl";
@@ -157,6 +158,7 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const trail = config.trail ?? 0;
     const useGradient = config.colorGradient ?? false;
     const gradSpeed = config.gradientSpeed ?? 1;
+    const turbulence = config.turbulence ?? 0;
     timeRef.current = 0;
 
     const draw = () => {
@@ -177,6 +179,18 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
           const vel = getDirectionVelocity(direction, speedMul, rw, rh, p.x, p.y);
           p.vx = vel.vx;
           p.vy = vel.vy;
+        }
+        // Turbulence: add organic noise-like offsets
+        if (turbulence > 0) {
+          const t = timeRef.current;
+          const noiseX = Math.sin(t * 1.7 + p.phase * 3.1) * Math.cos(t * 0.9 + p.phase * 1.7);
+          const noiseY = Math.cos(t * 1.3 + p.phase * 2.3) * Math.sin(t * 1.1 + p.phase * 0.9);
+          p.vx += noiseX * turbulence * speedMul * 0.5;
+          p.vy += noiseY * turbulence * speedMul * 0.5;
+          // Dampen to prevent runaway velocity
+          const mag = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          const maxV = speedMul * (2 + turbulence);
+          if (mag > maxV) { p.vx *= maxV / mag; p.vy *= maxV / mag; }
         }
         p.x += p.vx;
         p.y += p.vy;
