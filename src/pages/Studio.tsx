@@ -1386,6 +1386,26 @@ export default function Studio() {
                             ))}
                           </div>
                         </div>
+                        <div className="space-y-1">
+                          <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Direction</span>
+                          <div className="grid grid-cols-3 gap-1.5 mt-1">
+                            {([
+                              { value: "random", label: "Random", icon: "↕" },
+                              { value: "up", label: "Up", icon: "↑" },
+                              { value: "down", label: "Down", icon: "↓" },
+                              { value: "left", label: "Left", icon: "←" },
+                              { value: "right", label: "Right", icon: "→" },
+                              { value: "radial", label: "Radial", icon: "⊕" },
+                              { value: "swirl", label: "Swirl", icon: "🌀" },
+                            ] as const).map((d) => (
+                              <button key={d.value}
+                                onClick={() => updateCfg({ direction: d.value })}
+                                className={`h-7 rounded-md border text-[10px] font-medium transition-all ${(cfg.direction || "random") === d.value ? "border-primary bg-primary/20 text-primary" : "border-border/30 text-muted-foreground hover:border-border/60"}`}
+                              >
+                                <span className="mr-0.5">{d.icon}</span>{d.label}
+                              </button>
+                            ))}
+                          </div>
                       </div>
                     );
                   })()}
