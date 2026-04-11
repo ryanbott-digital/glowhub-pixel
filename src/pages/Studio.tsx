@@ -920,11 +920,21 @@ export default function Studio() {
                 className="glass h-7 text-[10px] pl-7 pr-2 font-['Satoshi',sans-serif]"
               />
             </div>
+            <div className="flex gap-1 px-0.5">
+              {(["all", "image", "video"] as const).map((t) => (
+                <button key={t} onClick={() => setMediaTypeFilter(t)}
+                  className={`flex-1 h-6 rounded text-[9px] font-medium transition-all ${mediaTypeFilter === t ? "bg-primary/20 text-primary border border-primary/40" : "text-muted-foreground hover:text-foreground border border-transparent"}`}
+                >
+                  {t === "all" ? "All" : t === "image" ? "Images" : "Videos"}
+                </button>
+              ))}
+            </div>
             {mediaItems.length === 0 ? (
               <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No media uploaded yet</p>
             ) : (() => {
               const filtered = mediaItems
                 .filter(m => m.type.startsWith("image") || m.type.startsWith("video"))
+                .filter(m => mediaTypeFilter === "all" || m.type.startsWith(mediaTypeFilter))
                 .filter(m => !mediaSearch || m.name.toLowerCase().includes(mediaSearch.toLowerCase()));
               return filtered.length === 0 ? (
                 <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No matches for "{mediaSearch}"</p>
