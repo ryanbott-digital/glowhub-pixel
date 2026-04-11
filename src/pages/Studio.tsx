@@ -393,6 +393,7 @@ export default function Studio() {
       "widget-countdown": '{"target":"2025-12-31T00:00:00"}',
       "widget-neon-label": "GLOW",
       "widget-ticker": '{"messages":"Breaking News · Welcome to GLOW · Stay tuned","speed":"normal","color":"teal"}',
+      "widget-particles": JSON.stringify(DEFAULT_GLOW_FIELD),
     };
 
     if (user && (type === "widget-weather" || type === "widget-rss")) {
