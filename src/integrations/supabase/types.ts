@@ -286,6 +286,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          granted_pro_until: string | null
           id: string
           stripe_customer_id: string | null
           subscription_status: string
@@ -294,6 +295,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          granted_pro_until?: string | null
           id: string
           stripe_customer_id?: string | null
           subscription_status?: string
@@ -302,6 +304,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          granted_pro_until?: string | null
           id?: string
           stripe_customer_id?: string | null
           subscription_status?: string

@@ -7,6 +7,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   subscriptionTier: string;
+  grantedProUntil: string | null;
+  isGrantExpired: boolean;
   refreshSubscription: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -16,6 +18,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   subscriptionTier: "free",
+  grantedProUntil: null,
+  isGrantExpired: false,
   refreshSubscription: async () => {},
   signOut: async () => {},
 });
@@ -26,15 +30,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const [grantedProUntil, setGrantedProUntil] = useState<string | null>(null);
+
+  const isGrantExpired = grantedProUntil !== null && new Date(grantedProUntil) < new Date();
 
   const fetchTier = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("subscription_tier")
+      .select("subscription_tier, granted_pro_until")
       .eq("id", userId)
       .single();
-    if (data?.subscription_tier) {
-      setSubscriptionTier(data.subscription_tier);
+    if (data) {
+      const grant = (data as any).granted_pro_until as string | null;
+      setGrantedProUntil(grant);
+
+      // If grant has expired, show as free so user is prompted to subscribe
+      if (grant && new Date(grant) < new Date() && data.subscription_tier === "pro") {
+        setSubscriptionTier("free");
+      } else {
+        setSubscriptionTier(data.subscription_tier || "free");
+      }
     }
   }, []);
 
@@ -45,12 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session?.user, fetchTier]);
 
   useEffect(() => {
-    // Set up listener FIRST, then get initial session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setLoading(false);
       if (newSession?.user) {
-        // Use setTimeout to avoid deadlock from awaiting inside onAuthStateChange
         setTimeout(() => {
           supabase.from("profiles").select("id").eq("id", newSession.user.id).maybeSingle().then(({ data }) => {
             if (!data) {
@@ -61,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }, 0);
       } else {
         setSubscriptionTier("free");
+        setGrantedProUntil(null);
       }
     });
 
@@ -86,11 +100,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setSession(null);
     setSubscriptionTier("free");
+    setGrantedProUntil(null);
     window.location.href = "/home";
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, subscriptionTier, refreshSubscription, signOut }}>
+    <AuthContext.Provider value={{
+      session,
+      user: session?.user ?? null,
+      loading,
+      subscriptionTier,
+      grantedProUntil,
+      isGrantExpired,
+      refreshSubscription,
+      signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );

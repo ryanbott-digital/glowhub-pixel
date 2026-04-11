@@ -34,7 +34,6 @@ serve(async (req) => {
       });
     }
 
-    // Check admin role using service role
     const serviceSupabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -55,7 +54,6 @@ serve(async (req) => {
     }
 
     if (req.method === "GET") {
-      // List all users with their profiles
       const { data: users } = await serviceSupabase.auth.admin.listUsers();
       const { data: profiles } = await serviceSupabase.from("profiles").select("*");
 
@@ -66,6 +64,7 @@ serve(async (req) => {
         created_at: u.created_at,
         subscription_status: profileMap.get(u.id)?.subscription_status || "free",
         subscription_tier: profileMap.get(u.id)?.subscription_tier || "free",
+        granted_pro_until: profileMap.get(u.id)?.granted_pro_until || null,
       }));
 
       return new Response(JSON.stringify(result), {
@@ -74,7 +73,8 @@ serve(async (req) => {
     }
 
     if (req.method === "POST") {
-      const { user_id, subscription_tier } = await req.json();
+      const body = await req.json();
+      const { user_id, subscription_tier, granted_pro_until } = body;
       if (!user_id || !subscription_tier) {
         return new Response(JSON.stringify({ error: "Missing user_id or subscription_tier" }), {
           status: 400,
@@ -84,13 +84,25 @@ serve(async (req) => {
 
       const status = subscription_tier === "free" ? "free" : subscription_tier;
 
+      const updateData: Record<string, any> = {
+        subscription_status: status,
+        subscription_tier: subscription_tier,
+        updated_at: new Date().toISOString(),
+      };
+
+      // If granted_pro_until is explicitly provided, set it
+      if (granted_pro_until !== undefined) {
+        updateData.granted_pro_until = granted_pro_until; // null = forever, ISO string = expiry
+      }
+
+      // If downgrading to free, clear the grant
+      if (subscription_tier === "free") {
+        updateData.granted_pro_until = null;
+      }
+
       const { error } = await serviceSupabase
         .from("profiles")
-        .update({
-          subscription_status: status,
-          subscription_tier: subscription_tier,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", user_id);
 
       if (error) {
