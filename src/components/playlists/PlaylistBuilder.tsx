@@ -17,7 +17,8 @@ import {
 // glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, X, Clock } from "lucide-react";
+import { Plus, X, Clock, Settings2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TimelineBlock } from "./TimelineBlock";
@@ -48,6 +49,7 @@ const DEFAULT_IMAGE_DURATION = 10;
 export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBuilderProps) {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [lightbox, setLightbox] = useState<{ url: string; type: string; name: string } | null>(null);
+  const [defaultDuration, setDefaultDuration] = useState(DEFAULT_IMAGE_DURATION);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -88,10 +90,13 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
   };
 
   const addMediaToPlaylist = async (mediaId: string) => {
+    const mediaItem = media.find((m) => m.id === mediaId);
+    const isImage = mediaItem?.type === "image";
     const { error } = await supabase.from("playlist_items").insert({
       playlist_id: playlistId,
       media_id: mediaId,
       position: items.length,
+      override_duration: isImage ? defaultDuration : null,
     });
     if (error) {
       toast.error(error.message);
@@ -130,10 +135,28 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
       <div className="flex flex-col space-y-1.5 p-6 pb-3">
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-semibold leading-none tracking-tight text-foreground">{playlistTitle}</h3>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span className="font-mono tabular-nums">{formatTime(totalSeconds)}</span>
-            <span>· {items.length} items</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span className="font-mono tabular-nums">{formatTime(totalSeconds)}</span>
+              <span>· {items.length} items</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground border-l border-border pl-3">
+              <Settings2 className="h-3 w-3" />
+              <span className="whitespace-nowrap">Default</span>
+              <Input
+                type="number"
+                min={1}
+                max={300}
+                value={defaultDuration}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) setDefaultDuration(val);
+                }}
+                className="w-12 h-6 text-xs px-1 py-0 font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span>s</span>
+            </div>
           </div>
         </div>
       </div>
