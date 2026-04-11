@@ -5,29 +5,12 @@ import { GHLoader } from "@/components/GHLoader";
 import {
   Sun, Cloud, CloudRain, Snowflake, CloudLightning,
   Clock, Rss, Timer, Newspaper, Image, Video, Type, Zap,
+  Square,
 } from "lucide-react";
-
-/* ───── types (mirrors Studio) ───── */
-interface CanvasElement {
-  id: string;
-  type: "image" | "video" | "text" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label" | "widget-ticker";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content: string;
-  style: Record<string, string>;
-  animation?: string;
-  proOnly?: boolean;
-}
-
-interface WeatherData {
-  city: string;
-  temp: number;
-  condition: string;
-  icon: "sun" | "cloud" | "rain" | "snow" | "storm";
-  isNight: boolean;
-}
+import {
+  CanvasElement, WeatherData, DEFAULT_FILTERS, getFilterCSS, getMotionClass,
+} from "@/components/studio/types";
+import { StudioStyles } from "@/components/studio/StudioStyles";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string) => {
@@ -63,31 +46,27 @@ export default function StudioPreview() {
   const [clockTime, setClockTime] = useState(new Date());
   const [rssHeadlines, setRssHeadlines] = useState<Record<string, string[]>>({});
 
-  /* ── load layout ── */
   useEffect(() => {
     if (!layoutId) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("studio_layouts")
-        .select("canvas_data")
-        .eq("id", layoutId)
-        .single();
-      if (error || !data) {
-        navigate("/studio");
-        return;
-      }
-      setElements((data.canvas_data as any)?.elements || []);
+      const { data, error } = await supabase.from("studio_layouts").select("canvas_data").eq("id", layoutId).single();
+      if (error || !data) { navigate("/studio"); return; }
+      const els = ((data.canvas_data as any)?.elements || []).map((el: any) => ({
+        ...el,
+        visible: el.visible ?? true,
+        locked: el.locked ?? false,
+        filters: el.filters || { ...DEFAULT_FILTERS },
+      }));
+      setElements(els);
       setLoading(false);
     })();
   }, [layoutId, navigate]);
 
-  /* ── live clock ── */
   useEffect(() => {
     const t = setInterval(() => setClockTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  /* ── weather fetch ── */
   useEffect(() => {
     const hasWeather = elements.some((e) => e.type === "widget-weather");
     if (!hasWeather) return;
@@ -103,7 +82,6 @@ export default function StudioPreview() {
     })();
   }, [elements]);
 
-  /* ── RSS feed fetch ── */
   useEffect(() => {
     const feedUrls = new Set<string>();
     elements.forEach((el) => {
@@ -119,57 +97,64 @@ export default function StudioPreview() {
         const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
         const res = await fetch(`https://${projectId}.supabase.co/functions/v1/rss-proxy?url=${encodeURIComponent(url)}`);
         const data = await res.json();
-        if (data.headlines?.length) {
-          setRssHeadlines((prev) => ({ ...prev, [url]: data.headlines }));
-        }
+        if (data.headlines?.length) setRssHeadlines((prev) => ({ ...prev, [url]: data.headlines }));
       } catch {}
     });
   }, [elements]);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") navigate("/studio");
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") navigate("/studio"); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [navigate]);
 
-  /* ── cursor auto-hide ── */
   const [cursorVisible, setCursorVisible] = useState(true);
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
-    const handleMove = () => {
-      setCursorVisible(true);
-      clearTimeout(timeout);
-      timeout = setTimeout(() => setCursorVisible(false), 3000);
-    };
+    const handleMove = () => { setCursorVisible(true); clearTimeout(timeout); timeout = setTimeout(() => setCursorVisible(false), 3000); };
     window.addEventListener("mousemove", handleMove);
     timeout = setTimeout(() => setCursorVisible(false), 3000);
     return () => { window.removeEventListener("mousemove", handleMove); clearTimeout(timeout); };
   }, []);
 
   const renderElement = useCallback((el: CanvasElement, scale: number, offsetX: number, offsetY: number) => {
-    const animClass = el.animation === "pulse" ? "animate-pulse"
-      : el.animation === "neon-flicker" ? "studio-neon-flicker"
-      : el.animation === "glow-breathe" ? "studio-glow-breathe"
-      : "";
+    const motionClass = getMotionClass(el.animation);
+    const filterStr = getFilterCSS(el.filters);
 
     const left = offsetX + el.x * scale;
     const top = offsetY + el.y * scale;
     const width = el.width * scale;
     const height = el.height * scale;
 
+    const glowStyle: React.CSSProperties = {};
+    if (el.type === "text" && el.glowIntensity) {
+      glowStyle.textShadow = `0 0 ${el.glowIntensity}px hsl(var(--primary)), 0 0 ${el.glowIntensity * 2}px hsl(var(--primary))`;
+    }
+
     return (
-      <div key={el.id} className={`absolute ${animClass}`} style={{ left, top, width, height, ...el.style }}>
+      <div key={el.id} className={`absolute ${motionClass}`} style={{ left, top, width, height, filter: filterStr || undefined, ...el.style }}>
         {el.type === "text" && (
           <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] p-2 overflow-hidden"
-            style={{ fontSize: `${parseInt(el.style.fontSize || "14") * scale}px` }}>
+            style={{ fontSize: `${parseInt(el.style.fontSize || "14") * scale}px`, ...glowStyle }}>
             {el.content}
           </div>
         )}
-        {el.type === "image" && el.content && (
-          <img src={el.content} alt="" className="w-full h-full object-cover rounded" />
+        {el.type === "shape" && (
+          <div className="w-full h-full flex items-center justify-center">
+            {el.shapeType === "circle" ? (
+              <div className="w-full h-full rounded-full" style={{ background: el.shapeFill, border: `${(el.shapeStrokeWidth || 2) * scale}px solid ${el.shapeStroke || "hsl(var(--primary))"}` }} />
+            ) : el.shapeType === "rounded-rect" ? (
+              <div className="w-full h-full rounded-2xl" style={{ background: el.shapeFill, border: `${(el.shapeStrokeWidth || 2) * scale}px solid ${el.shapeStroke || "hsl(var(--primary))"}` }} />
+            ) : el.shapeType === "line" ? (
+              <div className="w-full flex items-center justify-center h-full">
+                <div className="w-full" style={{ height: (el.shapeStrokeWidth || 2) * scale, background: el.shapeStroke || "hsl(var(--primary))" }} />
+              </div>
+            ) : (
+              <div className="w-full h-full" style={{ background: el.shapeFill, border: `${(el.shapeStrokeWidth || 2) * scale}px solid ${el.shapeStroke || "hsl(var(--primary))"}` }} />
+            )}
+          </div>
         )}
+        {el.type === "image" && el.content && <img src={el.content} alt="" className="w-full h-full object-cover rounded" />}
         {el.type === "image" && !el.content && (
           <div className="w-full h-full rounded bg-muted/30 border border-dashed border-muted-foreground/20 flex items-center justify-center">
             <Image className="h-6 w-6 text-muted-foreground/40" />
@@ -233,35 +218,22 @@ export default function StudioPreview() {
           const speedMap: Record<string, string> = { slow: "30s", normal: "18s", fast: "10s" };
           const duration = speedMap[cfg.speed] || "18s";
           const textColor = isAlert ? "text-white uppercase font-extrabold" : (cfg.color === "white" ? "text-white" : "text-primary");
-          const displayText = isAlert && cfg.alertMessage
-            ? cfg.alertMessage
-            : cfg.source === "rss" && cfg.feedUrl && rssHeadlines[cfg.feedUrl]
-              ? rssHeadlines[cfg.feedUrl].join(" · ")
-              : cfg.messages;
+          const displayText = isAlert && cfg.alertMessage ? cfg.alertMessage
+            : cfg.source === "rss" && cfg.feedUrl && rssHeadlines[cfg.feedUrl] ? rssHeadlines[cfg.feedUrl].join(" · ")
+            : cfg.messages;
           return (
-            <div
-              className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in alert-screen-shake" : ""}`}
-              style={{
-                background: isAlert ? "#FF0033" : "rgba(255,255,255,0.05)",
-                borderTop: isAlert ? "2px solid #FF0033" : "2px solid hsl(var(--primary))",
+            <div className={`w-full h-full rounded-lg backdrop-blur-[25px] flex items-center overflow-hidden ${isAlert ? "alert-glitch-in" : ""}`}
+              style={{ background: isAlert ? "#FF0033" : "rgba(255,255,255,0.05)", borderTop: isAlert ? "2px solid #FF0033" : "2px solid hsl(var(--primary))",
                 boxShadow: isAlert ? "0 -20px 60px rgba(255,0,51,0.4)" : "0 -2px 15px hsla(180,100%,32%,0.3)",
-                animation: isAlert ? "alertGlowSpill 2s ease-in-out infinite" : undefined,
-              }}
-            >
+                animation: isAlert ? "alertGlowSpill 2s ease-in-out infinite" : undefined }}>
               <div className={`shrink-0 px-2.5 py-1 flex items-center gap-1.5 h-full ${isAlert ? "bg-black/30" : "bg-red-500"}`}>
                 <div className={`w-2 h-2 rounded-full bg-white ${isAlert ? "alert-live-flash" : "animate-pulse"}`} />
                 <span className="font-bold text-white tracking-widest font-mono" style={{ fontSize: `${10 * scale}px` }}>LIVE</span>
               </div>
               <div className="flex-1 overflow-hidden h-full flex items-center">
-                <span
-                  className={`inline-block whitespace-nowrap font-mono tracking-wider ${textColor}`}
-                  style={{
-                    animation: `tickerScroll ${duration} linear infinite`,
-                    willChange: "transform",
-                    fontSize: `${(isAlert ? 16 : 14) * scale}px`,
-                    textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none"),
-                  }}
-                >
+                <span className={`inline-block whitespace-nowrap font-mono tracking-wider ${textColor}`}
+                  style={{ animation: `tickerScroll ${duration} linear infinite`, willChange: "transform", fontSize: `${(isAlert ? 16 : 14) * scale}px`,
+                    textShadow: isAlert ? "0 0 10px rgba(255,255,255,0.6)" : (cfg.color === "teal" ? "0 0 8px hsla(180,100%,32%,0.5)" : "none") }}>
                   {displayText}
                 </span>
               </div>
@@ -270,14 +242,10 @@ export default function StudioPreview() {
         })()}
       </div>
     );
-  }, [clockTime, weather]);
+  }, [clockTime, weather, rssHeadlines]);
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <GHLoader />
-      </div>
-    );
+    return <div className="fixed inset-0 bg-black flex items-center justify-center"><GHLoader /></div>;
   }
 
   const scaleX = window.innerWidth / 960;
@@ -287,55 +255,15 @@ export default function StudioPreview() {
   const offsetY = (window.innerHeight - 540 * scale) / 2;
 
   return (
-    <div
-      className="fixed inset-0 bg-black overflow-hidden"
-      style={{ cursor: cursorVisible ? "default" : "none" }}
-    >
-      {/* Canvas background scaled area */}
-      <div
-        className="absolute bg-card"
-        style={{
-          left: offsetX,
-          top: offsetY,
-          width: 960 * scale,
-          height: 540 * scale,
-        }}
-      />
-
-      {/* Elements */}
-      {elements.map((el) => renderElement(el, scale, offsetX, offsetY))}
-
-      {/* Exit hint — fades out */}
+    <div className="fixed inset-0 bg-black overflow-hidden" style={{ cursor: cursorVisible ? "default" : "none" }}>
+      <div className="absolute bg-card" style={{ left: offsetX, top: offsetY, width: 960 * scale, height: 540 * scale }} />
+      {elements.filter(el => el.visible).map((el) => renderElement(el, scale, offsetX, offsetY))}
       {cursorVisible && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-card/60 backdrop-blur-sm border border-border/30 text-xs text-muted-foreground font-['Satoshi',sans-serif] tracking-wider animate-fade-in z-50">
           Press <kbd className="px-1.5 py-0.5 rounded bg-muted/30 text-foreground font-mono text-[10px]">ESC</kbd> to exit
         </div>
       )}
-
-      <style>{`
-        @keyframes studioNeonFlicker {
-          0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--primary)); }
-          20%, 24%, 55% { opacity: 0.6; text-shadow: none; }
-        }
-        @keyframes studioGlowBreathe {
-          0%, 100% { box-shadow: 0 0 8px hsla(180,100%,32%,0.2); }
-          50% { box-shadow: 0 0 20px hsla(180,100%,32%,0.5), 0 0 40px hsla(180,100%,32%,0.15); }
-        }
-        .studio-neon-flicker { animation: studioNeonFlicker 2s infinite; }
-        .studio-glow-breathe { animation: studioGlowBreathe 3s ease-in-out infinite; }
-        @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        @keyframes weatherSunPulse {
-          0%, 100% { filter: drop-shadow(0 0 12px #FFB020) drop-shadow(0 0 24px #FFB02080); transform: scale(1); }
-          50% { filter: drop-shadow(0 0 20px #FFB020) drop-shadow(0 0 40px #FFB020AA); transform: scale(1.08); }
-        }
-        @keyframes weatherRainDrop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
-        @keyframes weatherAuroraShift { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-        @keyframes alertGlitchIn { 0% { opacity:0; background:white; } 25% { opacity:1; background:#FF0033; } 50% { opacity:.3; background:white; } 100% { opacity:1; background:#FF0033; } }
-        @keyframes alertLiveFlash { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
-        @keyframes alertGlowSpill { 0%,100% { box-shadow:0 -20px 60px rgba(255,0,51,.3); } 50% { box-shadow:0 -30px 80px rgba(255,0,51,.5); } }
-        .alert-glitch-in { animation: alertGlitchIn .2s ease-out; }
-        .alert-live-flash { animation: alertLiveFlash .5s ease-in-out infinite; }
-      `}</style>
+      <StudioStyles />
     </div>
   );
 }
