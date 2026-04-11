@@ -40,17 +40,36 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
+      apiVersion: "2025-08-27.basil",
+    });
+
+    // Try profile first, then fall back to Stripe customer lookup by email
     const { data: profile } = await serviceSupabase
       .from("profiles")
       .select("stripe_customer_id")
       .eq("id", user.id)
       .single();
 
-    if (!profile?.stripe_customer_id) {
-      return new Response(JSON.stringify({ error: "No billing account found" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let customerId = profile?.stripe_customer_id;
+
+    if (!customerId && user.email) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        // Persist for future lookups
+        await serviceSupabase
+          .from("profiles")
+          .update({ stripe_customer_id: customerId })
+          .eq("id", user.id);
+      }
+    }
+
+    if (!customerId) {
+      return new Response(
+        JSON.stringify({ error: "No billing account found. Please subscribe to a plan first." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
@@ -58,7 +77,7 @@ serve(async (req) => {
     });
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: customerId,
       return_url: `${req.headers.get("origin")}/billing`,
     });
 
