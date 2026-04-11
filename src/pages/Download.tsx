@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
-import { Download, Tv, Flame, Rocket, Sparkles, Bug, Zap, Shield } from "lucide-react";
+import { Download, Tv, Flame, Rocket, Sparkles, Bug, Zap, Shield, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -326,7 +327,42 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          {/* ── WHAT'S NEW ── */}
+          {/* ── SIDELOADING GUIDE ── */}
+          <Collapsible>
+            <CollapsibleTrigger className="w-full glass rounded-xl border-primary/15 p-5 flex items-center justify-between text-left group hover:border-primary/30 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Rocket className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm tracking-wide">Sideloading Install Guide</h3>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Step-by-step instructions for any Android device</p>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 glass rounded-xl border-primary/15 p-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
+              <SideloadStep n={1}>
+                Download the APK file above to your device or a USB drive.
+              </SideloadStep>
+              <SideloadStep n={2}>
+                On your Android TV / Firestick, go to <strong className="text-foreground">Settings → My Fire TV → Developer Options</strong> and enable <strong className="text-foreground">Install Unknown Apps</strong>.
+              </SideloadStep>
+              <SideloadStep n={3}>
+                If you don't have a file manager, install one from the app store (e.g. <strong className="text-foreground">File Commander</strong> or <strong className="text-foreground">ES File Explorer</strong>).
+              </SideloadStep>
+              <SideloadStep n={4}>
+                Open the file manager and navigate to the downloaded <strong className="text-foreground">GlowHub.apk</strong> file.
+              </SideloadStep>
+              <SideloadStep n={5}>
+                Tap the APK file and select <strong className="text-foreground">Install</strong>. Confirm any prompts.
+              </SideloadStep>
+              <SideloadStep n={6}>
+                Once installed, open <strong className="text-foreground">Glow Player</strong> from your apps list and pair your screen.
+              </SideloadStep>
+            </CollapsibleContent>
+          </Collapsible>
+
           <div className="space-y-4">
             <h3 className="text-lg font-bold tracking-wide text-center flex items-center justify-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
