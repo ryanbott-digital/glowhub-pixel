@@ -1310,6 +1310,13 @@ export default function Studio() {
                           <Slider value={[cfg.particleSize ?? 1]} onValueChange={([v]) => updateCfg({ particleSize: v })} min={0.3} max={3} step={0.1} className="w-full" />
                         </div>
                         <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Opacity</span>
+                            <span className="text-[9px] text-muted-foreground/50 font-mono">{Math.round((cfg.opacity ?? 1) * 100)}%</span>
+                          </div>
+                          <Slider value={[cfg.opacity ?? 1]} onValueChange={([v]) => updateCfg({ opacity: v })} min={0.05} max={1} step={0.05} className="w-full" />
+                        </div>
+                        <div className="space-y-1">
                           <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Shape</span>
                           <div className="flex gap-1.5 mt-1">
                             {([

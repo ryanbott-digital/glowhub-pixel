@@ -9,6 +9,7 @@ export interface GlowFieldConfig {
   glow: number;
   shape?: ParticleShape;
   particleSize?: number;
+  opacity?: number;
 }
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
@@ -107,6 +108,7 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const glowR = config.glow;
     const shape = config.shape || "orbs";
     const sizeMul = config.particleSize ?? 1;
+    const opacityMul = config.opacity ?? 1;
 
     const draw = () => {
       const rw = canvas.getBoundingClientRect().width;
@@ -129,17 +131,18 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
 
         // Glow layer
         const sr = p.r * sizeMul;
+        const a = p.alpha * opacityMul;
         ctx.beginPath();
         const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sr + glowR);
-        grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${p.alpha * 0.9})`);
-        grad.addColorStop(0.3, `rgba(${rgb.r},${rgb.g},${rgb.b},${p.alpha * 0.4})`);
+        grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${a * 0.9})`);
+        grad.addColorStop(0.3, `rgba(${rgb.r},${rgb.g},${rgb.b},${a * 0.4})`);
         grad.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
         ctx.fillStyle = grad;
         ctx.arc(p.x, p.y, sr + glowR, 0, Math.PI * 2);
         ctx.fill();
 
         // Core shape
-        const coreColor = `rgba(${Math.min(255, rgb.r + 60)},${Math.min(255, rgb.g + 60)},${Math.min(255, rgb.b + 60)},${p.alpha})`;
+        const coreColor = `rgba(${Math.min(255, rgb.r + 60)},${Math.min(255, rgb.g + 60)},${Math.min(255, rgb.b + 60)},${a})`;
         ctx.fillStyle = coreColor;
 
         if (shape === "stars") {
