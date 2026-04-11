@@ -257,6 +257,8 @@ export default function Studio() {
     (async () => {
       const { data: layouts } = await supabase.from("studio_layouts").select("*").eq("user_id", user.id).order("updated_at", { ascending: false });
       setSavedLayouts((layouts as any[]) || []);
+      const { data: media } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).order("created_at", { ascending: false });
+      setMediaItems((media as any[]) || []);
     })();
   }, [user]);
 
