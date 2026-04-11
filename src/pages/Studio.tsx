@@ -792,6 +792,38 @@ export default function Studio() {
             </div>
           </div>
 
+          {/* Media Library */}
+          <div className="p-2.5 space-y-1.5 border-t border-border/20">
+            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5 flex items-center gap-1">
+              <Image className="h-3 w-3 text-primary" /> Media Library
+            </p>
+            {mediaItems.length === 0 ? (
+              <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No media uploaded yet</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
+                {mediaItems.filter(m => m.type.startsWith("image") || m.type.startsWith("video")).slice(0, 30).map((item) => {
+                  const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
+                  const isVideo = item.type.startsWith("video");
+                  return (
+                    <div key={item.id} draggable onDragStart={(e) => handleMediaDragStart(e, item)}
+                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square cursor-grab active:cursor-grabbing hover:border-primary/50 hover:shadow-[0_0_10px_hsla(180,100%,32%,0.15)] transition-all">
+                      {isVideo ? (
+                        <div className="w-full h-full bg-muted/20 flex items-center justify-center">
+                          <Video className="h-4 w-4 text-primary/60" />
+                        </div>
+                      ) : (
+                        <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[6px] text-white font-['Satoshi',sans-serif] truncate block">{item.name}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="p-2.5 space-y-1 border-t border-border/20">
             <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5">Saved Layouts</p>
             {savedLayouts.length === 0 && <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No layouts yet</p>}
