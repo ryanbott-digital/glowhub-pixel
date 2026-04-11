@@ -1393,6 +1393,20 @@ export default function Studio() {
         </div>
       </div>
 
+      {/* ─── Timeline / Sequencer ─── */}
+      <StudioTimeline
+        elements={elements}
+        selectedId={selectedId}
+        onSelectElement={(id) => { setSelectedId(id); setSidebarMode("properties"); }}
+        onUpdateElement={(id, patch) => {
+          pushHistory(elements);
+          setElements((prev) => prev.map((el) => el.id === id ? { ...el, ...patch } : el));
+        }}
+        collapsed={timelineCollapsed}
+        onToggleCollapse={() => setTimelineCollapsed(!timelineCollapsed)}
+        totalDuration={timelineDuration}
+      />
+
       {/* ─── Fullscreen Preview ─── */}
       {fullscreenPreview && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setFullscreenPreview(false)}
