@@ -90,10 +90,13 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
   };
 
   const addMediaToPlaylist = async (mediaId: string) => {
+    const mediaItem = media.find((m) => m.id === mediaId);
+    const isImage = mediaItem?.type === "image";
     const { error } = await supabase.from("playlist_items").insert({
       playlist_id: playlistId,
       media_id: mediaId,
       position: items.length,
+      override_duration: isImage ? defaultDuration : null,
     });
     if (error) {
       toast.error(error.message);
