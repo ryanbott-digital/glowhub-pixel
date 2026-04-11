@@ -10,6 +10,7 @@ export interface GlowFieldConfig {
   shape?: ParticleShape;
   particleSize?: number;
   opacity?: number;
+  trail?: number;
 }
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
@@ -109,11 +110,19 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const shape = config.shape || "orbs";
     const sizeMul = config.particleSize ?? 1;
     const opacityMul = config.opacity ?? 1;
+    const trail = config.trail ?? 0;
 
     const draw = () => {
       const rw = canvas.getBoundingClientRect().width;
       const rh = canvas.getBoundingClientRect().height;
-      ctx.clearRect(0, 0, rw, rh);
+
+      if (trail > 0) {
+        // Fade previous frame instead of clearing for motion trail effect
+        ctx.fillStyle = `rgba(0,0,0,${1 - trail})`;
+        ctx.fillRect(0, 0, rw, rh);
+      } else {
+        ctx.clearRect(0, 0, rw, rh);
+      }
 
       for (const p of particlesRef.current) {
         p.x += p.vx;
