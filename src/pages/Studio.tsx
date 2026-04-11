@@ -705,6 +705,15 @@ export default function Studio() {
             </div>
           );
         })()}
+        {el.type === "widget-particles" && (() => {
+          let cfg = { ...DEFAULT_GLOW_FIELD };
+          try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
+          return (
+            <div className="w-full h-full rounded-lg overflow-hidden border border-primary/20">
+              <GlowFieldCanvas config={cfg} />
+            </div>
+          );
+        })()}
       </div>
     );
   };
@@ -1079,6 +1088,63 @@ export default function Studio() {
                     </div>
                   )}
 
+                  {/* Particle / Glow Field config */}
+                  {selected.type === "widget-particles" && (() => {
+                    let cfg = { ...DEFAULT_GLOW_FIELD };
+                    try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
+                    const updateCfg = (patch: Partial<typeof cfg>) => updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
+                    return (
+                      <div className="space-y-3">
+                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                          <Atom className="h-3 w-3 text-primary" /> Glow Field
+                        </p>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Density</span>
+                            <span className="text-[9px] text-muted-foreground/50 font-mono">{cfg.density}</span>
+                          </div>
+                          <Slider value={[cfg.density]} onValueChange={([v]) => updateCfg({ density: v })} min={5} max={100} step={1} className="w-full" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Speed</span>
+                            <span className="text-[9px] text-muted-foreground/50 font-mono">{cfg.speed}</span>
+                          </div>
+                          <Slider value={[cfg.speed]} onValueChange={([v]) => updateCfg({ speed: v })} min={1} max={10} step={1} className="w-full" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Glow Radius</span>
+                            <span className="text-[9px] text-muted-foreground/50 font-mono">{cfg.glow}px</span>
+                          </div>
+                          <Slider value={[cfg.glow]} onValueChange={([v]) => updateCfg({ glow: v })} min={5} max={60} step={1} className="w-full" />
+                        </div>
+                        <div>
+                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Color</label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <input type="color" value={cfg.color} onChange={(e) => updateCfg({ color: e.target.value })}
+                              className="w-8 h-7 rounded cursor-pointer bg-transparent border border-border/30" />
+                            <Input value={cfg.color} onChange={(e) => updateCfg({ color: e.target.value })} className="glass h-7 text-xs font-mono flex-1" />
+                          </div>
+                          <div className="flex gap-1.5 mt-2">
+                            {[
+                              { label: "Teal", color: "#00b4d8" },
+                              { label: "Purple", color: "#a78bfa" },
+                              { label: "Gold", color: "#f59e0b" },
+                              { label: "Pink", color: "#ec4899" },
+                              { label: "Green", color: "#10b981" },
+                              { label: "White", color: "#e2e8f0" },
+                            ].map((p) => (
+                              <button key={p.label} onClick={() => updateCfg({ color: p.color })}
+                                className="w-6 h-6 rounded-full border border-border/30 hover:scale-110 transition-transform"
+                                style={{ background: p.color, boxShadow: cfg.color === p.color ? `0 0 8px ${p.color}` : undefined }}
+                                title={p.label} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {/* Ticker config */}
                   {selected.type === "widget-ticker" && (() => {
                     let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
