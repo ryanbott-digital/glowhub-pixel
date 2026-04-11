@@ -1,11 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
-import { Download, Tv, Globe, Flame, Monitor, Tablet, Rocket, ChevronRight, Sparkles, Bug, Zap, Shield } from "lucide-react";
+import { Download, Tv, Flame, Rocket, Sparkles, Bug, Zap, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { toast } from "sonner";
@@ -302,93 +301,26 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          {/* Secondary actions */}
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="glass glass-spotlight rounded-2xl p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Download className="h-4 w-4 text-primary" />
-                </div>
-                <h3 className="font-bold text-sm tracking-wide">Direct APK Download</h3>
+          {/* APK Download */}
+          <div className="glass glass-spotlight rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Download className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                For Android TV boxes and sideloading onto any device.
-              </p>
-              <a
-                href="/GlowHub.apk"
-                download
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-primary/20 to-[hsl(220,80%,55%)]/20 border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] text-primary hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300"
-              >
-                <Download className="h-4 w-4" />
-                Download APK
-              </a>
-              <p className="text-[10px] text-muted-foreground/60 font-mono">v{APK_VERSION} · {APK_DATE}</p>
+              <h3 className="font-bold text-sm tracking-wide">Direct APK Download</h3>
             </div>
-
-            <div className="glass glass-spotlight rounded-2xl p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[hsl(220,80%,55%)]/10 flex items-center justify-center">
-                  <Globe className="h-4 w-4 text-[hsl(220,80%,55%)]" />
-                </div>
-                <h3 className="font-bold text-sm tracking-wide">Browser Mode</h3>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                No install needed. Open the player URL in any TV browser.
-              </p>
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted/50 border border-border font-mono text-xs text-foreground">
-                <span className="truncate">{window.location.origin}/player</span>
-                <ChevronRight className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-              </div>
-            </div>
-          </div>
-
-          {/* ── DEVICE GUIDES ── */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold tracking-wide text-center">How to install on your device</h3>
-
-            <Accordion type="single" collapsible className="space-y-3">
-              <AccordionItem value="firestick" className="glass rounded-xl border-primary/15 px-5">
-                <AccordionTrigger className="hover:no-underline gap-3">
-                  <div className="flex items-center gap-3">
-                    <Flame className="h-5 w-5 text-accent" />
-                    <span className="font-semibold text-sm">Amazon Firestick</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground space-y-3 pt-2">
-                  <Step n={1}>Install the <strong className="text-foreground">Downloader</strong> app from the Amazon App Store.</Step>
-                  <Step n={2}>Open Downloader, enter code <strong className="text-primary">{DOWNLOADER_CODE}</strong>, and press <strong className="text-foreground">Go</strong>.</Step>
-                  <Step n={3}>Install the downloaded APK and launch <strong className="text-foreground">GLOW</strong>. ✨</Step>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="androidtv" className="glass rounded-xl border-primary/15 px-5">
-                <AccordionTrigger className="hover:no-underline gap-3">
-                  <div className="flex items-center gap-3">
-                    <Tv className="h-5 w-5 text-primary" />
-                    <span className="font-semibold text-sm">Android TV / Google TV</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground space-y-3 pt-2">
-                  <Step n={1}>Enable <strong className="text-foreground">Unknown Sources</strong> in Settings → Security.</Step>
-                  <Step n={2}>Download the APK via the <strong className="text-foreground">Downloader</strong> app or USB transfer.</Step>
-                  <Step n={3}>Open the APK to install, then launch <strong className="text-foreground">GLOW</strong> from your apps.</Step>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="tablet" className="glass rounded-xl border-primary/15 px-5">
-                <AccordionTrigger className="hover:no-underline gap-3">
-                  <div className="flex items-center gap-3">
-                    <Monitor className="h-5 w-5 text-[hsl(220,80%,55%)]" />
-                    <span className="font-semibold text-sm">Tablet / PC / Any Browser</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground space-y-3 pt-2">
-                  <Step n={1}>Open your browser and navigate to <strong className="text-primary">{window.location.origin}/player</strong>.</Step>
-                  <Step n={2}>Enter your <strong className="text-foreground">pairing code</strong> shown in your GLOW dashboard.</Step>
-                  <Step n={3}>Go fullscreen (F11) and your signage is live. 🎉</Step>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              For Android TV boxes and sideloading onto any device.
+            </p>
+            <a
+              href="/GlowHub.apk"
+              download
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-primary/20 to-[hsl(220,80%,55%)]/20 border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] text-primary hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300"
+            >
+              <Download className="h-4 w-4" />
+              Download APK
+            </a>
+            <p className="text-[10px] text-muted-foreground/60 font-mono">v{APK_VERSION} · {APK_DATE}</p>
           </div>
 
           {/* ── WHAT'S NEW ── */}
