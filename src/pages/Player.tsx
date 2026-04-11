@@ -1356,16 +1356,18 @@ export default function Player() {
             {/* Connection status dot */}
             <div className="flex items-center gap-2">
               <span className="text-white/20 text-[10px] tracking-wider uppercase font-mono">
-                {navigator.onLine ? "Connected" : "Offline"}
+                {!navigator.onLine ? "Offline" : paired ? "Connected" : "Waiting"}
               </span>
               <div
                 className="w-2.5 h-2.5 rounded-full"
                 style={{
-                  backgroundColor: navigator.onLine ? "#22c55e" : "#ef4444",
-                  boxShadow: navigator.onLine
-                    ? "0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3)"
-                    : "0 0 8px rgba(239,68,68,0.6)",
-                  animation: navigator.onLine ? "statusGlow 2s ease-in-out infinite" : "none",
+                  backgroundColor: !navigator.onLine ? "#ef4444" : paired ? "#22c55e" : "#f59e0b",
+                  boxShadow: !navigator.onLine
+                    ? "0 0 8px rgba(239,68,68,0.6)"
+                    : paired
+                      ? "0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3)"
+                      : "0 0 8px rgba(245,158,11,0.6)",
+                  animation: paired ? "statusGlow 2s ease-in-out infinite" : "none",
                 }}
               />
             </div>
