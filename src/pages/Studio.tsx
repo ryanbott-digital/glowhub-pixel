@@ -262,7 +262,7 @@ export default function Studio() {
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
   const [lightCanvas, setLightCanvas] = useState(false);
-  const [canvasBg, setCanvasBg] = useState<{ type: "solid" | "gradient"; color: string; gradient?: string }>({ type: "solid", color: "" });
+  const [canvasBg, setCanvasBg] = useState<{ type: "solid" | "gradient" | "image"; color: string; gradient?: string; imageUrl?: string }>({ type: "solid", color: "" });
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
