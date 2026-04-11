@@ -12,6 +12,36 @@ import { toast } from "sonner";
 
 const DOWNLOADER_CODE = "1648081";
 
+const CHANGELOG = [
+  {
+    version: APK_VERSION,
+    date: APK_DATE,
+    changes: [
+      { icon: Zap, text: "Improved player stability and performance on Fire TV devices" },
+      { icon: Shield, text: "Enhanced offline caching for smoother playback" },
+      { icon: Sparkles, text: "Updated PWA manifest for better installability" },
+    ],
+  },
+  {
+    version: "2.1.0",
+    date: "March 2026",
+    changes: [
+      { icon: Zap, text: "Added crossfade and transition effects between media items" },
+      { icon: Bug, text: "Fixed screen wake-lock dropping on certain Android TV models" },
+      { icon: Sparkles, text: "New pairing flow with animated success screen" },
+    ],
+  },
+  {
+    version: "2.0.0",
+    date: "February 2026",
+    changes: [
+      { icon: Rocket, text: "Complete UI redesign with the new Glow design system" },
+      { icon: Zap, text: "Multi-screen sync support for video walls" },
+      { icon: Shield, text: "Added proof-of-play logging and error reporting" },
+    ],
+  },
+];
+
 // Particle burst config
 const PARTICLE_COUNT = 80;
 const COLORS = [
