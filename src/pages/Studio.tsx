@@ -16,7 +16,7 @@ import {
   Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink, Atom,
   Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
-  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload,
+  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -267,6 +267,8 @@ export default function Studio() {
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(20);
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -800,6 +802,25 @@ export default function Studio() {
           <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
             <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
           </Button>
+          <div className="flex items-center gap-0.5">
+            <Button size="icon" variant="ghost" onClick={() => setSnapToGrid(!snapToGrid)}
+              className={`h-8 w-8 ${snapToGrid ? "bg-primary/20 text-primary" : ""}`}
+              title={snapToGrid ? `Grid snap ON (${gridSize}px)` : "Grid snap OFF"}>
+              <Grid3X3 className="h-3.5 w-3.5" />
+            </Button>
+            {snapToGrid && (
+              <Select value={String(gridSize)} onValueChange={(v) => setGridSize(Number(v))}>
+                <SelectTrigger className="glass h-7 w-14 text-[9px] font-mono px-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[10, 15, 20, 30, 40, 60].map((s) => (
+                    <SelectItem key={s} value={String(s)} className="text-xs font-mono">{s}px</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
           <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8" title="Undo (Ctrl+Z)">
             <Undo2 className="h-3.5 w-3.5" />
           </Button>
@@ -949,8 +970,8 @@ export default function Studio() {
               onDragOver={handleCanvasDragOver}
             >
               {/* Grid */}
-              <div className={`absolute inset-0 pointer-events-none ${lightCanvas ? "opacity-[0.08]" : "opacity-[0.03]"}`}
-                style={{ backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`, backgroundSize: "30px 30px" }} />
+              <div className={`absolute inset-0 pointer-events-none transition-opacity ${snapToGrid ? (lightCanvas ? "opacity-[0.15]" : "opacity-[0.08]") : (lightCanvas ? "opacity-[0.08]" : "opacity-[0.03]")}`}
+                style={{ backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`, backgroundSize: `${gridSize}px ${gridSize}px` }} />
 
               {/* Elements rendered with react-rnd */}
               {elements.map((el) => {
@@ -971,24 +992,36 @@ export default function Studio() {
                       setGuides(result.guides);
                     }}
                     onDragStop={(e, d) => {
+                      let finalX = d.x;
+                      let finalY = d.y;
+                      if (snapToGrid) {
+                        finalX = Math.round(finalX / gridSize) * gridSize;
+                        finalY = Math.round(finalY / gridSize) * gridSize;
+                      }
                       const result = computeSnapGuides(
-                        { id: el.id, x: d.x, y: d.y, width: el.width, height: el.height },
+                        { id: el.id, x: finalX, y: finalY, width: el.width, height: el.height },
                         elements,
                       );
-                      const finalX = result.snapX ?? d.x;
-                      const finalY = result.snapY ?? d.y;
+                      finalX = result.snapX ?? finalX;
+                      finalY = result.snapY ?? finalY;
                       pushHistory(elements);
                       setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: finalX, y: finalY } : x));
                       setGuides([]);
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
                       pushHistory(elements);
+                      let newW = parseInt(ref.style.width);
+                      let newH = parseInt(ref.style.height);
+                      let newX = position.x;
+                      let newY = position.y;
+                      if (snapToGrid) {
+                        newW = Math.round(newW / gridSize) * gridSize;
+                        newH = Math.round(newH / gridSize) * gridSize;
+                        newX = Math.round(newX / gridSize) * gridSize;
+                        newY = Math.round(newY / gridSize) * gridSize;
+                      }
                       setElements((prev) => prev.map((x) => x.id === el.id ? {
-                        ...x,
-                        width: parseInt(ref.style.width),
-                        height: parseInt(ref.style.height),
-                        x: position.x,
-                        y: position.y,
+                        ...x, width: newW, height: newH, x: newX, y: newY,
                       } : x));
                     }}
                     onMouseDown={(e: any) => {
@@ -997,6 +1030,8 @@ export default function Studio() {
                     }}
                     disableDragging={el.locked}
                     enableResizing={!el.locked}
+                    dragGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
+                    resizeGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
                     bounds="parent"
                     minWidth={30}
                     minHeight={30}
