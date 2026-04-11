@@ -1,12 +1,8 @@
-import { useRef, useCallback, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Film, ImageIcon, Trash2, GripVertical } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-
-const MIN_DURATION = 3;
-const MAX_DURATION = 120;
-const PX_PER_SECOND = 8;
 
 interface TimelineBlockProps {
   id: string;
@@ -20,6 +16,9 @@ interface TimelineBlockProps {
   onUpdateDuration: (id: string, duration: number | null) => void;
   onPreview?: (url: string, type: string, name: string) => void;
 }
+
+const PX_PER_SECOND = 8;
+const MIN_BLOCK_WIDTH = 100;
 
 export function TimelineBlock({
   id,
@@ -50,46 +49,7 @@ export function TimelineBlock({
     ? supabase.storage.from("signage-content").getPublicUrl(storagePath).data.publicUrl
     : null;
 
-  // Duration drag handle
-  const blockRef = useRef<HTMLDivElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const [liveDuration, setLiveDuration] = useState(duration);
-  const startXRef = useRef(0);
-  const startDurRef = useRef(duration);
-
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      if (!isImage) return;
-      e.preventDefault();
-      e.stopPropagation();
-      setDragging(true);
-      startXRef.current = e.clientX;
-      startDurRef.current = overrideDuration ?? defaultDuration;
-
-      const onMove = (ev: PointerEvent) => {
-        const dx = ev.clientX - startXRef.current;
-        const newDur = Math.max(MIN_DURATION, Math.min(MAX_DURATION, startDurRef.current + Math.round(dx / PX_PER_SECOND)));
-        setLiveDuration(newDur);
-      };
-
-      const onUp = (ev: PointerEvent) => {
-        const dx = ev.clientX - startXRef.current;
-        const finalDur = Math.max(MIN_DURATION, Math.min(MAX_DURATION, startDurRef.current + Math.round(dx / PX_PER_SECOND)));
-        setDragging(false);
-        setLiveDuration(finalDur);
-        onUpdateDuration(id, finalDur);
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-      };
-
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
-    },
-    [id, isImage, overrideDuration, defaultDuration, onUpdateDuration]
-  );
-
-  const displayDuration = dragging ? liveDuration : duration;
-  const blockWidth = Math.max(80, displayDuration * PX_PER_SECOND);
+  const blockWidth = Math.max(MIN_BLOCK_WIDTH, duration * PX_PER_SECOND);
 
   return (
     <div
@@ -97,9 +57,9 @@ export function TimelineBlock({
       style={{
         ...style,
         width: `${blockWidth}px`,
-        minWidth: "80px",
+        minWidth: `${MIN_BLOCK_WIDTH}px`,
       }}
-      className="relative flex-shrink-0 h-20 rounded-lg overflow-hidden border border-border group select-none"
+      className="relative flex-shrink-0 h-24 rounded-lg overflow-hidden border border-border group select-none"
     >
       {/* Background — thumbnail or gradient */}
       {thumbnailUrl ? (
@@ -137,7 +97,7 @@ export function TimelineBlock({
         className="relative z-[5] w-full h-full flex flex-col justify-between p-1.5 cursor-pointer"
         onClick={() => thumbnailUrl && mediaType && onPreview?.(thumbnailUrl, mediaType, mediaName)}
       >
-        {/* Top row: type icon + delete */}
+        {/* Top row: type icon */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded px-1 py-0.5">
             {isImage ? (
@@ -151,13 +111,10 @@ export function TimelineBlock({
           </div>
         </div>
 
-        {/* Bottom row: name + duration */}
+        {/* Name */}
         <div className="flex items-end justify-between gap-1">
           <span className="text-[10px] text-white font-medium truncate max-w-[70%] drop-shadow-sm">
             {mediaName}
-          </span>
-          <span className="text-[9px] text-white/70 font-mono tabular-nums bg-black/40 rounded px-1 py-0.5 flex-shrink-0">
-            {displayDuration}s
           </span>
         </div>
       </button>
@@ -170,18 +127,25 @@ export function TimelineBlock({
         <Trash2 className="h-2.5 w-2.5 text-white" />
       </button>
 
-      {/* Duration drag handle — images only */}
-      {isImage && (
-        <div
-          onPointerDown={onPointerDown}
-          className={`absolute right-0 top-0 bottom-0 w-2 z-10 cursor-col-resize flex items-center justify-center transition-colors ${
-            dragging ? "bg-primary/60" : "bg-white/10 hover:bg-primary/40"
-          }`}
-          title="Drag to change duration"
-        >
-          <div className="w-0.5 h-6 rounded-full bg-white/60" />
-        </div>
-      )}
+      {/* Duration input at bottom */}
+      <div
+        className="absolute bottom-1 right-1 z-10 flex items-center gap-0.5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Input
+          type="number"
+          min={1}
+          max={300}
+          placeholder={String(defaultDuration)}
+          value={overrideDuration ?? ""}
+          onChange={(e) => {
+            const val = e.target.value;
+            onUpdateDuration(id, val ? Math.max(1, parseInt(val)) : null);
+          }}
+          className="w-12 h-5 text-[10px] px-1 py-0 bg-black/60 border-white/20 text-white placeholder:text-white/40 rounded font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <span className="text-[9px] text-white/70 font-mono">s</span>
+      </div>
 
       {/* Index indicator */}
       <div className="absolute bottom-1 left-1.5 z-10">
