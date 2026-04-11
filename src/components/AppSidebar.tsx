@@ -109,7 +109,7 @@ export function AppSidebar() {
                               {!collapsed && (
                                 <span className="flex items-center gap-1.5 flex-1">
                                   {item.title}
-                                  {item.pro && <span className="pro-badge">PRO</span>}
+                                  {item.pro && !isProTier(userTier) && <span className="pro-badge">PRO</span>}
                                   <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground/50" />
                                 </span>
                               )}
@@ -133,7 +133,7 @@ export function AppSidebar() {
                       {!collapsed && (
                         <span className="flex items-center gap-1.5">
                           {item.title}
-                          {item.pro && <span className="pro-badge">PRO</span>}
+                          {item.pro && !isProTier(userTier) && <span className="pro-badge">PRO</span>}
                         </span>
                       )}
                       {item.url === "/screens" && !collapsed && screenUsage && (
