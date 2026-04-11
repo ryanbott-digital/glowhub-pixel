@@ -206,6 +206,7 @@ export default function Studio() {
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
   const [lightCanvas, setLightCanvas] = useState(false);
+  const [canvasBg, setCanvasBg] = useState<{ type: "solid" | "gradient"; color: string; gradient?: string }>({ type: "solid", color: "" });
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
@@ -444,7 +445,7 @@ export default function Studio() {
     if (!user) return;
     setSaving(true);
     try {
-      const canvasData = JSON.parse(JSON.stringify({ elements }));
+      const canvasData = JSON.parse(JSON.stringify({ elements, canvasBg: canvasBg.color || canvasBg.gradient ? canvasBg : undefined }));
       const payload = {
         user_id: user.id, name: layoutName,
         canvas_data: canvasData, updated_at: new Date().toISOString(),
@@ -474,6 +475,8 @@ export default function Studio() {
       filters: el.filters || { ...DEFAULT_FILTERS },
     }));
     setElements(loadedElements);
+    const loadedBg = (layout.canvas_data as any).canvasBg;
+    setCanvasBg(loadedBg || { type: "solid", color: "" });
     setSelectedId(null);
     historyRef.current = [];
     setHistory([]);
@@ -773,7 +776,7 @@ export default function Studio() {
             <div
               ref={canvasRef}
               className={`relative border rounded-xl overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-white border-gray-300 shadow-lg" : "bg-card/80 border-primary/20 shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"}`}
-              style={{ width: 960, height: 540 }}
+              style={{ width: 960, height: 540, background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined }}
               onClick={() => setSelectedId(null)}
               onDrop={handleCanvasDrop}
               onDragOver={handleCanvasDragOver}
@@ -1118,11 +1121,79 @@ export default function Studio() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-4 gap-2">
-                  <MousePointer className="h-6 w-6 text-muted-foreground/20" />
-                  <p className="text-[10px] text-muted-foreground/40 font-['Satoshi',sans-serif] text-center">
-                    Select an element on the canvas to edit its properties
-                  </p>
+                <div className="flex-1 flex flex-col p-3 gap-4">
+                  <div className="flex flex-col items-center gap-2 py-4">
+                    <MousePointer className="h-6 w-6 text-muted-foreground/20" />
+                    <p className="text-[10px] text-muted-foreground/40 font-['Satoshi',sans-serif] text-center">
+                      Select an element on the canvas to edit its properties
+                    </p>
+                  </div>
+
+                  {/* Canvas Background */}
+                  <div className="space-y-3 border-t border-border/20 pt-3">
+                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 flex items-center gap-1.5">
+                      <Palette className="h-3 w-3 text-primary" /> Canvas Background
+                    </p>
+
+                    <div className="flex gap-1.5">
+                      <button onClick={() => setCanvasBg((prev) => ({ ...prev, type: "solid" }))}
+                        className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "solid" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
+                        Solid
+                      </button>
+                      <button onClick={() => setCanvasBg((prev) => ({ ...prev, type: "gradient" }))}
+                        className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "gradient" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
+                        Gradient
+                      </button>
+                    </div>
+
+                    {canvasBg.type === "solid" ? (
+                      <div className="space-y-2">
+                        <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Color</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={canvasBg.color || "#0B1120"}
+                            onChange={(e) => setCanvasBg({ type: "solid", color: e.target.value })}
+                            className="w-8 h-8 rounded cursor-pointer bg-transparent border border-border/30" />
+                          <Input value={canvasBg.color || ""} placeholder="#0B1120"
+                            onChange={(e) => setCanvasBg({ type: "solid", color: e.target.value })}
+                            className="glass h-7 text-xs font-mono flex-1" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Gradient CSS</label>
+                        <Input value={canvasBg.gradient || ""} placeholder="linear-gradient(135deg, #0B1120, #1a1a2e)"
+                          onChange={(e) => setCanvasBg({ type: "gradient", color: "", gradient: e.target.value })}
+                          className="glass h-7 text-xs font-mono" />
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[
+                            { label: "Midnight", val: "linear-gradient(135deg, #0B1120, #1a1a2e)" },
+                            { label: "Ocean", val: "linear-gradient(135deg, #0c1d3d, #0d4f6e)" },
+                            { label: "Sunset", val: "linear-gradient(135deg, #2d1b3d, #8b3a2e)" },
+                            { label: "Forest", val: "linear-gradient(135deg, #0b1d0e, #1a3d2e)" },
+                            { label: "Neon", val: "linear-gradient(135deg, #0a0a1a, #001a2c, #0a0a1a)" },
+                            { label: "Warm", val: "linear-gradient(180deg, #1a0f0a, #2d1810)" },
+                            { label: "Purple", val: "linear-gradient(135deg, #10061a, #2a1040)" },
+                            { label: "Steel", val: "linear-gradient(135deg, #1a1a2e, #2a2a3e)" },
+                          ].map((preset) => (
+                            <button key={preset.label} onClick={() => setCanvasBg({ type: "gradient", color: "", gradient: preset.val })}
+                              className="rounded-md aspect-square border border-border/30 hover:border-primary/50 transition-all relative group overflow-hidden"
+                              style={{ background: preset.val }}>
+                              <span className="absolute inset-x-0 bottom-0 text-[6px] text-white/70 font-['Satoshi',sans-serif] text-center py-0.5 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {preset.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {(canvasBg.color || canvasBg.gradient) && (
+                      <Button variant="ghost" size="sm" onClick={() => setCanvasBg({ type: "solid", color: "" })}
+                        className="w-full text-[10px] text-muted-foreground hover:text-foreground gap-1">
+                        <Trash2 className="h-3 w-3" /> Reset Background
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </>
@@ -1144,7 +1215,7 @@ export default function Studio() {
       {fullscreenPreview && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setFullscreenPreview(false)}
           onKeyDown={(e) => e.key === "Escape" && setFullscreenPreview(false)} tabIndex={0} ref={(el) => el?.focus()}>
-          <div className="relative" style={{ width: "100vw", height: "100vh" }}>
+          <div className="relative" style={{ width: "100vw", height: "100vh", background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined }}>
             {elements.filter((el) => el.visible).map((el) => {
               const scaleX = window.innerWidth / 960;
               const scaleY = window.innerHeight / 540;
