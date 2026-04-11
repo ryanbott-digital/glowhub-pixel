@@ -1340,6 +1340,44 @@ export default function Studio() {
                     </div>
                   )}
 
+                  {/* Typography (Google Fonts) */}
+                  {(selected.type === "text" || selected.type === "widget-neon-label") && (
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                        <Type className="h-3 w-3" /> Font Family
+                      </p>
+                      <Select value={selected.fontFamily || "Satoshi"} onValueChange={(v) => { loadGoogleFont(v); updateSelected({ fontFamily: v }); }}>
+                        <SelectTrigger className="glass h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {GOOGLE_FONTS.map((f) => (
+                            <SelectItem key={f} value={f} className="text-xs">
+                              <span style={{ fontFamily: `'${f}', sans-serif` }}>{f}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Blend Mode */}
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
+                      <Layers className="h-3 w-3" /> Blend Mode
+                    </p>
+                    <Select value={selected.blendMode || "normal"} onValueChange={(v) => updateSelected({ blendMode: v })}>
+                      <SelectTrigger className="glass h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BLEND_MODES.map((bm) => (
+                          <SelectItem key={bm.id} value={bm.id} className="text-xs">{bm.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* ─── Visual Effects & Motion ─── */}
                   <div className="pt-2 border-t border-border/20">
                     <VisualEffectsPanel
