@@ -35,6 +35,7 @@ const Studio = lazy(() => import("./pages/Studio"));
 const StudioPreview = lazy(() => import("./pages/StudioPreview"));
 const Download = lazy(() => import("./pages/Download"));
 const Terms = lazy(() => import("./pages/Terms"));
+const PwaDiagnostics = lazy(() => import("./pages/PwaDiagnostics"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -129,6 +130,7 @@ const App = () => (
               <Route path="/install-app" element={<InstallApp />} />
               <Route path="/download" element={<Download />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
