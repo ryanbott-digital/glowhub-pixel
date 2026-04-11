@@ -1274,8 +1274,25 @@ export default function Studio() {
                                 title={p.label} />
                             ))}
                           </div>
+                          </div>
                         </div>
-                      </div>
+                        <div className="space-y-1">
+                          <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Shape</span>
+                          <div className="flex gap-1.5 mt-1">
+                            {([
+                              { value: "orbs", label: "Orbs", icon: "●" },
+                              { value: "stars", label: "Stars", icon: "★" },
+                              { value: "sparkles", label: "Sparkles", icon: "✦" },
+                            ] as const).map((s) => (
+                              <button key={s.value}
+                                onClick={() => updateCfg({ shape: s.value })}
+                                className={`flex-1 h-8 rounded-md border text-xs font-medium transition-all ${(cfg.shape || "orbs") === s.value ? "border-primary bg-primary/20 text-primary" : "border-border/30 text-muted-foreground hover:border-border/60"}`}
+                              >
+                                <span className="mr-1">{s.icon}</span>{s.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                     );
                   })()}
                   {/* Ticker config */}
