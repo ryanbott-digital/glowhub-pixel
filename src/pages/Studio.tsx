@@ -1470,7 +1470,64 @@ export default function Studio() {
                       </div>
                     )}
 
-                    {(canvasBg.color || canvasBg.gradient) && (
+                    {canvasBg.type === "image" && (
+                      <div className="space-y-2">
+                        <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Background Image</label>
+                        {canvasBg.imageUrl ? (
+                          <div className="space-y-2">
+                            <div className="relative rounded-lg overflow-hidden border border-border/30 aspect-video">
+                              <img src={canvasBg.imageUrl} alt="Background" className="w-full h-full object-cover" />
+                              <button onClick={() => setCanvasBg((prev) => ({ ...prev, imageUrl: undefined }))}
+                                className="absolute top-1 right-1 p-0.5 rounded bg-black/60 hover:bg-black/80 transition-colors">
+                                <Trash2 className="h-3 w-3 text-white" />
+                              </button>
+                            </div>
+                            <Input value={canvasBg.imageUrl} onChange={(e) => setCanvasBg((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                              placeholder="https://..." className="glass h-7 text-xs font-mono" />
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <label className="flex flex-col items-center justify-center gap-2 py-4 rounded-lg border-2 border-dashed border-border/40 hover:border-primary/40 transition-colors cursor-pointer bg-muted/5">
+                              <Upload className="h-5 w-5 text-muted-foreground/40" />
+                              <span className="text-[9px] text-muted-foreground/50 font-['Satoshi',sans-serif]">Upload image</span>
+                              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file || !user) return;
+                                const ext = file.name.split(".").pop() || "jpg";
+                                const path = `${user.id}/studio-bg-${Date.now()}.${ext}`;
+                                const { error } = await supabase.storage.from("media").upload(path, file);
+                                if (error) { toast.error("Upload failed"); return; }
+                                const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+                                setCanvasBg({ type: "image", color: "", imageUrl: publicUrl });
+                                toast.success("Background uploaded");
+                              }} />
+                            </label>
+                            <Input placeholder="Or paste image URL..." onChange={(e) => {
+                              if (e.target.value) setCanvasBg({ type: "image", color: "", imageUrl: e.target.value });
+                            }} className="glass h-7 text-xs font-mono" />
+                          </div>
+                        )}
+                        {/* Use media library items */}
+                        {mediaItems.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-[8px] text-muted-foreground/50 font-['Satoshi',sans-serif]">Or pick from library</span>
+                            <div className="grid grid-cols-4 gap-1 max-h-24 overflow-y-auto">
+                              {mediaItems.filter((m: any) => m.type?.startsWith("image")).slice(0, 12).map((m: any) => {
+                                const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(m.storage_path);
+                                return (
+                                  <button key={m.id} onClick={() => setCanvasBg({ type: "image", color: "", imageUrl: publicUrl })}
+                                    className="rounded border border-border/30 hover:border-primary/50 transition-all overflow-hidden aspect-square">
+                                    <img src={publicUrl} alt={m.name} className="w-full h-full object-cover" />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {(canvasBg.color || canvasBg.gradient || canvasBg.imageUrl) && (
                       <Button variant="ghost" size="sm" onClick={() => setCanvasBg({ type: "solid", color: "" })}
                         className="w-full text-[10px] text-muted-foreground hover:text-foreground gap-1">
                         <Trash2 className="h-3 w-3" /> Reset Background
