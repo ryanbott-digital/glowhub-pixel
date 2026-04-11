@@ -358,7 +358,33 @@ export default function DownloadPage() {
             </Accordion>
           </div>
 
-          {/* CTA + footer */}
+          {/* ── WHAT'S NEW ── */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold tracking-wide text-center flex items-center justify-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              What's New
+            </h3>
+
+            <div className="space-y-3">
+              {CHANGELOG.map((entry, i) => (
+                <div key={i} className="glass rounded-xl border-primary/15 p-5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-primary font-mono">v{entry.version}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{entry.date}</span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {entry.changes.map((change, j) => (
+                      <li key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <change.icon className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-primary/70" />
+                        <span>{change.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="text-center pt-4 pb-8 space-y-4">
             <Link
               to="/auth"
