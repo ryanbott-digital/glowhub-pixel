@@ -857,6 +857,17 @@ export default function Studio() {
             ))}
           </div>
 
+          {/* Light/Dark canvas toggle */}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setLightCanvas(!lightCanvas)}
+            className="h-8 w-8"
+            title={lightCanvas ? "Dark canvas" : "Light canvas"}
+          >
+            <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
+          </Button>
+
           {/* Undo */}
           <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8" title="Undo (Ctrl+Z)">
             <Undo2 className="h-3.5 w-3.5" />
@@ -999,9 +1010,9 @@ export default function Studio() {
         </div>
 
         {/* ─── Center: Canvas ─── */}
-        <div className="flex-1 flex items-center justify-center bg-[hsl(220,60%,5%)] relative overflow-hidden">
+        <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl bg-primary/5 blur-[80px]" />
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl blur-[80px] transition-colors duration-300 ${lightCanvas ? "bg-primary/3" : "bg-primary/5"}`} />
           </div>
 
           <div style={{ transform: `scale(${zoom})`, transformOrigin: "center", transition: "transform 0.2s ease" }}>
