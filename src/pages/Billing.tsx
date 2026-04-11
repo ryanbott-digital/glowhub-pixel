@@ -65,7 +65,9 @@ export default function Billing() {
     try {
       const { data, error } = await supabase.functions.invoke("stripe-portal");
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       if (data?.url) window.location.href = data.url;
+      else toast.error("No billing account found. Please subscribe to a plan first.");
     } catch (err: any) {
       toast.error(err.message || "Failed to open billing portal");
     } finally {
