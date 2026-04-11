@@ -42,7 +42,7 @@ export default function StudioPreview() {
   const { layoutId } = useParams<{ layoutId: string }>();
   const navigate = useNavigate();
   const [elements, setElements] = useState<CanvasElement[]>([]);
-  const [canvasBg, setCanvasBg] = useState<{ type: "solid" | "gradient"; color: string; gradient?: string }>({ type: "solid", color: "" });
+  const [canvasBg, setCanvasBg] = useState<{ type: "solid" | "gradient" | "image"; color: string; gradient?: string; imageUrl?: string }>({ type: "solid", color: "" });
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [clockTime, setClockTime] = useState(new Date());
