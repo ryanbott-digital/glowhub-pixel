@@ -1018,7 +1018,7 @@ export default function Studio() {
           <div style={{ transform: `scale(${zoom})`, transformOrigin: "center", transition: "transform 0.2s ease" }}>
             <div
               ref={canvasRef}
-              className="relative bg-card/80 border border-primary/20 rounded-xl overflow-hidden shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"
+              className={`relative border rounded-xl overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-white border-gray-300 shadow-lg" : "bg-card/80 border-primary/20 shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"}`}
               style={{ width: 960, height: 540 }}
               onClick={() => { setSelectedId(null); setSelectedIds(new Set()); }}
               onMouseMove={handleCanvasMouseMove}
@@ -1028,7 +1028,7 @@ export default function Studio() {
               onDragOver={handleCanvasDragOver}
             >
               <div
-                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                className={`absolute inset-0 pointer-events-none ${lightCanvas ? "opacity-[0.08]" : "opacity-[0.03]"}`}
                 style={{
                   backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
                   backgroundSize: "30px 30px",
