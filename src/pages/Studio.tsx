@@ -25,6 +25,7 @@ import {
 } from "@/components/studio/types";
 import { VisualEffectsPanel } from "@/components/studio/VisualEffectsPanel";
 import { StudioStyles } from "@/components/studio/StudioStyles";
+import { GlowFieldCanvas, DEFAULT_GLOW_FIELD } from "@/components/studio/GlowFieldCanvas";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
@@ -176,6 +177,28 @@ const WIDGET_LIBRARY: WidgetDef[] = [
             Breaking News · Welcome to GLOW · Stay tuned ···
           </span>
         </div>
+      </div>
+    ),
+  },
+  {
+    type: "widget-particles", label: "Glow Field", description: "Floating glowing particle orbs",
+    icon: Atom, pro: true, defaultW: 400, defaultH: 300,
+    preview: (
+      <div className="flex flex-col items-center justify-center h-full gap-1 relative overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="absolute rounded-full animate-pulse"
+              style={{
+                width: 4 + Math.random() * 6, height: 4 + Math.random() * 6,
+                background: "hsl(var(--primary))",
+                boxShadow: "0 0 8px hsl(var(--primary)), 0 0 16px hsl(var(--primary) / 0.4)",
+                left: `${15 + Math.random() * 70}%`, top: `${15 + Math.random() * 70}%`,
+                animationDelay: `${i * 0.3}s`, animationDuration: `${1.5 + Math.random()}s`,
+              }} />
+          ))}
+        </div>
+        <Atom className="h-5 w-5 text-primary relative z-10 drop-shadow-[0_0_8px_hsl(var(--primary))]" />
+        <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif] relative z-10">Glow Field</span>
       </div>
     ),
   },
