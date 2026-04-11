@@ -379,21 +379,37 @@ export default function Studio() {
   /* ───── keyboard shortcuts ───── */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) return;
       const meta = e.metaKey || e.ctrlKey;
       if (meta && e.key === "z") { e.preventDefault(); undo(); return; }
       if (meta && e.key === "s") { e.preventDefault(); handleSave(); return; }
-      if ((e.key === "Delete" || e.key === "Backspace") && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) {
+      if ((e.key === "Delete" || e.key === "Backspace")) {
         e.preventDefault();
         if (selectedId) {
           pushHistory(elements);
           setElements((prev) => prev.filter((el) => el.id !== selectedId));
           setSelectedId(null);
         }
+        return;
+      }
+      // Arrow key nudging
+      const arrowMap: Record<string, [number, number]> = {
+        ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+      };
+      const dir = arrowMap[e.key];
+      if (dir && selectedId) {
+        e.preventDefault();
+        const step = snapToGrid ? gridSize : (e.shiftKey ? 10 : 1);
+        setElements((prev) => prev.map((el) =>
+          el.id === selectedId && !el.locked
+            ? { ...el, x: el.x + dir[0] * step, y: el.y + dir[1] * step }
+            : el
+        ));
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedId, elements, undo, pushHistory]);
+  }, [selectedId, elements, undo, pushHistory, snapToGrid, gridSize]);
 
   /* ───── pro gate helper ───── */
   const gatePro = (featureName: string): boolean => {
