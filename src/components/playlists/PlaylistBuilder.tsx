@@ -174,10 +174,19 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
                 className="w-12 h-6 text-xs px-1 py-0 font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span>s</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={applyDefaultToAllImages}
+                className="h-6 px-2 text-[10px] text-primary hover:text-primary font-semibold gap-1"
+                title="Apply default duration to all images"
+              >
+                <CheckCheck className="h-3 w-3" />
+                Apply to all
+              </Button>
             </div>
           </div>
         </div>
-      </div>
       <div className="p-6 pt-0 space-y-4">
         {/* Timeline track */}
         <div className="relative">
