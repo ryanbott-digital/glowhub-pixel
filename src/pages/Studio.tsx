@@ -1274,7 +1274,6 @@ export default function Studio() {
                                 title={p.label} />
                             ))}
                           </div>
-                          </div>
                         </div>
                         <div className="space-y-1">
                           <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Shape</span>
@@ -1293,6 +1292,7 @@ export default function Studio() {
                             ))}
                           </div>
                         </div>
+                      </div>
                     );
                   })()}
                   {/* Ticker config */}
