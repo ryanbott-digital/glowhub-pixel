@@ -8,6 +8,7 @@ export interface GlowFieldConfig {
   color: string;
   glow: number;
   shape?: ParticleShape;
+  particleSize?: number;
 }
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
@@ -16,6 +17,7 @@ export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
   color: "#00b4d8",
   glow: 20,
   shape: "orbs",
+  particleSize: 1,
 };
 
 interface Particle {
