@@ -13,7 +13,7 @@ import { Rnd } from "react-rnd";
 import {
   Image, Video, Type, Cloud, Rss, Sparkles, Crown, Lock,
   Save, Trash2, GripVertical, Plus, Layers, Palette,
-  Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink,
+  Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink, Atom,
   Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
   Square, Circle, Minus, SlidersHorizontal, Undo2,
