@@ -1368,7 +1368,7 @@ export default function Player() {
                       ? "0 0 8px rgba(34,197,94,0.6), 0 0 20px rgba(34,197,94,0.3)"
                       : "0 0 8px rgba(245,158,11,0.6)",
                   animation: paired ? "statusGlow 2s ease-in-out infinite" : "none",
-                }
+                }}
               />
             </div>
           </div>
