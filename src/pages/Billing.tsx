@@ -68,14 +68,14 @@ export default function Billing() {
       if (data?.error) {
         // Pro user without Stripe account = manually granted, show support message
         if (isPro && data.error.includes("billing account")) {
-          toast.info("Your plan is managed by our team. Please contact support@glowhub.io for billing enquiries.");
+          toast.info("Your plan is managed by our team. Please contact hello@glowhub.io for billing enquiries.");
         } else {
           throw new Error(data.error);
         }
         return;
       }
       if (data?.url) window.location.href = data.url;
-      else toast.info("Your plan is managed by our team. Please contact support@glowhub.io for billing enquiries.");
+      else toast.info("Your plan is managed by our team. Please contact hello@glowhub.io for billing enquiries.");
     } catch (err: any) {
       toast.error(err.message || "Failed to open billing portal");
     } finally {
