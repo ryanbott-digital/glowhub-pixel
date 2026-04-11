@@ -119,6 +119,16 @@ export default function Admin() {
     setUpdating(null);
   };
 
+  const deleteLead = async (id: string) => {
+    const { error } = await supabase.from("leads").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete lead");
+    } else {
+      setLeads((prev) => prev.filter((l) => l.id !== id));
+      toast.success("Lead deleted");
+    }
+  };
+
   const tierBadge = (tier: string) => {
     const t = TIERS.find((t) => t.value === tier) || TIERS[0];
     return (
