@@ -968,6 +968,9 @@ export default function Studio() {
                 );
               })}
 
+              {/* Smart Guides */}
+              <SmartGuides guides={guides} />
+
               {elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                   <MousePointer className="h-8 w-8 text-muted-foreground/20" />
