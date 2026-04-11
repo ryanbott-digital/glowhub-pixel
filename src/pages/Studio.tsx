@@ -270,6 +270,7 @@ export default function Studio() {
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
   const [mediaSearch, setMediaSearch] = useState("");
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<"all" | "image" | "video">("all");
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
   const canvasRef = useRef<HTMLDivElement>(null);
