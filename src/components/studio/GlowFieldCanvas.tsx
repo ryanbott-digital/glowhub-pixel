@@ -11,6 +11,9 @@ export interface GlowFieldConfig {
   particleSize?: number;
   opacity?: number;
   trail?: number;
+  colorGradient?: boolean;
+  color2?: string;
+  gradientSpeed?: number;
 }
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
@@ -32,6 +35,7 @@ interface Particle {
   alphaDir: number;
   rotation: number;
   rotSpeed: number;
+  phase: number;
 }
 
 function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, points: number, rotation: number) {
@@ -58,10 +62,24 @@ function drawSparkle(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: n
   ctx.closePath();
 }
 
+function hexToRgb(hex: string) {
+  const m = hex.replace("#", "").match(/.{2}/g);
+  return m ? { r: parseInt(m[0], 16), g: parseInt(m[1], 16), b: parseInt(m[2], 16) } : { r: 0, g: 180, b: 216 };
+}
+
+function lerpColor(a: { r: number; g: number; b: number }, b: { r: number; g: number; b: number }, t: number) {
+  return {
+    r: Math.round(a.r + (b.r - a.r) * t),
+    g: Math.round(a.g + (b.g - a.g) * t),
+    b: Math.round(a.b + (b.b - a.b) * t),
+  };
+}
+
 export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animRef = useRef<number>(0);
+  const timeRef = useRef<number>(0);
 
   const initParticles = useCallback((w: number, h: number, count: number, speedMul: number) => {
     const particles: Particle[] = [];
@@ -76,6 +94,7 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
         alphaDir: (Math.random() > 0.5 ? 1 : -1) * (0.003 + Math.random() * 0.008),
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.02,
+        phase: Math.random() * Math.PI * 2,
       });
     }
     return particles;
@@ -101,23 +120,23 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const speedMul = config.speed * 0.15;
     particlesRef.current = initParticles(w, h, count, speedMul);
 
-    const hexToRgb = (hex: string) => {
-      const m = hex.replace("#", "").match(/.{2}/g);
-      return m ? { r: parseInt(m[0], 16), g: parseInt(m[1], 16), b: parseInt(m[2], 16) } : { r: 0, g: 180, b: 216 };
-    };
-    const rgb = hexToRgb(config.color);
+    const rgb1 = hexToRgb(config.color);
+    const rgb2 = config.colorGradient ? hexToRgb(config.color2 || "#ff006e") : rgb1;
     const glowR = config.glow;
     const shape = config.shape || "orbs";
     const sizeMul = config.particleSize ?? 1;
     const opacityMul = config.opacity ?? 1;
     const trail = config.trail ?? 0;
+    const useGradient = config.colorGradient ?? false;
+    const gradSpeed = config.gradientSpeed ?? 1;
+    timeRef.current = 0;
 
     const draw = () => {
       const rw = canvas.getBoundingClientRect().width;
       const rh = canvas.getBoundingClientRect().height;
+      timeRef.current += 0.016;
 
       if (trail > 0) {
-        // Fade previous frame instead of clearing for motion trail effect
         ctx.fillStyle = `rgba(0,0,0,${1 - trail})`;
         ctx.fillRect(0, 0, rw, rh);
       } else {
@@ -137,6 +156,10 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
         p.alpha += p.alphaDir;
         if (p.alpha >= 1) { p.alpha = 1; p.alphaDir = -Math.abs(p.alphaDir); }
         if (p.alpha <= 0.15) { p.alpha = 0.15; p.alphaDir = Math.abs(p.alphaDir); }
+
+        // Compute color (gradient or static)
+        const t = useGradient ? (Math.sin(timeRef.current * gradSpeed + p.phase) * 0.5 + 0.5) : 0;
+        const rgb = useGradient ? lerpColor(rgb1, rgb2, t) : rgb1;
 
         // Glow layer
         const sr = p.r * sizeMul;
