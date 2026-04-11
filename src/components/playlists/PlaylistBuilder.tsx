@@ -118,6 +118,24 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
     );
   };
 
+  const applyDefaultToAllImages = async () => {
+    const imageItems = items.filter((it) => it.media?.type === "image");
+    if (imageItems.length === 0) {
+      toast("No image items to update");
+      return;
+    }
+    const updates = imageItems.map((it) =>
+      supabase.from("playlist_items").update({ override_duration: defaultDuration }).eq("id", it.id)
+    );
+    await Promise.all(updates);
+    setItems((prev) =>
+      prev.map((it) =>
+        it.media?.type === "image" ? { ...it, override_duration: defaultDuration } : it
+      )
+    );
+    toast.success(`Set ${imageItems.length} image(s) to ${defaultDuration}s`);
+  };
+
   // Total playlist duration
   const totalSeconds = items.reduce((sum, item) => {
     const dur = item.override_duration ?? item.media?.duration ?? DEFAULT_IMAGE_DURATION;
