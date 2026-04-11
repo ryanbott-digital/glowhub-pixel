@@ -22,8 +22,6 @@ const Screens = lazy(() => import("./pages/Screens"));
 const Display = lazy(() => import("./pages/Display"));
 const Player = lazy(() => import("./pages/Player"));
 const Analytics = lazy(() => import("./pages/Analytics"));
-const InstallGuide = lazy(() => import("./pages/InstallGuide"));
-const InstallApp = lazy(() => import("./pages/InstallApp"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Billing = lazy(() => import("./pages/Billing"));
 const WelcomePro = lazy(() => import("./pages/WelcomePro"));
@@ -126,8 +124,8 @@ const App = () => (
               <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
               <Route path="/studio/preview/:layoutId" element={<StudioPreview />} />
-              <Route path="/install" element={<ProtectedRoute><InstallGuide /></ProtectedRoute>} />
-              <Route path="/install-app" element={<InstallApp />} />
+              <Route path="/install" element={<Navigate to="/download" replace />} />
+              <Route path="/install-app" element={<Navigate to="/download" replace />} />
               <Route path="/download" element={<Download />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
