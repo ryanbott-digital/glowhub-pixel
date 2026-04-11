@@ -20,6 +20,11 @@ const staticAssetCorpHeader = (): Plugin => {
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     }
 
+    // Allow service worker to control the entire origin
+    if (req.url && /service-worker\.js$/i.test(req.url.split("?")[0])) {
+      res.setHeader("Service-Worker-Allowed", "/");
+    }
+
     next();
   };
 
