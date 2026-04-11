@@ -54,6 +54,37 @@ const getAuroraGradient = (icon: string, isNight: boolean) => {
   }
 };
 
+const BLEND_MODES = [
+  { id: "normal", label: "Normal" },
+  { id: "screen", label: "Screen" },
+  { id: "overlay", label: "Overlay" },
+  { id: "multiply", label: "Multiply" },
+  { id: "soft-light", label: "Soft Light" },
+  { id: "hard-light", label: "Hard Light" },
+  { id: "color-dodge", label: "Color Dodge" },
+  { id: "luminosity", label: "Luminosity" },
+] as const;
+
+const GOOGLE_FONTS = [
+  "Satoshi", "Inter", "Poppins", "Space Grotesk", "Outfit", "Sora",
+  "DM Sans", "Plus Jakarta Sans", "Manrope", "Urbanist",
+  "Montserrat", "Raleway", "Oswald", "Playfair Display", "Lora",
+  "Bebas Neue", "Orbitron", "Rajdhani", "Exo 2", "Audiowide",
+  "Righteous", "Russo One", "Teko", "Chakra Petch", "Press Start 2P",
+  "Pacifico", "Permanent Marker", "Caveat", "Dancing Script", "Lobster",
+] as const;
+
+// Loaded font tracker
+const loadedFonts = new Set<string>(["Satoshi"]);
+function loadGoogleFont(family: string) {
+  if (loadedFonts.has(family)) return;
+  loadedFonts.add(family);
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@300;400;500;600;700;800;900&display=swap`;
+  document.head.appendChild(link);
+}
+
 /* ───── widget library ───── */
 interface WidgetDef {
   type: CanvasElement["type"];
