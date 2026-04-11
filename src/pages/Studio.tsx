@@ -1037,7 +1037,7 @@ export default function Studio() {
         </div>
 
         {/* ─── Right Sidebar: Properties Panel ─── */}
-        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)] flex flex-col overflow-y-auto">
+        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
           {/* Tabs */}
           <div className="flex border-b border-border/20">
             <button onClick={() => setSidebarMode("properties")}
