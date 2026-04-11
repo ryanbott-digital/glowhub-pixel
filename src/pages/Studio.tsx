@@ -16,7 +16,7 @@ import {
   Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink, Atom,
   Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
-  Square, Circle, Minus, SlidersHorizontal, Undo2,
+  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
