@@ -260,18 +260,40 @@ export default function Admin() {
               {leads.map((lead) => (
                 <div
                   key={lead.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card group"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Mail className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-sm font-medium truncate">{lead.email}</span>
+                    <a
+                      href={`mailto:${lead.email}`}
+                      className="text-sm font-medium truncate text-primary underline-offset-2 hover:underline"
+                      title={`Send email to ${lead.email}`}
+                    >
+                      {lead.email}
+                    </a>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(lead.created_at).toLocaleDateString(undefined, {
-                      month: "short", day: "numeric", year: "numeric",
-                      hour: "2-digit", minute: "2-digit",
-                    })}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(lead.created_at).toLocaleDateString(undefined, {
+                        month: "short", day: "numeric", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
+                      })}
+                    </span>
+                    <a href={`mailto:${lead.email}`} title="Reply">
+                      <Button size="icon" variant="ghost" className="h-7 w-7">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </a>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => deleteLead(lead.id)}
+                      title="Delete lead"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               ))}
