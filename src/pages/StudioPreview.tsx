@@ -162,11 +162,24 @@ export default function StudioPreview() {
       glowStyle.textShadow = `0 0 ${el.glowIntensity}px hsl(var(--primary)), 0 0 ${el.glowIntensity * 2}px hsl(var(--primary))`;
     }
 
+    // Load Google Font if needed
+    const fontFamily = el.fontFamily || "Satoshi";
+    if (fontFamily !== "Satoshi" && typeof document !== "undefined") {
+      const linkId = `gfont-${fontFamily.replace(/\s+/g, "-")}`;
+      if (!document.getElementById(linkId)) {
+        const link = document.createElement("link");
+        link.id = linkId;
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@300;400;500;600;700;800;900&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+
     return (
-      <div key={el.id} className={`absolute ${motionClass}`} style={{ left, top, width, height, filter: filterStr || undefined, ...el.style }}>
+      <div key={el.id} className={`absolute ${motionClass}`} style={{ left, top, width, height, filter: filterStr || undefined, mixBlendMode: (el.blendMode || "normal") as any, ...el.style }}>
         {el.type === "text" && (
-          <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] p-2 overflow-hidden"
-            style={{ fontSize: `${parseInt(el.style.fontSize || "14") * scale}px`, ...glowStyle }}>
+          <div className="w-full h-full flex items-center justify-center text-foreground p-2 overflow-hidden"
+            style={{ fontSize: `${parseInt(el.style.fontSize || "14") * scale}px`, ...glowStyle, fontFamily: `'${fontFamily}', sans-serif` }}>
             {el.content}
           </div>
         )}

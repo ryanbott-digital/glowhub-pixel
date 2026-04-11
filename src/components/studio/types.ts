@@ -34,6 +34,10 @@ export interface CanvasElement {
   exitDelay?: number;
   entranceAnim?: string;
   exitAnim?: string;
+  // Blend mode
+  blendMode?: string;
+  // Typography
+  fontFamily?: string;
 }
 
 export const DEFAULT_FILTERS: CanvasElement["filters"] = {
