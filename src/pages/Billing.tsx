@@ -65,9 +65,17 @@ export default function Billing() {
     try {
       const { data, error } = await supabase.functions.invoke("stripe-portal");
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        // Pro user without Stripe account = manually granted, show support message
+        if (isPro && data.error.includes("billing account")) {
+          toast.info("Your plan is managed by our team. Please contact support@glowhub.io for billing enquiries.");
+        } else {
+          throw new Error(data.error);
+        }
+        return;
+      }
       if (data?.url) window.location.href = data.url;
-      else toast.error("No billing account found. Please subscribe to a plan first.");
+      else toast.info("Your plan is managed by our team. Please contact support@glowhub.io for billing enquiries.");
     } catch (err: any) {
       toast.error(err.message || "Failed to open billing portal");
     } finally {
