@@ -14,7 +14,10 @@ export interface GlowFieldConfig {
   colorGradient?: boolean;
   color2?: string;
   gradientSpeed?: number;
+  direction?: ParticleDirection;
 }
+
+export type ParticleDirection = "random" | "up" | "down" | "left" | "right" | "radial" | "swirl";
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
   density: 30,
@@ -81,15 +84,16 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
   const animRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
 
-  const initParticles = useCallback((w: number, h: number, count: number, speedMul: number) => {
+  const initParticles = useCallback((w: number, h: number, count: number, speedMul: number, direction: ParticleDirection = "random") => {
     const particles: Particle[] = [];
     for (let i = 0; i < count; i++) {
+      const { vx, vy } = getDirectionVelocity(direction, speedMul, w, h, Math.random() * w, Math.random() * h);
       particles.push({
         x: Math.random() * w,
         y: Math.random() * h,
         r: 1.5 + Math.random() * 3,
-        vx: (Math.random() - 0.5) * speedMul,
-        vy: (Math.random() - 0.5) * speedMul,
+        vx,
+        vy,
         alpha: 0.3 + Math.random() * 0.7,
         alphaDir: (Math.random() > 0.5 ? 1 : -1) * (0.003 + Math.random() * 0.008),
         rotation: Math.random() * Math.PI * 2,
