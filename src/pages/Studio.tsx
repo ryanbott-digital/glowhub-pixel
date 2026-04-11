@@ -642,10 +642,13 @@ export default function Studio() {
       glowStyle.animation = `studioNeonFlicker ${Math.max(0.3, 3 - el.flickerSpeed * 0.27)}s infinite`;
     }
 
+    const fontFamily = el.fontFamily || "Satoshi";
+    if (fontFamily !== "Satoshi") loadGoogleFont(fontFamily);
+
     return (
-      <div className="w-full h-full" style={filterStyle}>
+      <div className="w-full h-full" style={{ ...filterStyle, mixBlendMode: (el.blendMode || "normal") as any }}>
         {el.type === "text" && (
-          <div className="w-full h-full flex items-center justify-center text-foreground font-['Satoshi',sans-serif] text-sm p-2 overflow-hidden" style={{ ...el.style, ...glowStyle }}>
+          <div className="w-full h-full flex items-center justify-center text-foreground text-sm p-2 overflow-hidden" style={{ ...el.style, ...glowStyle, fontFamily: `'${fontFamily}', sans-serif` }}>
             {el.content}
           </div>
         )}
@@ -823,7 +826,7 @@ export default function Studio() {
 
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
-        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)] flex flex-col overflow-y-auto">
+        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
           <div className="p-3 border-b border-border/20">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
@@ -992,7 +995,7 @@ export default function Studio() {
                     minWidth={30}
                     minHeight={30}
                     className={`${!el.visible ? "opacity-30 pointer-events-none" : ""} ${motionClass} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)] z-10" : "hover:ring-1 hover:ring-primary/30"}`}
-                    style={{ cursor: el.locked ? "not-allowed" : "move" }}
+                    style={{ cursor: el.locked ? "not-allowed" : "move", mixBlendMode: (el.blendMode || "normal") as any }}
                     resizeHandleStyles={{
                       topLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
                       topRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
