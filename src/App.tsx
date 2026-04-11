@@ -124,8 +124,6 @@ const App = () => (
               <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
               <Route path="/studio/preview/:layoutId" element={<StudioPreview />} />
-              <Route path="/install" element={<Navigate to="/download" replace />} />
-              <Route path="/install-app" element={<Navigate to="/download" replace />} />
               <Route path="/download" element={<Download />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
