@@ -904,9 +904,23 @@ export default function Studio() {
                     key={el.id}
                     size={{ width: el.width, height: el.height }}
                     position={{ x: el.x, y: el.y }}
+                    onDrag={(e, d) => {
+                      const result = computeSnapGuides(
+                        { id: el.id, x: d.x, y: d.y, width: el.width, height: el.height },
+                        elements,
+                      );
+                      setGuides(result.guides);
+                    }}
                     onDragStop={(e, d) => {
+                      const result = computeSnapGuides(
+                        { id: el.id, x: d.x, y: d.y, width: el.width, height: el.height },
+                        elements,
+                      );
+                      const finalX = result.snapX ?? d.x;
+                      const finalY = result.snapY ?? d.y;
                       pushHistory(elements);
-                      setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: d.x, y: d.y } : x));
+                      setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: finalX, y: finalY } : x));
+                      setGuides([]);
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
                       pushHistory(elements);
