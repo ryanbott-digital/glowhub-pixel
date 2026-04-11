@@ -1,7 +1,8 @@
 {
+  "id": "/player",
   "name": "GlowHub - Digital Signage",
   "short_name": "Glow",
-  "description": "Upload, schedule, and push content to remote screens in real-time.",
+  "description": "GlowHub is a digital signage platform that lets you upload, schedule, and push content to remote screens in real-time from anywhere.",
   "theme_color": "#00A3A3",
   "background_color": "#00A3A3",
   "display": "standalone",
