@@ -49,6 +49,7 @@ const DEFAULT_IMAGE_DURATION = 10;
 export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBuilderProps) {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [lightbox, setLightbox] = useState<{ url: string; type: string; name: string } | null>(null);
+  const [defaultDuration, setDefaultDuration] = useState(DEFAULT_IMAGE_DURATION);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
