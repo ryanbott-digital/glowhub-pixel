@@ -16,7 +16,7 @@ import {
   Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink, Atom,
   Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
-  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload,
+  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -267,6 +267,8 @@ export default function Studio() {
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(20);
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
   const canvasRef = useRef<HTMLDivElement>(null);
