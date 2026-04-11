@@ -1,4 +1,6 @@
 import { defineConfig } from "vite";
+import type { Connect, Plugin } from "vite";
+import type { ServerResponse } from "node:http";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -8,27 +10,29 @@ const STATIC_ASSET_PATTERN = /\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|mp
 
 const shouldApplyCorpHeader = (url = "") => STATIC_ASSET_PATTERN.test(url.split("?")[0]);
 
-const staticAssetCorpHeader = () => ({
-  name: "static-asset-corp-header",
-  configureServer(server: Parameters<NonNullable<Exclude<ReturnType<typeof defineConfig>, Promise<unknown>>["plugins"]>>[0]) {
-    server.middlewares.use((req, res, next) => {
-      if (shouldApplyCorpHeader(req.url)) {
-        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      }
+const staticAssetCorpHeader = (): Plugin => {
+  const applyCorpHeader = (
+    req: Connect.IncomingMessage,
+    res: ServerResponse,
+    next: Connect.NextFunction,
+  ) => {
+    if (shouldApplyCorpHeader(req.url)) {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    }
 
-      next();
-    });
-  },
-  configurePreviewServer(server: Parameters<NonNullable<Exclude<ReturnType<typeof defineConfig>, Promise<unknown>>["plugins"]>>[0]) {
-    server.middlewares.use((req, res, next) => {
-      if (shouldApplyCorpHeader(req.url)) {
-        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-      }
+    next();
+  };
 
-      next();
-    });
-  },
-});
+  return {
+    name: "static-asset-corp-header",
+    configureServer(server: Parameters<NonNullable<Plugin["configureServer"]>>[0]) {
+      server.middlewares.use(applyCorpHeader);
+    },
+    configurePreviewServer(server: Parameters<NonNullable<Plugin["configurePreviewServer"]>>[0]) {
+      server.middlewares.use(applyCorpHeader);
+    },
+  };
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
