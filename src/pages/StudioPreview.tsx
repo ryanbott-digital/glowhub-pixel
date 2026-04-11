@@ -41,6 +41,7 @@ export default function StudioPreview() {
   const { layoutId } = useParams<{ layoutId: string }>();
   const navigate = useNavigate();
   const [elements, setElements] = useState<CanvasElement[]>([]);
+  const [canvasBg, setCanvasBg] = useState<{ type: "solid" | "gradient"; color: string; gradient?: string }>({ type: "solid", color: "" });
   const [loading, setLoading] = useState(true);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [clockTime, setClockTime] = useState(new Date());
@@ -58,6 +59,8 @@ export default function StudioPreview() {
         filters: el.filters || { ...DEFAULT_FILTERS },
       }));
       setElements(els);
+      const bg = (data.canvas_data as any)?.canvasBg;
+      if (bg) setCanvasBg(bg);
       setLoading(false);
     })();
   }, [layoutId, navigate]);
@@ -256,7 +259,7 @@ export default function StudioPreview() {
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden" style={{ cursor: cursorVisible ? "default" : "none" }}>
-      <div className="absolute bg-card" style={{ left: offsetX, top: offsetY, width: 960 * scale, height: 540 * scale }} />
+      <div className="absolute bg-card" style={{ left: offsetX, top: offsetY, width: 960 * scale, height: 540 * scale, background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined }} />
       {elements.filter(el => el.visible).map((el) => renderElement(el, scale, offsetX, offsetY))}
       {cursorVisible && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-card/60 backdrop-blur-sm border border-border/30 text-xs text-muted-foreground font-['Satoshi',sans-serif] tracking-wider animate-fade-in z-50">
