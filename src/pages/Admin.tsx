@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface AdminUser {
   id: string;
@@ -44,6 +45,7 @@ export default function Admin() {
   const [subsLoading, setSubsLoading] = useState(true);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(true);
+  const [selectedSub, setSelectedSub] = useState<ContactSubmission | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -129,6 +131,17 @@ export default function Admin() {
     }
   };
 
+  const deleteSubmission = async (id: string) => {
+    const { error } = await supabase.from("contact_submissions").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete submission");
+    } else {
+      setSubmissions((prev) => prev.filter((s) => s.id !== id));
+      if (selectedSub?.id === id) setSelectedSub(null);
+      toast.success("Submission deleted");
+    }
+  };
+
   const tierBadge = (tier: string) => {
     const t = TIERS.find((t) => t.value === tier) || TIERS[0];
     return (
@@ -205,6 +218,7 @@ export default function Admin() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" /> Contact Submissions
+            <Badge variant="secondary" className="ml-auto">{submissions.length}</Badge>
           </CardTitle>
           <CardDescription>Messages from the public contact form</CardDescription>
         </CardHeader>
@@ -214,32 +228,95 @@ export default function Admin() {
           ) : submissions.length === 0 ? (
             <p className="text-muted-foreground text-sm">No submissions yet</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {submissions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="p-4 rounded-lg border bg-card space-y-2"
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card group cursor-pointer hover:border-primary/40 transition-colors"
+                  onClick={() => setSelectedSub(sub)}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm font-semibold text-foreground truncate">{sub.name}</span>
-                      <span className="text-xs text-muted-foreground truncate">{sub.email}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(sub.created_at).toLocaleDateString(undefined, {
-                        month: "short", day: "numeric", year: "numeric",
-                        hour: "2-digit", minute: "2-digit",
-                      })}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Mail className="h-4 w-4 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground truncate">{sub.name}</span>
+                        <span className="text-xs text-muted-foreground truncate">{sub.email}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate max-w-[300px]">{sub.message}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{sub.message}</p>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(sub.created_at).toLocaleDateString(undefined, {
+                        month: "short", day: "numeric",
+                      })}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => { e.stopPropagation(); deleteSubmission(sub.id); }}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Submission Detail Modal */}
+      <Dialog open={!!selectedSub} onOpenChange={(open) => !open && setSelectedSub(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedSub && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-primary" />
+                  Message from {selectedSub.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <a href={`mailto:${selectedSub.email}`} className="text-primary hover:underline underline-offset-2">
+                    {selectedSub.email}
+                  </a>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(selectedSub.created_at).toLocaleDateString(undefined, {
+                      month: "short", day: "numeric", year: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                <div className="rounded-lg border bg-muted/50 p-4">
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selectedSub.message}</p>
+                </div>
+                <div className="flex items-center gap-2 justify-end">
+                  <a
+                    href={`mailto:${selectedSub.email}?subject=Re: Your message on GlowHub&body=%0A%0A---%0AOriginal message:%0A${encodeURIComponent(selectedSub.message)}`}
+                  >
+                    <Button variant="default" className="gap-2">
+                      <Reply className="h-4 w-4" /> Reply
+                    </Button>
+                  </a>
+                  <Button
+                    variant="destructive"
+                    className="gap-2"
+                    onClick={() => deleteSubmission(selectedSub.id)}
+                  >
+                    <Trash2 className="h-4 w-4" /> Delete
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Captured Leads */}
       <Card>
