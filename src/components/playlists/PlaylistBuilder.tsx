@@ -17,7 +17,8 @@ import {
 // glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, X, Clock } from "lucide-react";
+import { Plus, X, Clock, Settings2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TimelineBlock } from "./TimelineBlock";
