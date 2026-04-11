@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { isProTier } from "@/lib/subscription";
 import { toast } from "sonner";
 import { Activity, RefreshCw, Monitor, Camera, ExternalLink, ArrowUpCircle } from "lucide-react";
 
