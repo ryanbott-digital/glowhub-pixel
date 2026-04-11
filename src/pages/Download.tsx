@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
-import { Download, Tv, Globe, Flame, Monitor, Tablet, Rocket, ChevronRight, Sparkles, Bug, Zap, Shield } from "lucide-react";
+import { Download, Tv, Flame, Rocket, Sparkles, Bug, Zap, Shield } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
