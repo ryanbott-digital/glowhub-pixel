@@ -973,24 +973,36 @@ export default function Studio() {
                       setGuides(result.guides);
                     }}
                     onDragStop={(e, d) => {
+                      let finalX = d.x;
+                      let finalY = d.y;
+                      if (snapToGrid) {
+                        finalX = Math.round(finalX / gridSize) * gridSize;
+                        finalY = Math.round(finalY / gridSize) * gridSize;
+                      }
                       const result = computeSnapGuides(
-                        { id: el.id, x: d.x, y: d.y, width: el.width, height: el.height },
+                        { id: el.id, x: finalX, y: finalY, width: el.width, height: el.height },
                         elements,
                       );
-                      const finalX = result.snapX ?? d.x;
-                      const finalY = result.snapY ?? d.y;
+                      finalX = result.snapX ?? finalX;
+                      finalY = result.snapY ?? finalY;
                       pushHistory(elements);
                       setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: finalX, y: finalY } : x));
                       setGuides([]);
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
                       pushHistory(elements);
+                      let newW = parseInt(ref.style.width);
+                      let newH = parseInt(ref.style.height);
+                      let newX = position.x;
+                      let newY = position.y;
+                      if (snapToGrid) {
+                        newW = Math.round(newW / gridSize) * gridSize;
+                        newH = Math.round(newH / gridSize) * gridSize;
+                        newX = Math.round(newX / gridSize) * gridSize;
+                        newY = Math.round(newY / gridSize) * gridSize;
+                      }
                       setElements((prev) => prev.map((x) => x.id === el.id ? {
-                        ...x,
-                        width: parseInt(ref.style.width),
-                        height: parseInt(ref.style.height),
-                        x: position.x,
-                        y: position.y,
+                        ...x, width: newW, height: newH, x: newX, y: newY,
                       } : x));
                     }}
                     onMouseDown={(e: any) => {
