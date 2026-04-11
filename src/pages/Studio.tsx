@@ -16,7 +16,7 @@ import {
   Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink, Atom,
   Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
-  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3,
+  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3, Search,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -269,6 +269,7 @@ export default function Studio() {
   const [guides, setGuides] = useState<GuideLine[]>([]);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
+  const [mediaSearch, setMediaSearch] = useState("");
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -909,11 +910,26 @@ export default function Studio() {
             <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5 flex items-center gap-1">
               <Image className="h-3 w-3 text-primary" /> Media Library
             </p>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/40" />
+              <Input
+                value={mediaSearch}
+                onChange={(e) => setMediaSearch(e.target.value)}
+                placeholder="Search assets..."
+                className="glass h-7 text-[10px] pl-7 pr-2 font-['Satoshi',sans-serif]"
+              />
+            </div>
             {mediaItems.length === 0 ? (
               <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No media uploaded yet</p>
-            ) : (
+            ) : (() => {
+              const filtered = mediaItems
+                .filter(m => m.type.startsWith("image") || m.type.startsWith("video"))
+                .filter(m => !mediaSearch || m.name.toLowerCase().includes(mediaSearch.toLowerCase()));
+              return filtered.length === 0 ? (
+                <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No matches for "{mediaSearch}"</p>
+              ) : (
               <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
-                {mediaItems.filter(m => m.type.startsWith("image") || m.type.startsWith("video")).slice(0, 30).map((item) => {
+                {filtered.slice(0, 30).map((item) => {
                   const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
                   const isVideo = item.type.startsWith("video");
                   return (
@@ -933,7 +949,8 @@ export default function Studio() {
                   );
                 })}
               </div>
-            )}
+              );
+            })()}
           </div>
 
           <div className="p-2.5 space-y-1 border-t border-border/20">
