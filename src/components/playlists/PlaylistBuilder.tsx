@@ -17,7 +17,7 @@ import {
 // glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, X, Clock, Settings2 } from "lucide-react";
+import { Plus, X, Clock, Settings2, CheckCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -118,6 +118,24 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
     );
   };
 
+  const applyDefaultToAllImages = async () => {
+    const imageItems = items.filter((it) => it.media?.type === "image");
+    if (imageItems.length === 0) {
+      toast("No image items to update");
+      return;
+    }
+    const updates = imageItems.map((it) =>
+      supabase.from("playlist_items").update({ override_duration: defaultDuration }).eq("id", it.id)
+    );
+    await Promise.all(updates);
+    setItems((prev) =>
+      prev.map((it) =>
+        it.media?.type === "image" ? { ...it, override_duration: defaultDuration } : it
+      )
+    );
+    toast.success(`Set ${imageItems.length} image(s) to ${defaultDuration}s`);
+  };
+
   // Total playlist duration
   const totalSeconds = items.reduce((sum, item) => {
     const dur = item.override_duration ?? item.media?.duration ?? DEFAULT_IMAGE_DURATION;
@@ -156,6 +174,16 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
                 className="w-12 h-6 text-xs px-1 py-0 font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span>s</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={applyDefaultToAllImages}
+                className="h-6 px-2 text-[10px] text-primary hover:text-primary font-semibold gap-1"
+                title="Apply default duration to all images"
+              >
+                <CheckCheck className="h-3 w-3" />
+                Apply to all
+              </Button>
             </div>
           </div>
         </div>
