@@ -128,13 +128,14 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
         if (p.alpha <= 0.15) { p.alpha = 0.15; p.alphaDir = Math.abs(p.alphaDir); }
 
         // Glow layer
+        const sr = p.r * sizeMul;
         ctx.beginPath();
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r + glowR);
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sr + glowR);
         grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${p.alpha * 0.9})`);
         grad.addColorStop(0.3, `rgba(${rgb.r},${rgb.g},${rgb.b},${p.alpha * 0.4})`);
         grad.addColorStop(1, `rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
         ctx.fillStyle = grad;
-        ctx.arc(p.x, p.y, p.r + glowR, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, sr + glowR, 0, Math.PI * 2);
         ctx.fill();
 
         // Core shape
@@ -142,14 +143,14 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
         ctx.fillStyle = coreColor;
 
         if (shape === "stars") {
-          drawStar(ctx, p.x, p.y, p.r * 2.5, 5, p.rotation);
+          drawStar(ctx, p.x, p.y, sr * 2.5, 5, p.rotation);
           ctx.fill();
         } else if (shape === "sparkles") {
-          drawSparkle(ctx, p.x, p.y, p.r * 2.5, p.rotation);
+          drawSparkle(ctx, p.x, p.y, sr * 2.5, p.rotation);
           ctx.fill();
         } else {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, sr, 0, Math.PI * 2);
           ctx.fill();
         }
       }
