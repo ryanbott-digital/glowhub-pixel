@@ -11,6 +11,7 @@ import {
   CanvasElement, WeatherData, DEFAULT_FILTERS, getFilterCSS, getMotionClass,
 } from "@/components/studio/types";
 import { StudioStyles } from "@/components/studio/StudioStyles";
+import { GlowFieldCanvas, DEFAULT_GLOW_FIELD } from "@/components/studio/GlowFieldCanvas";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string) => {
@@ -240,6 +241,15 @@ export default function StudioPreview() {
                   {displayText}
                 </span>
               </div>
+            </div>
+          );
+        })()}
+        {el.type === "widget-particles" && (() => {
+          let cfg = { ...DEFAULT_GLOW_FIELD };
+          try { cfg = { ...cfg, ...JSON.parse(el.content) }; } catch {}
+          return (
+            <div className="w-full h-full rounded-lg overflow-hidden">
+              <GlowFieldCanvas config={cfg} />
             </div>
           );
         })()}

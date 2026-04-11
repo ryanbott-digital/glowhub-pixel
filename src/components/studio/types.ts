@@ -1,6 +1,6 @@
 export interface CanvasElement {
   id: string;
-  type: "image" | "video" | "text" | "shape" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label" | "widget-ticker";
+  type: "image" | "video" | "text" | "shape" | "widget-weather" | "widget-rss" | "widget-clock" | "widget-countdown" | "widget-neon-label" | "widget-ticker" | "widget-particles";
   x: number;
   y: number;
   width: number;
