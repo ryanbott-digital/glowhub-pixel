@@ -28,6 +28,12 @@ export interface CanvasElement {
   shapeFill?: string;
   shapeStroke?: string;
   shapeStrokeWidth?: number;
+  // Timeline / sequencer
+  enterDelay?: number;
+  enterDuration?: number;
+  exitDelay?: number;
+  entranceAnim?: string;
+  exitAnim?: string;
 }
 
 export const DEFAULT_FILTERS: CanvasElement["filters"] = {
