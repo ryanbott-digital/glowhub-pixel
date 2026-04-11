@@ -45,25 +45,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session?.user, fetchTier]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
+    // Set up listener FIRST, then get initial session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
       setLoading(false);
-      if (session?.user) {
-        const { data } = await supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle();
-        if (!data) {
-          await supabase.from("profiles").upsert({ id: session.user.id }, { onConflict: "id" });
-        }
-        await fetchTier(session.user.id);
+      if (newSession?.user) {
+        // Use setTimeout to avoid deadlock from awaiting inside onAuthStateChange
+        setTimeout(() => {
+          supabase.from("profiles").select("id").eq("id", newSession.user.id).maybeSingle().then(({ data }) => {
+            if (!data) {
+              supabase.from("profiles").upsert({ id: newSession.user.id }, { onConflict: "id" });
+            }
+          });
+          fetchTier(newSession.user.id);
+        }, 0);
       } else {
         setSubscriptionTier("free");
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
       setLoading(false);
-      if (session?.user) {
-        fetchTier(session.user.id);
+      if (initialSession?.user) {
+        fetchTier(initialSession.user.id);
       }
     });
 
