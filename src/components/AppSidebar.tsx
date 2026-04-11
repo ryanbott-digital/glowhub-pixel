@@ -33,8 +33,7 @@ const items = [
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
   { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
-  { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
-  { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} />, pro: false },
+  { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
   { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false },
 ];
 
