@@ -1387,6 +1387,13 @@ export default function Studio() {
                           </div>
                         </div>
                         <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Turbulence</span>
+                            <span className="text-[9px] text-muted-foreground/50 font-mono">{Math.round((cfg.turbulence ?? 0) * 100)}%</span>
+                          </div>
+                          <Slider value={[cfg.turbulence ?? 0]} onValueChange={([v]) => updateCfg({ turbulence: v })} min={0} max={2} step={0.05} className="w-full" />
+                        </div>
+                        <div className="space-y-1">
                           <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Direction</span>
                           <div className="grid grid-cols-3 gap-1.5 mt-1">
                             {([
