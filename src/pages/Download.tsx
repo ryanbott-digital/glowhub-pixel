@@ -342,24 +342,24 @@ export default function DownloadPage() {
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 glass rounded-xl border-primary/15 p-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
-              <SideloadStep n={1}>
+              <Step n={1}>
                 Download the APK file above to your device or a USB drive.
-              </SideloadStep>
-              <SideloadStep n={2}>
+              </Step>
+              <Step n={2}>
                 On your Android TV / Firestick, go to <strong className="text-foreground">Settings → My Fire TV → Developer Options</strong> and enable <strong className="text-foreground">Install Unknown Apps</strong>.
-              </SideloadStep>
-              <SideloadStep n={3}>
+              </Step>
+              <Step n={3}>
                 If you don't have a file manager, install one from the app store (e.g. <strong className="text-foreground">File Commander</strong> or <strong className="text-foreground">ES File Explorer</strong>).
-              </SideloadStep>
-              <SideloadStep n={4}>
+              </Step>
+              <Step n={4}>
                 Open the file manager and navigate to the downloaded <strong className="text-foreground">GlowHub.apk</strong> file.
-              </SideloadStep>
-              <SideloadStep n={5}>
+              </Step>
+              <Step n={5}>
                 Tap the APK file and select <strong className="text-foreground">Install</strong>. Confirm any prompts.
-              </SideloadStep>
-              <SideloadStep n={6}>
+              </Step>
+              <Step n={6}>
                 Once installed, open <strong className="text-foreground">Glow Player</strong> from your apps list and pair your screen.
-              </SideloadStep>
+              </Step>
             </CollapsibleContent>
           </Collapsible>
 
