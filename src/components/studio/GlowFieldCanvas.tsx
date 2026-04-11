@@ -1,10 +1,13 @@
 import { useRef, useEffect, useCallback } from "react";
 
+export type ParticleShape = "orbs" | "stars" | "sparkles";
+
 export interface GlowFieldConfig {
-  density: number;   // 5–100
-  speed: number;     // 1–10
-  color: string;     // hex color
-  glow: number;      // glow radius 5–60
+  density: number;
+  speed: number;
+  color: string;
+  glow: number;
+  shape?: ParticleShape;
 }
 
 export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
@@ -12,6 +15,7 @@ export const DEFAULT_GLOW_FIELD: GlowFieldConfig = {
   speed: 3,
   color: "#00b4d8",
   glow: 20,
+  shape: "orbs",
 };
 
 interface Particle {
@@ -22,6 +26,32 @@ interface Particle {
   vy: number;
   alpha: number;
   alphaDir: number;
+  rotation: number;
+  rotSpeed: number;
+}
+
+function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, points: number, rotation: number) {
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (Math.PI * i) / points - Math.PI / 2 + rotation;
+    const rad = i % 2 === 0 ? r : r * 0.4;
+    const x = cx + Math.cos(angle) * rad;
+    const y = cy + Math.sin(angle) * rad;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function drawSparkle(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, rotation: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const angle = (Math.PI * i) / 4 + rotation;
+    const rad = i % 2 === 0 ? r : r * 0.2;
+    const x = cx + Math.cos(angle) * rad;
+    const y = cy + Math.sin(angle) * rad;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.closePath();
 }
 
 export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig; className?: string }) {
@@ -40,6 +70,8 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
         vy: (Math.random() - 0.5) * speedMul,
         alpha: 0.3 + Math.random() * 0.7,
         alphaDir: (Math.random() > 0.5 ? 1 : -1) * (0.003 + Math.random() * 0.008),
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.02,
       });
     }
     return particles;
@@ -71,6 +103,7 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     };
     const rgb = hexToRgb(config.color);
     const glowR = config.glow;
+    const shape = config.shape || "orbs";
 
     const draw = () => {
       const rw = canvas.getBoundingClientRect().width;
@@ -78,22 +111,20 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
       ctx.clearRect(0, 0, rw, rh);
 
       for (const p of particlesRef.current) {
-        // move
         p.x += p.vx;
         p.y += p.vy;
+        p.rotation += p.rotSpeed;
 
-        // wrap
         if (p.x < -10) p.x = rw + 10;
         if (p.x > rw + 10) p.x = -10;
         if (p.y < -10) p.y = rh + 10;
         if (p.y > rh + 10) p.y = -10;
 
-        // breathe
         p.alpha += p.alphaDir;
         if (p.alpha >= 1) { p.alpha = 1; p.alphaDir = -Math.abs(p.alphaDir); }
         if (p.alpha <= 0.15) { p.alpha = 0.15; p.alphaDir = Math.abs(p.alphaDir); }
 
-        // glow
+        // Glow layer
         ctx.beginPath();
         const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r + glowR);
         grad.addColorStop(0, `rgba(${rgb.r},${rgb.g},${rgb.b},${p.alpha * 0.9})`);
@@ -103,18 +134,27 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
         ctx.arc(p.x, p.y, p.r + glowR, 0, Math.PI * 2);
         ctx.fill();
 
-        // core
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(${Math.min(255, rgb.r + 60)},${Math.min(255, rgb.g + 60)},${Math.min(255, rgb.b + 60)},${p.alpha})`;
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
+        // Core shape
+        const coreColor = `rgba(${Math.min(255, rgb.r + 60)},${Math.min(255, rgb.g + 60)},${Math.min(255, rgb.b + 60)},${p.alpha})`;
+        ctx.fillStyle = coreColor;
+
+        if (shape === "stars") {
+          drawStar(ctx, p.x, p.y, p.r * 2.5, 5, p.rotation);
+          ctx.fill();
+        } else if (shape === "sparkles") {
+          drawSparkle(ctx, p.x, p.y, p.r * 2.5, p.rotation);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       animRef.current = requestAnimationFrame(draw);
     };
 
     animRef.current = requestAnimationFrame(draw);
-
     return () => cancelAnimationFrame(animRef.current);
   }, [config, initParticles]);
 
