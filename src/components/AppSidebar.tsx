@@ -44,16 +44,9 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
 
-  const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
   const userTier = useAuth().subscriptionTier;
-
-  useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches
-      || (navigator as any).standalone === true;
-    setIsInstalled(standalone);
-  }, []);
 
   useEffect(() => {
     if (!user) return;
