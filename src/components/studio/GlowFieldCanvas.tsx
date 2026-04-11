@@ -106,6 +106,7 @@ export function GlowFieldCanvas({ config, className }: { config: GlowFieldConfig
     const rgb = hexToRgb(config.color);
     const glowR = config.glow;
     const shape = config.shape || "orbs";
+    const sizeMul = config.particleSize ?? 1;
 
     const draw = () => {
       const rw = canvas.getBoundingClientRect().width;
