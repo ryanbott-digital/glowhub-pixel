@@ -48,6 +48,7 @@ export default function StudioPreview() {
   const [clockTime, setClockTime] = useState(new Date());
   const [rssHeadlines, setRssHeadlines] = useState<Record<string, string[]>>({});
 
+  // Initial load
   useEffect(() => {
     if (!layoutId) return;
     (async () => {
@@ -65,6 +66,32 @@ export default function StudioPreview() {
       setLoading(false);
     })();
   }, [layoutId, navigate]);
+
+  // Realtime sync — live updates from Studio
+  useEffect(() => {
+    if (!layoutId) return;
+    const channel = supabase
+      .channel(`studio-live-${layoutId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "studio_layouts", filter: `id=eq.${layoutId}` },
+        (payload) => {
+          const canvasData = (payload.new as any)?.canvas_data;
+          if (!canvasData) return;
+          const els = (canvasData.elements || []).map((el: any) => ({
+            ...el,
+            visible: el.visible ?? true,
+            locked: el.locked ?? false,
+            filters: el.filters || { ...DEFAULT_FILTERS },
+          }));
+          setElements(els);
+          const bg = canvasData.canvasBg;
+          if (bg) setCanvasBg(bg);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [layoutId]);
 
   useEffect(() => {
     const t = setInterval(() => setClockTime(new Date()), 1000);

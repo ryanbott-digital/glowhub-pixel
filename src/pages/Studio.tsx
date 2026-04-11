@@ -534,6 +534,25 @@ export default function Studio() {
     }
   };
 
+  /* ───── debounced auto-save (live sync) ───── */
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!user || !currentLayoutId) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        const canvasData = JSON.parse(JSON.stringify({ elements, canvasBg: canvasBg.color || canvasBg.gradient ? canvasBg : undefined }));
+        await supabase.from("studio_layouts").update({
+          canvas_data: canvasData,
+          updated_at: new Date().toISOString(),
+        }).eq("id", currentLayoutId);
+      } catch (err) {
+        console.error("Auto-save failed:", err);
+      }
+    }, 1500);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [elements, canvasBg, currentLayoutId, user]);
+
   const handleLoad = (layout: SavedLayout) => {
     setCurrentLayoutId(layout.id);
     setLayoutName(layout.name);
