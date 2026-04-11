@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { LogOut, Download, Smartphone, Check, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
+import { LogOut, Download, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -33,8 +33,7 @@ const items = [
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
   { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
-  { title: "Install Guide", url: "/install", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
-  { title: "Install App", url: "/install-app", icon: ({ className }: { className?: string }) => <Smartphone className={className} />, pro: false },
+  { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
   { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false },
 ];
 
@@ -45,16 +44,9 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
 
-  const [isInstalled, setIsInstalled] = useState(false);
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
   const userTier = useAuth().subscriptionTier;
-
-  useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches
-      || (navigator as any).standalone === true;
-    setIsInstalled(standalone);
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -160,15 +152,6 @@ export function AppSidebar() {
                       )}
                       {item.url === "/admin" && unreadSubmissions > 0 && collapsed && (
                         <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-destructive shadow-[0_0_6px_hsl(var(--destructive))]" />
-                      )}
-                      {item.url === "/install-app" && !collapsed && isInstalled && (
-                        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                          <Check className="h-3 w-3" />
-                          Installed
-                        </span>
-                      )}
-                      {item.url === "/install-app" && collapsed && isInstalled && (
-                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
                       )}
                     </NavLink>
                     )}
