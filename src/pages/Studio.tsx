@@ -1406,6 +1406,7 @@ export default function Studio() {
                               </button>
                             ))}
                           </div>
+                        </div>
                       </div>
                     );
                   })()}
