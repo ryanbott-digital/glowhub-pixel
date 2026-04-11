@@ -1030,6 +1030,8 @@ export default function Studio() {
                     }}
                     disableDragging={el.locked}
                     enableResizing={!el.locked}
+                    dragGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
+                    resizeGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
                     bounds="parent"
                     minWidth={30}
                     minHeight={30}
