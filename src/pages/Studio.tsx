@@ -231,6 +231,7 @@ export default function Studio() {
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
+  const [lightCanvas, setLightCanvas] = useState(false);
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
@@ -856,6 +857,17 @@ export default function Studio() {
             ))}
           </div>
 
+          {/* Light/Dark canvas toggle */}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setLightCanvas(!lightCanvas)}
+            className="h-8 w-8"
+            title={lightCanvas ? "Dark canvas" : "Light canvas"}
+          >
+            <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
+          </Button>
+
           {/* Undo */}
           <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8" title="Undo (Ctrl+Z)">
             <Undo2 className="h-3.5 w-3.5" />
@@ -998,15 +1010,15 @@ export default function Studio() {
         </div>
 
         {/* ─── Center: Canvas ─── */}
-        <div className="flex-1 flex items-center justify-center bg-[hsl(220,60%,5%)] relative overflow-hidden">
+        <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl bg-primary/5 blur-[80px]" />
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl blur-[80px] transition-colors duration-300 ${lightCanvas ? "bg-primary/3" : "bg-primary/5"}`} />
           </div>
 
           <div style={{ transform: `scale(${zoom})`, transformOrigin: "center", transition: "transform 0.2s ease" }}>
             <div
               ref={canvasRef}
-              className="relative bg-card/80 border border-primary/20 rounded-xl overflow-hidden shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"
+              className={`relative border rounded-xl overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-white border-gray-300 shadow-lg" : "bg-card/80 border-primary/20 shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"}`}
               style={{ width: 960, height: 540 }}
               onClick={() => { setSelectedId(null); setSelectedIds(new Set()); }}
               onMouseMove={handleCanvasMouseMove}
@@ -1016,7 +1028,7 @@ export default function Studio() {
               onDragOver={handleCanvasDragOver}
             >
               <div
-                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                className={`absolute inset-0 pointer-events-none ${lightCanvas ? "opacity-[0.08]" : "opacity-[0.03]"}`}
                 style={{
                   backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
                   backgroundSize: "30px 30px",
