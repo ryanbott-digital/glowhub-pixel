@@ -1,8 +1,38 @@
 import { defineConfig } from "vite";
+import type { Connect, Plugin, PreviewServer, ViteDevServer } from "vite";
+import type { ServerResponse } from "node:http";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+
+const STATIC_ASSET_PATTERN = /\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|mp3|mp4|ogg|otf|png|svg|ttf|wav|webmanifest|webm|webp|woff2?|xml)$/i;
+
+const shouldApplyCorpHeader = (url = "") => STATIC_ASSET_PATTERN.test(url.split("?")[0]);
+
+const staticAssetCorpHeader = (): Plugin => {
+  const applyCorpHeader = (
+    req: Connect.IncomingMessage,
+    res: ServerResponse,
+    next: Connect.NextFunction,
+  ) => {
+    if (shouldApplyCorpHeader(req.url)) {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    }
+
+    next();
+  };
+
+  return {
+    name: "static-asset-corp-header",
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use(applyCorpHeader);
+    },
+    configurePreviewServer(server: PreviewServer) {
+      server.middlewares.use(applyCorpHeader);
+    },
+  };
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,8 +46,10 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    staticAssetCorpHeader(),
     VitePWA({
       registerType: "autoUpdate",
+      manifest: false,
       devOptions: {
         enabled: false,
       },
@@ -37,36 +69,6 @@ export default defineConfig(({ mode }) => ({
                 maxAgeSeconds: 30 * 24 * 60 * 60,
               },
             },
-          },
-        ],
-      },
-      manifest: {
-        name: "GlowHub - Digital Signage",
-        short_name: "Glow",
-        description: "Upload, schedule, and push content to remote screens in real-time.",
-        theme_color: "#00A3A3",
-        background_color: "#00A3A3",
-        display: "standalone",
-        orientation: "landscape",
-        start_url: "/player",
-        scope: "/",
-        icons: [
-          {
-            src: "/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
           },
         ],
       },
