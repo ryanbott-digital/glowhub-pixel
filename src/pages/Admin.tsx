@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface AdminUser {
   id: string;
