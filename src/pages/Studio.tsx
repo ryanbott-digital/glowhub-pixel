@@ -937,7 +937,13 @@ export default function Studio() {
             <div
               ref={canvasRef}
               className={`relative border rounded-xl overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-white border-gray-300 shadow-lg" : "bg-card/80 border-primary/20 shadow-[0_0_40px_hsla(180,100%,32%,0.15),0_0_80px_hsla(180,100%,32%,0.05)]"}`}
-              style={{ width: 960, height: 540, background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined }}
+              style={{
+                width: 960, height: 540,
+                background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined,
+                backgroundImage: canvasBg.type === "image" && canvasBg.imageUrl ? `url(${canvasBg.imageUrl})` : undefined,
+                backgroundSize: canvasBg.type === "image" ? "cover" : undefined,
+                backgroundPosition: canvasBg.type === "image" ? "center" : undefined,
+              }}
               onClick={() => setSelectedId(null)}
               onDrop={handleCanvasDrop}
               onDragOver={handleCanvasDragOver}
@@ -1502,7 +1508,13 @@ export default function Studio() {
       {fullscreenPreview && (
         <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setFullscreenPreview(false)}
           onKeyDown={(e) => e.key === "Escape" && setFullscreenPreview(false)} tabIndex={0} ref={(el) => el?.focus()}>
-          <div className="relative" style={{ width: "100vw", height: "100vh", background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined }}>
+          <div className="relative" style={{
+            width: "100vw", height: "100vh",
+            background: canvasBg.type === "gradient" && canvasBg.gradient ? canvasBg.gradient : canvasBg.color || undefined,
+            backgroundImage: canvasBg.type === "image" && canvasBg.imageUrl ? `url(${canvasBg.imageUrl})` : undefined,
+            backgroundSize: canvasBg.type === "image" ? "cover" : undefined,
+            backgroundPosition: canvasBg.type === "image" ? "center" : undefined,
+          }}>
             {elements.filter((el) => el.visible).map((el) => {
               const scaleX = window.innerWidth / 960;
               const scaleY = window.innerHeight / 540;
