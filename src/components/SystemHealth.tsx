@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { isProTier } from "@/lib/subscription";
 import { toast } from "sonner";
 import { Activity, RefreshCw, Monitor, Camera, ExternalLink, ArrowUpCircle } from "lucide-react";
 
@@ -62,7 +63,7 @@ async function calcUptime(screenId: string): Promise<number> {
 }
 
 export function SystemHealth() {
-  const { user } = useAuth();
+  const { user, subscriptionTier } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [mediaMap, setMediaMap] = useState<Record<string, MediaInfo>>({});
   const [uptimeMap, setUptimeMap] = useState<Record<string, number>>({});
@@ -168,7 +169,7 @@ export function SystemHealth() {
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-4">
         <Activity className="h-4 w-4" />
         System Health
-        <span className="pro-badge">PRO</span>
+        {!isProTier(subscriptionTier) && <span className="pro-badge">PRO</span>}
       </div>
       <div className="space-y-3">
           {screens.map((screen) => {

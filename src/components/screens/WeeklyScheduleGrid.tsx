@@ -98,7 +98,7 @@ export function WeeklyScheduleGrid({ screenId, playlists, tier }: WeeklySchedule
             <Calendar className="h-4 w-4 text-primary" />
             Weekly Schedule
           </h3>
-          <span className="pro-badge">PRO</span>
+          {tier && !isProTier(tier) && <span className="pro-badge">PRO</span>}
         </div>
         <div className="rounded-xl border border-primary/10 bg-primary/5 p-4 flex items-center gap-3">
           <Crown className="h-5 w-5 text-primary shrink-0" />

@@ -295,7 +295,7 @@ export default function Dashboard() {
             <BarChart3 className="h-3.5 w-3.5" />
             Insights
             {!isProTier(subscriptionTier) && <Lock className="h-3 w-3 ml-0.5 text-muted-foreground" />}
-            <span className="pro-badge">PRO</span>
+            {!isProTier(subscriptionTier) && <span className="pro-badge">PRO</span>}
           </TabsTrigger>
         </TabsList>
 
