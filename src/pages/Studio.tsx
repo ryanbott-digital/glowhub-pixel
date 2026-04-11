@@ -26,6 +26,8 @@ import {
 import { VisualEffectsPanel } from "@/components/studio/VisualEffectsPanel";
 import { StudioStyles } from "@/components/studio/StudioStyles";
 import { GlowFieldCanvas, DEFAULT_GLOW_FIELD } from "@/components/studio/GlowFieldCanvas";
+import { SmartGuides, computeSnapGuides, type GuideLine } from "@/components/studio/SmartGuides";
+import { StudioTimeline } from "@/components/studio/StudioTimeline";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
@@ -233,6 +235,9 @@ export default function Studio() {
   const [saving, setSaving] = useState(false);
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
+  const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [timelineCollapsed, setTimelineCollapsed] = useState(false);
+  const [timelineDuration, setTimelineDuration] = useState(30);
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
@@ -899,9 +904,23 @@ export default function Studio() {
                     key={el.id}
                     size={{ width: el.width, height: el.height }}
                     position={{ x: el.x, y: el.y }}
+                    onDrag={(e, d) => {
+                      const result = computeSnapGuides(
+                        { id: el.id, x: d.x, y: d.y, width: el.width, height: el.height },
+                        elements,
+                      );
+                      setGuides(result.guides);
+                    }}
                     onDragStop={(e, d) => {
+                      const result = computeSnapGuides(
+                        { id: el.id, x: d.x, y: d.y, width: el.width, height: el.height },
+                        elements,
+                      );
+                      const finalX = result.snapX ?? d.x;
+                      const finalY = result.snapY ?? d.y;
                       pushHistory(elements);
-                      setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: d.x, y: d.y } : x));
+                      setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: finalX, y: finalY } : x));
+                      setGuides([]);
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
                       pushHistory(elements);
@@ -948,6 +967,9 @@ export default function Studio() {
                   </Rnd>
                 );
               })}
+
+              {/* Smart Guides */}
+              <SmartGuides guides={guides} />
 
               {elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
@@ -1370,6 +1392,20 @@ export default function Studio() {
           </div>
         </div>
       </div>
+
+      {/* ─── Timeline / Sequencer ─── */}
+      <StudioTimeline
+        elements={elements}
+        selectedId={selectedId}
+        onSelectElement={(id) => { setSelectedId(id); setSidebarMode("properties"); }}
+        onUpdateElement={(id, patch) => {
+          pushHistory(elements);
+          setElements((prev) => prev.map((el) => el.id === id ? { ...el, ...patch } : el));
+        }}
+        collapsed={timelineCollapsed}
+        onToggleCollapse={() => setTimelineCollapsed(!timelineCollapsed)}
+        totalDuration={timelineDuration}
+      />
 
       {/* ─── Fullscreen Preview ─── */}
       {fullscreenPreview && (
