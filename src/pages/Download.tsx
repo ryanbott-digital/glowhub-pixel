@@ -302,25 +302,28 @@ export default function DownloadPage() {
           </div>
 
           {/* APK Download */}
-          <div className="glass glass-spotlight rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Download className="h-4 w-4 text-primary" />
+          <div className="glass-strong glass-spotlight rounded-2xl p-8 border-primary/20 relative overflow-hidden text-center space-y-5">
+            <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-[conic-gradient(from_0deg,hsla(180,100%,45%,0.12),hsla(220,80%,55%,0.08),transparent)] rounded-full blur-[40px]" />
+            <div className="relative z-10 space-y-5">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                  <Download className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-lg font-bold tracking-wide">Direct APK Download</h3>
               </div>
-              <h3 className="font-bold text-sm tracking-wide">Direct APK Download</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                For Android TV boxes and sideloading onto any device.
+              </p>
+              <a
+                href="/GlowHub.apk"
+                download
+                className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-10 py-4 rounded-xl text-base font-bold bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground shadow-[0_0_30px_hsla(180,100%,45%,0.3)] hover:shadow-[0_0_50px_hsla(180,100%,45%,0.5)] hover:scale-[1.02] transition-all duration-300"
+              >
+                <Download className="h-5 w-5" />
+                Download APK
+              </a>
+              <p className="text-[10px] text-muted-foreground/60 font-mono">v{APK_VERSION} · {APK_DATE}</p>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              For Android TV boxes and sideloading onto any device.
-            </p>
-            <a
-              href="/GlowHub.apk"
-              download
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-primary/20 to-[hsl(220,80%,55%)]/20 border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] text-primary hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300"
-            >
-              <Download className="h-4 w-4" />
-              Download APK
-            </a>
-            <p className="text-[10px] text-muted-foreground/60 font-mono">v{APK_VERSION} · {APK_DATE}</p>
           </div>
 
           {/* ── WHAT'S NEW ── */}
