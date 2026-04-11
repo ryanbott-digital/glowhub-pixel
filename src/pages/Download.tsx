@@ -5,7 +5,7 @@ import { Download, Tv, Flame, Rocket, Sparkles, Bug, Zap, Shield } from "lucide-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { supabase } from "@/integrations/supabase/client";
 import { supabase } from "@/integrations/supabase/client";
 import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { toast } from "sonner";
