@@ -37,6 +37,7 @@ export default function Playlists() {
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
   const [sending, setSending] = useState(false);
+  const [sendTargetPlaylist, setSendTargetPlaylist] = useState<Playlist | null>(null);
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
@@ -69,8 +70,9 @@ export default function Playlists() {
     fetchPlaylists();
   };
 
-  const openSendDialog = () => {
+  const openSendDialog = (playlist: Playlist) => {
     if (!user) return;
+    setSendTargetPlaylist(playlist);
     supabase
       .from("screens")
       .select("id, name, status")
@@ -82,16 +84,16 @@ export default function Playlists() {
   };
 
   const sendToScreen = async (screenId: string) => {
-    if (!selectedPlaylist) return;
+    if (!sendTargetPlaylist) return;
     setSending(true);
     try {
       const { error } = await supabase
         .from("screens")
-        .update({ current_playlist_id: selectedPlaylist.id })
+        .update({ current_playlist_id: sendTargetPlaylist.id })
         .eq("id", screenId);
       if (error) throw error;
       const screen = pairedScreens.find((s) => s.id === screenId);
-      toast.success(`"${selectedPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
+      toast.success(`"${sendTargetPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
       setSendDialogOpen(false);
     } catch {
       toast.error("Failed to send playlist to screen");
@@ -104,12 +106,6 @@ export default function Playlists() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Playlists</h1>
         <div className="flex items-center gap-2">
-          {selectedPlaylist && (
-            <Button variant="outline" size="sm" onClick={openSendDialog}>
-              <Send className="h-3.5 w-3.5 mr-1.5" />
-              Send to Screen
-            </Button>
-          )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
@@ -146,9 +142,20 @@ export default function Playlists() {
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
                   )}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
+                    title="Send to screen"
+                    className="p-1 rounded-md hover:bg-primary/10 transition-colors"
+                  >
+                    <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}
+                    className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -183,7 +190,7 @@ export default function Playlists() {
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Choose a screen to play <span className="font-medium text-foreground">"{selectedPlaylist?.title}"</span>
+            Choose a screen to play <span className="font-medium text-foreground">"{sendTargetPlaylist?.title}"</span>
           </p>
           <div className="space-y-2 mt-2">
             {pairedScreens.length === 0 ? (
