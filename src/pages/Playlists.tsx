@@ -283,94 +283,31 @@ export default function Playlists() {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2 stagger-in">
-          {playlists.map((pl) => {
-            const isQuickSend = pl.title.startsWith("Quick Send ·");
-            const isChecked = bulkSelected.has(pl.id);
-            return (
-              <div
-                key={pl.id}
-                className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
-                  sentPlaylistId === pl.id
-                    ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
-                    : bulkMode && isChecked
-                      ? "ring-2 ring-primary border-primary"
-                      : selectedPlaylist?.id === pl.id && !bulkMode
-                        ? "ring-2 ring-primary border-primary"
-                        : "border-white/[0.06] hover:border-primary/30"
-                }`}
-                onClick={() => {
-                  if (bulkMode) {
-                    toggleBulkSelect(pl.id);
-                  } else {
-                    setSelectedPlaylist(pl);
-                  }
-                }}
-              >
-                {sentPlaylistId === pl.id && (
-                  <div className="absolute inset-0 rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
-                )}
-                <div className="flex items-center gap-2 min-w-0">
-                  {bulkMode ? (
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => toggleBulkSelect(pl.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="shrink-0"
-                    />
-                  ) : isQuickSend ? (
-                    <Send className="h-4 w-4 text-muted-foreground shrink-0" />
-                  ) : (
-                    <ListVideo className="h-4 w-4 text-primary shrink-0" />
-                  )}
-                  {renamingId === pl.id && !bulkMode ? (
-                    <Input
-                      autoFocus
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onBlur={commitRename}
-                      onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenamingId(null); }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="h-6 text-sm py-0 px-1 bg-background/50 border-primary/30"
-                    />
-                  ) : (
-                    <span
-                      className={`font-medium truncate ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
-                      onDoubleClick={(e) => !bulkMode && startRename(pl, e)}
-                      onClick={(e) => { if (!bulkMode) { e.stopPropagation(); startRename(pl, e); } }}
-                    >
-                      {pl.title}
-                    </span>
-                  )}
-                  {isQuickSend && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
-                  )}
-                </div>
-                {!bulkMode && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); duplicatePlaylist(pl); }}
-                      title="Duplicate playlist"
-                      className="p-1 rounded-md hover:bg-primary/10 transition-colors"
-                    >
-                      <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
-                      title="Send to screen"
-                      className="p-1 rounded-md hover:bg-primary/10 transition-colors"
-                    >
-                      <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}
-                      className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={playlists.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+              {playlists.map((pl) => (
+                <SortablePlaylistCard
+                  key={pl.id}
+                  pl={pl}
+                  bulkMode={bulkMode}
+                  isChecked={bulkSelected.has(pl.id)}
+                  isSelected={selectedPlaylist?.id === pl.id}
+                  isSent={sentPlaylistId === pl.id}
+                  isRenaming={renamingId === pl.id}
+                  renameValue={renameValue}
+                  onRenameChange={setRenameValue}
+                  onCommitRename={commitRename}
+                  onCancelRename={() => setRenamingId(null)}
+                  onStartRename={startRename}
+                  onSelect={() => bulkMode ? toggleBulkSelect(pl.id) : setSelectedPlaylist(pl)}
+                  onToggleBulk={() => toggleBulkSelect(pl.id)}
+                  onDuplicate={() => duplicatePlaylist(pl)}
+                  onSend={() => openSendDialog(pl)}
+                  onDelete={() => deletePlaylist(pl.id)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
           {playlists.length === 0 && (
             <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] text-center text-muted-foreground py-8">No playlists yet</div>
           )}
