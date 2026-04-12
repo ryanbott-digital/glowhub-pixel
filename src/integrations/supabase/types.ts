@@ -309,6 +309,7 @@ export type Database = {
           created_at: string
           granted_pro_until: string | null
           id: string
+          screen_packs: number
           stripe_customer_id: string | null
           subscription_status: string
           subscription_tier: string
@@ -318,6 +319,7 @@ export type Database = {
           created_at?: string
           granted_pro_until?: string | null
           id: string
+          screen_packs?: number
           stripe_customer_id?: string | null
           subscription_status?: string
           subscription_tier?: string
@@ -327,6 +329,7 @@ export type Database = {
           created_at?: string
           granted_pro_until?: string | null
           id?: string
+          screen_packs?: number
           stripe_customer_id?: string | null
           subscription_status?: string
           subscription_tier?: string

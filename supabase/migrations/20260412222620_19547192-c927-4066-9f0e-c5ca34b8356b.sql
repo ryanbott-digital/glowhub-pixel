@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN screen_packs integer NOT NULL DEFAULT 0;
