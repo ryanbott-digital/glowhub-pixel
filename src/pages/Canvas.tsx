@@ -63,14 +63,14 @@ export default function Canvas() {
       for (const g of groupRes.data) {
         const { data: members } = await supabase
           .from("sync_group_screens")
-          .select("id, screen_id, position, bezel_compensation, color_r, color_g, color_b, brightness_offset")
+          .select("id, screen_id, position, bezel_compensation, color_r, color_g, color_b, brightness_offset, resolution_w, resolution_h, grid_col, grid_row")
           .eq("sync_group_id", g.id)
           .order("position");
 
         groups.push({
           id: g.id,
           name: g.name,
-          orientation: g.orientation as "horizontal" | "vertical",
+          orientation: g.orientation as "horizontal" | "vertical" | "grid",
           playlist_id: (g as any).playlist_id ?? null,
           screens: members || [],
         });

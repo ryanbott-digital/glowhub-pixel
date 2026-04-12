@@ -172,7 +172,6 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
 
   const handleMouseUp = useCallback(async () => {
     if (draggingNode && snapIndicator) {
-      // Check if snapped to another node - auto-create/update sync group
       const draggedPos = nodePositions[draggingNode];
       if (draggedPos) {
         const adjacentNode = Object.entries(nodePositions).find(([id, pos]) => {
@@ -186,7 +185,6 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
 
         if (adjacentNode) {
           const [adjacentId] = adjacentNode;
-          const orientation = Math.abs(adjacentNode[1].y - draggedPos.y) < 10 ? "horizontal" : "vertical";
 
           // Find if either screen is already in a sync group
           const existingGroup = syncGroups.find(g =>
@@ -196,16 +194,23 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
           if (existingGroup) {
             const alreadyIn = existingGroup.screens.some(s => s.screen_id === draggingNode);
             if (!alreadyIn) {
+              // Auto-detect grid_col/grid_row from canvas positions
+              const gridPos = detectGridPosition(existingGroup, draggingNode, draggedPos);
               await supabase.from("sync_group_screens").insert({
                 sync_group_id: existingGroup.id,
                 screen_id: draggingNode,
                 position: existingGroup.screens.length,
+                grid_col: gridPos.col,
+                grid_row: gridPos.row,
               });
+
+              // If group has screens in multiple rows AND columns, auto-upgrade to grid orientation
+              await maybeUpgradeToGrid(existingGroup, gridPos);
               toast.success("Screen snapped into sync group");
               onRefresh();
             }
           } else {
-            // Create new sync group
+            const orientation = Math.abs(adjacentNode[1].y - draggedPos.y) < 10 ? "horizontal" : "vertical";
             const { data: newGroup } = await supabase.from("sync_groups").insert({
               user_id: userId,
               name: `Sync Group ${syncGroups.length + 1}`,
@@ -213,9 +218,22 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
             }).select("id").single();
 
             if (newGroup) {
+              const adjPos = adjacentNode[1];
+              const adjCol = 0, adjRow = 0;
+              let dragCol = 0, dragRow = 0;
+              if (orientation === "horizontal") {
+                dragCol = draggedPos.x > adjPos.x ? 1 : -1;
+                if (dragCol < 0) { dragCol = 0; /* swap: adj becomes col 1 */ }
+              } else {
+                dragRow = draggedPos.y > adjPos.y ? 1 : -1;
+                if (dragRow < 0) { dragRow = 0; }
+              }
+              // Normalize so min is 0
+              const minCol = Math.min(adjCol, dragCol);
+              const minRow = Math.min(adjRow, dragRow);
               await Promise.all([
-                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: adjacentId, position: 0 }),
-                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: draggingNode, position: 1 }),
+                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: adjacentId, position: 0, grid_col: adjCol - minCol, grid_row: adjRow - minRow }),
+                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: draggingNode, position: 1, grid_col: dragCol - minCol, grid_row: dragRow - minRow }),
               ]);
               toast.success("New sync group created by snapping screens together");
               onRefresh();
