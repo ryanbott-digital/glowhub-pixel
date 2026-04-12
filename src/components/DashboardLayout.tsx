@@ -1,22 +1,58 @@
-import { ReactNode, useEffect, useCallback, useState } from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { ReactNode, useEffect, useCallback, useState, useRef } from "react";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAntiTamper } from "@/hooks/use-anti-tamper";
 import { useAdminManifest } from "@/hooks/use-admin-manifest";
 import { AdminInstallBanner } from "@/components/AdminInstallBanner";
+
+function SwipeHandler() {
+  const { setOpenMobile, openMobile, isMobile } = useSidebar();
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      touchStart.current = { x: t.clientX, y: t.clientY };
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStart.current.x;
+      const dy = t.clientY - touchStart.current.y;
+      touchStart.current = null;
+
+      // Must be a horizontal swipe (dx > dy) with minimum 60px travel
+      if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+
+      if (dx > 0 && !openMobile) {
+        setOpenMobile(true);
+      } else if (dx < 0 && openMobile) {
+        setOpenMobile(false);
+      }
+    };
+
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [isMobile, openMobile, setOpenMobile]);
+
+  return null;
+}
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [defaultOpen, setDefaultOpen] = useState(() => {
     return localStorage.getItem("glowhub_compact_sidebar") !== "true";
   });
 
-  // Anti-tamper protection (DOM + DevTools + server-side)
   useAntiTamper();
-
-  // Switch manifest to admin variant for dashboard routes
   useAdminManifest();
 
-  // Spotlight cursor effect for glass cards
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const cards = document.querySelectorAll('.glass-spotlight');
     cards.forEach((card) => {
@@ -35,11 +71,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
+      <SwipeHandler />
       <div className="min-h-screen flex w-full mesh-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <AdminInstallBanner />
-          {/* Floating glass navbar */}
           <header className="h-14 flex items-center glass-strong mx-3 mt-3 rounded-2xl px-4 sticky top-3 z-30">
             <SidebarTrigger className="mr-4 text-muted-foreground hover:text-primary transition-colors" />
             <div className="flex-1" />
