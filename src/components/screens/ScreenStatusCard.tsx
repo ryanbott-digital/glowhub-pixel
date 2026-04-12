@@ -5,7 +5,7 @@ import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -36,6 +36,7 @@ export interface ScreenStatusCardProps {
     transition_type?: string;
     crossfade_ms?: number;
     loop_enabled?: boolean;
+    launch_on_boot?: boolean;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
@@ -102,9 +103,10 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [transitionType, setTransitionType] = useState(screen.transition_type || "crossfade");
   const [crossfadeMs, setCrossfadeMs] = useState(screen.crossfade_ms ?? 500);
   const [loopEnabled, setLoopEnabled] = useState(screen.loop_enabled !== false);
+  const [launchOnBoot, setLaunchOnBoot] = useState(screen.launch_on_boot === true);
 
-  const updateScreenSetting = useCallback(async (updates: Partial<{ transition_type: string; crossfade_ms: number; loop_enabled: boolean }>) => {
-    const { error } = await supabase.from("screens").update(updates).eq("id", screen.id);
+  const updateScreenSetting = useCallback(async (updates: Partial<{ transition_type: string; crossfade_ms: number; loop_enabled: boolean; launch_on_boot: boolean }>) => {
+    const { error } = await supabase.from("screens").update(updates as any).eq("id", screen.id);
     if (error) toast.error("Failed to save setting");
   }, [screen.id]);
 
@@ -264,7 +266,16 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
         {/* Name + status row */}
         <div className="px-4 pt-2 pb-3 flex items-center justify-between gap-2 min-w-0">
-          <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{screen.name}</h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{screen.name}</h3>
+            {launchOnBoot && (
+              <ShieldCheck
+                className="h-3.5 w-3.5 shrink-0"
+                style={{ color: "hsl(180, 100%, 40%)" }}
+                title="Hardware Protected — Auto-Start enabled"
+              />
+            )}
+          </div>
           <div className="flex items-center gap-2 shrink-0">
             {isAlive ? (
               <span
@@ -431,6 +442,32 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                 }}
               />
             </div>
+          </div>
+
+          {/* Auto-Start on Boot */}
+          <div className="space-y-2 rounded-xl bg-muted/30 p-3">
+            <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <Power className="h-3 w-3 text-primary" /> Hardware Persistence
+            </h4>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="h-3 w-3 text-muted-foreground" />
+                <Label className="text-xs text-muted-foreground">Auto-Start on Power Up</Label>
+              </div>
+              <Switch
+                checked={launchOnBoot}
+                onCheckedChange={(checked) => {
+                  setLaunchOnBoot(checked);
+                  updateScreenSetting({ launch_on_boot: checked });
+                  toast.success(checked ? "Auto-Start enabled — screen is now Hardware Protected" : "Auto-Start disabled");
+                }}
+              />
+            </div>
+            {launchOnBoot && (
+              <p className="text-[10px] text-primary/70 flex items-center gap-1">
+                <ShieldCheck className="h-2.5 w-2.5" /> This screen will auto-launch Glow Player on device boot
+              </p>
+            )}
           </div>
 
           {/* Actions row */}
