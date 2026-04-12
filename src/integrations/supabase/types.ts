@@ -477,6 +477,7 @@ export type Database = {
           name: string
           pairing_code: string | null
           status: string
+          sync_layout: Json | null
           transition_type: string
           user_id: string
         }
@@ -493,6 +494,7 @@ export type Database = {
           name?: string
           pairing_code?: string | null
           status?: string
+          sync_layout?: Json | null
           transition_type?: string
           user_id: string
         }
@@ -509,6 +511,7 @@ export type Database = {
           name?: string
           pairing_code?: string | null
           status?: string
+          sync_layout?: Json | null
           transition_type?: string
           user_id?: string
         }

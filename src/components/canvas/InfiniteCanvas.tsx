@@ -14,12 +14,19 @@ interface Screen {
   current_playlist_id: string | null;
 }
 
+interface SyncGroupMember {
+  id: string;
+  screen_id: string;
+  position: number;
+  bezel_compensation?: number;
+}
+
 interface SyncGroup {
   id: string;
   name: string;
   orientation: "horizontal" | "vertical";
   playlist_id: string | null;
-  screens: { id: string; screen_id: string; position: number }[];
+  screens: SyncGroupMember[];
 }
 
 interface Playlist {
@@ -237,19 +244,87 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
   // Find which sync group a screen belongs to
   const getScreenGroup = (screenId: string) => syncGroups.find(g => g.screens.some(s => s.screen_id === screenId));
 
-  // Deploy handler
+  // ── OFFSET ENGINE: Compute bounding box & per-screen offsets ──
+  const computeOffsets = (group: SyncGroup) => {
+    // Assume 1920x1080 per screen (standard HD)
+    const SCREEN_W = 1920;
+    const SCREEN_H = 1080;
+    const sorted = [...group.screens].sort((a, b) => a.position - b.position);
+    const isHorizontal = group.orientation === "horizontal";
+
+    // Total bounding box with bezel compensation
+    let totalW = 0;
+    let totalH = 0;
+
+    if (isHorizontal) {
+      totalW = sorted.reduce((acc, m, idx) => {
+        const bezel = idx > 0 ? (m.bezel_compensation || 0) : 0;
+        return acc + SCREEN_W + bezel;
+      }, 0);
+      totalH = SCREEN_H;
+    } else {
+      totalW = SCREEN_W;
+      totalH = sorted.reduce((acc, m, idx) => {
+        const bezel = idx > 0 ? (m.bezel_compensation || 0) : 0;
+        return acc + SCREEN_H + bezel;
+      }, 0);
+    }
+
+    // Per-screen offset calculation:
+    // Offset = (ScreenPosition * Resolution) + (BezelGap * ScreenIndex)
+    const layouts: { screenId: string; layout: object }[] = [];
+    let cumulativeOffset = 0;
+
+    sorted.forEach((member, idx) => {
+      const bezel = idx > 0 ? (member.bezel_compensation || 0) : 0;
+      if (idx > 0) cumulativeOffset += bezel;
+
+      const offsetX = isHorizontal ? cumulativeOffset : 0;
+      const offsetY = isHorizontal ? 0 : cumulativeOffset;
+
+      layouts.push({
+        screenId: member.screen_id,
+        layout: {
+          offset_x: offsetX,
+          offset_y: offsetY,
+          viewport_width: SCREEN_W,
+          viewport_height: SCREEN_H,
+          total_width: totalW,
+          total_height: totalH,
+          bezel_offset: bezel,
+          position: idx,
+          total_screens: sorted.length,
+          orientation: group.orientation,
+        },
+      });
+
+      cumulativeOffset += isHorizontal ? SCREEN_W : SCREEN_H;
+    });
+
+    return layouts;
+  };
+
+  // Deploy handler — computes offsets and pushes to each screen
   const handleDeploy = async (groupId: string) => {
     const group = syncGroups.find(g => g.id === groupId);
     if (!group || !group.playlist_id || group.screens.length === 0) {
       toast.error("Assign a playlist and add screens first");
       return;
     }
-    const screenIds = group.screens.map(s => s.screen_id);
-    const { error } = await supabase
-      .from("screens")
-      .update({ current_playlist_id: group.playlist_id })
-      .in("id", screenIds);
-    if (error) { toast.error(error.message); return; }
+
+    // Compute offset layout for each screen
+    const layouts = computeOffsets(group);
+
+    // Push sync_layout + playlist to each screen in parallel
+    const updates = layouts.map(({ screenId, layout }) =>
+      supabase.from("screens").update({
+        current_playlist_id: group.playlist_id,
+        sync_layout: layout,
+      } as any).eq("id", screenId)
+    );
+    const results = await Promise.all(updates);
+    const failed = results.filter(r => r.error);
+    if (failed.length) { toast.error(failed[0].error!.message); return; }
 
     // Broadcast sync-start to all screens in the group
     await supabase.channel(`sync-deploy-${groupId}`).send({
@@ -258,7 +333,7 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
       payload: { group_id: groupId, playlist_id: group.playlist_id, timestamp: Date.now() },
     });
 
-    toast.success(`Deployed to ${screenIds.length} screen${screenIds.length !== 1 ? "s" : ""} simultaneously`);
+    toast.success(`Deployed offset layout to ${layouts.length} screen${layouts.length !== 1 ? "s" : ""}`);
   };
 
   // Build node data

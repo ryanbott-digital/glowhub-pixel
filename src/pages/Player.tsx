@@ -106,6 +106,13 @@ export default function Player() {
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
   const [playerSyncGroupId, setPlayerSyncGroupId] = useState<string | null>(null);
+  const [syncLayout, setSyncLayout] = useState<{
+    offset_x: number; offset_y: number;
+    viewport_width: number; viewport_height: number;
+    total_width: number; total_height: number;
+    bezel_offset: number; position: number;
+    total_screens: number; orientation: string;
+  } | null>(null);
 
   // ── BREAKING ALERT ──
   const [alertActive, setAlertActive] = useState(false);
@@ -663,7 +670,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -687,6 +694,7 @@ export default function Player() {
       if (screen.transition_type) setTransitionType(screen.transition_type);
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
+      if ((screen as any).sync_layout) setSyncLayout((screen as any).sync_layout);
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
@@ -960,6 +968,7 @@ export default function Player() {
           if (updated.transition_type) setTransitionType(updated.transition_type);
           if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
           if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
+          if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
         }
       )
       .subscribe();
@@ -1746,11 +1755,24 @@ export default function Player() {
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
   // Compute sync offset styles for multi-screen spanning
+  // Uses pixel-accurate sync_layout from the offset engine when available
   const syncMediaStyle: React.CSSProperties = {};
-  if (syncInfo && syncInfo.total > 1) {
+  if (syncLayout) {
+    // Pixel-accurate offset rendering using object-fit: none + transform
+    const { offset_x, offset_y, total_width, total_height } = syncLayout;
+    syncMediaStyle.width = `${total_width}px`;
+    syncMediaStyle.height = `${total_height}px`;
+    syncMediaStyle.maxWidth = "none";
+    syncMediaStyle.maxHeight = "none";
+    syncMediaStyle.objectFit = "cover";
+    syncMediaStyle.position = "absolute";
+    syncMediaStyle.top = "0";
+    syncMediaStyle.left = "0";
+    syncMediaStyle.transform = `translate(-${offset_x}px, -${offset_y}px)`;
+  } else if (syncInfo && syncInfo.total > 1) {
+    // Fallback: percentage-based offset (legacy, before Save Layout)
     const { position, total, orientation } = syncInfo;
     if (orientation === "horizontal") {
-      // Scale content to total width, offset by position
       syncMediaStyle.width = `${total * 100}%`;
       syncMediaStyle.height = "100%";
       syncMediaStyle.maxWidth = "none";
@@ -1772,7 +1794,7 @@ export default function Player() {
       syncMediaStyle.top = `-${position * 100}%`;
     }
   }
-  const mediaClassName = syncInfo && syncInfo.total > 1
+  const mediaClassName = (syncLayout || (syncInfo && syncInfo.total > 1))
     ? "absolute inset-0"
     : "max-w-full max-h-screen object-contain absolute inset-0 m-auto";
 
