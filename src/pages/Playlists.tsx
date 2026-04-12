@@ -70,8 +70,9 @@ export default function Playlists() {
     fetchPlaylists();
   };
 
-  const openSendDialog = () => {
+  const openSendDialog = (playlist: Playlist) => {
     if (!user) return;
+    setSendTargetPlaylist(playlist);
     supabase
       .from("screens")
       .select("id, name, status")
@@ -83,16 +84,16 @@ export default function Playlists() {
   };
 
   const sendToScreen = async (screenId: string) => {
-    if (!selectedPlaylist) return;
+    if (!sendTargetPlaylist) return;
     setSending(true);
     try {
       const { error } = await supabase
         .from("screens")
-        .update({ current_playlist_id: selectedPlaylist.id })
+        .update({ current_playlist_id: sendTargetPlaylist.id })
         .eq("id", screenId);
       if (error) throw error;
       const screen = pairedScreens.find((s) => s.id === screenId);
-      toast.success(`"${selectedPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
+      toast.success(`"${sendTargetPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
       setSendDialogOpen(false);
     } catch {
       toast.error("Failed to send playlist to screen");
