@@ -491,6 +491,91 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
             });
           })}
 
+          {/* ── BOUNDING BOX PREVIEW per sync group ── */}
+          {syncGroups.map(group => {
+            if (group.screens.length === 0) return null;
+            const positions = group.screens
+              .map(s => ({ ...s, pos: nodePositions[s.screen_id] }))
+              .filter(s => s.pos);
+            if (positions.length === 0) return null;
+
+            // Compute visual bounding box from node positions on canvas
+            const minX = Math.min(...positions.map(s => s.pos!.x));
+            const minY = Math.min(...positions.map(s => s.pos!.y));
+            const maxX = Math.max(...positions.map(s => s.pos!.x + NODE_WIDTH));
+            const maxY = Math.max(...positions.map(s => s.pos!.y + NODE_HEIGHT));
+            const PAD = 16;
+
+            // Compute real offsets from the offset engine
+            const offsets = computeOffsets(group);
+            const totalLayout = offsets[0]?.layout as any;
+            const totalW = totalLayout?.total_width || 0;
+            const totalH = totalLayout?.total_height || 0;
+
+            return (
+              <div key={`bbox-${group.id}`} className="absolute pointer-events-none z-[1]">
+                {/* Outer bounding box */}
+                <div
+                  className="absolute rounded-2xl"
+                  style={{
+                    left: minX - PAD,
+                    top: minY - PAD - 28,
+                    width: maxX - minX + PAD * 2,
+                    height: maxY - minY + PAD * 2 + 28,
+                    border: "1px solid hsla(180, 100%, 32%, 0.2)",
+                    background: "hsla(180, 100%, 32%, 0.03)",
+                  }}
+                >
+                  {/* Group label with total resolution */}
+                  <div
+                    className="absolute flex items-center gap-2"
+                    style={{ top: 6, left: 12 }}
+                  >
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-primary/70">
+                      {group.name}
+                    </span>
+                    <span className="text-[9px] font-mono tracking-wider text-primary/50 bg-primary/10 px-1.5 py-0.5 rounded">
+                      {totalW}×{totalH}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground tracking-wider">
+                      {((totalW * totalH) / 1_000_000).toFixed(1)}MP
+                    </span>
+                    <span className="text-[9px] text-muted-foreground">
+                      {group.orientation === "horizontal" ? "→" : "↓"} {group.screens.length} screens
+                    </span>
+                  </div>
+                </div>
+
+                {/* Per-screen offset labels */}
+                {offsets.map(({ screenId, layout }) => {
+                  const pos = nodePositions[screenId];
+                  if (!pos) return null;
+                  const l = layout as any;
+                  return (
+                    <div
+                      key={`offset-${screenId}`}
+                      className="absolute"
+                      style={{
+                        left: pos.x,
+                        top: pos.y + NODE_HEIGHT + 4,
+                        width: NODE_WIDTH,
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-1.5 py-1">
+                        <span className="text-[9px] font-mono text-primary/60 bg-primary/5 border border-primary/15 rounded px-1.5 py-0.5">
+                          offset: {l.offset_x},{l.offset_y}
+                        </span>
+                        <span className="text-[9px] font-mono text-muted-foreground/60 bg-muted/20 border border-border/20 rounded px-1.5 py-0.5">
+                          {l.viewport_width}×{l.viewport_height}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+
           {/* Screen Nodes */}
           {nodeData.map(node => (
             <ScreenNode
