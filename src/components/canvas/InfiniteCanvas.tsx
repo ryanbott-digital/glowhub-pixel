@@ -170,7 +170,39 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
     }
   }, [isPanning, draggingNode, pan, zoom, nodePositions]);
 
-  const handleMouseUp = useCallback(async () => {
+  // ── GRID HELPERS: auto-detect grid position from canvas coordinates ──
+  const detectGridPosition = (group: SyncGroup, _screenId: string, pos: { x: number; y: number }) => {
+    // Look at existing members' canvas positions to determine column/row
+    const existingPositions = group.screens.map(s => ({
+      ...s,
+      canvasPos: nodePositions[s.screen_id],
+    })).filter(s => s.canvasPos);
+
+    if (existingPositions.length === 0) return { col: 0, row: 0 };
+
+    // Find the reference point (top-left member)
+    const refX = Math.min(...existingPositions.map(s => s.canvasPos!.x));
+    const refY = Math.min(...existingPositions.map(s => s.canvasPos!.y));
+
+    // Calculate col/row based on canvas offset from reference
+    const col = Math.round((pos.x - refX) / (NODE_WIDTH + 4));
+    const row = Math.round((pos.y - refY) / (NODE_HEIGHT + 4));
+
+    return { col: Math.max(0, col), row: Math.max(0, row) };
+  };
+
+  const maybeUpgradeToGrid = async (group: SyncGroup, newPos: { col: number; row: number }) => {
+    // Check if the group now has screens in both multiple columns AND rows
+    const allCols = new Set(group.screens.map(s => s.grid_col ?? 0));
+    const allRows = new Set(group.screens.map(s => s.grid_row ?? 0));
+    allCols.add(newPos.col);
+    allRows.add(newPos.row);
+
+    if (allCols.size > 1 && allRows.size > 1 && group.orientation !== "grid") {
+      await supabase.from("sync_groups").update({ orientation: "grid" } as any).eq("id", group.id);
+    }
+  };
+
     if (draggingNode && snapIndicator) {
       const draggedPos = nodePositions[draggingNode];
       if (draggedPos) {
