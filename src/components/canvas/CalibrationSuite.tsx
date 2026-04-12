@@ -132,7 +132,7 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
         </DialogHeader>
 
         <Tabs defaultValue="pulse" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4 glass">
+          <TabsList className="grid w-full grid-cols-5 glass">
             <TabsTrigger value="pulse" className="text-xs gap-1.5">
               <ScanLine className="h-3.5 w-3.5" /> Pulse
             </TabsTrigger>
@@ -141,6 +141,9 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
             </TabsTrigger>
             <TabsTrigger value="color" className="text-xs gap-1.5">
               <Palette className="h-3.5 w-3.5" /> Color
+            </TabsTrigger>
+            <TabsTrigger value="resolution" className="text-xs gap-1.5">
+              <MonitorSmartphone className="h-3.5 w-3.5" /> Res
             </TabsTrigger>
             <TabsTrigger value="flash" className="text-xs gap-1.5">
               <Zap className="h-3.5 w-3.5" /> Flash
