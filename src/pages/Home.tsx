@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { SEOHead, GLOW_JSON_LD, FAQ_JSON_LD } from "@/components/SEOHead";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope, ArrowRight } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
 import StarField from "@/components/StarField";
