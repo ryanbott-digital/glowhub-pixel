@@ -306,12 +306,87 @@ export default function DownloadPage() {
           <div className="text-center space-y-4">
             <div className="relative inline-block">
               <GlowLogoImage className="h-16 mx-auto" />
-              <div className="absolute inset-0 bg-primary/10 blur-[20px] animate-pulse" />
+              <div className="absolute inset-0 bg-[#00E5FF]/10 blur-[20px] animate-pulse" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[0.08em] uppercase">
-              Access <span className="bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] bg-clip-text text-transparent">Unlocked</span>
+              System <span className="bg-gradient-to-r from-[#00E5FF] to-[hsl(220,80%,55%)] bg-clip-text text-transparent">Online</span>
             </h2>
-            <p className="text-muted-foreground text-sm">Your download links and setup code are ready.</p>
+            <p className="text-muted-foreground text-sm">Your Glow ecosystem is ready. Choose your weapon.</p>
+          </div>
+
+          {/* ── ECOSYSTEM CARDS ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* The Player */}
+            <div className="rounded-2xl p-6 space-y-4 text-center" style={{
+              background: "rgba(2, 6, 23, 0.7)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(0, 229, 255, 0.2)",
+              boxShadow: "0 0 30px rgba(0, 229, 255, 0.05), inset 0 1px 0 rgba(255,255,255,0.03)",
+            }}>
+              <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{
+                background: "linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(59, 130, 246, 0.1))",
+                border: "1px solid rgba(0, 229, 255, 0.25)",
+              }}>
+                <Monitor className="h-7 w-7 text-[#00E5FF]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#E2E8F0] tracking-wide">The Player</h3>
+                <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
+                  Deploy the APK on your TV hardware to ignite the canvas.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#00E5FF]/70">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                DISPLAY ENGINE
+              </div>
+            </div>
+
+            {/* The Admin */}
+            <div className="rounded-2xl p-6 space-y-4 text-center" style={{
+              background: "rgba(2, 6, 23, 0.7)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(0, 229, 255, 0.2)",
+              boxShadow: "0 0 30px rgba(0, 229, 255, 0.05), inset 0 1px 0 rgba(255,255,255,0.03)",
+            }}>
+              <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{
+                background: "linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(59, 130, 246, 0.1))",
+                border: "1px solid rgba(0, 229, 255, 0.25)",
+              }}>
+                <Smartphone className="h-7 w-7 text-[#00E5FF]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#E2E8F0] tracking-wide">The Admin</h3>
+                <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
+                  Open the Dashboard on mobile &amp; "Add to Home Screen" for pro control.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#00E5FF]/70">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                COMMAND CENTER
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Start Link */}
+          <div className="rounded-xl p-4 flex items-center justify-between" style={{
+            background: "rgba(2, 6, 23, 0.5)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(0, 229, 255, 0.13)",
+          }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(0, 229, 255, 0.1)" }}>
+                <Play className="h-4 w-4 text-[#00E5FF]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#E2E8F0]">Quick Start Guide</p>
+                <p className="text-[11px] text-[#94A3B8]">Get your first screen running in under 5 minutes</p>
+              </div>
+            </div>
+            <Link to="/download" className="text-[#00E5FF] hover:text-[#00E5FF]/80 transition-colors">
+              <ExternalLink className="h-4 w-4" />
+            </Link>
           </div>
 
           {/* Firestick Code Card */}
