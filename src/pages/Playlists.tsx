@@ -39,6 +39,8 @@ export default function Playlists() {
   const [sending, setSending] = useState(false);
   const [sendTargetPlaylist, setSendTargetPlaylist] = useState<Playlist | null>(null);
   const [sentPlaylistId, setSentPlaylistId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
