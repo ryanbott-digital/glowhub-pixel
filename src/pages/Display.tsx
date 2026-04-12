@@ -2,8 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
-import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
+import glowLogoPng from "@/assets/glow-text.png";
 import glowLogoPng from "@/assets/glow-text.png";
 
 interface PlaylistItem {
