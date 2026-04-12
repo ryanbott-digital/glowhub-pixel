@@ -290,6 +290,7 @@ const Home = () => {
   const ctaRef = useMagnetic();
   const location = useLocation();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const [isAnnual, setIsAnnual] = useState(false);
 
   // Smooth scroll to hash anchor (e.g. /home#contact)
   useEffect(() => {
@@ -715,8 +716,26 @@ const Home = () => {
           The industry's best 5-screen bundle for Firestick. Low-cost professional menu boards and retail displays — no proprietary hardware.
         </p>
         <p className="text-center text-sm text-[#64748B] italic mb-16 max-w-md mx-auto">
-          One flat fee. Whether you have 1 screen or 5, the price stays the same. That's the Glow promise.
+         One flat fee. Whether you have 1 screen or 5, the price stays the same. That's the Glow promise.
         </p>
+
+        {/* Annual / Monthly toggle */}
+        <div className="flex items-center justify-center gap-3 mb-16">
+          <span className={`text-sm font-medium transition-colors ${!isAnnual ? "text-[#E2E8F0]" : "text-[#64748B]"}`}>Monthly</span>
+          <button
+            onClick={() => setIsAnnual(!isAnnual)}
+            className={`relative w-14 h-7 rounded-full transition-colors duration-300 ${isAnnual ? "bg-[#00A3A3]" : "bg-[#1E293B]"}`}
+            aria-label="Toggle annual billing"
+          >
+            <span className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${isAnnual ? "translate-x-7" : "translate-x-0"}`} />
+          </button>
+          <span className={`text-sm font-medium transition-colors ${isAnnual ? "text-[#E2E8F0]" : "text-[#64748B]"}`}>Annual</span>
+          {isAnnual && (
+            <span className="ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#00A3A3]/15 text-[#00E5CC] border border-[#00A3A3]/25 animate-pulse">
+              Save 20%
+            </span>
+          )}
+        </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
 
@@ -737,25 +756,35 @@ const Home = () => {
                 <div className="absolute inset-0 rounded-[14px] border border-[#00A3A3]/20 animate-pulse pointer-events-none" />
 
                 <h3 className="text-xl font-semibold mb-1">The Pro Ecosystem</h3>
-                <p className="text-sm text-[#94A3B8] mb-4">5-Screen Bundle — Billed Monthly</p>
+                <p className="text-sm text-[#94A3B8] mb-4">{isAnnual ? "5-Screen Bundle — Billed Annually" : "5-Screen Bundle — Billed Monthly"}</p>
 
                 {/* Value comparison callout */}
                 <div className="rounded-xl bg-[#00A3A3]/[0.08] border border-[#00A3A3]/15 px-4 py-3 mb-6">
                   <p className="text-xs text-[#00E5CC] font-semibold tracking-wide uppercase mb-1">Value Comparison</p>
                   <p className="text-sm text-[#94A3B8]">
                     Legacy signage: <span className="line-through text-red-400/70">$20+ per screen</span> →
-                    Glow: <span className="text-[#00E5CC] font-bold">$1.80 per screen</span>
+                    Glow: <span className="text-[#00E5CC] font-bold">{isAnnual ? "$1.40" : "$1.80"} per screen</span>
                   </p>
                 </div>
 
                 <div className="text-5xl font-extrabold mb-2">
-                  $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+                  {isAnnual ? (
+                    <>
+                      <span className="line-through text-[#475569] text-3xl mr-2">$9</span>
+                      $7<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+                    </>
+                  ) : (
+                    <>$9<span className="text-lg font-normal text-[#94A3B8]">/mo</span></>
+                  )}
                 </div>
                 <p className="text-base font-bold text-[#00A3A3] mb-2">
                   Up to 5 Screens Included
                 </p>
                 <p className="text-xs text-[#64748B] mb-8">
-                  That's just <span className="text-[#00E5CC] font-semibold">$1.80 per screen</span>. Stop paying $20+ for legacy lag.
+                  {isAnnual
+                    ? <>That's just <span className="text-[#00E5CC] font-semibold">$1.40 per screen</span>. Billed as $84/year.</>
+                    : <>That's just <span className="text-[#00E5CC] font-semibold">$1.80 per screen</span>. Stop paying $20+ for legacy lag.</>
+                  }
                 </p>
 
                 <ul className="space-y-3.5 mb-8 flex-1">
