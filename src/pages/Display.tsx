@@ -17,6 +17,7 @@ interface PlaylistItem {
   };
 }
 
+const CACHE_KEY = "glowhub_player_cache";
 const CROSSFADE_MS = 800;
 
 export default function Display() {
