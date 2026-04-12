@@ -39,6 +39,8 @@ export default function Playlists() {
   const [sending, setSending] = useState(false);
   const [sendTargetPlaylist, setSendTargetPlaylist] = useState<Playlist | null>(null);
   const [sentPlaylistId, setSentPlaylistId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
@@ -69,6 +71,20 @@ export default function Playlists() {
     if (selectedPlaylist?.id === id) setSelectedPlaylist(null);
     toast.success("Playlist deleted");
     fetchPlaylists();
+  };
+
+  const startRename = (pl: Playlist, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenamingId(pl.id);
+    setRenameValue(pl.title);
+  };
+
+  const commitRename = async () => {
+    if (!renamingId || !renameValue.trim()) { setRenamingId(null); return; }
+    const { error } = await supabase.from("playlists").update({ title: renameValue.trim() }).eq("id", renamingId);
+    if (error) { toast.error(error.message); } else { toast.success("Playlist renamed"); fetchPlaylists(); }
+    if (selectedPlaylist?.id === renamingId) setSelectedPlaylist({ ...selectedPlaylist, title: renameValue.trim() });
+    setRenamingId(null);
   };
 
   const openSendDialog = (playlist: Playlist) => {
@@ -150,7 +166,25 @@ export default function Playlists() {
                   ) : (
                     <ListVideo className="h-4 w-4 text-primary shrink-0" />
                   )}
-                  <span className={`font-medium truncate ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}>{pl.title}</span>
+                  {renamingId === pl.id ? (
+                    <Input
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={commitRename}
+                      onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenamingId(null); }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-6 text-sm py-0 px-1 bg-background/50 border-primary/30"
+                    />
+                  ) : (
+                    <span
+                      className={`font-medium truncate cursor-text ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
+                      onDoubleClick={(e) => startRename(pl, e)}
+                      onClick={(e) => { e.stopPropagation(); startRename(pl, e); }}
+                    >
+                      {pl.title}
+                    </span>
+                  )}
                   {isQuickSend && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
                   )}
