@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ListVideo, Trash2, Send, Monitor, Loader2 } from "lucide-react";
+import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -70,6 +70,35 @@ export default function Playlists() {
     await supabase.from("playlists").delete().eq("id", id);
     if (selectedPlaylist?.id === id) setSelectedPlaylist(null);
     toast.success("Playlist deleted");
+    fetchPlaylists();
+  };
+
+  const duplicatePlaylist = async (pl: Playlist) => {
+    if (!user) return;
+    const newTitle = `${pl.title} (Copy)`;
+    const { data: newPl, error } = await supabase
+      .from("playlists")
+      .insert({ user_id: user.id, title: newTitle })
+      .select("*")
+      .single();
+    if (error || !newPl) { toast.error("Failed to duplicate playlist"); return; }
+    // Copy all items
+    const { data: items } = await supabase
+      .from("playlist_items")
+      .select("media_id, position, override_duration")
+      .eq("playlist_id", pl.id)
+      .order("position");
+    if (items && items.length > 0) {
+      await supabase.from("playlist_items").insert(
+        items.map((item) => ({
+          playlist_id: newPl.id,
+          media_id: item.media_id,
+          position: item.position,
+          override_duration: item.override_duration,
+        }))
+      );
+    }
+    toast.success("Playlist duplicated!");
     fetchPlaylists();
   };
 
@@ -190,6 +219,13 @@ export default function Playlists() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); duplicatePlaylist(pl); }}
+                    title="Duplicate playlist"
+                    className="p-1 rounded-md hover:bg-primary/10 transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                  </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
                     title="Send to screen"
