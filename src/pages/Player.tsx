@@ -684,7 +684,7 @@ export default function Player() {
         return;
       }
 
-      if (screen.status === "pending" || screen.pairing_code) {
+      if (screen.status === "pending") {
         // Still pending — show pairing code
         setPairingCode(screen.pairing_code);
         setLoading(false);
