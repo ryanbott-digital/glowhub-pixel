@@ -86,7 +86,7 @@ export function TimelineBlock({
       <button
         {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 z-10 p-0.5 rounded bg-black/50 cursor-grab active:cursor-grabbing touch-none opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1 left-1 z-10 p-0.5 rounded bg-black/50 cursor-grab active:cursor-grabbing touch-none opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
       >
         <GripVertical className="h-3 w-3 text-white/80" />
       </button>
@@ -122,7 +122,7 @@ export function TimelineBlock({
       {/* Delete button */}
       <button
         onClick={(e) => { e.stopPropagation(); onRemove(id); }}
-        className="absolute top-1 right-1 z-10 p-0.5 rounded bg-black/50 hover:bg-destructive/80 opacity-0 group-hover:opacity-100 transition-all"
+        className="absolute top-1 right-1 z-10 p-0.5 rounded bg-black/50 hover:bg-destructive/80 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
       >
         <Trash2 className="h-2.5 w-2.5 text-white" />
       </button>
