@@ -137,6 +137,7 @@ export default function DownloadPage() {
   const [flashActive, setFlashActive] = useState(false);
   const { canvasRef, fire: fireConfetti } = useConfetti();
   const [consented, setConsented] = useState(false);
+  const [bootPhase, setBootPhase] = useState(0); // 0=hidden, 1=booting, 2=ready
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -144,17 +145,34 @@ export default function DownloadPage() {
     if (!isValidEmail || !consented || submitting) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("leads").insert({ email: email.trim(), consented_at: new Date().toISOString() });
+      const leadId = crypto.randomUUID();
+      const { error } = await supabase.from("leads").insert({ id: leadId, email: email.trim(), consented_at: new Date().toISOString() });
       const isReturning = error?.code === "23505";
       if (error && !isReturning) throw error;
+
+      // Send welcome email (fire-and-forget)
+      if (!isReturning) {
+        supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "glow-welcome",
+            recipientEmail: email.trim(),
+            idempotencyKey: `glow-welcome-${leadId}`,
+          },
+        }).catch(() => {}); // don't block UX on email failure
+      }
+
       setFlashActive(true);
       setTimeout(() => {
-        setUnlocked(true);
         setFlashActive(false);
-        fireConfetti();
-        if (isReturning) {
-          toast("Welcome back! 👋", { description: "Good to see you again." });
-        }
+        setBootPhase(1); // show "System Booting"
+        setTimeout(() => {
+          setBootPhase(2); // show "ready" state
+          setUnlocked(true);
+          fireConfetti();
+          if (isReturning) {
+            toast("Welcome back! 👋", { description: "Good to see you again." });
+          }
+        }, 2400);
       }, 400);
     } catch {
       toast.error("Something went wrong. Please try again.");
