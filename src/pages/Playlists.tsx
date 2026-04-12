@@ -111,9 +111,8 @@ function SortablePlaylistCard({
             />
           ) : (
             <span
-              className={`font-medium truncate block ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
+              className={`font-medium truncate block ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
               onDoubleClick={(e) => !bulkMode && onStartRename(pl, e)}
-              onClick={(e) => { if (!bulkMode) { e.stopPropagation(); onStartRename(pl, e); } }}
             >
               {pl.title}
             </span>
