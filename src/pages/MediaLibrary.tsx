@@ -517,8 +517,7 @@ export default function MediaLibrary() {
                    longPressRef.current = setTimeout(() => {
                     longPressFired.current = true;
                     if (!isSelecting) {
-                      // Haptic feedback on long-press rename
-                      if (navigator.vibrate) navigator.vibrate(15);
+                      hapticMedium();
                       setRenamingId(item.id);
                       setRenameValue(item.name);
                     }
