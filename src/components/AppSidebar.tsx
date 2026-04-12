@@ -102,6 +102,7 @@ export function AppSidebar() {
                               href={item.url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              onClick={() => { if (isMobile) setOpenMobile(false); }}
                               className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-sidebar-accent/50 transition-all duration-200 ${
                                 location.pathname === item.url ? "bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]" : ""
                               }`}
