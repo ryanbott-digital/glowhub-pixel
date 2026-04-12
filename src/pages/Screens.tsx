@@ -367,6 +367,8 @@ export default function Screens() {
 
   return (
     <div className="space-y-6 animate-fade-in stagger-in">
+      {/* Fleet Alert Bar */}
+      <FleetAlertBar onFilterOffline={() => setFilterOfflineOnly(true)} />
       <BroadcastSuccessModal open={broadcastModalOpen} onOpenChange={setBroadcastModalOpen} screenName={broadcastScreenName} />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
