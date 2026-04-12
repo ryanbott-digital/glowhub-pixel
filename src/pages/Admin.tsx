@@ -681,19 +681,36 @@ export default function Admin() {
                 </div>
 
                 {selectedUser.stripe_customer_id ? (
-                  <Button
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => handleAddScreenPack(selectedUser.id)}
-                    disabled={addingPack}
-                  >
-                    {addingPack ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-                    Add Screen Pack (+5 screens, $9 charge)
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="w-full gap-2"
+                        disabled={addingPack}
+                      >
+                        {addingPack ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Plus className="h-4 w-4" />
+                        )}
+                        Add Screen Pack (+5 screens, $9 charge)
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Screen Pack Purchase</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will charge <span className="font-semibold text-foreground">$9</span> to {selectedUser.email}'s Stripe account and add <span className="font-semibold text-foreground">5 additional screens</span> to their capacity. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleAddScreenPack(selectedUser.id)}>
+                          Confirm &amp; Charge $9
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 ) : (
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-muted-foreground">
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-500 inline mr-1" />
