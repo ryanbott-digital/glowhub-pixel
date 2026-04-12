@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ScreenNode, type ScreenNodeData } from "./ScreenNode";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { SyncHealthPanel } from "./SyncHealthPanel";
+import { CalibrationSuite } from "./CalibrationSuite";
 
 interface Screen {
   id: string;
@@ -48,6 +49,7 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [calibrateGroupId, setCalibrateGroupId] = useState<string | null>(null);
 
   // Build node positions from sync group data or free-floating
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
@@ -297,6 +299,7 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
           toast.success("Playlist assigned");
           onRefresh();
         }}
+        onCalibrate={(groupId) => setCalibrateGroupId(groupId)}
         selectedGroup={selectedGroup}
         onSelectGroup={setSelectedGroup}
       />
@@ -431,6 +434,21 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
           100% { opacity: 1; }
         }
       `}</style>
+
+      {/* Calibration Suite Dialog */}
+      {calibrateGroupId && (() => {
+        const calibGroup = syncGroups.find(g => g.id === calibrateGroupId);
+        if (!calibGroup) return null;
+        return (
+          <CalibrationSuite
+            open={!!calibrateGroupId}
+            onOpenChange={(open) => { if (!open) setCalibrateGroupId(null); }}
+            group={calibGroup}
+            screens={screens}
+            onRefresh={onRefresh}
+          />
+        );
+      })()}
     </div>
   );
 }
