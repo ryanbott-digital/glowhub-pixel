@@ -135,6 +135,8 @@ export default function Admin() {
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
+  const [tierFilter, setTierFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Admin: remote restart a screen via broadcast
   const handleAdminRestart = async (screenId: string, screenName: string) => {
@@ -434,14 +436,47 @@ export default function Admin() {
             <p className="text-muted-foreground text-sm">No users found</p>
           ) : (
             <div className="space-y-3">
-              <Input
-                placeholder="Search by email…"
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                className="max-w-sm"
-              />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  placeholder="Search by email…"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="max-w-sm"
+                />
+                <Select value={tierFilter} onValueChange={setTierFilter}>
+                  <SelectTrigger className="w-full sm:w-[150px]">
+                    <SelectValue placeholder="All Tiers" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tiers</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[170px]">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="has-online">Has Online Screen</SelectItem>
+                    <SelectItem value="all-offline">All Screens Offline</SelectItem>
+                    <SelectItem value="no-screens">No Screens</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {users
                 .filter((u) => !userSearch || u.email.toLowerCase().includes(userSearch.toLowerCase()))
+                .filter((u) => tierFilter === "all" || u.subscription_tier === tierFilter)
+                .filter((u) => {
+                  if (statusFilter === "all") return true;
+                  if (statusFilter === "no-screens") return u.screens.length === 0;
+                  if (statusFilter === "has-online") return u.screens.some((s) => isOnline(s.last_ping));
+                  if (statusFilter === "all-offline") return u.screens.length > 0 && u.screens.every((s) => !isOnline(s.last_ping));
+                  return true;
+                })
                 .map((user) => (
                 <div
                   key={user.id}
