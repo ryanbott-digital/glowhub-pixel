@@ -17,25 +17,71 @@ interface PlaylistItem {
   };
 }
 
-const CACHE_KEY = "glowhub_player_cache";
+const CROSSFADE_MS = 800;
 
 export default function Display() {
   const { screenId } = useParams<{ screenId: string }>();
   const [items, setItems] = useState<PlaylistItem[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showWatermark, setShowWatermark] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Double-buffer crossfade state
+  const [layerA, setLayerA] = useState<PlaylistItem | null>(null);
+  const [layerB, setLayerB] = useState<PlaylistItem | null>(null);
+  const [activeLayer, setActiveLayer] = useState<"A" | "B">("A");
+
+  const currentIndexRef = useRef(0);
+  const itemsRef = useRef<PlaylistItem[]>([]);
+  const videoRefA = useRef<HTMLVideoElement>(null);
+  const videoRefB = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const currentPlaylistIdRef = useRef<string | null>(null);
+
+  const getPublicUrl = useCallback((path: string) => {
+    const { data } = supabase.storage.from("signage-content").getPublicUrl(path);
+    return data.publicUrl;
+  }, []);
 
   const showSyncIndicator = useCallback(() => {
     setSyncing(true);
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
     syncTimerRef.current = setTimeout(() => setSyncing(false), 3000);
   }, []);
+
+  // Advance to next item with crossfade
+  const advanceToNext = useCallback(() => {
+    const allItems = itemsRef.current;
+    if (allItems.length <= 1) return;
+
+    const nextIndex = (currentIndexRef.current + 1) % allItems.length;
+    currentIndexRef.current = nextIndex;
+    const nextItem = allItems[nextIndex];
+
+    // Load next item into the inactive layer, then flip
+    setActiveLayer((prev) => {
+      if (prev === "A") {
+        setLayerB(nextItem);
+        return "B";
+      } else {
+        setLayerA(nextItem);
+        return "A";
+      }
+    });
+  }, []);
+
+  // Schedule advancement for the current item
+  const scheduleNext = useCallback((item: PlaylistItem, allItems: PlaylistItem[]) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (allItems.length <= 1) return; // single item doesn't advance
+
+    if (item.media.type === "image") {
+      const duration = (item.override_duration || 10) * 1000;
+      timerRef.current = setTimeout(advanceToNext, duration);
+    }
+    // Videos advance via onEnded
+  }, [advanceToNext]);
 
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
@@ -46,8 +92,13 @@ export default function Display() {
 
     if (data && data.length > 0) {
       const mapped = data as unknown as PlaylistItem[];
+      itemsRef.current = mapped;
       setItems(mapped);
-      setCurrentIndex(0);
+      currentIndexRef.current = 0;
+      // Set first item into layer A
+      setLayerA(mapped[0]);
+      setLayerB(null);
+      setActiveLayer("A");
       try {
         localStorage.setItem(CACHE_KEY + "_" + screenId, JSON.stringify(mapped));
       } catch {}
@@ -55,6 +106,19 @@ export default function Display() {
     currentPlaylistIdRef.current = playlistId;
     setLoading(false);
   }, [screenId]);
+
+  // When active layer changes, schedule next advancement
+  useEffect(() => {
+    const allItems = itemsRef.current;
+    if (allItems.length === 0) return;
+    const currentItem = allItems[currentIndexRef.current];
+    if (currentItem) {
+      scheduleNext(currentItem, allItems);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [activeLayer, scheduleNext]);
 
   // Initial load & realtime subscription
   useEffect(() => {
@@ -70,12 +134,15 @@ export default function Display() {
       if (screen?.current_playlist_id) {
         fetchPlaylist(screen.current_playlist_id);
       } else {
-        // Try cache
         try {
           const cached = localStorage.getItem(CACHE_KEY + "_" + screenId);
           if (cached) {
-            setItems(JSON.parse(cached));
-            setCurrentIndex(0);
+            const parsed = JSON.parse(cached) as PlaylistItem[];
+            itemsRef.current = parsed;
+            setItems(parsed);
+            currentIndexRef.current = 0;
+            setLayerA(parsed[0]);
+            setActiveLayer("A");
           }
         } catch {}
         setLoading(false);
@@ -84,12 +151,10 @@ export default function Display() {
 
     loadScreen();
 
-    // Check watermark status
     supabase.functions.invoke("check-watermark", { body: { screen_id: screenId } })
       .then(({ data }) => { if (data?.show) setShowWatermark(true); else setShowWatermark(false); })
       .catch(() => {});
 
-    // Realtime: screen changes (new playlist assigned)
     const screenChannel = supabase
       .channel(`screen-${screenId}`)
       .on(
@@ -105,7 +170,6 @@ export default function Display() {
       )
       .subscribe();
 
-    // Realtime: playlist_items changes (items added/removed/reordered)
     const itemsChannel = supabase
       .channel(`playlist-items-${screenId}`)
       .on(
@@ -126,33 +190,39 @@ export default function Display() {
     };
   }, [screenId, fetchPlaylist, showSyncIndicator]);
 
-  // Playback logic
-  useEffect(() => {
-    if (items.length === 0) return;
-    const item = items[currentIndex];
-    if (!item) return;
+  const handleVideoEnded = useCallback(() => {
+    if (itemsRef.current.length > 1) {
+      advanceToNext();
+    }
+  }, [advanceToNext]);
 
-    if (timerRef.current) clearTimeout(timerRef.current);
+  const renderMedia = (item: PlaylistItem | null, ref: React.RefObject<HTMLVideoElement>, isActive: boolean) => {
+    if (!item) return null;
+    const url = getPublicUrl(item.media.storage_path);
 
     if (item.media.type === "image") {
-      // Single image → stay forever; multiple items → advance after duration
-      if (items.length > 1) {
-        const duration = (item.override_duration || 10) * 1000;
-        timerRef.current = setTimeout(() => {
-          setCurrentIndex((prev) => (prev + 1) % items.length);
-        }, duration);
-      }
+      return (
+        <img
+          key={item.id}
+          src={url}
+          alt=""
+          className="absolute inset-0 w-full h-full object-contain"
+        />
+      );
     }
-    // Video advancement is handled by onEnded (single video loops via loop attr)
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [currentIndex, items]);
-
-  const getPublicUrl = (path: string) => {
-    const { data } = supabase.storage.from("signage-content").getPublicUrl(path);
-    return data.publicUrl;
+    return (
+      <video
+        key={item.id}
+        ref={ref}
+        src={url}
+        autoPlay={isActive}
+        muted
+        playsInline
+        loop={itemsRef.current.length === 1}
+        className="absolute inset-0 w-full h-full object-contain"
+        onEnded={handleVideoEnded}
+      />
+    );
   };
 
   if (loading) {
@@ -175,31 +245,32 @@ export default function Display() {
     );
   }
 
-  const currentItem = items[currentIndex];
-  const url = getPublicUrl(currentItem.media.storage_path);
-
   return (
-    <div className="min-h-screen w-full bg-foreground flex items-center justify-center overflow-hidden">
-      {currentItem.media.type === "image" ? (
-        <img
-          key={currentItem.id}
-          src={url}
-          alt=""
-          className="max-w-full max-h-screen object-contain"
-          style={{ animation: "fadeIn 0.5s ease-in" }}
-        />
-      ) : (
-        <video
-          key={currentItem.id}
-          ref={videoRef}
-          src={url}
-          autoPlay
-          muted
-          loop={items.length === 1}
-          className="max-w-full max-h-screen object-contain"
-          onEnded={items.length > 1 ? () => setCurrentIndex((prev) => (prev + 1) % items.length) : undefined}
-        />
-      )}
+    <div className="min-h-screen w-full bg-foreground flex items-center justify-center overflow-hidden relative">
+      {/* Layer A */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          opacity: activeLayer === "A" ? 1 : 0,
+          transition: `opacity ${CROSSFADE_MS}ms ease-in-out`,
+          zIndex: activeLayer === "A" ? 2 : 1,
+        }}
+      >
+        {renderMedia(layerA, videoRefA, activeLayer === "A")}
+      </div>
+
+      {/* Layer B */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          opacity: activeLayer === "B" ? 1 : 0,
+          transition: `opacity ${CROSSFADE_MS}ms ease-in-out`,
+          zIndex: activeLayer === "B" ? 2 : 1,
+        }}
+      >
+        {renderMedia(layerB, videoRefB, activeLayer === "B")}
+      </div>
+
       {showWatermark && (
         <a href="https://glowhub-pixel.lovable.app/home" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 hover:opacity-70 transition-opacity select-none no-underline">
           <img src={glowLogoPng} alt="" className="h-3 w-auto" />
@@ -207,7 +278,6 @@ export default function Display() {
           <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
         </a>
       )}
-      {/* Sync indicator */}
       {syncing && (
         <div
           className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-lg"
@@ -230,7 +300,6 @@ export default function Display() {
         </div>
       )}
       <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes syncSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes syncPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
       `}</style>
