@@ -1,28 +1,63 @@
 
 
-# Add Kiosk Mode Section to Settings Page
+## Admin User Detail Panel
 
-## What changes
+### Overview
+Build a clickable user detail view in the Admin page that shows comprehensive information about each user: their screens (with online/offline status and health), screen packs, billing info, and the ability to add screens on their behalf (charging via Stripe).
 
-Add a new "Kiosk Mode" section to `src/pages/Settings.tsx`, placed between the "Pro Widget Defaults" section and the "Danger Zone" section. This section provides clear step-by-step instructions for Android/Fire TV users to enable the permissions needed for full kiosk operation.
+### Current State
+- Admin page lists users with email, join date, tier badge, and a tier selector
+- No per-user drill-down exists
+- Screen data (`screens` table) has `user_id`, `status`, `last_ping`, `name`, `last_screenshot_url`
+- Screen packs tracked via `profiles.screen_packs`
+- Stripe customer ID stored in `profiles.stripe_customer_id`
+- Existing `admin-users` edge function returns basic user/profile data (GET) and updates tiers (POST)
 
-## Content
+### Plan
 
-The section will include:
+**1. Expand the `admin-users` edge function (GET response)**
 
-1. **"Display Over Other Apps" permission** — explains why it's needed (for Hype Triggers and Takeovers to overlay) and provides an `intent://` deep link button that opens the Android overlay settings directly on the device.
+Add per-user data to the response:
+- Query `screens` table for each user: id, name, status, last_ping, last_screenshot_url
+- Include `screen_packs` and `stripe_customer_id` from profiles
+- Return these fields alongside existing user data
 
-2. **"Pin App to Screen" (Screen Pinning)** — instructions to enable screen pinning in Android Settings > Security, then pin GlowHub so users can't exit without a PIN.
+**2. Create an admin action: add screen pack for a user**
 
-3. **"Disable System Navigation"** — guidance on using Android's Device Owner / fully managed mode (`startLockTask()`) for enterprise deployments where the device should be locked to GlowHub permanently.
+Add a new POST action to `admin-users` (e.g. `action: "add_screen_pack"`) that:
+- Takes `user_id` and uses the service role to look up their `stripe_customer_id`
+- Creates a Stripe invoice with the $9 screen pack line item (using `price_1TLWS8JjPm8usCNRdXsbRfoM`) and auto-finalizes + charges it
+- On success, increments `screen_packs` in the profiles table
+- This charges the user's payment method on file via Stripe (invoice approach)
 
-4. **"Auto-Start on Boot"** — a note that this is configured per-screen on the Screens page (linking to the existing `launch_on_boot` toggle), keeping settings consolidated.
+**3. Build the User Detail Dialog in `Admin.tsx`**
 
-Each item will use the existing `SettingRow` component pattern with descriptive text and action buttons where applicable.
+When clicking a user row, open a dialog/sheet showing:
 
-## Technical details
+- **User Info**: email, joined date, tier, stripe customer ID status
+- **Screens Section**: table listing all their screens with:
+  - Name
+  - Online/Offline status (green/red dot based on last_ping > 90s ago)
+  - Last seen timestamp
+  - Screenshot thumbnail (if available)
+  - Count summary: "3 of 5 screens used (0 packs)"
+- **Billing Section**:
+  - Stripe customer status (linked/not linked)
+  - Link to add a screen pack ($9) — triggers the invoice via the edge function
+  - Current screen capacity breakdown
+- **Health Alerts**: flag screens offline > 5 minutes
 
-- **File modified**: `src/pages/Settings.tsx`
-- Add `Smartphone`, `Lock`, `ExternalLink` to the lucide imports
-- Add a new glassmorphism card section with a `Lock` icon header titled "Kiosk Mode"
-- Deep link button uses `intent://` URI scheme: `intent://settings/action_manage_overlay_permission#Intent;scheme=android.settings;end` — this opens the correct
+**4. Files Changed**
+
+| File | Change |
+|------|--------|
+| `supabase/functions/admin-users/index.ts` | Add screens + screen_packs + stripe_customer_id to GET response; add "add_screen_pack" POST action with Stripe invoice |
+| `src/pages/Admin.tsx` | Add user detail dialog with screens list, billing info, and "Add Screen Pack" button; update `AdminUser` interface |
+
+### Technical Notes
+
+- The Stripe invoice approach (`stripe.invoices.create` + `stripe.invoices.pay`) charges the customer's default payment method without requiring a checkout redirect
+- If the user has no payment method on file, the admin will see an error and can inform the user to add one via the billing portal
+- Online/offline detection reuses the same 90-second threshold as the main app
+- No database schema changes needed -- all data already exists
+
