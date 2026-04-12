@@ -131,6 +131,47 @@ export default function Admin() {
   // User detail sheet
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [addingPack, setAddingPack] = useState(false);
+  const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
+
+  // Admin: remote restart a screen via broadcast
+  const handleAdminRestart = async (screenId: string, screenName: string) => {
+    setScreenCommandLoading(screenId);
+    try {
+      const channel = supabase.channel(`remote-refresh-${screenId}`);
+      await channel.subscribe();
+      await channel.send({ type: "broadcast", event: "remote-refresh", payload: {} });
+      supabase.removeChannel(channel);
+      toast.success(`Restart signal sent to "${screenName}"`);
+    } catch {
+      toast.error("Failed to send restart signal");
+    }
+    setTimeout(() => setScreenCommandLoading(null), 2000);
+  };
+
+  // Admin: unpair a screen via edge function
+  const handleAdminUnpair = async (screenId: string, screenName: string) => {
+    if (!confirm(`Unpair "${screenName}"? This will disconnect the device and clear its data.`)) return;
+    setScreenCommandLoading(screenId);
+    try {
+      const { error } = await supabase.functions.invoke("admin-screen-command", {
+        body: { action: "unpair", screen_id: screenId },
+      });
+      if (error) throw error;
+      toast.success(`"${screenName}" has been unpaired`);
+      // Update local state
+      if (selectedUser) {
+        setSelectedUser({
+          ...selectedUser,
+          screens: selectedUser.screens.map(s =>
+            s.id === screenId ? { ...s, status: "offline", last_ping: null, last_screenshot_url: null } : s
+          ),
+        });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to unpair screen");
+    }
+    setScreenCommandLoading(null);
+  };
 
   // Redirect non-admins
   useEffect(() => {
