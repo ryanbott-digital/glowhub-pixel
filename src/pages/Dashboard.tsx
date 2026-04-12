@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { isProTier } from "@/lib/subscription";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -14,6 +14,7 @@ import { ProGuard } from "@/components/ProGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 export default function Dashboard() {
   const { user } = useAuth();
