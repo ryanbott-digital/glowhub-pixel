@@ -151,16 +151,16 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
 
   return (
     <div className="glass glass-spotlight rounded-2xl border border-white/[0.06]">
-      <div className="flex flex-col space-y-1.5 p-6 pb-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-semibold leading-none tracking-tight text-foreground">{playlistTitle}</h3>
-          <div className="flex items-center gap-3">
+      <div className="flex flex-col space-y-1.5 p-4 sm:p-6 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h3 className="text-lg sm:text-2xl font-semibold leading-none tracking-tight text-foreground truncate">{playlistTitle}</h3>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               <span className="font-mono tabular-nums">{formatTime(totalSeconds)}</span>
               <span>· {items.length} items</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground border-l border-border pl-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground sm:border-l sm:border-border sm:pl-3">
               <Settings2 className="h-3 w-3" />
               <span className="whitespace-nowrap">Default</span>
               <Input
@@ -183,7 +183,8 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
                 title="Apply default duration to all images"
               >
                 <CheckCheck className="h-3 w-3" />
-                Apply to all
+                <span className="hidden sm:inline">Apply to all</span>
+                <span className="sm:hidden">All</span>
               </Button>
             </div>
           </div>
