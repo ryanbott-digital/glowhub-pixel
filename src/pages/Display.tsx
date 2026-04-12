@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
 import glowLogoPng from "@/assets/glow-text.png";
-import glowLogoPng from "@/assets/glow-text.png";
 
 interface PlaylistItem {
   id: string;
