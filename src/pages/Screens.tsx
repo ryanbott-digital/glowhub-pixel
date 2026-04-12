@@ -297,6 +297,7 @@ export default function Screens() {
     const screen = screens.find((s) => s.id === screenId);
     if (!screen) return;
     if (screen.group_id === newGroupId) return;
+    hapticSuccess();
 
     // Optimistic update
     setScreens((prev) =>
