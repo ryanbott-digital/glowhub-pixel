@@ -135,6 +135,8 @@ export default function Admin() {
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
+  const [tierFilter, setTierFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Admin: remote restart a screen via broadcast
   const handleAdminRestart = async (screenId: string, screenName: string) => {
