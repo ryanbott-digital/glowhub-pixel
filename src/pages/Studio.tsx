@@ -486,12 +486,14 @@ export default function Studio() {
 
   /* ───── sidebar drag helpers ───── */
   const handleWidgetDragStart = (e: React.DragEvent, w: WidgetDef) => {
+    hapticMedium();
     e.dataTransfer.setData("widget-type", w.type);
     e.dataTransfer.setData("widget-pro", String(w.pro));
     e.dataTransfer.effectAllowed = "copy";
   };
 
   const handleMediaDragStart = (e: React.DragEvent, item: { name: string; storage_path: string; type: string }) => {
+    hapticMedium();
     const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
     e.dataTransfer.setData("media-url", publicUrl);
     e.dataTransfer.setData("media-name", item.name);
@@ -630,9 +632,10 @@ export default function Studio() {
   };
 
   /* ───── layer reorder ───── */
-  const handleLayerDragStart = (idx: number) => setLayerDragIdx(idx);
+  const handleLayerDragStart = (idx: number) => { hapticLight(); setLayerDragIdx(idx); };
   const handleLayerDrop = (targetIdx: number) => {
     if (layerDragIdx === null || layerDragIdx === targetIdx) { setLayerDragIdx(null); return; }
+    hapticSuccess();
     pushHistory(elements);
     setElements((prev) => {
       const next = [...prev];
@@ -1037,6 +1040,7 @@ export default function Studio() {
                       setGuides(result.guides);
                     }}
                     onDragStop={(e, d) => {
+                      hapticSuccess();
                       let finalX = d.x;
                       let finalY = d.y;
                       if (snapToGrid) {
@@ -1054,6 +1058,7 @@ export default function Studio() {
                       setGuides([]);
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
+                      hapticSuccess();
                       pushHistory(elements);
                       let newW = parseInt(ref.style.width);
                       let newH = parseInt(ref.style.height);
@@ -1070,6 +1075,7 @@ export default function Studio() {
                       } : x));
                     }}
                     onMouseDown={(e: any) => {
+                      hapticLight();
                       e.stopPropagation();
                       setSelectedId(el.id);
                     }}
