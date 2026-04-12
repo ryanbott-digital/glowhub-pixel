@@ -14,6 +14,7 @@ import { useVersionCheck } from "@/hooks/use-version-check";
 import { ScreenSaver } from "@/components/ScreenSaver";
 import { CinematicSplash } from "@/components/CinematicSplash";
 import { motion, AnimatePresence } from "framer-motion";
+import { CalibrationOverlay } from "@/components/canvas/CalibrationOverlay";
 
 interface PlaylistItem {
   id: string;
@@ -104,6 +105,7 @@ export default function Player() {
 
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
+  const [playerSyncGroupId, setPlayerSyncGroupId] = useState<string | null>(null);
 
   // ── BREAKING ALERT ──
   const [alertActive, setAlertActive] = useState(false);
@@ -821,7 +823,8 @@ export default function Player() {
         .select("sync_group_id, position")
         .eq("screen_id", screenId)
         .maybeSingle();
-      if (!membership) { setSyncInfo(null); return; }
+      if (!membership) { setSyncInfo(null); setPlayerSyncGroupId(null); return; }
+      setPlayerSyncGroupId(membership.sync_group_id);
 
       const [groupRes, membersRes] = await Promise.all([
         supabase.from("sync_groups").select("orientation, playlist_id").eq("id", membership.sync_group_id).single(),
