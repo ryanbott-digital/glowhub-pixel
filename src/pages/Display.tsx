@@ -27,8 +27,11 @@ export default function Display() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showWatermark, setShowWatermark] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const currentPlaylistIdRef = useRef<string | null>(null);
 
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
