@@ -91,8 +91,8 @@ export default function Display() {
       .then(({ data }) => { if (data?.show) setShowWatermark(true); else setShowWatermark(false); })
       .catch(() => {});
 
-    // Realtime subscription
-    const channel = supabase
+    // Realtime: screen changes (new playlist assigned)
+    const screenChannel = supabase
       .channel(`screen-${screenId}`)
       .on(
         "postgres_changes",
@@ -100,17 +100,33 @@ export default function Display() {
         (payload) => {
           const newPlaylistId = payload.new.current_playlist_id;
           if (newPlaylistId) {
+            showSyncIndicator();
             fetchPlaylist(newPlaylistId);
-            toast("New content received", { description: "Updating display now…", duration: 3000 });
+          }
+        }
+      )
+      .subscribe();
+
+    // Realtime: playlist_items changes (items added/removed/reordered)
+    const itemsChannel = supabase
+      .channel(`playlist-items-${screenId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "playlist_items" },
+        () => {
+          if (currentPlaylistIdRef.current) {
+            showSyncIndicator();
+            fetchPlaylist(currentPlaylistIdRef.current);
           }
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(screenChannel);
+      supabase.removeChannel(itemsChannel);
     };
-  }, [screenId, fetchPlaylist]);
+  }, [screenId, fetchPlaylist, showSyncIndicator]);
 
   // Playback logic
   useEffect(() => {
