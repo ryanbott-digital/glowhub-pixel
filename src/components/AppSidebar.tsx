@@ -88,7 +88,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {items.filter((item) => !item.adminOnly || isAdmin).map((item) => {
                 const isLockedPro = item.pro && !isProTier(userTier);
                 const isNewTab = 'newTab' in item && item.newTab;
                 return (
