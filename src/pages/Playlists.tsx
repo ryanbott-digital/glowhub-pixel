@@ -190,7 +190,7 @@ export default function Playlists() {
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Choose a screen to play <span className="font-medium text-foreground">"{selectedPlaylist?.title}"</span>
+            Choose a screen to play <span className="font-medium text-foreground">"{sendTargetPlaylist?.title}"</span>
           </p>
           <div className="space-y-2 mt-2">
             {pairedScreens.length === 0 ? (
