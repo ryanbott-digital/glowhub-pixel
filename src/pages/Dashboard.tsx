@@ -134,6 +134,18 @@ export default function Dashboard() {
   const liveCount = screens.filter((s) => s.status === "online" && s.current_playlist_id).length;
   const activeCount = screens.filter((s) => s.current_playlist_id).length;
 
+  // Watchdog status: find the most recent heartbeat across all screens
+  const watchdogStatus = useMemo(() => {
+    if (screens.length === 0) return null;
+    const pings = screens
+      .filter((s: any) => s.last_ping)
+      .map((s: any) => new Date(s.last_ping).getTime());
+    const lastCheck = pings.length > 0 ? new Date(Math.max(...pings)) : null;
+    const monitored = screens.length;
+    const allHealthy = offlineCount === 0;
+    return { lastCheck, monitored, allHealthy, offlineCount };
+  }, [screens, offlineCount]);
+
   const handleManageSubscription = async () => {
     setPortalLoading(true);
     try {
