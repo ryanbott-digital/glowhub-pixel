@@ -190,7 +190,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
           </div>
         </div>
       </div>
-      <div className="p-6 pt-0 space-y-4">
+      <div className="p-3 sm:p-6 pt-0 space-y-4">
         {/* Timeline track */}
         <div className="relative">
           {/* Track background */}
