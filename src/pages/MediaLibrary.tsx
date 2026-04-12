@@ -354,57 +354,26 @@ export default function MediaLibrary() {
   const totalSize = media.reduce((sum, m) => sum + (m.fileSize ?? 0), 0);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-1">
-            {media.length} file{media.length !== 1 ? "s" : ""}
-            {totalSize > 0 && ` · ${formatFileSize(totalSize)} total`}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {isSelecting && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => setSelected(new Set())}>
-                <X className="h-3 w-3 mr-1" /> Cancel
-              </Button>
-              <Button variant="outline" size="sm" onClick={selectAll}>
-                <CheckSquare className="h-3 w-3 mr-1" />
-                {selected.size === media.length ? "Deselect All" : "Select All"}
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={openSendDialog}
-              >
-                <Send className="h-3 w-3 mr-1" />
-                Send {selected.size} to Screen
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={bulkDelete}
-                disabled={deleting}
-              >
-                {deleting ? (
-                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                ) : (
-                  <Trash2 className="h-3 w-3 mr-1" />
-                )}
-                Delete {selected.size}
-              </Button>
-            </>
-          )}
-          <label>
-            <Button disabled={uploading} asChild>
+    <div className="space-y-5 animate-fade-in min-w-0">
+      {/* Header */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between min-w-0">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Media Library</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
+              {media.length} file{media.length !== 1 ? "s" : ""}
+              {totalSize > 0 && ` · ${formatFileSize(totalSize)}`}
+            </p>
+          </div>
+          <label className="shrink-0">
+            <Button disabled={uploading} asChild className="h-10 sm:h-9">
               <span className="cursor-pointer">
                 {uploading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                 ) : (
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 mr-1.5" />
                 )}
-                {uploading ? `Uploading ${uploadProgress}%` : "Upload Files"}
+                {uploading ? `${uploadProgress}%` : "Upload"}
               </span>
             </Button>
             <input
@@ -417,6 +386,49 @@ export default function MediaLibrary() {
             />
           </label>
         </div>
+
+        {/* Bulk action toolbar — only visible when items selected */}
+        {isSelecting && (
+          <div className="rounded-xl glass border-primary/20 px-3 py-2.5 space-y-2 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">{selected.size} selected</span>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={selectAll}>
+                  <CheckSquare className="h-3.5 w-3.5 mr-1" />
+                  {selected.size === media.length ? "None" : "All"}
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setSelected(new Set())}>
+                  <X className="h-3.5 w-3.5 mr-1" /> Cancel
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="default"
+                size="sm"
+                className="h-10 sm:h-8 text-xs flex-1 min-w-[120px]"
+                onClick={openSendDialog}
+              >
+                <Send className="h-3.5 w-3.5 mr-1.5" />
+                Send to Screen
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-10 sm:h-8 text-xs"
+                onClick={bulkDelete}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                )}
+                Delete
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Drop zone */}
