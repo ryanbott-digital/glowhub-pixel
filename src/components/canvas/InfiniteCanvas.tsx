@@ -21,12 +21,14 @@ interface SyncGroupMember {
   bezel_compensation?: number;
   resolution_w?: number;
   resolution_h?: number;
+  grid_col?: number;
+  grid_row?: number;
 }
 
 interface SyncGroup {
   id: string;
   name: string;
-  orientation: "horizontal" | "vertical";
+  orientation: "horizontal" | "vertical" | "grid";
   playlist_id: string | null;
   screens: SyncGroupMember[];
 }
@@ -74,7 +76,11 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
       group.screens.forEach((member, idx) => {
         const baseX = 200 + gi * 800;
         const baseY = 200;
-        if (group.orientation === "horizontal") {
+        if (group.orientation === "grid") {
+          const col = member.grid_col ?? (idx % 2);
+          const row = member.grid_row ?? Math.floor(idx / 2);
+          positions[member.screen_id] = { x: baseX + col * (NODE_WIDTH + 4), y: baseY + row * (NODE_HEIGHT + 4) };
+        } else if (group.orientation === "horizontal") {
           positions[member.screen_id] = { x: baseX + idx * (NODE_WIDTH + 4), y: baseY };
         } else {
           positions[member.screen_id] = { x: baseX, y: baseY + idx * (NODE_HEIGHT + 4) };
@@ -164,9 +170,41 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
     }
   }, [isPanning, draggingNode, pan, zoom, nodePositions]);
 
+  // ── GRID HELPERS: auto-detect grid position from canvas coordinates ──
+  const detectGridPosition = (group: SyncGroup, _screenId: string, pos: { x: number; y: number }) => {
+    // Look at existing members' canvas positions to determine column/row
+    const existingPositions = group.screens.map(s => ({
+      ...s,
+      canvasPos: nodePositions[s.screen_id],
+    })).filter(s => s.canvasPos);
+
+    if (existingPositions.length === 0) return { col: 0, row: 0 };
+
+    // Find the reference point (top-left member)
+    const refX = Math.min(...existingPositions.map(s => s.canvasPos!.x));
+    const refY = Math.min(...existingPositions.map(s => s.canvasPos!.y));
+
+    // Calculate col/row based on canvas offset from reference
+    const col = Math.round((pos.x - refX) / (NODE_WIDTH + 4));
+    const row = Math.round((pos.y - refY) / (NODE_HEIGHT + 4));
+
+    return { col: Math.max(0, col), row: Math.max(0, row) };
+  };
+
+  const maybeUpgradeToGrid = async (group: SyncGroup, newPos: { col: number; row: number }) => {
+    // Check if the group now has screens in both multiple columns AND rows
+    const allCols = new Set(group.screens.map(s => s.grid_col ?? 0));
+    const allRows = new Set(group.screens.map(s => s.grid_row ?? 0));
+    allCols.add(newPos.col);
+    allRows.add(newPos.row);
+
+    if (allCols.size > 1 && allRows.size > 1 && group.orientation !== "grid") {
+      await supabase.from("sync_groups").update({ orientation: "grid" } as any).eq("id", group.id);
+    }
+  };
+
   const handleMouseUp = useCallback(async () => {
     if (draggingNode && snapIndicator) {
-      // Check if snapped to another node - auto-create/update sync group
       const draggedPos = nodePositions[draggingNode];
       if (draggedPos) {
         const adjacentNode = Object.entries(nodePositions).find(([id, pos]) => {
@@ -180,7 +218,6 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
 
         if (adjacentNode) {
           const [adjacentId] = adjacentNode;
-          const orientation = Math.abs(adjacentNode[1].y - draggedPos.y) < 10 ? "horizontal" : "vertical";
 
           // Find if either screen is already in a sync group
           const existingGroup = syncGroups.find(g =>
@@ -190,16 +227,23 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
           if (existingGroup) {
             const alreadyIn = existingGroup.screens.some(s => s.screen_id === draggingNode);
             if (!alreadyIn) {
+              // Auto-detect grid_col/grid_row from canvas positions
+              const gridPos = detectGridPosition(existingGroup, draggingNode, draggedPos);
               await supabase.from("sync_group_screens").insert({
                 sync_group_id: existingGroup.id,
                 screen_id: draggingNode,
                 position: existingGroup.screens.length,
+                grid_col: gridPos.col,
+                grid_row: gridPos.row,
               });
+
+              // If group has screens in multiple rows AND columns, auto-upgrade to grid orientation
+              await maybeUpgradeToGrid(existingGroup, gridPos);
               toast.success("Screen snapped into sync group");
               onRefresh();
             }
           } else {
-            // Create new sync group
+            const orientation = Math.abs(adjacentNode[1].y - draggedPos.y) < 10 ? "horizontal" : "vertical";
             const { data: newGroup } = await supabase.from("sync_groups").insert({
               user_id: userId,
               name: `Sync Group ${syncGroups.length + 1}`,
@@ -207,9 +251,22 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
             }).select("id").single();
 
             if (newGroup) {
+              const adjPos = adjacentNode[1];
+              const adjCol = 0, adjRow = 0;
+              let dragCol = 0, dragRow = 0;
+              if (orientation === "horizontal") {
+                dragCol = draggedPos.x > adjPos.x ? 1 : -1;
+                if (dragCol < 0) { dragCol = 0; /* swap: adj becomes col 1 */ }
+              } else {
+                dragRow = draggedPos.y > adjPos.y ? 1 : -1;
+                if (dragRow < 0) { dragRow = 0; }
+              }
+              // Normalize so min is 0
+              const minCol = Math.min(adjCol, dragCol);
+              const minRow = Math.min(adjRow, dragRow);
               await Promise.all([
-                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: adjacentId, position: 0 }),
-                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: draggingNode, position: 1 }),
+                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: adjacentId, position: 0, grid_col: adjCol - minCol, grid_row: adjRow - minRow }),
+                supabase.from("sync_group_screens").insert({ sync_group_id: newGroup.id, screen_id: draggingNode, position: 1, grid_col: dragCol - minCol, grid_row: dragRow - minRow }),
               ]);
               toast.success("New sync group created by snapping screens together");
               onRefresh();
@@ -248,63 +305,120 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
 
   // ── OFFSET ENGINE: Compute bounding box & per-screen offsets ──
   const computeOffsets = (group: SyncGroup) => {
-    const sorted = [...group.screens].sort((a, b) => a.position - b.position);
-    const isHorizontal = group.orientation === "horizontal";
-
-    // Per-screen resolution (defaults to 1920×1080)
+    const members = [...group.screens].sort((a, b) => a.position - b.position);
     const getW = (m: SyncGroupMember) => m.resolution_w || 1920;
     const getH = (m: SyncGroupMember) => m.resolution_h || 1080;
-
-    // Total bounding box with bezel compensation
-    let totalW = 0;
-    let totalH = 0;
-
-    if (isHorizontal) {
-      totalW = sorted.reduce((acc, m, idx) => {
-        const bezel = idx > 0 ? (m.bezel_compensation || 0) : 0;
-        return acc + getW(m) + bezel;
-      }, 0);
-      totalH = Math.max(...sorted.map(getH));
-    } else {
-      totalW = Math.max(...sorted.map(getW));
-      totalH = sorted.reduce((acc, m, idx) => {
-        const bezel = idx > 0 ? (m.bezel_compensation || 0) : 0;
-        return acc + getH(m) + bezel;
-      }, 0);
-    }
-
-    // Per-screen offset calculation:
-    // Offset = cumulative screen sizes + cumulative bezels
     const layouts: { screenId: string; layout: object }[] = [];
-    let cumulativeOffset = 0;
 
-    sorted.forEach((member, idx) => {
-      const bezel = idx > 0 ? (member.bezel_compensation || 0) : 0;
-      if (idx > 0) cumulativeOffset += bezel;
+    if (group.orientation === "grid") {
+      // ── 2D GRID MODE: use grid_col / grid_row ──
+      // Auto-detect grid from canvas positions if grid_col/grid_row are all 0
+      const allZero = members.every(m => (m.grid_col ?? 0) === 0 && (m.grid_row ?? 0) === 0);
+      const membersWithGrid = allZero ? autoAssignGridFromCanvas(members) : members;
 
-      const offsetX = isHorizontal ? cumulativeOffset : 0;
-      const offsetY = isHorizontal ? 0 : cumulativeOffset;
+      // Find unique columns and rows
+      const cols = [...new Set(membersWithGrid.map(m => m.grid_col ?? 0))].sort((a, b) => a - b);
+      const rows = [...new Set(membersWithGrid.map(m => m.grid_row ?? 0))].sort((a, b) => a - b);
 
-      layouts.push({
-        screenId: member.screen_id,
-        layout: {
-          offset_x: offsetX,
-          offset_y: offsetY,
-          viewport_width: getW(member),
-          viewport_height: getH(member),
-          total_width: totalW,
-          total_height: totalH,
-          bezel_offset: bezel,
-          position: idx,
-          total_screens: sorted.length,
-          orientation: group.orientation,
-        },
+      // Build column widths and row heights (max per col/row)
+      const colWidths: Record<number, number> = {};
+      const rowHeights: Record<number, number> = {};
+      cols.forEach(c => {
+        const inCol = membersWithGrid.filter(m => (m.grid_col ?? 0) === c);
+        colWidths[c] = Math.max(...inCol.map(getW));
+      });
+      rows.forEach(r => {
+        const inRow = membersWithGrid.filter(m => (m.grid_row ?? 0) === r);
+        rowHeights[r] = Math.max(...inRow.map(getH));
       });
 
-      cumulativeOffset += isHorizontal ? getW(member) : getH(member);
-    });
+      const totalW = cols.reduce((acc, c) => acc + colWidths[c], 0);
+      const totalH = rows.reduce((acc, r) => acc + rowHeights[r], 0);
+
+      membersWithGrid.forEach((member, idx) => {
+        const col = member.grid_col ?? 0;
+        const row = member.grid_row ?? 0;
+        // Cumulative offset for this cell
+        const offsetX = cols.filter(c => c < col).reduce((acc, c) => acc + colWidths[c], 0);
+        const offsetY = rows.filter(r => r < row).reduce((acc, r) => acc + rowHeights[r], 0);
+
+        layouts.push({
+          screenId: member.screen_id,
+          layout: {
+            offset_x: offsetX,
+            offset_y: offsetY,
+            viewport_width: getW(member),
+            viewport_height: getH(member),
+            total_width: totalW,
+            total_height: totalH,
+            grid_col: col,
+            grid_row: row,
+            grid_cols: cols.length,
+            grid_rows: rows.length,
+            position: idx,
+            total_screens: members.length,
+            orientation: "grid",
+          },
+        });
+      });
+    } else {
+      // ── LINEAR MODE (horizontal / vertical) ──
+      const isHorizontal = group.orientation === "horizontal";
+      let totalW = 0;
+      let totalH = 0;
+
+      if (isHorizontal) {
+        totalW = members.reduce((acc, m, idx) => acc + getW(m) + (idx > 0 ? (m.bezel_compensation || 0) : 0), 0);
+        totalH = Math.max(...members.map(getH));
+      } else {
+        totalW = Math.max(...members.map(getW));
+        totalH = members.reduce((acc, m, idx) => acc + getH(m) + (idx > 0 ? (m.bezel_compensation || 0) : 0), 0);
+      }
+
+      let cumulativeOffset = 0;
+      members.forEach((member, idx) => {
+        const bezel = idx > 0 ? (member.bezel_compensation || 0) : 0;
+        if (idx > 0) cumulativeOffset += bezel;
+
+        layouts.push({
+          screenId: member.screen_id,
+          layout: {
+            offset_x: isHorizontal ? cumulativeOffset : 0,
+            offset_y: isHorizontal ? 0 : cumulativeOffset,
+            viewport_width: getW(member),
+            viewport_height: getH(member),
+            total_width: totalW,
+            total_height: totalH,
+            bezel_offset: bezel,
+            position: idx,
+            total_screens: members.length,
+            orientation: group.orientation,
+          },
+        });
+
+        cumulativeOffset += isHorizontal ? getW(member) : getH(member);
+      });
+    }
 
     return layouts;
+  };
+
+  // Auto-assign grid positions from canvas node positions
+  const autoAssignGridFromCanvas = (members: SyncGroupMember[]): SyncGroupMember[] => {
+    const withPos = members.map(m => ({
+      ...m,
+      canvasPos: nodePositions[m.screen_id] || { x: 0, y: 0 },
+    }));
+
+    // Cluster into rows/cols by rounding canvas position to nearest node slot
+    const minX = Math.min(...withPos.map(m => m.canvasPos.x));
+    const minY = Math.min(...withPos.map(m => m.canvasPos.y));
+
+    return withPos.map(m => ({
+      ...m,
+      grid_col: Math.round((m.canvasPos.x - minX) / (NODE_WIDTH + 4)),
+      grid_row: Math.round((m.canvasPos.y - minY) / (NODE_HEIGHT + 4)),
+    }));
   };
 
   // Deploy handler — computes offsets and pushes to each screen
