@@ -2,8 +2,6 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
-import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
 import glowLogoPng from "@/assets/glow-text.png";
 
 interface PlaylistItem {
@@ -27,8 +25,17 @@ export default function Display() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showWatermark, setShowWatermark] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const currentPlaylistIdRef = useRef<string | null>(null);
+
+  const showSyncIndicator = useCallback(() => {
+    setSyncing(true);
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => setSyncing(false), 3000);
+  }, []);
 
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
@@ -41,11 +48,11 @@ export default function Display() {
       const mapped = data as unknown as PlaylistItem[];
       setItems(mapped);
       setCurrentIndex(0);
-      // Cache for offline
       try {
         localStorage.setItem(CACHE_KEY + "_" + screenId, JSON.stringify(mapped));
       } catch {}
     }
+    currentPlaylistIdRef.current = playlistId;
     setLoading(false);
   }, [screenId]);
 
@@ -82,8 +89,8 @@ export default function Display() {
       .then(({ data }) => { if (data?.show) setShowWatermark(true); else setShowWatermark(false); })
       .catch(() => {});
 
-    // Realtime subscription
-    const channel = supabase
+    // Realtime: screen changes (new playlist assigned)
+    const screenChannel = supabase
       .channel(`screen-${screenId}`)
       .on(
         "postgres_changes",
@@ -91,17 +98,33 @@ export default function Display() {
         (payload) => {
           const newPlaylistId = payload.new.current_playlist_id;
           if (newPlaylistId) {
+            showSyncIndicator();
             fetchPlaylist(newPlaylistId);
-            toast("New content received", { description: "Updating display now…", duration: 3000 });
+          }
+        }
+      )
+      .subscribe();
+
+    // Realtime: playlist_items changes (items added/removed/reordered)
+    const itemsChannel = supabase
+      .channel(`playlist-items-${screenId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "playlist_items" },
+        () => {
+          if (currentPlaylistIdRef.current) {
+            showSyncIndicator();
+            fetchPlaylist(currentPlaylistIdRef.current);
           }
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(screenChannel);
+      supabase.removeChannel(itemsChannel);
     };
-  }, [screenId, fetchPlaylist]);
+  }, [screenId, fetchPlaylist, showSyncIndicator]);
 
   // Playback logic
   useEffect(() => {
@@ -184,8 +207,33 @@ export default function Display() {
           <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
         </a>
       )}
-      <Toaster position="bottom-right" theme="dark" />
-      <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
+      {/* Sync indicator */}
+      {syncing && (
+        <div
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-lg"
+          style={{
+            background: "hsla(0, 0%, 0%, 0.7)",
+            backdropFilter: "blur(8px)",
+            animation: "syncSlideIn 0.3s ease-out",
+          }}
+        >
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{
+              backgroundColor: "hsl(180, 100%, 45%)",
+              animation: "syncPulse 1s ease-in-out infinite",
+            }}
+          />
+          <span className="text-white/90 text-[11px] font-medium tracking-wide">
+            Syncing content…
+          </span>
+        </div>
+      )}
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes syncSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes syncPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+      `}</style>
     </div>
   );
 }
