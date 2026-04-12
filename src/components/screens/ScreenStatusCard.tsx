@@ -151,13 +151,16 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     ? supabase.storage.from("signage-content").getPublicUrl(media.storage_path).data.publicUrl
     : null;
 
+  // Neon Crimson palette for offline state
+  const crimson = "348, 100%, 50%"; // #FF003C
+
   return (
     <div
       className={`group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
       style={{
         boxShadow: isAlive
           ? "0 0 20px hsla(180, 100%, 45%, 0.08), 0 4px 20px rgba(0,0,0,0.1)"
-          : "0 0 20px hsla(0, 70%, 55%, 0.15), 0 0 40px hsla(0, 70%, 55%, 0.08), 0 4px 20px rgba(0,0,0,0.1)",
+          : `0 0 25px hsla(${crimson}, 0.25), 0 0 60px hsla(${crimson}, 0.12), 0 4px 20px rgba(0,0,0,0.15)`,
       }}
     >
       {/* Clickable top area — monitor + name */}
@@ -174,24 +177,29 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               inset: "8px",
               filter: "blur(28px)",
               opacity: 0.45,
-              background: `
-                radial-gradient(ellipse at 20% 50%, hsla(330, 80%, 60%, 0.5) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 50%, hsla(180, 100%, 45%, 0.5) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, hsla(120, 60%, 50%, 0.3) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 20%, hsla(24, 95%, 53%, 0.4) 0%, transparent 50%)
-              `,
-              animation: "radiantPulseCard 4s ease-in-out infinite",
+              background: isAlive
+                ? `
+                  radial-gradient(ellipse at 20% 50%, hsla(330, 80%, 60%, 0.5) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 50%, hsla(180, 100%, 45%, 0.5) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 80%, hsla(120, 60%, 50%, 0.3) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 20%, hsla(24, 95%, 53%, 0.4) 0%, transparent 50%)
+                `
+                : `
+                  radial-gradient(ellipse at 30% 50%, hsla(${crimson}, 0.6) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 50%, hsla(${crimson}, 0.4) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 80%, hsla(${crimson}, 0.3) 0%, transparent 60%)
+                `,
+              animation: isAlive ? "radiantPulseCard 4s ease-in-out infinite" : "watchdogPulse 2.5s ease-in-out infinite",
             }}
           />
 
           <div
-            className="relative w-full aspect-video rounded-lg overflow-hidden border border-border/60 bg-secondary"
+            className="relative w-full aspect-video rounded-lg overflow-hidden bg-secondary"
             style={{
-              boxShadow: `
-                0 0 20px hsla(180, 100%, 45%, 0.1),
-                0 0 40px hsla(330, 80%, 60%, 0.07),
-                0 12px 24px -6px rgba(0, 0, 0, 0.3)
-              `,
+              border: isAlive ? "1px solid hsla(0, 0%, 100%, 0.08)" : `1px solid hsla(${crimson}, 0.3)`,
+              boxShadow: isAlive
+                ? `0 0 20px hsla(180, 100%, 45%, 0.1), 0 0 40px hsla(330, 80%, 60%, 0.07), 0 12px 24px -6px rgba(0,0,0,0.3)`
+                : `0 0 20px hsla(${crimson}, 0.15), 0 0 40px hsla(${crimson}, 0.08), 0 12px 24px -6px rgba(0,0,0,0.4)`,
             }}
           >
             <div className="absolute inset-[3px] rounded-md bg-black overflow-hidden">
@@ -214,6 +222,19 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   <p className="text-[9px] text-muted-foreground">No content assigned</p>
                 </div>
               )}
+
+              {/* Offline scanline overlay */}
+              {!isAlive && (
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `
+                      repeating-linear-gradient(0deg, transparent, transparent 2px, hsla(${crimson}, 0.03) 2px, hsla(${crimson}, 0.03) 4px)
+                    `,
+                    mixBlendMode: "screen",
+                  }}
+                />
+              )}
             </div>
 
             {/* Glowing status pulse */}
@@ -221,15 +242,19 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               <span className="relative flex h-3.5 w-3.5">
                 <span
                   className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style={{ backgroundColor: isAlive ? "hsla(150, 70%, 50%, 0.7)" : "hsla(0, 70%, 55%, 0.7)" }}
+                  style={{
+                    backgroundColor: isAlive
+                      ? "hsla(150, 70%, 50%, 0.7)"
+                      : `hsla(${crimson}, 0.7)`,
+                  }}
                 />
                 <span
                   className="relative inline-flex rounded-full h-3.5 w-3.5 border border-black/30"
                   style={{
-                    backgroundColor: isAlive ? "hsl(150, 70%, 50%)" : "hsl(0, 70%, 55%)",
+                    backgroundColor: isAlive ? "hsl(150, 70%, 50%)" : `hsl(${crimson})`,
                     boxShadow: isAlive
                       ? "0 0 8px hsla(150, 70%, 50%, 0.6), 0 0 20px hsla(150, 70%, 50%, 0.3)"
-                      : "0 0 8px hsla(0, 70%, 55%, 0.6), 0 0 20px hsla(0, 70%, 55%, 0.3)",
+                      : `0 0 8px hsla(${crimson}, 0.8), 0 0 20px hsla(${crimson}, 0.4)`,
                   }}
                 />
               </span>
@@ -241,19 +266,44 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         <div className="px-4 pt-2 pb-3 flex items-center justify-between">
           <h3 className="font-semibold text-sm text-foreground truncate">{screen.name}</h3>
           <div className="flex items-center gap-2">
-            <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${!isAlive ? "animate-pulse" : ""}`}
-              style={{
-                background: isAlive ? "hsla(150, 70%, 50%, 0.1)" : "hsla(0, 70%, 55%, 0.15)",
-                color: isAlive ? "hsl(150, 70%, 50%)" : "hsl(0, 70%, 55%)",
-                boxShadow: !isAlive ? "0 0 8px hsla(0, 70%, 55%, 0.3)" : "none",
-              }}
-            >
-              {isAlive ? "Online" : "⚠ SYSTEM DOWN"}
-            </span>
+            {isAlive ? (
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{
+                  background: "hsla(150, 70%, 50%, 0.1)",
+                  color: "hsl(150, 70%, 50%)",
+                }}
+              >
+                Online
+              </span>
+            ) : (
+              <span
+                className="badge-flicker text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-wider uppercase flex items-center gap-1"
+                style={{
+                  background: `hsla(${crimson}, 0.15)`,
+                  color: `hsl(${crimson})`,
+                  boxShadow: `0 0 12px hsla(${crimson}, 0.3), inset 0 0 8px hsla(${crimson}, 0.1)`,
+                  border: `1px solid hsla(${crimson}, 0.25)`,
+                }}
+              >
+                ⚠️ SYSTEM DISCONNECTED
+              </span>
+            )}
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
           </div>
         </div>
+
+        {/* Time since last seen — visible even when collapsed */}
+        {!isAlive && screen.last_ping && (
+          <div className="px-4 pb-2 -mt-1">
+            <span
+              className="text-[10px] font-medium"
+              style={{ color: `hsl(${crimson})` }}
+            >
+              Last active {formatDistanceToNow(new Date(screen.last_ping), { addSuffix: true })}
+            </span>
+          </div>
+        )}
       </button>
 
       {/* Expandable detail section */}

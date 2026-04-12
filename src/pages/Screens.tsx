@@ -19,6 +19,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { DraggableScreenWrapper } from "@/components/screens/DraggableScreenWrapper";
 import { DroppableGroupZone } from "@/components/screens/DroppableGroupZone";
+import { FleetAlertBar } from "@/components/FleetAlertBar";
 
 interface Screen {
   id: string;
@@ -58,6 +59,7 @@ export default function Screens() {
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
   const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
   const [broadcastScreenName, setBroadcastScreenName] = useState("");
+  const [filterOfflineOnly, setFilterOfflineOnly] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -310,11 +312,20 @@ export default function Screens() {
     toast.success(`Moved "${screen.name}" to ${targetName}`);
   };
 
-  // ── Organize screens by group ──
-  const ungroupedScreens = screens.filter((s) => !s.group_id);
+  // ── Filter & organize screens by group ──
+  const isScreenOffline = (s: Screen) => {
+    if (!s.last_ping) return s.status !== "online";
+    return Date.now() - new Date(s.last_ping).getTime() > 2 * 60 * 1000;
+  };
+
+  const filteredScreens = filterOfflineOnly
+    ? screens.filter(isScreenOffline)
+    : screens;
+
+  const ungroupedScreens = filteredScreens.filter((s) => !s.group_id);
   const groupedScreenMap = groups.map((g) => ({
     group: g,
-    screens: screens.filter((s) => s.group_id === g.id),
+    screens: filteredScreens.filter((s) => s.group_id === g.id),
   }));
 
   const activeScreen = activeScreenId ? screens.find((s) => s.id === activeScreenId) : null;
@@ -356,11 +367,27 @@ export default function Screens() {
 
   return (
     <div className="space-y-6 animate-fade-in stagger-in">
+      {/* Fleet Alert Bar */}
+      <FleetAlertBar onFilterOffline={() => setFilterOfflineOnly(true)} />
       <BroadcastSuccessModal open={broadcastModalOpen} onOpenChange={setBroadcastModalOpen} screenName={broadcastScreenName} />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-foreground">Screens</h1>
+          {filterOfflineOnly && (
+            <button
+              onClick={() => setFilterOfflineOnly(false)}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors"
+              style={{
+                background: "hsla(348, 100%, 50%, 0.12)",
+                color: "hsl(348, 100%, 60%)",
+                border: "1px solid hsla(348, 100%, 50%, 0.2)",
+              }}
+            >
+              Showing offline only
+              <X className="h-3 w-3" />
+            </button>
+          )}
           {screenLimit !== null && (
             <span className="text-sm text-muted-foreground font-medium">
               {screens.length}/{screenLimit} used
