@@ -756,7 +756,7 @@ const Home = () => {
                 <div className="absolute inset-0 rounded-[14px] border border-[#00A3A3]/20 animate-pulse pointer-events-none" />
 
                 <h3 className="text-xl font-semibold mb-1">The Pro Ecosystem</h3>
-                <p className="text-sm text-[#94A3B8] mb-4">5-Screen Bundle — Billed Monthly</p>
+                <p className="text-sm text-[#94A3B8] mb-4">{isAnnual ? "5-Screen Bundle — Billed Annually" : "5-Screen Bundle — Billed Monthly"}</p>
 
                 {/* Value comparison callout */}
                 <div className="rounded-xl bg-[#00A3A3]/[0.08] border border-[#00A3A3]/15 px-4 py-3 mb-6">
@@ -768,13 +768,23 @@ const Home = () => {
                 </div>
 
                 <div className="text-5xl font-extrabold mb-2">
-                  $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+                  {isAnnual ? (
+                    <>
+                      <span className="line-through text-[#475569] text-3xl mr-2">$9</span>
+                      $7<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+                    </>
+                  ) : (
+                    <>$9<span className="text-lg font-normal text-[#94A3B8]">/mo</span></>
+                  )}
                 </div>
                 <p className="text-base font-bold text-[#00A3A3] mb-2">
                   Up to 5 Screens Included
                 </p>
                 <p className="text-xs text-[#64748B] mb-8">
-                  That's just <span className="text-[#00E5CC] font-semibold">$1.80 per screen</span>. Stop paying $20+ for legacy lag.
+                  {isAnnual
+                    ? <>That's just <span className="text-[#00E5CC] font-semibold">$1.40 per screen</span>. Billed as $84/year.</>
+                    : <>That's just <span className="text-[#00E5CC] font-semibold">$1.80 per screen</span>. Stop paying $20+ for legacy lag.</>
+                  }
                 </p>
 
                 <ul className="space-y-3.5 mb-8 flex-1">
