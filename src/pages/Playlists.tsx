@@ -421,7 +421,7 @@ export default function Playlists() {
                   className="pl-9 h-9 bg-white/[0.03] border-white/[0.08] text-foreground placeholder:text-muted-foreground"
                 />
               </div>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={() => hapticMedium()} onDragEnd={handleDragEnd}>
                 <SortableContext items={playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => p.id)} strategy={verticalListSortingStrategy}>
                   {playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((pl) => (
                     <SortablePlaylistCard
@@ -469,7 +469,7 @@ export default function Playlists() {
               className="pl-9 h-10 sm:h-9 bg-white/[0.03] border-white/[0.08] text-foreground placeholder:text-muted-foreground"
             />
           </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={() => hapticMedium()} onDragEnd={handleDragEnd}>
             <SortableContext items={playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => p.id)} strategy={verticalListSortingStrategy}>
               {playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((pl) => (
                 <SortablePlaylistCard
