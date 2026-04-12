@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { isProTier } from "@/lib/subscription";
 import { Button } from "@/components/ui/button";
-import { Layers, Crown, Monitor, Sparkles, Plus } from "lucide-react";
+import { Layers, Crown, Monitor, Sparkles, Plus, Grid2x2 } from "lucide-react";
 import { InfiniteCanvas } from "@/components/canvas/InfiniteCanvas";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ interface Screen {
 interface SyncGroup {
   id: string;
   name: string;
-  orientation: "horizontal" | "vertical";
+  orientation: "horizontal" | "vertical" | "grid";
   playlist_id: string | null;
   screens: { id: string; screen_id: string; position: number }[];
 }
@@ -43,7 +43,7 @@ export default function Canvas() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState("Sync Group");
-  const [newOrientation, setNewOrientation] = useState<"horizontal" | "vertical">("horizontal");
+  const [newOrientation, setNewOrientation] = useState<"horizontal" | "vertical" | "grid">("horizontal");
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -234,6 +234,9 @@ export default function Canvas() {
                   </SelectItem>
                   <SelectItem value="vertical">
                     <span className="flex items-center gap-2"><ArrowDown className="h-3.5 w-3.5" /> Vertical</span>
+                  </SelectItem>
+                  <SelectItem value="grid">
+                    <span className="flex items-center gap-2"><Grid2x2 className="h-3.5 w-3.5" /> Grid (2D)</span>
                   </SelectItem>
                 </SelectContent>
               </Select>
