@@ -26,7 +26,11 @@ export function ProGuard({ children, fallback, showUpgradePrompt = false, featur
     const verify = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) return;
+        if (!session?.access_token) {
+          setServerTier(subscriptionTier);
+          setVerified(true);
+          return;
+        }
 
         const res = await supabase.functions.invoke("verify-tier", {
           headers: { Authorization: `Bearer ${session.access_token}` },
