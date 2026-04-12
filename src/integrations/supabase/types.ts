@@ -370,6 +370,82 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule_blocks: {
+        Row: {
+          block_type: string
+          color_code: string
+          created_at: string
+          end_at: string
+          id: string
+          label: string
+          media_id: string | null
+          playlist_id: string | null
+          priority: number
+          recurrence: string
+          recurrence_end: string | null
+          screen_id: string
+          start_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          block_type?: string
+          color_code?: string
+          created_at?: string
+          end_at: string
+          id?: string
+          label?: string
+          media_id?: string | null
+          playlist_id?: string | null
+          priority?: number
+          recurrence?: string
+          recurrence_end?: string | null
+          screen_id: string
+          start_at: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          block_type?: string
+          color_code?: string
+          created_at?: string
+          end_at?: string
+          id?: string
+          label?: string
+          media_id?: string | null
+          playlist_id?: string | null
+          priority?: number
+          recurrence?: string
+          recurrence_end?: string | null
+          screen_id?: string
+          start_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_blocks_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_blocks_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_blocks_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screen_activity_logs: {
         Row: {
           action: string
