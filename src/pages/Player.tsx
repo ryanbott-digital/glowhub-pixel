@@ -15,6 +15,7 @@ import { ScreenSaver } from "@/components/ScreenSaver";
 import { CinematicSplash } from "@/components/CinematicSplash";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalibrationOverlay } from "@/components/canvas/CalibrationOverlay";
+import { HypeTakeover } from "@/components/HypeTakeover";
 
 interface PlaylistItem {
   id: string;
@@ -1874,6 +1875,9 @@ export default function Player() {
 
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
+      {/* Hype Takeover Overlay */}
+      <HypeTakeover />
+
       {/* Calibration Overlay (scanline, flash, bezel, color correction) */}
       {screenId && playerSyncGroupId && (
         <CalibrationOverlay screenId={screenId} syncGroupId={playerSyncGroupId} />
