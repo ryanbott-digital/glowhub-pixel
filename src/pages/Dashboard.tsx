@@ -256,6 +256,49 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Watchdog Status Indicator */}
+      {watchdogStatus && (
+        <div
+          className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3"
+          style={{
+            borderColor: watchdogStatus.allHealthy
+              ? "hsla(180, 100%, 32%, 0.15)"
+              : "hsla(348, 100%, 50%, 0.2)",
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            {watchdogStatus.allHealthy ? (
+              <ShieldCheck className="h-4 w-4" style={{ color: "hsl(180, 100%, 40%)" }} />
+            ) : (
+              <ShieldAlert className="h-4 w-4 badge-flicker" style={{ color: "hsl(348, 100%, 55%)" }} />
+            )}
+            <div className="flex flex-col">
+              <span className="text-[11px] font-semibold tracking-wider uppercase" style={{
+                color: watchdogStatus.allHealthy ? "hsl(180, 100%, 40%)" : "hsl(348, 100%, 60%)",
+              }}>
+                {watchdogStatus.allHealthy ? "Watchdog — All Clear" : `Watchdog — ${watchdogStatus.offlineCount} Alert${watchdogStatus.offlineCount !== 1 ? "s" : ""}`}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                Monitoring {watchdogStatus.monitored} screen{watchdogStatus.monitored !== 1 ? "s" : ""}
+                {watchdogStatus.lastCheck && (
+                  <> · Last check {formatDistanceToNow(watchdogStatus.lastCheck, { addSuffix: true })}</>
+                )}
+              </span>
+            </div>
+          </div>
+          <div
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              backgroundColor: watchdogStatus.allHealthy ? "hsl(150, 70%, 50%)" : "hsl(348, 100%, 50%)",
+              boxShadow: watchdogStatus.allHealthy
+                ? "0 0 6px hsla(150, 70%, 50%, 0.5)"
+                : "0 0 6px hsla(348, 100%, 50%, 0.5)",
+              animation: watchdogStatus.allHealthy ? "none" : "badgeFlicker 3s ease-in-out infinite",
+            }}
+          />
+        </div>
+      )}
+
       {/* Billing Quick-Link */}
       <button
         onClick={() => navigate("/billing")}
