@@ -33,6 +33,12 @@ export default function Display() {
   const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const currentPlaylistIdRef = useRef<string | null>(null);
 
+  const showSyncIndicator = useCallback(() => {
+    setSyncing(true);
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => setSyncing(false), 3000);
+  }, []);
+
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
       .from("playlist_items")
@@ -44,11 +50,11 @@ export default function Display() {
       const mapped = data as unknown as PlaylistItem[];
       setItems(mapped);
       setCurrentIndex(0);
-      // Cache for offline
       try {
         localStorage.setItem(CACHE_KEY + "_" + screenId, JSON.stringify(mapped));
       } catch {}
     }
+    currentPlaylistIdRef.current = playlistId;
     setLoading(false);
   }, [screenId]);
 
