@@ -366,174 +366,151 @@ export default function Screens() {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in stagger-in">
+    <div className="space-y-5 animate-fade-in stagger-in min-w-0">
       {/* Fleet Alert Bar */}
       <FleetAlertBar onFilterOffline={() => setFilterOfflineOnly(true)} />
       <BroadcastSuccessModal open={broadcastModalOpen} onOpenChange={setBroadcastModalOpen} screenName={broadcastScreenName} />
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-foreground">Screens</h1>
-          {filterOfflineOnly && (
-            <button
-              onClick={() => setFilterOfflineOnly(false)}
-              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors"
-              style={{
-                background: "hsla(348, 100%, 50%, 0.12)",
-                color: "hsl(348, 100%, 60%)",
-                border: "1px solid hsla(348, 100%, 50%, 0.2)",
-              }}
-            >
-              Showing offline only
-              <X className="h-3 w-3" />
-            </button>
-          )}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Screens</h1>
+            {filterOfflineOnly && (
+              <button
+                onClick={() => setFilterOfflineOnly(false)}
+                className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors shrink-0"
+                style={{
+                  background: "hsla(348, 100%, 50%, 0.12)",
+                  color: "hsl(348, 100%, 60%)",
+                  border: "1px solid hsla(348, 100%, 50%, 0.2)",
+                }}
+              >
+                Offline
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
           {screenLimit !== null && (
-            <span className="text-sm text-muted-foreground font-medium">
-              {screens.length}/{screenLimit} used
+            <span className="text-xs text-muted-foreground font-medium shrink-0">
+              {screens.length}/{screenLimit}
             </span>
           )}
-          {screenLimit !== null && screenLimit > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="w-32 h-2 rounded-full bg-muted overflow-hidden cursor-default">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        screens.length >= screenLimit ? "bg-destructive" : screens.length >= screenLimit * 0.8 ? "bg-accent" : "bg-primary"
-                      }`}
-                      style={{ width: `${Math.min((screens.length / screenLimit) * 100, 100)}%` }}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{screens.length} of {screenLimit} screens used — {tierName.charAt(0).toUpperCase() + tierName.slice(1)} plan</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
         </div>
+
+        {/* Progress bar */}
+        {screenLimit !== null && screenLimit > 0 && (
+          <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                screens.length >= screenLimit ? "bg-destructive" : screens.length >= screenLimit * 0.8 ? "bg-accent" : "bg-primary"
+              }`}
+              style={{ width: `${Math.min((screens.length / screenLimit) * 100, 100)}%` }}
+            />
+          </div>
+        )}
+
+        {/* Action buttons — touch-friendly on mobile */}
         <div className="flex gap-2 flex-wrap">
           {screens.length > 0 && (
-            <Button variant="outline" size="sm" onClick={selectAll}>
-              <CheckSquare className="h-4 w-4 mr-1" />
-              {selectedIds.size === screens.length ? "Deselect All" : "Select All"}
+            <Button variant="outline" size="sm" onClick={selectAll} className="h-10 sm:h-9 text-xs px-3">
+              <CheckSquare className="h-4 w-4 mr-1.5" />
+              {selectedIds.size === screens.length ? "Deselect" : "Select"}
             </Button>
           )}
 
           <ScreenGroupManager groups={groups} userId={user?.id || ""} onRefresh={fetchData} />
 
-          {/* Pair Screen */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex">
-                  <Button variant="outline" disabled={atLimit} onClick={() => !atLimit && setPairOpen(true)}>
-                    <Link2 className="h-4 w-4 mr-2" /> Pair Screen
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              {atLimit && <TooltipContent><p>{limitTooltip}</p></TooltipContent>}
-            </Tooltip>
-          </TooltipProvider>
+          <Button variant="outline" disabled={atLimit} onClick={() => !atLimit && setPairOpen(true)} className="h-10 sm:h-9 text-xs px-3">
+            <Link2 className="h-4 w-4 mr-1.5" /> Pair
+          </Button>
 
-          {/* Add Screen */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex">
-                  <Button disabled={atLimit} onClick={() => !atLimit && setDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" /> Add Screen
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              {atLimit && <TooltipContent><p>{limitTooltip}</p></TooltipContent>}
-            </Tooltip>
-          </TooltipProvider>
-
-          {/* Pair Dialog */}
-          <Dialog open={pairOpen} onOpenChange={setPairOpen}>
-            <DialogContent className="sm:max-w-md glass-strong border-white/10">
-              <DialogHeader><DialogTitle>Pair a Screen</DialogTitle></DialogHeader>
-              <div className="space-y-6 py-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  Enter the 6-digit code shown on your display device.
-                </p>
-                <div className="flex justify-center">
-                  <InputOTP maxLength={6} value={pairingCode} onChange={setPairingCode}>
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-                <Button onClick={pairScreen} className="w-full" disabled={pairingCode.length !== 6 || pairing}>
-                  {pairing ? "Linking..." : "Link Screen"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Add Screen Dialog */}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="glass-strong border-white/10">
-              <DialogHeader><DialogTitle>Add Screen</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <Input placeholder="Screen name (e.g. Lobby TV)" value={newName} onChange={(e) => setNewName(e.target.value)} />
-                {groups.length > 0 && (
-                  <Select value={newGroupId} onValueChange={setNewGroupId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Assign to group (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No group</SelectItem>
-                      {groups.map((g) => (
-                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                <Button onClick={createScreen} className="w-full">Create</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button disabled={atLimit} onClick={() => !atLimit && setDialogOpen(true)} className="h-10 sm:h-9 text-xs px-3">
+            <Plus className="h-4 w-4 mr-1.5" /> Add
+          </Button>
         </div>
       </div>
 
+      {/* Pair Dialog */}
+      <Dialog open={pairOpen} onOpenChange={setPairOpen}>
+        <DialogContent className="sm:max-w-md glass-strong border-white/10">
+          <DialogHeader><DialogTitle>Pair a Screen</DialogTitle></DialogHeader>
+          <div className="space-y-6 py-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Enter the 6-digit code shown on your display device.
+            </p>
+            <div className="flex justify-center">
+              <InputOTP maxLength={6} value={pairingCode} onChange={setPairingCode}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button onClick={pairScreen} className="w-full" disabled={pairingCode.length !== 6 || pairing}>
+              {pairing ? "Linking..." : "Link Screen"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Screen Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="glass-strong border-white/10">
+          <DialogHeader><DialogTitle>Add Screen</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Screen name (e.g. Lobby TV)" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            {groups.length > 0 && (
+              <Select value={newGroupId} onValueChange={setNewGroupId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Assign to group (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No group</SelectItem>
+                  {groups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button onClick={createScreen} className="w-full">Create</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Bulk action toolbar */}
       {selectionMode && (
-        <div className="flex items-center gap-3 rounded-2xl glass glass-spotlight border-primary/20 px-4 py-3 animate-fade-in flex-wrap">
-          <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
-          <div className="h-4 w-px bg-border" />
-
-          <Select value={bulkPlaylistId} onValueChange={setBulkPlaylistId}>
-            <SelectTrigger className="w-48 h-8 text-xs"><SelectValue placeholder="Choose playlist…" /></SelectTrigger>
-            <SelectContent>
-              {playlists.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button size="sm" className="h-8" disabled={!bulkPlaylistId} onClick={bulkPublish}>
-            <Send className="h-3 w-3 mr-1" /> Publish All
-          </Button>
-
-          {groups.length > 0 && (
-            <Select onValueChange={(v) => bulkMoveToGroup(v === "none" ? null : v)}>
-              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Move to group…" /></SelectTrigger>
+        <div className="rounded-2xl glass glass-spotlight border-primary/20 px-3 py-3 animate-fade-in space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
+            <Button size="sm" variant="ghost" className="h-8" onClick={clearSelection}>
+              <X className="h-3 w-3 mr-1" /> Cancel
+            </Button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Select value={bulkPlaylistId} onValueChange={setBulkPlaylistId}>
+              <SelectTrigger className="flex-1 min-w-[140px] h-10 sm:h-8 text-xs"><SelectValue placeholder="Choose playlist…" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Ungrouped</SelectItem>
-                {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                {playlists.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
               </SelectContent>
             </Select>
-          )}
-
-          <Button size="sm" variant="destructive" className="h-8" onClick={bulkDelete}>
-            <Trash2 className="h-3 w-3 mr-1" /> Delete All
-          </Button>
-
-          <div className="flex-1" />
-          <Button size="sm" variant="ghost" className="h-8" onClick={clearSelection}>
-            <X className="h-3 w-3 mr-1" /> Cancel
-          </Button>
+            <Button size="sm" className="h-10 sm:h-8" disabled={!bulkPlaylistId} onClick={bulkPublish}>
+              <Send className="h-3 w-3 mr-1" /> Publish
+            </Button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {groups.length > 0 && (
+              <Select onValueChange={(v) => bulkMoveToGroup(v === "none" ? null : v)}>
+                <SelectTrigger className="flex-1 min-w-[120px] h-10 sm:h-8 text-xs"><SelectValue placeholder="Move to group…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ungrouped</SelectItem>
+                  {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Button size="sm" variant="destructive" className="h-10 sm:h-8" onClick={bulkDelete}>
+              <Trash2 className="h-3 w-3 mr-1" /> Delete
+            </Button>
+          </div>
         </div>
       )}
 
@@ -577,7 +554,7 @@ export default function Screens() {
                 </h2>
               )}
               {ungroupedScreens.length > 0 ? (
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 stagger-in">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 stagger-in">
                   {ungroupedScreens.map(renderScreenCard)}
                 </div>
               ) : groups.length > 0 ? (
@@ -606,7 +583,7 @@ export default function Screens() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 {groupScreens.length > 0 ? (
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3 stagger-in">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mt-3 stagger-in">
                     {groupScreens.map(renderScreenCard)}
                   </div>
                 ) : (

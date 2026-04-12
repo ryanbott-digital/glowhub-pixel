@@ -263,9 +263,9 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         </div>
 
         {/* Name + status row */}
-        <div className="px-4 pt-2 pb-3 flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-foreground truncate">{screen.name}</h3>
-          <div className="flex items-center gap-2">
+        <div className="px-4 pt-2 pb-3 flex items-center justify-between gap-2 min-w-0">
+          <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{screen.name}</h3>
+          <div className="flex items-center gap-2 shrink-0">
             {isAlive ? (
               <span
                 className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
@@ -278,7 +278,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               </span>
             ) : (
               <span
-                className="badge-flicker text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-wider uppercase flex items-center gap-1"
+                className="badge-flicker text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wider uppercase"
                 style={{
                   background: `hsla(${crimson}, 0.15)`,
                   color: `hsl(${crimson})`,
@@ -286,7 +286,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   border: `1px solid hsla(${crimson}, 0.25)`,
                 }}
               >
-                ⚠️ SYSTEM DISCONNECTED
+                ⚠️ OFFLINE
               </span>
             )}
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
@@ -327,12 +327,12 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
           )}
 
           {/* Playlist selector */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Select
               value={screen.current_playlist_id || ""}
               onValueChange={(val) => onPublish(screen.id, val)}
             >
-              <SelectTrigger className="flex-1 h-8 text-xs glass">
+              <SelectTrigger className="flex-1 h-10 sm:h-8 text-xs glass">
                 <SelectValue placeholder="Select playlist" />
               </SelectTrigger>
               <SelectContent>
@@ -342,11 +342,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               </SelectContent>
             </Select>
             <Button
-              size="icon" variant="outline" className="h-8 w-8"
+              size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 shrink-0"
               onClick={() => screen.current_playlist_id && onPublish(screen.id, screen.current_playlist_id)}
               title="Publish"
             >
-              <Send className="h-3 w-3" />
+              <Send className="h-3.5 w-3.5" />
             </Button>
           </div>
 
@@ -434,12 +434,12 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
           </div>
 
           {/* Actions row */}
-          <div className="flex gap-1.5">
-            <Button variant="outline" size="sm" className="text-xs h-7 flex-1" onClick={() => onCopyUrl(screen.id)}>
-              <Copy className="h-3 w-3 mr-1" /> Copy URL
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="text-xs h-10 sm:h-8 flex-1" onClick={() => onCopyUrl(screen.id)}>
+              <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy URL
             </Button>
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onDelete(screen.id)}>
-              <Trash2 className="h-3 w-3 text-destructive" />
+            <Button variant="ghost" size="sm" className="h-10 sm:h-8 w-10 sm:w-8 p-0" onClick={() => onDelete(screen.id)}>
+              <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
 
