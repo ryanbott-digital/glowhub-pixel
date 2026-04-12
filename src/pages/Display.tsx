@@ -209,8 +209,33 @@ export default function Display() {
           <span className="text-[#00A3A3] text-xs font-bold tracking-wide">GLOW</span>
         </a>
       )}
-      <Toaster position="bottom-right" theme="dark" />
-      <style>{`@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
+      {/* Sync indicator */}
+      {syncing && (
+        <div
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-lg"
+          style={{
+            background: "hsla(0, 0%, 0%, 0.7)",
+            backdropFilter: "blur(8px)",
+            animation: "syncSlideIn 0.3s ease-out",
+          }}
+        >
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{
+              backgroundColor: "hsl(180, 100%, 45%)",
+              animation: "syncPulse 1s ease-in-out infinite",
+            }}
+          />
+          <span className="text-white/90 text-[11px] font-medium tracking-wide">
+            Syncing content…
+          </span>
+        </div>
+      )}
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes syncSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes syncPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+      `}</style>
     </div>
   );
 }
