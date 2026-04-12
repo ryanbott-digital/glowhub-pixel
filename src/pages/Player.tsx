@@ -2257,6 +2257,31 @@ export default function Player() {
               </div>
             </div>
           </div>
+          {/* Drift meter toggle */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/90 text-sm font-medium">Drift Meter</p>
+                <p className="text-white/50 text-xs mt-0.5">Show sync drift overlay (debug)</p>
+              </div>
+              <button
+                onClick={() => {
+                  const next = !showDriftMeter;
+                  setShowDriftMeter(next);
+                  localStorage.setItem("glowhub_drift_meter", next ? "1" : "0");
+                }}
+                className={`tv-focusable relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                  showDriftMeter ? "bg-[hsl(180,100%,35%)]" : "bg-white/20"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                    showDriftMeter ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
           {/* Unpair device */}
           <div className="mt-4 pt-4 border-t border-white/10">
             <button
