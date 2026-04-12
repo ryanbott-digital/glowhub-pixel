@@ -260,7 +260,11 @@ export default function Dashboard() {
       {/* Watchdog Status Indicator */}
       {watchdogStatus && (
         <div
-          className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3"
+          className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer hover:border-primary/30 transition-colors"
+          onClick={() => navigate(watchdogStatus.allHealthy ? "/screens" : "/screens?filter=offline")}
+          role="link"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter") navigate(watchdogStatus.allHealthy ? "/screens" : "/screens?filter=offline"); }}
           style={{
             borderColor: watchdogStatus.allHealthy
               ? "hsla(180, 100%, 32%, 0.15)"
@@ -284,6 +288,7 @@ export default function Dashboard() {
                 {watchdogStatus.lastCheck && (
                   <> · Last check {formatDistanceToNow(watchdogStatus.lastCheck, { addSuffix: true })}</>
                 )}
+                <span className="ml-1 text-primary/70">→ View</span>
               </span>
             </div>
           </div>
