@@ -2,6 +2,8 @@ import { ReactNode, useEffect, useCallback, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAntiTamper } from "@/hooks/use-anti-tamper";
+import { useAdminManifest } from "@/hooks/use-admin-manifest";
+import { AdminInstallBanner } from "@/components/AdminInstallBanner";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [defaultOpen, setDefaultOpen] = useState(() => {
@@ -10,6 +12,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   // Anti-tamper protection (DOM + DevTools + server-side)
   useAntiTamper();
+
+  // Switch manifest to admin variant for dashboard routes
+  useAdminManifest();
 
   // Spotlight cursor effect for glass cards
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -30,6 +35,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
+      <AdminInstallBanner />
       <div className="min-h-screen flex w-full mesh-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col">

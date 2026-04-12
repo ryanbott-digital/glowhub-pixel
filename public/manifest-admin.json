@@ -1,0 +1,31 @@
+{
+  "id": "/dashboard",
+  "name": "Glow Admin",
+  "short_name": "Glow Admin",
+  "description": "Glow Admin – Manage your digital signage screens, playlists, and content from anywhere.",
+  "theme_color": "#0a1628",
+  "background_color": "#0a1628",
+  "display": "standalone",
+  "orientation": "any",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/admin-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/admin-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/admin-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
