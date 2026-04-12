@@ -375,6 +375,7 @@ const Home = () => {
             <button onClick={() => scrollTo("features")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Features</button>
             <button onClick={() => scrollTo("comparison")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
             <button onClick={() => scrollTo("pricing")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
+            <Link to="/solutions/restaurants" className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Solutions</Link>
             <Link
               to="/auth"
               className="text-sm font-medium px-5 py-2 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_20px_rgba(0,163,163,0.35)] transition-all"
