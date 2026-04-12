@@ -184,6 +184,11 @@ export default function DownloadPage() {
 
   return (
     <div className="min-h-screen bg-[hsl(220,40%,8%)] text-foreground font-['Satoshi','Inter',system-ui,sans-serif] relative overflow-x-hidden">
+      <SEOHead
+        title="Download Glow — Firestick Menu Board App"
+        description="Download the Glow digital signage app for Amazon Fire TV Stick and Android TV. Sideload in 60 seconds with the free Downloader app."
+        canonical="/download"
+      />
       {/* Flash overlay */}
       <div
         className={`fixed inset-0 z-[100] pointer-events-none bg-white/90 transition-opacity duration-400 ${flashActive ? "opacity-100" : "opacity-0"}`}
