@@ -715,8 +715,26 @@ const Home = () => {
           The industry's best 5-screen bundle for Firestick. Low-cost professional menu boards and retail displays — no proprietary hardware.
         </p>
         <p className="text-center text-sm text-[#64748B] italic mb-16 max-w-md mx-auto">
-          One flat fee. Whether you have 1 screen or 5, the price stays the same. That's the Glow promise.
+         One flat fee. Whether you have 1 screen or 5, the price stays the same. That's the Glow promise.
         </p>
+
+        {/* Annual / Monthly toggle */}
+        <div className="flex items-center justify-center gap-3 mb-16">
+          <span className={`text-sm font-medium transition-colors ${!isAnnual ? "text-[#E2E8F0]" : "text-[#64748B]"}`}>Monthly</span>
+          <button
+            onClick={() => setIsAnnual(!isAnnual)}
+            className={`relative w-14 h-7 rounded-full transition-colors duration-300 ${isAnnual ? "bg-[#00A3A3]" : "bg-[#1E293B]"}`}
+            aria-label="Toggle annual billing"
+          >
+            <span className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ${isAnnual ? "translate-x-7" : "translate-x-0"}`} />
+          </button>
+          <span className={`text-sm font-medium transition-colors ${isAnnual ? "text-[#E2E8F0]" : "text-[#64748B]"}`}>Annual</span>
+          {isAnnual && (
+            <span className="ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#00A3A3]/15 text-[#00E5CC] border border-[#00A3A3]/25 animate-pulse">
+              Save 20%
+            </span>
+          )}
+        </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
 
