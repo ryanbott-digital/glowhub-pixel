@@ -2005,6 +2005,14 @@ export default function Player() {
           0% { opacity: 1; transform: translateX(0); }
           100% { opacity: 0; transform: translateX(10px); }
         }
+        @keyframes syncPulseGlow {
+          0%, 100% { box-shadow: 0 0 8px hsla(180, 100%, 50%, 0.3); }
+          50% { box-shadow: 0 0 20px hsla(180, 100%, 50%, 0.6), 0 0 40px hsla(180, 100%, 50%, 0.2); }
+        }
+        @keyframes syncPulseDot {
+          0%, 100% { opacity: 0.5; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
       `}</style>
 
       {/* Power Settings panel */}
