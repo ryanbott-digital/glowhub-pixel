@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Utensils, Store, Dumbbell, Tv, ArrowRight } from "lucide-react";
+import { Utensils, Store, Dumbbell, Tv, Hotel, ArrowRight } from "lucide-react";
 
 const ALL_SOLUTIONS = [
   {
@@ -22,6 +22,13 @@ const ALL_SOLUTIONS = [
     desc: "Rotate class schedules, WODs, and motivational content across gym TVs.",
     icon: Dumbbell,
     color: "#3B82F6",
+  },
+  {
+    slug: "/solutions/hospitality",
+    title: "Hotel & Venue Displays",
+    desc: "Welcome screens, event boards, and wayfinding for hotels and conference venues.",
+    icon: Hotel,
+    color: "#A855F7",
   },
   {
     slug: "/use-cases/retail-window-sync",
