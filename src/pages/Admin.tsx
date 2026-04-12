@@ -69,6 +69,8 @@ function formatGrantExpiry(dateStr: string | null): string {
 }
 
 export default function Admin() {
+  const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
