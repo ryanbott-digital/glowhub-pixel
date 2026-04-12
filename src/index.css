@@ -451,3 +451,13 @@ html {
   13% { filter: brightness(1); }
   14% { transform: translate(0); filter: brightness(1); }
 }
+
+/* Glow Watchdog — offline screen card pulse */
+@keyframes watchdogPulse {
+  0%, 100% { box-shadow: 0 0 20px hsla(0, 70%, 55%, 0.15), 0 0 40px hsla(0, 70%, 55%, 0.08), 0 4px 20px rgba(0,0,0,0.1); }
+  50% { box-shadow: 0 0 30px hsla(0, 70%, 55%, 0.3), 0 0 60px hsla(0, 70%, 55%, 0.15), 0 4px 20px rgba(0,0,0,0.1); }
+}
+
+.watchdog-offline-pulse {
+  animation: watchdogPulse 2s ease-in-out infinite;
+}
