@@ -670,7 +670,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -1753,11 +1753,24 @@ export default function Player() {
   const nextUrl = nextItem ? getPublicUrl(nextItem.media.storage_path) : null;
 
   // Compute sync offset styles for multi-screen spanning
+  // Uses pixel-accurate sync_layout from the offset engine when available
   const syncMediaStyle: React.CSSProperties = {};
-  if (syncInfo && syncInfo.total > 1) {
+  if (syncLayout) {
+    // Pixel-accurate offset rendering using object-fit: none + transform
+    const { offset_x, offset_y, total_width, total_height } = syncLayout;
+    syncMediaStyle.width = `${total_width}px`;
+    syncMediaStyle.height = `${total_height}px`;
+    syncMediaStyle.maxWidth = "none";
+    syncMediaStyle.maxHeight = "none";
+    syncMediaStyle.objectFit = "cover";
+    syncMediaStyle.position = "absolute";
+    syncMediaStyle.top = "0";
+    syncMediaStyle.left = "0";
+    syncMediaStyle.transform = `translate(-${offset_x}px, -${offset_y}px)`;
+  } else if (syncInfo && syncInfo.total > 1) {
+    // Fallback: percentage-based offset (legacy, before Save Layout)
     const { position, total, orientation } = syncInfo;
     if (orientation === "horizontal") {
-      // Scale content to total width, offset by position
       syncMediaStyle.width = `${total * 100}%`;
       syncMediaStyle.height = "100%";
       syncMediaStyle.maxWidth = "none";
@@ -1779,7 +1792,7 @@ export default function Player() {
       syncMediaStyle.top = `-${position * 100}%`;
     }
   }
-  const mediaClassName = syncInfo && syncInfo.total > 1
+  const mediaClassName = (syncLayout || (syncInfo && syncInfo.total > 1))
     ? "absolute inset-0"
     : "max-w-full max-h-screen object-contain absolute inset-0 m-auto";
 
