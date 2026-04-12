@@ -6,8 +6,9 @@ import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ScanLine, Ruler, Palette, Zap, Monitor, Heart,
+  ScanLine, Ruler, Palette, Zap, Monitor, Heart, MonitorSmartphone,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Screen {
   id: string;
@@ -24,6 +25,8 @@ interface SyncGroupMember {
   color_g?: number;
   color_b?: number;
   brightness_offset?: number;
+  resolution_w?: number;
+  resolution_h?: number;
 }
 
 interface SyncGroup {
@@ -111,6 +114,13 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
     toast.success("Sync flash triggered on all screens");
   }, [group.id]);
 
+  // ── RESOLUTION OVERRIDE: update per-screen resolution ──
+  const handleResolutionChange = useCallback(async (memberId: string, field: "resolution_w" | "resolution_h", value: number) => {
+    const clamped = Math.max(320, Math.min(7680, value));
+    await supabase.from("sync_group_screens").update({ [field]: clamped } as any).eq("id", memberId);
+    onRefresh();
+  }, [onRefresh]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass sm:max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -122,7 +132,7 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
         </DialogHeader>
 
         <Tabs defaultValue="pulse" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4 glass">
+          <TabsList className="grid w-full grid-cols-5 glass">
             <TabsTrigger value="pulse" className="text-xs gap-1.5">
               <ScanLine className="h-3.5 w-3.5" /> Pulse
             </TabsTrigger>
@@ -131,6 +141,9 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
             </TabsTrigger>
             <TabsTrigger value="color" className="text-xs gap-1.5">
               <Palette className="h-3.5 w-3.5" /> Color
+            </TabsTrigger>
+            <TabsTrigger value="resolution" className="text-xs gap-1.5">
+              <MonitorSmartphone className="h-3.5 w-3.5" /> Res
             </TabsTrigger>
             <TabsTrigger value="flash" className="text-xs gap-1.5">
               <Zap className="h-3.5 w-3.5" /> Flash
@@ -354,6 +367,127 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
                   );
                 })}
               </div>
+            </div>
+          </TabsContent>
+
+          {/* ── RESOLUTION OVERRIDE ── */}
+          <TabsContent value="resolution" className="space-y-4 mt-4">
+            <div className="glass rounded-xl p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <MonitorSmartphone className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Resolution Override</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Set custom resolutions for non-standard screens (e.g. 2560×1440, 3840×2160).
+                    The offset engine will calculate pixel-accurate viewports for mixed-resolution groups.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {group.screens.map((member) => {
+                  const screen = getScreen(member.screen_id);
+                  const w = member.resolution_w || 1920;
+                  const h = member.resolution_h || 1080;
+                  return (
+                    <div key={member.id} className="glass rounded-lg p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Monitor className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium text-foreground">{screen?.name || "Unknown"}</span>
+                        <span className="text-[10px] text-muted-foreground tracking-wider uppercase ml-auto">
+                          Pos {member.position + 1}
+                        </span>
+                      </div>
+
+                      {/* Resolution aspect ratio preview */}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="border border-primary/30 rounded bg-primary/5 flex items-center justify-center"
+                          style={{
+                            width: `${Math.min(120, 120 * (w / Math.max(w, h)))}px`,
+                            height: `${Math.min(80, 80 * (h / Math.max(w, h)))}px`,
+                          }}
+                        >
+                          <span className="text-[9px] font-mono text-primary">{w}×{h}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground space-y-0.5">
+                          <div>Aspect: {(w / h).toFixed(2)}:1</div>
+                          <div>Megapixels: {((w * h) / 1_000_000).toFixed(1)}MP</div>
+                        </div>
+                      </div>
+
+                      {/* Width / Height inputs */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Width (px)</label>
+                          <Input
+                            type="number"
+                            defaultValue={w}
+                            min={320}
+                            max={7680}
+                            className="h-8 text-sm font-mono bg-muted/50 border-border/30"
+                            onBlur={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (!isNaN(val) && val !== w) handleResolutionChange(member.id, "resolution_w", val);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Height (px)</label>
+                          <Input
+                            type="number"
+                            defaultValue={h}
+                            min={320}
+                            max={4320}
+                            className="h-8 text-sm font-mono bg-muted/50 border-border/30"
+                            onBlur={(e) => {
+                              const val = parseInt(e.target.value);
+                              if (!isNaN(val) && val !== h) handleResolutionChange(member.id, "resolution_h", val);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Presets */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { label: "1080p", w: 1920, h: 1080 },
+                          { label: "1440p", w: 2560, h: 1440 },
+                          { label: "4K", w: 3840, h: 2160 },
+                          { label: "720p", w: 1280, h: 720 },
+                        ].map((preset) => (
+                          <button
+                            key={preset.label}
+                            onClick={() => {
+                              handleResolutionChange(member.id, "resolution_w", preset.w);
+                              handleResolutionChange(member.id, "resolution_h", preset.h);
+                            }}
+                            className={`text-[10px] px-2 py-1 rounded-md border transition-colors ${
+                              w === preset.w && h === preset.h
+                                ? "border-primary bg-primary/15 text-primary font-semibold"
+                                : "border-border/30 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="text-[10px] text-muted-foreground text-center tracking-wider">
+                Re-deploy your layout after changing resolutions for offset changes to take effect.
+              </p>
             </div>
           </TabsContent>
 

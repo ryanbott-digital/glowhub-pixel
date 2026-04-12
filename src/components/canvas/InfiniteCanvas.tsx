@@ -19,6 +19,8 @@ interface SyncGroupMember {
   screen_id: string;
   position: number;
   bezel_compensation?: number;
+  resolution_w?: number;
+  resolution_h?: number;
 }
 
 interface SyncGroup {
@@ -246,11 +248,12 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
 
   // ── OFFSET ENGINE: Compute bounding box & per-screen offsets ──
   const computeOffsets = (group: SyncGroup) => {
-    // Assume 1920x1080 per screen (standard HD)
-    const SCREEN_W = 1920;
-    const SCREEN_H = 1080;
     const sorted = [...group.screens].sort((a, b) => a.position - b.position);
     const isHorizontal = group.orientation === "horizontal";
+
+    // Per-screen resolution (defaults to 1920×1080)
+    const getW = (m: SyncGroupMember) => m.resolution_w || 1920;
+    const getH = (m: SyncGroupMember) => m.resolution_h || 1080;
 
     // Total bounding box with bezel compensation
     let totalW = 0;
@@ -259,19 +262,19 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
     if (isHorizontal) {
       totalW = sorted.reduce((acc, m, idx) => {
         const bezel = idx > 0 ? (m.bezel_compensation || 0) : 0;
-        return acc + SCREEN_W + bezel;
+        return acc + getW(m) + bezel;
       }, 0);
-      totalH = SCREEN_H;
+      totalH = Math.max(...sorted.map(getH));
     } else {
-      totalW = SCREEN_W;
+      totalW = Math.max(...sorted.map(getW));
       totalH = sorted.reduce((acc, m, idx) => {
         const bezel = idx > 0 ? (m.bezel_compensation || 0) : 0;
-        return acc + SCREEN_H + bezel;
+        return acc + getH(m) + bezel;
       }, 0);
     }
 
     // Per-screen offset calculation:
-    // Offset = (ScreenPosition * Resolution) + (BezelGap * ScreenIndex)
+    // Offset = cumulative screen sizes + cumulative bezels
     const layouts: { screenId: string; layout: object }[] = [];
     let cumulativeOffset = 0;
 
@@ -287,8 +290,8 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
         layout: {
           offset_x: offsetX,
           offset_y: offsetY,
-          viewport_width: SCREEN_W,
-          viewport_height: SCREEN_H,
+          viewport_width: getW(member),
+          viewport_height: getH(member),
           total_width: totalW,
           total_height: totalH,
           bezel_offset: bezel,
@@ -298,7 +301,7 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
         },
       });
 
-      cumulativeOffset += isHorizontal ? SCREEN_W : SCREEN_H;
+      cumulativeOffset += isHorizontal ? getW(member) : getH(member);
     });
 
     return layouts;
