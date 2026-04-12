@@ -431,7 +431,7 @@ export default function MediaLibrary() {
         )}
       </div>
 
-      {/* Drop zone */}
+      {/* Drop zone — compact on mobile */}
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -439,29 +439,30 @@ export default function MediaLibrary() {
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`glass glass-spotlight rounded-2xl p-10 text-center transition-all duration-200 border ${
+        onClick={() => fileInputRef.current?.click()}
+        className={`glass glass-spotlight rounded-2xl p-6 sm:p-10 text-center transition-all duration-200 border cursor-pointer ${
           dragOver
             ? "border-primary shadow-[0_0_30px_rgba(0,163,163,0.3)] scale-[1.01]"
-            : "border-white/[0.06] hover:border-primary/30"
+            : "border-white/[0.06] hover:border-primary/30 active:scale-[0.99]"
         }`}
       >
-        <div className="flex flex-col items-center gap-2">
-          <div className="p-3 rounded-full bg-primary/10">
-            <Upload className="h-6 w-6 text-primary" />
+        <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+          <div className="p-2.5 sm:p-3 rounded-full bg-primary/10">
+            <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
-          <p className="font-medium text-foreground">Drag & drop files here</p>
-          <p className="text-sm text-muted-foreground">Images and videos up to 50MB each</p>
+          <p className="font-medium text-foreground text-sm sm:text-base">Tap to upload or drag & drop</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Images and videos up to 50MB</p>
         </div>
       </div>
 
       {/* Media grid */}
       {media.length > 0 && (
-        <div className={`grid gap-4 stagger-in ${
+        <div className={`grid gap-3 sm:gap-4 stagger-in ${
           (() => {
             const size = localStorage.getItem("glowhub_media_grid") || "medium";
             if (size === "small") return "grid-cols-3 md:grid-cols-4 lg:grid-cols-6";
-            if (size === "large") return "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
-            return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+            if (size === "large") return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+            return "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
           })()
         }`}>
           {media.map((item) => {
@@ -470,7 +471,7 @@ export default function MediaLibrary() {
             return (
               <div
                 key={item.id}
-                className={`glass glass-spotlight rounded-2xl group overflow-hidden transition-all cursor-pointer border ${
+                className={`glass glass-spotlight rounded-xl sm:rounded-2xl group overflow-hidden transition-all cursor-pointer border active:scale-[0.98] ${
                   isSelected
                     ? "ring-2 ring-primary border-primary"
                     : "border-white/[0.06] hover:border-primary/30"
@@ -500,17 +501,17 @@ export default function MediaLibrary() {
                     />
                   )}
 
-                  {/* Selection checkbox */}
+                  {/* Selection checkbox — always visible on mobile */}
                   <div
-                    className={`absolute top-2 left-2 transition-opacity ${
-                      isSelecting || isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    className={`absolute top-1.5 left-1.5 sm:top-2 sm:left-2 transition-opacity ${
+                      isSelecting || isSelected ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100 opacity-70"
                     }`}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Checkbox
                       checked={isSelected}
                       onCheckedChange={() => toggleSelect(item.id)}
-                      className="h-5 w-5 border-2 bg-background/80 backdrop-blur-sm"
+                      className="h-6 w-6 sm:h-5 sm:w-5 border-2 bg-background/80 backdrop-blur-sm"
                     />
                   </div>
 
@@ -553,22 +554,22 @@ export default function MediaLibrary() {
                         e.stopPropagation();
                         deleteMedia(item);
                       }}
-                      className="absolute top-2 right-2 p-1.5 bg-destructive/90 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
+                      className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md sm:opacity-0 sm:group-hover:opacity-100 opacity-70 transition-opacity hover:bg-destructive"
                     >
-                      <Trash2 className="h-3 w-3 text-destructive-foreground" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-destructive-foreground" />
                     </button>
                   )}
                 </div>
-                <div className="p-3">
-                  <p className="text-sm font-medium truncate text-foreground" title={item.name}>
+                <div className="p-2 sm:p-3">
+                  <p className="text-xs sm:text-sm font-medium truncate text-foreground" title={item.name}>
                     {item.name}
                   </p>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
                       {new Date(item.created_at).toLocaleDateString()}
                     </p>
                     {item.fileSize != null && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         {formatFileSize(item.fileSize)}
                       </p>
                     )}
