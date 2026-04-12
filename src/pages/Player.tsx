@@ -960,7 +960,17 @@ export default function Player() {
 
             const drift = video.currentTime - leaderTime;
             const absDrift = Math.abs(drift);
-            setDriftMs(Math.round(drift * 1000));
+            const driftMillis = Math.round(drift * 1000);
+            setDriftMs(driftMillis);
+
+            // Report drift to dashboard listeners (throttled to every other tick ~400ms)
+            if (syncGroupIdRef.current) {
+              channel.send({
+                type: "broadcast",
+                event: "sync-drift",
+                payload: { screen_id: screenId, drift_ms: driftMillis, ts: Date.now() },
+              });
+            }
 
             if (absDrift <= 0.05) {
               // ✅ < 50ms: In sync — reset rate if correcting
