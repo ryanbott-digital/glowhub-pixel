@@ -10,7 +10,7 @@ const FREE_FEATURES = [
   { name: "1 screen", free: true, pro: true },
   { name: "Basic media support", free: true, pro: true },
   { name: "Community support", free: true, pro: true },
-  { name: "Up to 5 screens", free: false, pro: true },
+  { name: "Up to 5 screens + expandable", free: false, pro: true },
   { name: "Weather & RSS widgets", free: false, pro: true },
   { name: "4K video support", free: false, pro: true },
   { name: "Advanced scheduling", free: false, pro: true },
@@ -301,7 +301,7 @@ export default function Billing() {
             <Crown className="h-5 w-5 text-cyan-400" /> Why Go Pro?
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {["Up to 5 screens", "Weather & RSS widgets", "4K video support", "Advanced scheduling", "Priority support"].map((f) => (
+            {["Up to 5 screens + expandable", "Weather & RSS widgets", "4K video support", "Advanced scheduling", "Priority support"].map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-foreground">
                 <Check className="h-4 w-4 text-cyan-400 flex-shrink-0" />
                 {f}
