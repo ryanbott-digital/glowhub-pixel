@@ -40,6 +40,7 @@ const UseCase = lazy(() => import("./pages/UseCase"));
 const SolutionsRestaurants = lazy(() => import("./pages/SolutionsRestaurants"));
 const SolutionsRetail = lazy(() => import("./pages/SolutionsRetail"));
 const SolutionsHospitality = lazy(() => import("./pages/SolutionsHospitality"));
+const Schedule = lazy(() => import("./pages/Schedule"));
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,7 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
+              <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
               <Route path="/studio/preview/:layoutId" element={<StudioPreview />} />
               <Route path="/download" element={<Download />} />
