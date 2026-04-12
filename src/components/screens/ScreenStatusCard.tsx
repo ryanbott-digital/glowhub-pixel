@@ -153,11 +153,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
   return (
     <div
-      className="group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg"
+      className={`group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
       style={{
         boxShadow: isAlive
           ? "0 0 20px hsla(180, 100%, 45%, 0.08), 0 4px 20px rgba(0,0,0,0.1)"
-          : "0 4px 20px rgba(0,0,0,0.1)",
+          : "0 0 20px hsla(0, 70%, 55%, 0.15), 0 0 40px hsla(0, 70%, 55%, 0.08), 0 4px 20px rgba(0,0,0,0.1)",
       }}
     >
       {/* Clickable top area — monitor + name */}
