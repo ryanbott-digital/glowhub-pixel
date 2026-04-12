@@ -126,7 +126,9 @@ export function AppSidebar() {
                       onClick={isLockedPro ? (e: React.MouseEvent) => {
                         e.preventDefault();
                         toast("Upgrade to Pro to access " + item.title, { action: { label: "Upgrade", onClick: () => navigate("/billing") } });
-                      } : undefined}
+                      } : () => {
+                        if (isMobile) setOpenMobile(false);
+                      }}
                       className="hover:bg-sidebar-accent/50 transition-all duration-200"
                       activeClassName="bg-primary/10 text-primary font-medium border-l-2 border-primary shadow-[inset_0_0_20px_hsla(180,100%,45%,0.05)]"
                     >
