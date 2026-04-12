@@ -16,6 +16,7 @@ import { CinematicSplash } from "@/components/CinematicSplash";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalibrationOverlay } from "@/components/canvas/CalibrationOverlay";
 import { HypeTakeover } from "@/components/HypeTakeover";
+import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
 
 interface PlaylistItem {
   id: string;
@@ -2564,6 +2565,7 @@ export default function Player() {
           </div>
         </div>
       )}
+      <ApkUpdateBanner />
     </div>
   );
 }

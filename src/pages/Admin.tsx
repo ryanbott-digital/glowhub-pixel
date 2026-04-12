@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -84,6 +86,12 @@ export default function Admin() {
   const [grantUser, setGrantUser] = useState<AdminUser | null>(null);
   const [grantDuration, setGrantDuration] = useState("1m");
 
+  // APK version manager state
+  const [apkVersion, setApkVersion] = useState("");
+  const [apkDownloadUrl, setApkDownloadUrl] = useState("");
+  const [apkLoading, setApkLoading] = useState(true);
+  const [apkSaving, setApkSaving] = useState(false);
+
   // Redirect non-admins
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -137,10 +145,39 @@ export default function Admin() {
     setLeadsLoading(false);
   };
 
+  const fetchApkSettings = async () => {
+    setApkLoading(true);
+    const { data } = await supabase
+      .from("app_settings")
+      .select("key, value")
+      .in("key", ["latest_apk_version", "apk_download_url"]);
+    if (data) {
+      for (const row of data) {
+        if (row.key === "latest_apk_version") setApkVersion(row.value);
+        if (row.key === "apk_download_url") setApkDownloadUrl(row.value);
+      }
+    }
+    setApkLoading(false);
+  };
+
+  const saveApkSettings = async () => {
+    setApkSaving(true);
+    try {
+      const now = new Date().toISOString();
+      await supabase.from("app_settings").upsert({ key: "latest_apk_version", value: apkVersion, updated_at: now });
+      await supabase.from("app_settings").upsert({ key: "apk_download_url", value: apkDownloadUrl, updated_at: now });
+      toast.success(`APK version set to v${apkVersion} — all devices will be notified`);
+    } catch {
+      toast.error("Failed to save APK settings");
+    }
+    setApkSaving(false);
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchSubmissions();
     fetchLeads();
+    fetchApkSettings();
   }, []);
 
   const handleTierChange = (user: AdminUser, tier: string) => {
@@ -470,6 +507,49 @@ export default function Admin() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* APK Version Manager */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5" /> APK Update Manager
+          </CardTitle>
+          <CardDescription>Set the latest APK version — devices running an older version will see an update prompt</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {apkLoading ? (
+            <p className="text-muted-foreground text-sm">Loading…</p>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="apk-ver" className="text-sm">Latest APK Version</Label>
+                  <Input
+                    id="apk-ver"
+                    value={apkVersion}
+                    onChange={(e) => setApkVersion(e.target.value)}
+                    placeholder="e.g. 2.3.0"
+                    className="font-mono"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="apk-url" className="text-sm">Download URL</Label>
+                  <Input
+                    id="apk-url"
+                    value={apkDownloadUrl}
+                    onChange={(e) => setApkDownloadUrl(e.target.value)}
+                    placeholder="/download"
+                  />
+                </div>
+              </div>
+              <Button onClick={saveApkSettings} disabled={apkSaving} size="sm" className="gap-1.5">
+                {apkSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                Save & Notify Devices
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Captured Leads */}
       <Card>
