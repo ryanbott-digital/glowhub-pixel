@@ -1,0 +1,113 @@
+import { Helmet } from "react-helmet-async";
+
+interface SEOHeadProps {
+  title: string;
+  description: string;
+  canonical?: string;
+  jsonLd?: Record<string, any>;
+  ogImage?: string;
+}
+
+export function SEOHead({ title, description, canonical, jsonLd, ogImage }: SEOHeadProps) {
+  const fullTitle = title.includes("Glow") ? title : `${title} | Glow`;
+  const baseUrl = "https://glowhub-pixel.lovable.app";
+  const canonicalUrl = canonical ? `${baseUrl}${canonical}` : undefined;
+  const image = ogImage || "/og-image.png";
+
+  return (
+    <Helmet>
+      <title>{fullTitle}</title>
+      <meta name="description" content={description} />
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={description} />
+      <meta property="og:type" content="website" />
+      <meta property="og:image" content={image} />
+      {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={image} />
+
+      {jsonLd && (
+        <script type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+      )}
+    </Helmet>
+  );
+}
+
+export const GLOW_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Glow Digital Signage",
+  operatingSystem: "Android",
+  applicationCategory: "BusinessApplication",
+  applicationSubCategory: "Digital Signage Software",
+  description:
+    "Pro digital signage software for Firestick and Android TV. Upload, schedule, and push content to remote screens in real-time.",
+  offers: {
+    "@type": "Offer",
+    price: "9.00",
+    priceCurrency: "USD",
+    priceValidUntil: "2027-12-31",
+    availability: "https://schema.org/InStock",
+    description: "Pro Glow plan — up to 5 screens with offline caching, health monitoring, and no watermarks",
+  },
+  featureList: [
+    "Remote screen management",
+    "Offline content caching",
+    "Screen health monitoring",
+    "Playlist scheduling",
+    "Multi-screen sync",
+  ],
+  screenshot: "/og-image.png",
+  url: "https://glowhub-pixel.lovable.app/home",
+  author: {
+    "@type": "Organization",
+    name: "Glow",
+    url: "https://glowhub-pixel.lovable.app",
+  },
+};
+
+export const FAQ_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Do I need special hardware for digital signage?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. Glow works on any Amazon Fire TV Stick or Android TV device. Just sideload the app using the free Downloader tool.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How to sync two TVs without a video wall controller?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Glow's multi-screen sync feature lets you group multiple screens into a sync group and push the same playlist simultaneously — no hardware controller needed.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is the free plan really free forever?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. The Starter plan gives you 1 screen with basic scheduling and 500 MB of storage at no cost, with no time limit and no credit card required.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What happens if my internet goes down?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Pro plan screens cache content locally. If the connection drops, your signage keeps playing without interruption.",
+      },
+    },
+  ],
+};
