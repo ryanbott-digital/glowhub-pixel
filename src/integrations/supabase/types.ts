@@ -561,6 +561,11 @@ export type Database = {
       }
       sync_group_screens: {
         Row: {
+          bezel_compensation: number
+          brightness_offset: number
+          color_b: number
+          color_g: number
+          color_r: number
           created_at: string
           id: string
           position: number
@@ -568,6 +573,11 @@ export type Database = {
           sync_group_id: string
         }
         Insert: {
+          bezel_compensation?: number
+          brightness_offset?: number
+          color_b?: number
+          color_g?: number
+          color_r?: number
           created_at?: string
           id?: string
           position?: number
@@ -575,6 +585,11 @@ export type Database = {
           sync_group_id: string
         }
         Update: {
+          bezel_compensation?: number
+          brightness_offset?: number
+          color_b?: number
+          color_g?: number
+          color_r?: number
           created_at?: string
           id?: string
           position?: number
