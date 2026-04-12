@@ -156,6 +156,7 @@ export default function Playlists() {
   const [bulkMode, setBulkMode] = useState(false);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const [bulkSendDialogOpen, setBulkSendDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
