@@ -5,10 +5,18 @@ import { Loader2, MapPin } from "lucide-react";
 interface GeoResult {
   name: string;
   country: string;
+  country_code?: string;
   admin1?: string;
   latitude: number;
   longitude: number;
 }
+
+const countryCodeToFlag = (code?: string) => {
+  if (!code || code.length !== 2) return "";
+  return String.fromCodePoint(
+    ...code.toUpperCase().split("").map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)
+  );
+};
 
 interface CitySearchInputProps {
   value: string;
@@ -83,6 +91,7 @@ export default function CitySearchInput({ value, onChange }: CitySearchInputProp
       {open && results.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
           {results.map((r, i) => {
+            const flag = countryCodeToFlag(r.country_code);
             const label = [r.name, r.admin1, r.country].filter(Boolean).join(", ");
             return (
               <button
@@ -91,7 +100,11 @@ export default function CitySearchInput({ value, onChange }: CitySearchInputProp
                 className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-left hover:bg-accent transition-colors"
                 onClick={() => handleSelect(r)}
               >
-                <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                {flag ? (
+                  <span className="text-base shrink-0">{flag}</span>
+                ) : (
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                )}
                 <span className="truncate text-foreground">{label}</span>
               </button>
             );
