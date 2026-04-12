@@ -3,6 +3,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Layers, CalendarClock, Zap, Check, ArrowRight, X, Monitor, DollarSign } from "lucide-react";
+import { RelatedSolutions } from "@/components/RelatedSolutions";
 import retailBefore from "@/assets/retail-before-disconnected.jpg";
 import retailAfter from "@/assets/retail-after-synced.jpg";
 import retailAmbient from "@/assets/retail-ambient-glow.jpg";
@@ -393,6 +394,8 @@ const SolutionsRetail = () => {
           <p className="text-xs text-[#475569] mt-4">Free plan available · No credit card required · 5-minute setup</p>
         </div>
       </section>
+
+      <RelatedSolutions currentPath="/solutions/retail" />
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/5 px-6 py-10 text-center text-xs text-[#475569]">
