@@ -880,7 +880,7 @@ export default function Player() {
     };
   }, [screenId, paired, fetchPlaylist]);
 
-  // Heartbeat: ping last_ping + current_media_id every 30s
+  // Heartbeat: ping last_ping + current_media_id every 60s (battery-friendly)
   useEffect(() => {
     if (!screenId || !paired) return;
 
@@ -892,7 +892,7 @@ export default function Player() {
     };
 
     ping(); // immediate first ping
-    const interval = setInterval(ping, 30_000);
+    const interval = setInterval(ping, 60_000);
     return () => clearInterval(interval);
   }, [screenId, paired, currentIndex, items]);
 

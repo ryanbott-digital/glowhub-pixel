@@ -104,7 +104,7 @@ export function usePushNotifications() {
       }
 
       setIsSubscribed(true);
-      toast.success("🔔 Offline alerts enabled! You'll be notified when screens go down.");
+      toast.success("🛡️ System Watchdog Active. We've got your back — if a screen goes dark, you'll be the first to know.");
       setLoading(false);
       return true;
     } catch (err: any) {
