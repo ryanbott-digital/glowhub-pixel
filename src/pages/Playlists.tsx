@@ -132,7 +132,7 @@ export default function Playlists() {
             return (
               <div
                 key={pl.id}
-                className={`glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
+                className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
                   sentPlaylistId === pl.id
                     ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
                     : selectedPlaylist?.id === pl.id
