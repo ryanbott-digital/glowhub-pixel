@@ -6,11 +6,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2 } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2, Monitor, Wifi, WifiOff, AlertTriangle, CreditCard, Plus, ChevronRight, Package, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
+
+interface AdminScreen {
+  id: string;
+  name: string;
+  status: string;
+  last_ping: string | null;
+  last_screenshot_url: string | null;
+}
 
 interface AdminUser {
   id: string;
@@ -19,6 +30,9 @@ interface AdminUser {
   subscription_status: string;
   subscription_tier: string;
   granted_pro_until: string | null;
+  screen_packs: number;
+  stripe_customer_id: string | null;
+  screens: AdminScreen[];
 }
 
 interface ContactSubmission {
@@ -51,8 +65,11 @@ const GRANT_DURATIONS = [
   { value: "forever", label: "Forever" },
 ];
 
+const SCREENS_PER_PACK = 5;
+const BASE_SCREEN_LIMITS: Record<string, number> = { free: 1, basic: 3, pro: 5, enterprise: 25 };
+
 function computeGrantExpiry(duration: string): string | null {
-  if (duration === "forever") return null; // null = forever in DB
+  if (duration === "forever") return null;
   const now = new Date();
   const match = duration.match(/^(\d+)(m|y)$/);
   if (!match) return null;
@@ -68,6 +85,25 @@ function formatGrantExpiry(dateStr: string | null): string {
   const d = new Date(dateStr);
   if (d < new Date()) return "Expired";
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function isOnline(lastPing: string | null): boolean {
+  if (!lastPing) return false;
+  return Date.now() - new Date(lastPing).getTime() < 90_000;
+}
+
+function isOfflineLong(lastPing: string | null): boolean {
+  if (!lastPing) return false;
+  return Date.now() - new Date(lastPing).getTime() > 300_000;
+}
+
+function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return "Never";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  if (diff < 60_000) return "Just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
 export default function Admin() {
@@ -91,6 +127,10 @@ export default function Admin() {
   const [apkDownloadUrl, setApkDownloadUrl] = useState("");
   const [apkLoading, setApkLoading] = useState(true);
   const [apkSaving, setApkSaving] = useState(false);
+
+  // User detail sheet
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [addingPack, setAddingPack] = useState(false);
 
   // Redirect non-admins
   useEffect(() => {
@@ -182,7 +222,6 @@ export default function Admin() {
 
   const handleTierChange = (user: AdminUser, tier: string) => {
     if (tier === "pro" && user.subscription_tier !== "pro") {
-      // Open grant dialog to choose duration
       setGrantUser({ ...user });
       setGrantDuration("1m");
     } else {
@@ -234,6 +273,42 @@ export default function Admin() {
     updateTier(grantUser.id, "pro", expiry);
   };
 
+  const handleAddScreenPack = async (userId: string) => {
+    setAddingPack(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        method: "POST",
+        body: { action: "add_screen_pack", user_id: userId },
+      });
+
+      if (error) {
+        toast.error(typeof error === "object" && "message" in error ? error.message : "Failed to add screen pack");
+        setAddingPack(false);
+        return;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        setAddingPack(false);
+        return;
+      }
+
+      toast.success("Screen pack added — $9 charged to user");
+      // Update local state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId ? { ...u, screen_packs: data.screen_packs ?? u.screen_packs + 1 } : u
+        )
+      );
+      if (selectedUser?.id === userId) {
+        setSelectedUser((prev) => prev ? { ...prev, screen_packs: data.screen_packs ?? prev.screen_packs + 1 } : prev);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add screen pack");
+    }
+    setAddingPack(false);
+  };
+
   const deleteLead = async (id: string) => {
     const { error } = await supabase.from("leads").delete().eq("id", id);
     if (error) {
@@ -259,7 +334,6 @@ export default function Admin() {
     const tier = user.subscription_tier;
     const t = TIERS.find((t) => t.value === tier) || TIERS[0];
     const isGranted = tier === "pro" && user.granted_pro_until !== null && user.granted_pro_until !== undefined;
-    const isForever = tier === "pro" && user.granted_pro_until === null;
     const isExpired = isGranted && new Date(user.granted_pro_until!) < new Date();
 
     return (
@@ -281,6 +355,15 @@ export default function Admin() {
     );
   };
 
+  // User detail helpers
+  const getUserScreenLimit = (user: AdminUser) => {
+    const base = BASE_SCREEN_LIMITS[user.subscription_tier] ?? 1;
+    return base + (user.screen_packs * SCREENS_PER_PACK);
+  };
+
+  const getOnlineCount = (screens: AdminScreen[]) => screens.filter((s) => isOnline(s.last_ping)).length;
+  const getOfflineAlerts = (screens: AdminScreen[]) => screens.filter((s) => s.last_ping && isOfflineLong(s.last_ping));
+
   if (adminLoading || !isAdmin) return null;
 
   return (
@@ -298,7 +381,7 @@ export default function Admin() {
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" /> Users
           </CardTitle>
-          <CardDescription>Grant or revoke subscription tiers for any user</CardDescription>
+          <CardDescription>Click a user to see full details. Grant or revoke subscription tiers.</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -310,39 +393,232 @@ export default function Admin() {
               {users.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                  className="flex items-center justify-between p-3 rounded-lg border bg-card cursor-pointer hover:border-primary/40 transition-colors"
+                  onClick={() => setSelectedUser(user)}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{user.email}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate">{user.email}</p>
+                        {user.screens.length > 0 && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <Monitor className="h-3 w-3" />
+                            {user.screens.length}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         Joined {new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     {tierBadge(user)}
                   </div>
-                  <Select
-                    value={user.subscription_tier}
-                    onValueChange={(val) => handleTierChange(user, val)}
-                    disabled={updating === user.id}
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIERS.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={user.subscription_tier}
+                      onValueChange={(val) => handleTierChange(user, val)}
+                      disabled={updating === user.id}
+                    >
+                      <SelectTrigger className="w-28" onClick={(e) => e.stopPropagation()}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIERS.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* User Detail Sheet */}
+      <Sheet open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              User Details
+            </SheetTitle>
+            <SheetDescription>{selectedUser?.email}</SheetDescription>
+          </SheetHeader>
+
+          {selectedUser && (
+            <div className="space-y-6 mt-6">
+              {/* User Info */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Account</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Email</p>
+                    <p className="font-medium truncate">{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Joined</p>
+                    <p className="font-medium">{new Date(selectedUser.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Tier</p>
+                    <div className="mt-0.5">{tierBadge(selectedUser)}</div>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Stripe</p>
+                    <p className="font-medium flex items-center gap-1">
+                      {selectedUser.stripe_customer_id ? (
+                        <><CreditCard className="h-3 w-3 text-green-500" /> Linked</>
+                      ) : (
+                        <span className="text-muted-foreground">Not linked</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Screens */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Monitor className="h-4 w-4" /> Screens
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    {selectedUser.screens.length} of {getUserScreenLimit(selectedUser)} used
+                    {selectedUser.screen_packs > 0 && ` (${selectedUser.screen_packs} pack${selectedUser.screen_packs !== 1 ? "s" : ""})`}
+                  </span>
+                </div>
+
+                {/* Health Alerts */}
+                {getOfflineAlerts(selectedUser.screens).length > 0 && (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                    <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
+                      <AlertTriangle className="h-3.5 w-3.5" /> Offline Alerts
+                    </div>
+                    {getOfflineAlerts(selectedUser.screens).map((s) => (
+                      <p key={s.id} className="text-xs text-muted-foreground">
+                        {s.name} — last seen {timeAgo(s.last_ping)}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
+                {selectedUser.screens.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No screens registered</p>
+                ) : (
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Screen</TableHead>
+                          <TableHead className="text-xs">Status</TableHead>
+                          <TableHead className="text-xs">Last Seen</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedUser.screens.map((screen) => {
+                          const online = isOnline(screen.last_ping);
+                          return (
+                            <TableRow key={screen.id}>
+                              <TableCell className="py-2">
+                                <div className="flex items-center gap-2">
+                                  {screen.last_screenshot_url ? (
+                                    <img
+                                      src={screen.last_screenshot_url}
+                                      alt=""
+                                      className="h-8 w-12 rounded object-cover border"
+                                    />
+                                  ) : (
+                                    <div className="h-8 w-12 rounded bg-muted flex items-center justify-center">
+                                      <Image className="h-3 w-3 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <span className="text-sm font-medium truncate max-w-[120px]">{screen.name}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-2">
+                                <div className="flex items-center gap-1.5">
+                                  {online ? (
+                                    <Wifi className="h-3.5 w-3.5 text-green-500" />
+                                  ) : (
+                                    <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
+                                  )}
+                                  <span className={`text-xs ${online ? "text-green-600" : "text-muted-foreground"}`}>
+                                    {online ? "Online" : "Offline"}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-2 text-xs text-muted-foreground">
+                                {timeAgo(screen.last_ping)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Wifi className="h-3 w-3 text-green-500" />
+                  {getOnlineCount(selectedUser.screens)} online
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Billing / Screen Packs */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Package className="h-4 w-4" /> Screen Capacity
+                </h3>
+                <div className="rounded-lg border p-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Base limit ({selectedUser.subscription_tier})</span>
+                    <span className="font-medium">{BASE_SCREEN_LIMITS[selectedUser.subscription_tier] ?? 1}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Screen packs purchased</span>
+                    <span className="font-medium">{selectedUser.screen_packs} × 5 = +{selectedUser.screen_packs * SCREENS_PER_PACK}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total capacity</span>
+                    <span className="text-primary">{getUserScreenLimit(selectedUser)} screens</span>
+                  </div>
+                </div>
+
+                {selectedUser.stripe_customer_id ? (
+                  <Button
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => handleAddScreenPack(selectedUser.id)}
+                    disabled={addingPack}
+                  >
+                    {addingPack ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                    Add Screen Pack (+5 screens, $9 charge)
+                  </Button>
+                ) : (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500 inline mr-1" />
+                    Cannot charge — user has no Stripe payment method linked. They need to subscribe or visit the billing portal first.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Grant Duration Dialog */}
       <Dialog open={!!grantUser} onOpenChange={(open) => !open && setGrantUser(null)}>
