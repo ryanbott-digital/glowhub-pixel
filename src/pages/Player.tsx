@@ -869,6 +869,8 @@ export default function Player() {
   const syncGroupIdRef = useRef<string | null>(null);
   const isLeaderRef = useRef(false);
   const [showSyncPulse, setShowSyncPulse] = useState(false);
+  const [driftMs, setDriftMs] = useState<number>(0);
+  const [showDriftMeter, setShowDriftMeter] = useState(() => localStorage.getItem("glowhub_drift_meter") === "1");
   const driftCorrectionActive = useRef(false);
 
   useEffect(() => {
@@ -958,6 +960,7 @@ export default function Player() {
 
             const drift = video.currentTime - leaderTime;
             const absDrift = Math.abs(drift);
+            setDriftMs(Math.round(drift * 1000));
 
             if (absDrift <= 0.05) {
               // ✅ < 50ms: In sync — reset rate if correcting
