@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     // Find screens that are still marked online but haven't pinged recently
     const { data: staleScreens, error: screenErr } = await supabase
       .from("screens")
-      .select("id, name, user_id, status, last_ping")
+      .select("id, name, user_id, status, last_ping, launch_on_boot")
       .eq("status", "online")
       .lt("last_ping", cutoff);
 
@@ -62,10 +62,10 @@ Deno.serve(async (req) => {
       .in("id", staleIds);
 
     // Group by user
-    const userScreens: Record<string, { name: string }[]> = {};
+    const userScreens: Record<string, { name: string; launch_on_boot: boolean }[]> = {};
     for (const s of staleScreens) {
       if (!userScreens[s.user_id]) userScreens[s.user_id] = [];
-      userScreens[s.user_id].push({ name: s.name });
+      userScreens[s.user_id].push({ name: s.name, launch_on_boot: s.launch_on_boot });
     }
 
     let notified = 0;
@@ -83,9 +83,14 @@ Deno.serve(async (req) => {
         if (!subs || subs.length === 0) continue;
 
         for (const screen of screens) {
+          const isProtected = screen.launch_on_boot;
           const payload = JSON.stringify({
-            title: `⚠️ Screen Offline: ${screen.name}`,
-            body: "Your broadcast has stopped. Tap to troubleshoot the connection.",
+            title: isProtected
+              ? `🛡️ CRITICAL: Protected Screen Offline: ${screen.name}`
+              : `⚠️ Screen Offline: ${screen.name}`,
+            body: isProtected
+              ? "A Hardware Protected screen has lost connection. Auto-restart may have failed — immediate attention required."
+              : "Your broadcast has stopped. Tap to troubleshoot the connection.",
             icon: "/admin-icon-alert-192x192.png",
             url: "/screens",
           });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AlertTriangle, X, ChevronRight } from "lucide-react";
+import { AlertTriangle, X, ChevronRight, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -13,20 +13,17 @@ function playWarningTone() {
     const ctx = new AudioContext();
     const now = ctx.currentTime;
 
-    // Low rumble oscillator
     const osc1 = ctx.createOscillator();
     osc1.type = "sawtooth";
     osc1.frequency.setValueAtTime(80, now);
     osc1.frequency.linearRampToValueAtTime(60, now + 0.3);
 
-    // Higher alert beep
     const osc2 = ctx.createOscillator();
     osc2.type = "square";
     osc2.frequency.setValueAtTime(440, now);
     osc2.frequency.setValueAtTime(330, now + 0.15);
     osc2.frequency.setValueAtTime(440, now + 0.3);
 
-    // Gain envelopes
     const gain1 = ctx.createGain();
     gain1.gain.setValueAtTime(0.08, now);
     gain1.gain.linearRampToValueAtTime(0, now + 0.4);
@@ -35,7 +32,6 @@ function playWarningTone() {
     gain2.gain.setValueAtTime(0.05, now);
     gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
-    // Low-pass filter for warmth
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
     filter.frequency.value = 600;
@@ -61,6 +57,7 @@ interface FleetAlertBarProps {
 export function FleetAlertBar({ onFilterOffline }: FleetAlertBarProps) {
   const { user } = useAuth();
   const [offlineCount, setOfflineCount] = useState(0);
+  const [protectedOfflineCount, setProtectedOfflineCount] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const prevCountRef = useRef(0);
   const soundPlayedRef = useRef(false);
@@ -68,23 +65,27 @@ export function FleetAlertBar({ onFilterOffline }: FleetAlertBarProps) {
   const checkOfflineScreens = useCallback(async () => {
     if (!user) return;
     const cutoff = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-    const { count } = await supabase
+
+    const { data } = await supabase
       .from("screens")
-      .select("id", { count: "exact", head: true })
+      .select("id, launch_on_boot")
       .eq("user_id", user.id)
       .lt("last_ping", cutoff);
 
-    const newCount = count ?? 0;
+    const allOffline = data ?? [];
+    const newCount = allOffline.length;
+    const protectedCount = allOffline.filter((s) => s.launch_on_boot).length;
 
     // Play warning tone if a screen just went offline
     if (newCount > prevCountRef.current && !soundPlayedRef.current) {
       playWarningTone();
       soundPlayedRef.current = true;
-      setTimeout(() => { soundPlayedRef.current = false; }, 30_000); // cooldown
+      setTimeout(() => { soundPlayedRef.current = false; }, 30_000);
     }
 
     prevCountRef.current = newCount;
     setOfflineCount(newCount);
+    setProtectedOfflineCount(protectedCount);
 
     if (newCount > 0) setDismissed(false);
   }, [user]);
@@ -97,42 +98,72 @@ export function FleetAlertBar({ onFilterOffline }: FleetAlertBarProps) {
 
   if (offlineCount === 0 || dismissed) return null;
 
+  const hasCritical = protectedOfflineCount > 0;
+
   return (
-    <div
-      className="alert-bar-pulse flex items-center justify-between gap-3 px-4 py-2 rounded-xl mb-4 cursor-pointer group transition-all"
-      style={{
-        background: "linear-gradient(135deg, hsla(348, 100%, 50%, 0.12), hsla(348, 100%, 50%, 0.06))",
-        border: "1px solid hsla(348, 100%, 50%, 0.2)",
-        boxShadow: "0 0 20px hsla(348, 100%, 50%, 0.1), inset 0 0 20px hsla(348, 100%, 50%, 0.03)",
-      }}
-      onClick={onFilterOffline}
-    >
-      <div className="flex items-center gap-2.5 min-w-0">
-        <AlertTriangle
-          className="h-4 w-4 shrink-0"
-          style={{ color: "hsl(348, 100%, 50%)" }}
-        />
-        <span
-          className="text-xs font-bold tracking-wide uppercase truncate"
-          style={{ color: "hsl(348, 100%, 65%)" }}
-        >
-          ATTENTION: {offlineCount} SCREEN{offlineCount !== 1 ? "S" : ""} REQUIRE{offlineCount === 1 ? "S" : ""} ADMIN INTERVENTION
-        </span>
+    <div className="space-y-2 mb-4">
+      {/* Main fleet alert */}
+      <div
+        className="alert-bar-pulse flex items-center justify-between gap-3 px-4 py-2 rounded-xl cursor-pointer group transition-all"
+        style={{
+          background: "linear-gradient(135deg, hsla(348, 100%, 50%, 0.12), hsla(348, 100%, 50%, 0.06))",
+          border: "1px solid hsla(348, 100%, 50%, 0.2)",
+          boxShadow: "0 0 20px hsla(348, 100%, 50%, 0.1), inset 0 0 20px hsla(348, 100%, 50%, 0.03)",
+        }}
+        onClick={onFilterOffline}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <AlertTriangle
+            className="h-4 w-4 shrink-0"
+            style={{ color: "hsl(348, 100%, 50%)" }}
+          />
+          <span
+            className="text-xs font-bold tracking-wide uppercase truncate"
+            style={{ color: "hsl(348, 100%, 65%)" }}
+          >
+            ATTENTION: {offlineCount} SCREEN{offlineCount !== 1 ? "S" : ""} REQUIRE{offlineCount === 1 ? "S" : ""} ADMIN INTERVENTION
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <ChevronRight
+            className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity"
+            style={{ color: "hsl(348, 100%, 60%)" }}
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+            className="p-1 rounded-full transition-colors"
+            style={{ color: "hsl(348, 100%, 60%)" }}
+            aria-label="Dismiss alert"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <ChevronRight
-          className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 transition-opacity"
-          style={{ color: "hsl(348, 100%, 60%)" }}
-        />
-        <button
-          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-          className="p-1 rounded-full transition-colors"
-          style={{ color: "hsl(348, 100%, 60%)" }}
-          aria-label="Dismiss alert"
+
+      {/* Hardware Protected sub-alert */}
+      {hasCritical && (
+        <div
+          className="flex items-center gap-2.5 px-4 py-2 rounded-xl cursor-pointer transition-all"
+          style={{
+            background: "linear-gradient(135deg, hsla(30, 100%, 50%, 0.12), hsla(348, 100%, 50%, 0.08))",
+            border: "1px solid hsla(30, 100%, 50%, 0.25)",
+            boxShadow: "0 0 15px hsla(30, 100%, 50%, 0.1)",
+            animation: "pulse 2s ease-in-out infinite",
+          }}
+          onClick={onFilterOffline}
         >
-          <X className="h-3 w-3" />
-        </button>
-      </div>
+          <ShieldAlert
+            className="h-4 w-4 shrink-0"
+            style={{ color: "hsl(30, 100%, 55%)" }}
+          />
+          <span
+            className="text-xs font-bold tracking-wide uppercase truncate"
+            style={{ color: "hsl(30, 100%, 65%)" }}
+          >
+            🛡️ {protectedOfflineCount} HARDWARE PROTECTED SCREEN{protectedOfflineCount !== 1 ? "S" : ""} DOWN — AUTO-RESTART MAY HAVE FAILED
+          </span>
+        </div>
+      )}
     </div>
   );
 }
