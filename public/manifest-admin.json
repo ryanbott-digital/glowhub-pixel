@@ -7,7 +7,7 @@
   "background_color": "#0a1628",
   "display": "standalone",
   "orientation": "any",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "icons": [
     {
@@ -27,5 +27,18 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/admin-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Glow Admin Dashboard"
+    }
+  ],
+  "categories": ["business", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false
 }
