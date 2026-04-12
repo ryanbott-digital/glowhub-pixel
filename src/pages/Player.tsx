@@ -2565,6 +2565,7 @@ export default function Player() {
           </div>
         </div>
       )}
+      <ApkUpdateBanner />
     </div>
   );
 }
