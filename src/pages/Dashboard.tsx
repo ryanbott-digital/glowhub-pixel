@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { isProTier } from "@/lib/subscription";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -14,6 +14,7 @@ import { ProGuard } from "@/components/ProGuard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -133,6 +134,18 @@ export default function Dashboard() {
   const liveCount = screens.filter((s) => s.status === "online" && s.current_playlist_id).length;
   const activeCount = screens.filter((s) => s.current_playlist_id).length;
 
+  // Watchdog status: find the most recent heartbeat across all screens
+  const watchdogStatus = useMemo(() => {
+    if (screens.length === 0) return null;
+    const pings = screens
+      .filter((s: any) => s.last_ping)
+      .map((s: any) => new Date(s.last_ping).getTime());
+    const lastCheck = pings.length > 0 ? new Date(Math.max(...pings)) : null;
+    const monitored = screens.length;
+    const allHealthy = offlineCount === 0;
+    return { lastCheck, monitored, allHealthy, offlineCount };
+  }, [screens, offlineCount]);
+
   const handleManageSubscription = async () => {
     setPortalLoading(true);
     try {
@@ -242,6 +255,49 @@ export default function Dashboard() {
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
         </div>
       </div>
+
+      {/* Watchdog Status Indicator */}
+      {watchdogStatus && (
+        <div
+          className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3"
+          style={{
+            borderColor: watchdogStatus.allHealthy
+              ? "hsla(180, 100%, 32%, 0.15)"
+              : "hsla(348, 100%, 50%, 0.2)",
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            {watchdogStatus.allHealthy ? (
+              <ShieldCheck className="h-4 w-4" style={{ color: "hsl(180, 100%, 40%)" }} />
+            ) : (
+              <ShieldAlert className="h-4 w-4 badge-flicker" style={{ color: "hsl(348, 100%, 55%)" }} />
+            )}
+            <div className="flex flex-col">
+              <span className="text-[11px] font-semibold tracking-wider uppercase" style={{
+                color: watchdogStatus.allHealthy ? "hsl(180, 100%, 40%)" : "hsl(348, 100%, 60%)",
+              }}>
+                {watchdogStatus.allHealthy ? "Watchdog — All Clear" : `Watchdog — ${watchdogStatus.offlineCount} Alert${watchdogStatus.offlineCount !== 1 ? "s" : ""}`}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                Monitoring {watchdogStatus.monitored} screen{watchdogStatus.monitored !== 1 ? "s" : ""}
+                {watchdogStatus.lastCheck && (
+                  <> · Last check {formatDistanceToNow(watchdogStatus.lastCheck, { addSuffix: true })}</>
+                )}
+              </span>
+            </div>
+          </div>
+          <div
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              backgroundColor: watchdogStatus.allHealthy ? "hsl(150, 70%, 50%)" : "hsl(348, 100%, 50%)",
+              boxShadow: watchdogStatus.allHealthy
+                ? "0 0 6px hsla(150, 70%, 50%, 0.5)"
+                : "0 0 6px hsla(348, 100%, 50%, 0.5)",
+              animation: watchdogStatus.allHealthy ? "none" : "badgeFlicker 3s ease-in-out infinite",
+            }}
+          />
+        </div>
+      )}
 
       {/* Billing Quick-Link */}
       <button
