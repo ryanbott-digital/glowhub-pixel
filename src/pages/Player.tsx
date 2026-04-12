@@ -106,6 +106,13 @@ export default function Player() {
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
   const [playerSyncGroupId, setPlayerSyncGroupId] = useState<string | null>(null);
+  const [syncLayout, setSyncLayout] = useState<{
+    offset_x: number; offset_y: number;
+    viewport_width: number; viewport_height: number;
+    total_width: number; total_height: number;
+    bezel_offset: number; position: number;
+    total_screens: number; orientation: string;
+  } | null>(null);
 
   // ── BREAKING ALERT ──
   const [alertActive, setAlertActive] = useState(false);
