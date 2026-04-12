@@ -84,6 +84,13 @@ export default function Admin() {
   const [grantUser, setGrantUser] = useState<AdminUser | null>(null);
   const [grantDuration, setGrantDuration] = useState("1m");
 
+  // Redirect non-admins
+  useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      navigate("/", { replace: true });
+    }
+  }, [isAdmin, adminLoading, navigate]);
+
   const fetchUsers = async () => {
     setLoading(true);
     const { data: { session } } = await supabase.auth.getSession();
