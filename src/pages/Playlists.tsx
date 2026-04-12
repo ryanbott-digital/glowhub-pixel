@@ -96,6 +96,9 @@ export default function Playlists() {
       const screen = pairedScreens.find((s) => s.id === screenId);
       toast.success(`"${sendTargetPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
       setSendDialogOpen(false);
+      // Flash the playlist card
+      setSentPlaylistId(sendTargetPlaylist.id);
+      setTimeout(() => setSentPlaylistId(null), 1500);
     } catch {
       toast.error("Failed to send playlist to screen");
     }
