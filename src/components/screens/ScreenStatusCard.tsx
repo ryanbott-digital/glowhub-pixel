@@ -242,13 +242,14 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
           <h3 className="font-semibold text-sm text-foreground truncate">{screen.name}</h3>
           <div className="flex items-center gap-2">
             <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${!isAlive ? "animate-pulse" : ""}`}
               style={{
-                background: isAlive ? "hsla(150, 70%, 50%, 0.1)" : "hsla(0, 70%, 55%, 0.1)",
+                background: isAlive ? "hsla(150, 70%, 50%, 0.1)" : "hsla(0, 70%, 55%, 0.15)",
                 color: isAlive ? "hsl(150, 70%, 50%)" : "hsl(0, 70%, 55%)",
+                boxShadow: !isAlive ? "0 0 8px hsla(0, 70%, 55%, 0.3)" : "none",
               }}
             >
-              {isAlive ? "Online" : "Offline"}
+              {isAlive ? "Online" : "⚠ SYSTEM DOWN"}
             </span>
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
           </div>
