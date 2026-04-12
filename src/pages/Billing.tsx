@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor, Package, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -28,6 +28,8 @@ export default function Billing() {
   const [refreshing, setRefreshing] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [screenPackLoading, setScreenPackLoading] = useState(false);
+  const [screenPacks, setScreenPacks] = useState(0);
+  const [screenPacksLoading, setScreenPacksLoading] = useState(true);
 
   const handleScreenPackCheckout = async () => {
     setScreenPackLoading(true);
