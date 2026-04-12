@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Zap, Sparkles, AlertTriangle, ChevronUp, ChevronDown } from "lucide-react";
+import { Zap, Sparkles, AlertTriangle, ChevronDown } from "lucide-react";
 
 type HypeType = "mega-deal" | "showtime" | "alert";
 
@@ -30,11 +30,77 @@ const HYPE_BUTTONS: { type: HypeType; label: string; icon: typeof Zap; colorClas
   },
 ];
 
+const STORAGE_KEY = "glowhub_fab_position";
+
+function clamp(val: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, val));
+}
+
 export function LiveRemoteDock() {
   const [expanded, setExpanded] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
   const [sending, setSending] = useState<HypeType | null>(null);
   const cooldownRef = useRef(false);
+
+  // Draggable state — stored as bottom/right to stay anchored
+  const [pos, setPos] = useState<{ bottom: number; right: number }>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { bottom: 24, right: 24 };
+  });
+
+  const dragging = useRef(false);
+  const dragMoved = useRef(false);
+  const startTouch = useRef<{ x: number; y: number; bottom: number; right: number } | null>(null);
+  const fabRef = useRef<HTMLDivElement>(null);
+
+  // Save position on change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
+  }, [pos]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    dragging.current = true;
+    dragMoved.current = false;
+    startTouch.current = {
+      x: e.clientX,
+      y: e.clientY,
+      bottom: pos.bottom,
+      right: pos.right,
+    };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [pos]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current || !startTouch.current) return;
+
+    const dx = e.clientX - startTouch.current.x;
+    const dy = e.clientY - startTouch.current.y;
+
+    // Only start treating as drag after 5px movement
+    if (!dragMoved.current && Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+    dragMoved.current = true;
+
+    const fabSize = 56;
+    const maxRight = window.innerWidth - fabSize;
+    const maxBottom = window.innerHeight - fabSize;
+
+    setPos({
+      right: clamp(startTouch.current.right - dx, 8, maxRight),
+      bottom: clamp(startTouch.current.bottom + dy, 8, maxBottom),
+    });
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    dragging.current = false;
+    startTouch.current = null;
+    // Only toggle expanded if it wasn't a drag
+    if (!dragMoved.current) {
+      setExpanded((v) => !v);
+    }
+  }, []);
 
   const triggerHype = async (type: HypeType) => {
     if (cooldownRef.current) {
@@ -68,23 +134,33 @@ export function LiveRemoteDock() {
     setSending(null);
     setTimeout(() => {
       cooldownRef.current = false;
-    }, 12000); // cooldown matches takeover duration + buffer
+    }, 12000);
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Collapsed trigger */}
+    <div
+      ref={fabRef}
+      className="fixed z-50"
+      style={{
+        bottom: `${pos.bottom}px`,
+        right: `${pos.right}px`,
+      }}
+    >
+      {/* Draggable FAB button */}
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-14 h-14 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--glow-pink))] flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        className="w-14 h-14 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--glow-pink))] flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform touch-none select-none"
         style={{
           boxShadow: "0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--glow-pink) / 0.3)",
+          cursor: dragging.current ? "grabbing" : "grab",
         }}
       >
         {expanded ? (
-          <ChevronDown className="w-6 h-6 text-white" />
+          <ChevronDown className="w-6 h-6 text-white pointer-events-none" />
         ) : (
-          <Zap className="w-6 h-6 text-white" />
+          <Zap className="w-6 h-6 text-white pointer-events-none" />
         )}
       </button>
 
