@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import CitySearchInput from "@/components/widgets/CitySearchInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -128,11 +129,9 @@ export default function PremiumWidgetConfig() {
         <div className="space-y-2">
           <div>
             <Label className="text-xs text-muted-foreground">City</Label>
-            <Input
+            <CitySearchInput
               value={weatherDraft.city}
-              onChange={(e) => setWeatherDraft((d) => ({ ...d, city: e.target.value }))}
-              placeholder="e.g. London, New York"
-              className="mt-1"
+              onChange={(city) => setWeatherDraft((d) => ({ ...d, city }))}
             />
           </div>
           <div className="flex items-center justify-between">
