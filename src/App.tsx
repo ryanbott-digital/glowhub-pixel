@@ -133,6 +133,7 @@ const App = () => (
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
               <Route path="/use-cases" element={<UseCase />} />
               <Route path="/use-cases/:slug" element={<UseCase />} />
+              <Route path="/solutions/restaurants" element={<SolutionsRestaurants />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
