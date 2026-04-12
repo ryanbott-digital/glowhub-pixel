@@ -28,7 +28,7 @@ interface SyncGroupMember {
 interface SyncGroup {
   id: string;
   name: string;
-  orientation: "horizontal" | "vertical";
+  orientation: "horizontal" | "vertical" | "grid";
   playlist_id: string | null;
   screens: SyncGroupMember[];
 }
