@@ -114,6 +114,13 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
     toast.success("Sync flash triggered on all screens");
   }, [group.id]);
 
+  // ── RESOLUTION OVERRIDE: update per-screen resolution ──
+  const handleResolutionChange = useCallback(async (memberId: string, field: "resolution_w" | "resolution_h", value: number) => {
+    const clamped = Math.max(320, Math.min(7680, value));
+    await supabase.from("sync_group_screens").update({ [field]: clamped } as any).eq("id", memberId);
+    onRefresh();
+  }, [onRefresh]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass sm:max-w-2xl max-h-[85vh] overflow-y-auto">
