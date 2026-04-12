@@ -106,12 +106,6 @@ export default function Playlists() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Playlists</h1>
         <div className="flex items-center gap-2">
-          {selectedPlaylist && (
-            <Button variant="outline" size="sm" onClick={openSendDialog}>
-              <Send className="h-3.5 w-3.5 mr-1.5" />
-              Send to Screen
-            </Button>
-          )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
