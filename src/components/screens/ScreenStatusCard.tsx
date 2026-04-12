@@ -269,11 +269,17 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
           <div className="flex items-center gap-1.5 min-w-0">
             <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{screen.name}</h3>
             {launchOnBoot && (
-              <span title="Hardware Protected — Auto-Start enabled">
-                <ShieldCheck
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: "hsl(180, 100%, 40%)" }}
-                />
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0"
+                style={{
+                  background: "hsla(180, 100%, 40%, 0.12)",
+                  color: "hsl(180, 100%, 40%)",
+                  border: "1px solid hsla(180, 100%, 40%, 0.2)",
+                }}
+                title="Hardware Protected — Auto-Start enabled"
+              >
+                <ShieldCheck className="h-3 w-3" />
+                Protected
               </span>
             )}
           </div>
