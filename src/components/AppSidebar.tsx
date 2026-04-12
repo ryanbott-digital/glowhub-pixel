@@ -25,17 +25,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkScreenLimit } from "@/lib/subscription";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: BrandCalendarIcon, pro: false },
-  { title: "Media Library", url: "/media", icon: BrandGridIcon, pro: false },
-  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false },
-  { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false },
-  { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true },
-  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false, newTab: true },
-  { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
-  { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
-  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
-  { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
-  { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false },
+  { title: "Dashboard", url: "/", icon: BrandCalendarIcon, pro: false, adminOnly: false },
+  { title: "Media Library", url: "/media", icon: BrandGridIcon, pro: false, adminOnly: false },
+  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false, adminOnly: false },
+  { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false, adminOnly: false },
+  { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true, adminOnly: false },
+  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false, adminOnly: false, newTab: true },
+  { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true, adminOnly: false },
+  { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false, adminOnly: false },
+  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false, adminOnly: true },
+  { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false, adminOnly: false },
+  { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false, adminOnly: false },
 ];
 
 export function AppSidebar() {
