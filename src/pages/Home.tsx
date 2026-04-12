@@ -763,7 +763,7 @@ const Home = () => {
                   <p className="text-xs text-[#00E5CC] font-semibold tracking-wide uppercase mb-1">Value Comparison</p>
                   <p className="text-sm text-[#94A3B8]">
                     Legacy signage: <span className="line-through text-red-400/70">$20+ per screen</span> →
-                    Glow: <span className="text-[#00E5CC] font-bold">$1.80 per screen</span>
+                    Glow: <span className="text-[#00E5CC] font-bold">{isAnnual ? "$1.40" : "$1.80"} per screen</span>
                   </p>
                 </div>
 
