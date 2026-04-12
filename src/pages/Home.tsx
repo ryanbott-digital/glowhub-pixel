@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { SEOHead, GLOW_JSON_LD, FAQ_JSON_LD } from "@/components/SEOHead";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope, ArrowRight } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
 import StarField from "@/components/StarField";
@@ -622,6 +622,75 @@ const Home = () => {
             <div className="mx-auto w-24 h-3.5 bg-[#131C2E] rounded-b-xl border-x border-b border-[#1E293B]/60" />
             <div className="mx-auto w-40 h-2 bg-[#131C2E] rounded-b-xl border-x border-b border-[#1E293B]/40 mt-[-1px]" />
           </div>
+        </div>
+      </section>
+
+      {/* ── Glow vs Legacy Comparison ── */}
+      <section id="comparison" className="px-6 py-24 max-w-5xl mx-auto" aria-label="Glow versus legacy digital signage comparison">
+        <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
+          Why Glow is the New Standard for Digital Signage
+        </h2>
+        <p className="text-[#94A3B8] text-center mb-16 text-base max-w-lg mx-auto">
+          Side-by-side: see how Glow replaces overpriced legacy systems.
+        </p>
+
+        <div data-animate className="reveal-card max-w-3xl mx-auto overflow-x-auto">
+          <table className="w-full border-collapse text-sm" role="table" aria-label="Glow versus legacy signage feature comparison">
+            <thead>
+              <tr>
+                <th className="text-left p-4 text-[#94A3B8] font-medium border-b border-[#1E293B]/60 w-[35%]">Feature</th>
+                <th className="p-4 text-center text-[#94A3B8]/60 font-medium border-b border-[#1E293B]/60 w-[32.5%]">Legacy Signage</th>
+                <th className="p-4 text-center font-medium border-b-2 border-[#00A3A3]/40 w-[32.5%] relative">
+                  <span className="inline-block px-3 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] mb-1">
+                    Most Advanced
+                  </span>
+                  <br />
+                  <span className="text-[#E2E8F0]">Glow</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { feature: "Pricing", legacy: "$30–$100 /mo per screen", glow: "$9 /mo (Up to 5 Screens)", glowWin: true },
+                { feature: "Hardware", legacy: "Proprietary $300 Players", glow: "Any Firestick / Android TV", glowWin: true },
+                { feature: "Sync Speed", legacy: "1–2 second lag (choppy)", glow: "Millisecond Precision (60fps)", glowWin: true },
+                { feature: "Management", legacy: "Clunky Web Portals", glow: "Native Admin Dashboard", glowWin: true },
+                { feature: "Takeovers", legacy: "Manual / Pre-scheduled", glow: "Instant 'Hype' Remote Triggers", glowWin: true },
+                { feature: "Setup Time", legacy: "Professional Install Required", glow: "5-Minute DIY Setup", glowWin: true },
+              ].map((row, i) => (
+                <tr key={i} className="group hover:bg-[#00A3A3]/[0.03] transition-colors">
+                  <td className="p-4 border-b border-[#1E293B]/40 font-medium text-[#CBD5E1]">{row.feature}</td>
+                  <td className="p-4 border-b border-[#1E293B]/40 text-center text-[#64748B]">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span aria-label="Disadvantage" className="text-red-400/60 text-xs">✕</span>
+                      {row.legacy}
+                    </span>
+                  </td>
+                  <td className="p-4 border-b border-[#00A3A3]/10 text-center text-[#E2E8F0] bg-[#00A3A3]/[0.04]">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Check aria-label="Advantage" className="w-3.5 h-3.5 text-[#00A3A3] shrink-0" />
+                      <span className="font-medium">{row.glow}</span>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* CTA below comparison */}
+        <div className="text-center mt-12 space-y-5">
+          <p className="text-lg sm:text-xl font-bold text-[#E2E8F0] max-w-xl mx-auto leading-relaxed">
+            Stop overpaying for 2010 technology.<br />
+            <span className="bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] bg-clip-text text-transparent">Join the Glow Ecosystem today.</span>
+          </p>
+          <Link
+            to="/auth"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm tracking-wider uppercase bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
+          >
+            Initialize Dashboard
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
