@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
+import { SEOHead, GLOW_JSON_LD, FAQ_JSON_LD } from "@/components/SEOHead";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
@@ -351,6 +352,12 @@ const Home = () => {
       onMouseMove={handleMouseMove}
       className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-['Satoshi','Inter',system-ui,sans-serif] overflow-x-hidden scroll-smooth relative"
     >
+      <SEOHead
+        title="Glow — Pro Digital Signage Software"
+        description="Turn any Firestick into professional digital signage. Upload, schedule, and sync content to remote screens. Cloud-synced screen manager from $9/mo."
+        canonical="/home"
+        jsonLd={{ ...GLOW_JSON_LD, ...FAQ_JSON_LD }}
+      />
       {/* ── Mouse Spotlight ── */}
       <div
         className="pointer-events-none fixed inset-0 z-[999] transition-opacity duration-300"
