@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy, CheckSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -169,6 +170,8 @@ export default function Playlists() {
     setBulkSelected(new Set());
   };
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
   const bulkDelete = async () => {
     if (bulkSelected.size === 0) return;
     const ids = Array.from(bulkSelected);
@@ -249,7 +252,7 @@ export default function Playlists() {
           totalCount={playlists.length}
           onSelectAll={() => setBulkSelected(new Set(playlists.map((p) => p.id)))}
           onDeselectAll={() => setBulkSelected(new Set())}
-          onBulkDelete={bulkDelete}
+          onBulkDelete={() => setConfirmDeleteOpen(true)}
           onBulkSend={openBulkSendDialog}
           onExit={exitBulkMode}
         />
@@ -449,6 +452,23 @@ export default function Playlists() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {bulkSelected.size} playlist{bulkSelected.size !== 1 ? "s" : ""}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. All selected playlists and their items will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setConfirmDeleteOpen(false); bulkDelete(); }}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
