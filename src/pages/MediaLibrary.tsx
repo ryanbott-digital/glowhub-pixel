@@ -59,6 +59,8 @@ export default function MediaLibrary() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
   const isSelecting = selected.size > 0;
 
   // Fetch user's screens
@@ -505,7 +507,27 @@ export default function MediaLibrary() {
                     ? "ring-2 ring-primary border-primary"
                     : "border-white/[0.06] hover:border-primary/30"
                 }`}
-                onClick={() => toggleSelect(item.id)}
+                onClick={() => {
+                  if (longPressFired.current) { longPressFired.current = false; return; }
+                  toggleSelect(item.id);
+                }}
+                onTouchStart={() => {
+                  longPressFired.current = false;
+                  longPressRef.current = setTimeout(() => {
+                    longPressFired.current = true;
+                    if (!isSelecting) {
+                      setRenamingId(item.id);
+                      setRenameValue(item.name);
+                    }
+                  }, 600);
+                }}
+                onTouchEnd={() => {
+                  if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
+                }}
+                onTouchMove={() => {
+                  if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current = null; }
+                }}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 <div className="aspect-video bg-muted relative overflow-hidden">
                   {item.type === "image" ? (
