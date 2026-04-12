@@ -250,6 +250,50 @@ export default function Billing() {
               Add 5 Screens — $9
             </Button>
           </div>
+
+          {/* Screen Pack Purchase History */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-muted/20 flex items-center justify-center">
+                <Receipt className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Screen Pack History</h3>
+                <p className="text-xs text-muted-foreground">Your purchased add-ons</p>
+              </div>
+            </div>
+            {screenPacksLoading ? (
+              <div className="flex items-center gap-2 py-3">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Loading…</span>
+              </div>
+            ) : screenPacks > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
+                  <div className="flex items-center gap-3">
+                    <Package className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {screenPacks} Screen Pack{screenPacks !== 1 ? "s" : ""} Purchased
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        +{screenPacks * 5} extra screens added to your account
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">${screenPacks * 9}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                  <span>Base Pro screens: 5</span>
+                  <span className="text-primary font-medium">Total capacity: {5 + screenPacks * 5} screens</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-2">
+                No screen packs purchased yet. Each pack adds 5 additional screens for $9.
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <div className="rounded-2xl border border-cyan-400/20 bg-white/5 backdrop-blur-xl p-6 space-y-4">
