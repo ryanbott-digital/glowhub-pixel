@@ -203,6 +203,7 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
     }
   };
 
+  const handleMouseUp = useCallback(async () => {
     if (draggingNode && snapIndicator) {
       const draggedPos = nodePositions[draggingNode];
       if (draggedPos) {
