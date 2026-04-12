@@ -2,6 +2,8 @@ import { ReactNode, useEffect, useCallback, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAntiTamper } from "@/hooks/use-anti-tamper";
+import { useAdminManifest } from "@/hooks/use-admin-manifest";
+import { AdminInstallBanner } from "@/components/AdminInstallBanner";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [defaultOpen, setDefaultOpen] = useState(() => {
