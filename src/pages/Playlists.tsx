@@ -252,7 +252,7 @@ export default function Playlists() {
           totalCount={playlists.length}
           onSelectAll={() => setBulkSelected(new Set(playlists.map((p) => p.id)))}
           onDeselectAll={() => setBulkSelected(new Set())}
-          onBulkDelete={bulkDelete}
+          onBulkDelete={() => setConfirmDeleteOpen(true)}
           onBulkSend={openBulkSendDialog}
           onExit={exitBulkMode}
         />
