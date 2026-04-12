@@ -502,38 +502,38 @@ export default function Screens() {
 
       {/* Bulk action toolbar */}
       {selectionMode && (
-        <div className="flex items-center gap-3 rounded-2xl glass glass-spotlight border-primary/20 px-4 py-3 animate-fade-in flex-wrap">
-          <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
-          <div className="h-4 w-px bg-border" />
-
-          <Select value={bulkPlaylistId} onValueChange={setBulkPlaylistId}>
-            <SelectTrigger className="w-48 h-8 text-xs"><SelectValue placeholder="Choose playlist…" /></SelectTrigger>
-            <SelectContent>
-              {playlists.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button size="sm" className="h-8" disabled={!bulkPlaylistId} onClick={bulkPublish}>
-            <Send className="h-3 w-3 mr-1" /> Publish All
-          </Button>
-
-          {groups.length > 0 && (
-            <Select onValueChange={(v) => bulkMoveToGroup(v === "none" ? null : v)}>
-              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Move to group…" /></SelectTrigger>
+        <div className="rounded-2xl glass glass-spotlight border-primary/20 px-3 py-3 animate-fade-in space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
+            <Button size="sm" variant="ghost" className="h-8" onClick={clearSelection}>
+              <X className="h-3 w-3 mr-1" /> Cancel
+            </Button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Select value={bulkPlaylistId} onValueChange={setBulkPlaylistId}>
+              <SelectTrigger className="flex-1 min-w-[140px] h-10 sm:h-8 text-xs"><SelectValue placeholder="Choose playlist…" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Ungrouped</SelectItem>
-                {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                {playlists.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
               </SelectContent>
             </Select>
-          )}
-
-          <Button size="sm" variant="destructive" className="h-8" onClick={bulkDelete}>
-            <Trash2 className="h-3 w-3 mr-1" /> Delete All
-          </Button>
-
-          <div className="flex-1" />
-          <Button size="sm" variant="ghost" className="h-8" onClick={clearSelection}>
-            <X className="h-3 w-3 mr-1" /> Cancel
-          </Button>
+            <Button size="sm" className="h-10 sm:h-8" disabled={!bulkPlaylistId} onClick={bulkPublish}>
+              <Send className="h-3 w-3 mr-1" /> Publish
+            </Button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {groups.length > 0 && (
+              <Select onValueChange={(v) => bulkMoveToGroup(v === "none" ? null : v)}>
+                <SelectTrigger className="flex-1 min-w-[120px] h-10 sm:h-8 text-xs"><SelectValue placeholder="Move to group…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ungrouped</SelectItem>
+                  {groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Button size="sm" variant="destructive" className="h-10 sm:h-8" onClick={bulkDelete}>
+              <Trash2 className="h-3 w-3 mr-1" /> Delete
+            </Button>
+          </div>
         </div>
       )}
 
@@ -577,7 +577,7 @@ export default function Screens() {
                 </h2>
               )}
               {ungroupedScreens.length > 0 ? (
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 stagger-in">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 stagger-in">
                   {ungroupedScreens.map(renderScreenCard)}
                 </div>
               ) : groups.length > 0 ? (
@@ -606,7 +606,7 @@ export default function Screens() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 {groupScreens.length > 0 ? (
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mt-3 stagger-in">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mt-3 stagger-in">
                     {groupScreens.map(renderScreenCard)}
                   </div>
                 ) : (
