@@ -76,7 +76,11 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
       group.screens.forEach((member, idx) => {
         const baseX = 200 + gi * 800;
         const baseY = 200;
-        if (group.orientation === "horizontal") {
+        if (group.orientation === "grid") {
+          const col = member.grid_col ?? (idx % 2);
+          const row = member.grid_row ?? Math.floor(idx / 2);
+          positions[member.screen_id] = { x: baseX + col * (NODE_WIDTH + 4), y: baseY + row * (NODE_HEIGHT + 4) };
+        } else if (group.orientation === "horizontal") {
           positions[member.screen_id] = { x: baseX + idx * (NODE_WIDTH + 4), y: baseY };
         } else {
           positions[member.screen_id] = { x: baseX, y: baseY + idx * (NODE_HEIGHT + 4) };
