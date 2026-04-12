@@ -572,6 +572,8 @@ export type Database = {
           created_at: string
           id: string
           position: number
+          resolution_h: number
+          resolution_w: number
           screen_id: string
           sync_group_id: string
         }
@@ -584,6 +586,8 @@ export type Database = {
           created_at?: string
           id?: string
           position?: number
+          resolution_h?: number
+          resolution_w?: number
           screen_id: string
           sync_group_id: string
         }
@@ -596,6 +600,8 @@ export type Database = {
           created_at?: string
           id?: string
           position?: number
+          resolution_h?: number
+          resolution_w?: number
           screen_id?: string
           sync_group_id?: string
         }
