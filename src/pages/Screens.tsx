@@ -77,6 +77,15 @@ export default function Screens() {
     }
   }, [searchParams, setSearchParams]);
 
+  // Screen pack purchase success
+  useEffect(() => {
+    if (searchParams.get("pack") === "success") {
+      toast.success("Screen pack added! 🎉", { description: "5 additional screens are now available." });
+      searchParams.delete("pack");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const selectionMode = selectedIds.size > 0;
   const atLimit = screenLimit !== null && screens.length >= screenLimit;
   const limitTooltip = atLimit
