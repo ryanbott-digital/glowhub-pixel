@@ -9,6 +9,7 @@ import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy, CheckSquare, Gri
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { PlaylistBuilder } from "@/components/playlists/PlaylistBuilder";
 import { BulkPlaylistToolbar } from "@/components/playlists/BulkPlaylistToolbar";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
@@ -288,6 +289,7 @@ export default function Playlists() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
+    hapticSuccess();
     const oldIndex = playlists.findIndex((p) => p.id === active.id);
     const newIndex = playlists.findIndex((p) => p.id === over.id);
     const reordered = arrayMove(playlists, oldIndex, newIndex);
