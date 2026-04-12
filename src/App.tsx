@@ -37,6 +37,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const PwaDiagnostics = lazy(() => import("./pages/PwaDiagnostics"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const UseCase = lazy(() => import("./pages/UseCase"));
+const SolutionsRestaurants = lazy(() => import("./pages/SolutionsRestaurants"));
 
 const queryClient = new QueryClient();
 
