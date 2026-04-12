@@ -434,6 +434,21 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
           100% { opacity: 1; }
         }
       `}</style>
+
+      {/* Calibration Suite Dialog */}
+      {calibrateGroupId && (() => {
+        const calibGroup = syncGroups.find(g => g.id === calibrateGroupId);
+        if (!calibGroup) return null;
+        return (
+          <CalibrationSuite
+            open={!!calibrateGroupId}
+            onOpenChange={(open) => { if (!open) setCalibrateGroupId(null); }}
+            group={calibGroup}
+            screens={screens}
+            onRefresh={onRefresh}
+          />
+        );
+      })()}
     </div>
   );
 }
