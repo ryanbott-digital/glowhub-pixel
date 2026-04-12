@@ -85,6 +85,27 @@ serve(async (req) => {
         );
         await handleSubscriptionChange(subscription);
       }
+      // Handle one-time screen pack purchase
+      if (session.metadata?.type === "screen_pack" && session.payment_status === "paid") {
+        const userId = session.metadata.supabase_user_id;
+        if (userId) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("screen_packs")
+            .eq("id", userId)
+            .single();
+          const currentPacks = profile?.screen_packs ?? 0;
+          const { error: packError } = await supabase
+            .from("profiles")
+            .update({ screen_packs: currentPacks + 1, updated_at: new Date().toISOString() })
+            .eq("id", userId);
+          if (packError) {
+            logStep("Error incrementing screen_packs", { error: packError });
+          } else {
+            logStep("Screen pack added", { userId, newTotal: currentPacks + 1 });
+          }
+        }
+      }
       break;
     }
     default:
