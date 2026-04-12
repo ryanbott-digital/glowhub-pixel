@@ -90,8 +90,8 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
   }, [group.id]);
 
   // ── COLOR MATCHING: update per-screen RGB/brightness ──
-  const handleColorChange = useCallback(async (memberId: string, channel: string, value: number) => {
-    await supabase.from("sync_group_screens").update({ [channel]: value }).eq("id", memberId);
+  const handleColorChange = useCallback(async (memberId: string, field: "color_r" | "color_g" | "color_b" | "brightness_offset", value: number) => {
+    await supabase.from("sync_group_screens").update({ [field]: value } as any).eq("id", memberId);
     supabase.channel(`calibration-${group.id}`).send({
       type: "broadcast",
       event: "color-update",
