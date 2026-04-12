@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2, Crown } from "lucide-react";
+import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2, Crown, Wifi, WifiOff } from "lucide-react";
 import { ProGuard } from "@/components/ProGuard";
 import PremiumWidgetConfig from "@/components/PremiumWidgetConfig";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 const DISMISS_KEY = "glowhub_onboarding_dismissed";
 
@@ -46,6 +47,7 @@ function SettingRow({ children }: { children: React.ReactNode }) {
 
 export default function Settings() {
   const { user } = useAuth();
+  const push = usePushNotifications();
   const [checklistDismissed, setChecklistDismissed] = useState(
     () => localStorage.getItem(DISMISS_KEY) === "true"
   );
