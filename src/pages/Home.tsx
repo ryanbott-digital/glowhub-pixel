@@ -375,7 +375,17 @@ const Home = () => {
             <button onClick={() => scrollTo("features")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Features</button>
             <button onClick={() => scrollTo("comparison")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
             <button onClick={() => scrollTo("pricing")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
-            <Link to="/solutions/restaurants" className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Solutions</Link>
+            <div className="hidden sm:block relative group">
+              <button className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors flex items-center gap-1">
+                Solutions
+                <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div className="absolute top-full right-0 mt-2 w-48 py-2 bg-[#0F1A2E] border border-[#1E293B] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <Link to="/solutions/restaurants" className="block px-4 py-2 text-sm text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1E293B]/50 transition-colors">Restaurants</Link>
+                <Link to="/solutions/retail" className="block px-4 py-2 text-sm text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1E293B]/50 transition-colors">Retail</Link>
+                <Link to="/solutions/hospitality" className="block px-4 py-2 text-sm text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1E293B]/50 transition-colors">Hospitality</Link>
+              </div>
+            </div>
             <Link
               to="/auth"
               className="text-sm font-medium px-5 py-2 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_20px_rgba(0,163,163,0.35)] transition-all"
@@ -986,6 +996,9 @@ const Home = () => {
           <div className="flex items-center gap-6 text-sm text-[#64748B]">
             <Link to="/auth" className="hover:text-[#E2E8F0] transition-colors">Login</Link>
             <Link to="/use-cases" className="hover:text-[#E2E8F0] transition-colors">Use Cases</Link>
+            <Link to="/solutions/restaurants" className="hover:text-[#E2E8F0] transition-colors">Restaurants</Link>
+            <Link to="/solutions/retail" className="hover:text-[#E2E8F0] transition-colors">Retail</Link>
+            <Link to="/solutions/hospitality" className="hover:text-[#E2E8F0] transition-colors">Hospitality</Link>
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
             <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
             <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>
