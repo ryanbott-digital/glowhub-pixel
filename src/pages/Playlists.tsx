@@ -38,6 +38,7 @@ export default function Playlists() {
   const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
   const [sending, setSending] = useState(false);
   const [sendTargetPlaylist, setSendTargetPlaylist] = useState<Playlist | null>(null);
+  const [sentPlaylistId, setSentPlaylistId] = useState<string | null>(null);
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
