@@ -25,6 +25,39 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Push notification handler — Glow Watchdog
+self.addEventListener("push", (event) => {
+  let data = { title: "Glow Alert", body: "A screen needs attention.", icon: "/admin-icon-alert-192x192.png", url: "/screens" };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch (e) {
+    // fallback to defaults
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: "/admin-icon-192x192.png",
+      vibrate: [200, 100, 200],
+      data: { url: data.url },
+    })
+  );
+});
+
+// Notification click — open the relevant page
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || "/screens";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(targetUrl) && "focus" in client) return client.focus();
+      }
+      return self.clients.openWindow(targetUrl);
+    })
+  );
+});
+
 // Fetch: NetworkFirst for navigations, CacheFirst for assets
 self.addEventListener("fetch", (event) => {
   const { request } = event;
