@@ -560,11 +560,13 @@ export default function Admin() {
                           <TableHead className="text-xs">Screen</TableHead>
                           <TableHead className="text-xs">Status</TableHead>
                           <TableHead className="text-xs">Last Seen</TableHead>
+                          <TableHead className="text-xs text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {selectedUser.screens.map((screen) => {
                           const online = isOnline(screen.last_ping);
+                          const isLoading = screenCommandLoading === screen.id;
                           return (
                             <TableRow key={screen.id}>
                               <TableCell className="py-2">
@@ -597,6 +599,38 @@ export default function Admin() {
                               </TableCell>
                               <TableCell className="py-2 text-xs text-muted-foreground">
                                 {timeAgo(screen.last_ping)}
+                              </TableCell>
+                              <TableCell className="py-2 text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        disabled={isLoading}
+                                        onClick={() => handleAdminRestart(screen.id, screen.name)}
+                                      >
+                                        {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Remote Restart</TooltipContent>
+                                  </Tooltip>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-destructive hover:text-destructive"
+                                        disabled={isLoading}
+                                        onClick={() => handleAdminUnpair(screen.id, screen.name)}
+                                      >
+                                        <Unplug className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Unpair Device</TooltipContent>
+                                  </Tooltip>
+                                </div>
                               </TableCell>
                             </TableRow>
                           );
