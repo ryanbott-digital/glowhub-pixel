@@ -853,6 +853,92 @@ export default function Player() {
     return () => { supabase.removeChannel(channel); };
   }, [screenId, paired, fetchPlaylist]);
 
+  // ── HEARTBEAT SYNC: Leader broadcasts timestamp, followers rubber-band to match ──
+  const syncGroupIdRef = useRef<string | null>(null);
+  const isLeaderRef = useRef(false);
+
+  useEffect(() => {
+    if (!screenId || !paired || !syncInfo) return;
+
+    // Position 0 = Time Leader
+    isLeaderRef.current = syncInfo.position === 0;
+
+    // Get sync group ID for this screen
+    const setupSync = async () => {
+      const { data: membership } = await supabase
+        .from("sync_group_screens")
+        .select("sync_group_id")
+        .eq("screen_id", screenId)
+        .maybeSingle();
+      if (!membership) return;
+      syncGroupIdRef.current = membership.sync_group_id;
+
+      const channelName = `sync-heartbeat-${membership.sync_group_id}`;
+
+      if (isLeaderRef.current) {
+        // Leader: broadcast current video time every 100ms
+        const broadcastInterval = setInterval(() => {
+          const videoA = videoRefA.current;
+          const videoB = videoRefB.current;
+          const activeVideo = activeBuffer === "A" ? videoA : videoB;
+          if (!activeVideo || activeVideo.paused) return;
+
+          supabase.channel(channelName).send({
+            type: "broadcast",
+            event: "sync-tick",
+            payload: {
+              t: activeVideo.currentTime,
+              index: currentIndex,
+              ts: Date.now(),
+            },
+          });
+        }, 100);
+
+        return () => clearInterval(broadcastInterval);
+      } else {
+        // Follower: listen for leader timestamp and rubber-band
+        const channel = supabase
+          .channel(channelName)
+          .on("broadcast", { event: "sync-tick" }, ({ payload }) => {
+            const { t: leaderTime, index: leaderIndex } = payload;
+            const videoA = videoRefA.current;
+            const videoB = videoRefB.current;
+            const activeVideo = activeBuffer === "A" ? videoA : videoB;
+            if (!activeVideo || activeVideo.paused) return;
+
+            // If on different playlist item, jump
+            if (leaderIndex !== currentIndex) return;
+
+            const drift = activeVideo.currentTime - leaderTime;
+            const absDrift = Math.abs(drift);
+
+            if (absDrift > 2) {
+              // Too far off — hard seek
+              activeVideo.currentTime = leaderTime;
+            } else if (absDrift > 0.05) {
+              // Rubber-band: slightly adjust playback speed
+              activeVideo.playbackRate = drift > 0 ? 0.95 : 1.05;
+              // Reset after 500ms
+              setTimeout(() => {
+                if (activeVideo) activeVideo.playbackRate = 1.0;
+              }, 500);
+            }
+          })
+          .on("broadcast", { event: "sync-start" }, ({ payload }) => {
+            // Deploy event: sync all screens to start together
+            if (payload.playlist_id) {
+              fetchPlaylist(payload.playlist_id);
+            }
+          })
+          .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+      }
+    };
+
+    const cleanup = setupSync();
+    return () => { cleanup.then?.(fn => fn?.()); };
+  }, [screenId, paired, syncInfo, activeBuffer, currentIndex, fetchPlaylist]);
 
   useEffect(() => {
     if (!screenId || !paired) return;
