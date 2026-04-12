@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const btnRef = useMagnetic();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,15 +119,25 @@ export default function Auth() {
               className="bg-white/[0.03] border-white/[0.08] text-[#E2E8F0] placeholder:text-[#64748B] glow-focus h-11"
             />
             {view !== "forgot" && (
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="bg-white/[0.03] border-white/[0.08] text-[#E2E8F0] placeholder:text-[#64748B] glow-focus h-11"
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="bg-white/[0.03] border-white/[0.08] text-[#E2E8F0] placeholder:text-[#64748B] glow-focus h-11 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             )}
             <Button
               ref={btnRef}
