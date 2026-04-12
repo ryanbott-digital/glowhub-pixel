@@ -21,6 +21,8 @@ interface SyncGroupMember {
   bezel_compensation?: number;
   resolution_w?: number;
   resolution_h?: number;
+  grid_col?: number;
+  grid_row?: number;
 }
 
 interface SyncGroup {
