@@ -135,6 +135,7 @@ const App = () => (
               <Route path="/use-cases" element={<UseCase />} />
               <Route path="/use-cases/:slug" element={<UseCase />} />
               <Route path="/solutions/restaurants" element={<SolutionsRestaurants />} />
+              <Route path="/solutions/retail" element={<SolutionsRetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
