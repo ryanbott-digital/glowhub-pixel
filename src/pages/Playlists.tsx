@@ -388,9 +388,18 @@ export default function Playlists() {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2 stagger-in">
+          <div className="relative mb-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search playlists…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 bg-white/[0.03] border-white/[0.08] text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={playlists.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-              {playlists.map((pl) => (
+            <SortableContext items={playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => p.id)} strategy={verticalListSortingStrategy}>
+              {playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((pl) => (
                 <SortablePlaylistCard
                   key={pl.id}
                   pl={pl}
