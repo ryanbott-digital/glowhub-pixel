@@ -170,6 +170,8 @@ export default function Playlists() {
     setBulkSelected(new Set());
   };
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
   const bulkDelete = async () => {
     if (bulkSelected.size === 0) return;
     const ids = Array.from(bulkSelected);
