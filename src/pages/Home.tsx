@@ -853,6 +853,7 @@ const Home = () => {
           <GlowLogoImage className="h-6" />
           <div className="flex items-center gap-6 text-sm text-[#64748B]">
             <Link to="/auth" className="hover:text-[#E2E8F0] transition-colors">Login</Link>
+            <Link to="/use-cases" className="hover:text-[#E2E8F0] transition-colors">Use Cases</Link>
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
             <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
             <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>
