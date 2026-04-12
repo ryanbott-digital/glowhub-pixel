@@ -95,7 +95,7 @@ export function CalibrationSuite({ open, onOpenChange, group, screens, onRefresh
     supabase.channel(`calibration-${group.id}`).send({
       type: "broadcast",
       event: "color-update",
-      payload: { memberId, [channel]: value },
+      payload: { memberId, [field]: value },
     });
   }, [group.id]);
 
