@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-// glass classes used instead of Card components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ListVideo, Trash2, Send } from "lucide-react";
+import { Plus, ListVideo, Trash2, Send, Monitor, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -22,6 +21,12 @@ interface MediaItem {
   type: string;
 }
 
+interface PairedScreen {
+  id: string;
+  name: string;
+  status: string;
+}
+
 export default function Playlists() {
   const { user } = useAuth();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -29,6 +34,9 @@ export default function Playlists() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [newTitle, setNewTitle] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
+  const [sending, setSending] = useState(false);
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
@@ -61,22 +69,60 @@ export default function Playlists() {
     fetchPlaylists();
   };
 
+  const openSendDialog = () => {
+    if (!user) return;
+    supabase
+      .from("screens")
+      .select("id, name, status")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (data) setPairedScreens(data);
+      });
+    setSendDialogOpen(true);
+  };
+
+  const sendToScreen = async (screenId: string) => {
+    if (!selectedPlaylist) return;
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from("screens")
+        .update({ current_playlist_id: selectedPlaylist.id })
+        .eq("id", screenId);
+      if (error) throw error;
+      const screen = pairedScreens.find((s) => s.id === screenId);
+      toast.success(`"${selectedPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
+      setSendDialogOpen(false);
+    } catch {
+      toast.error("Failed to send playlist to screen");
+    }
+    setSending(false);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Playlists</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
-          </DialogTrigger>
-          <DialogContent className="glass-strong border-white/[0.06]">
-            <DialogHeader><DialogTitle>Create Playlist</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-              <Input placeholder="Playlist title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
-              <Button onClick={createPlaylist} className="w-full">Create</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          {selectedPlaylist && (
+            <Button variant="outline" size="sm" onClick={openSendDialog}>
+              <Send className="h-3.5 w-3.5 mr-1.5" />
+              Send to Screen
+            </Button>
+          )}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
+            </DialogTrigger>
+            <DialogContent className="glass-strong border-white/[0.06]">
+              <DialogHeader><DialogTitle>Create Playlist</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <Input placeholder="Playlist title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+                <Button onClick={createPlaylist} className="w-full">Create</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -126,6 +172,48 @@ export default function Playlists() {
           )}
         </div>
       </div>
+
+      {/* Send to Screen Dialog */}
+      <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <DialogContent className="glass-strong border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-primary" />
+              Send to Screen
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Choose a screen to play <span className="font-medium text-foreground">"{selectedPlaylist?.title}"</span>
+          </p>
+          <div className="space-y-2 mt-2">
+            {pairedScreens.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No screens paired yet</p>
+            ) : (
+              pairedScreens.map((screen) => (
+                <button
+                  key={screen.id}
+                  disabled={sending}
+                  onClick={() => sendToScreen(screen.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
+                >
+                  <Monitor className="h-5 w-5 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm text-foreground">{screen.name}</span>
+                    <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {screen.status}
+                    </span>
+                  </div>
+                  {sending ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
