@@ -570,6 +570,8 @@ export type Database = {
           color_g: number
           color_r: number
           created_at: string
+          grid_col: number
+          grid_row: number
           id: string
           position: number
           resolution_h: number
@@ -584,6 +586,8 @@ export type Database = {
           color_g?: number
           color_r?: number
           created_at?: string
+          grid_col?: number
+          grid_row?: number
           id?: string
           position?: number
           resolution_h?: number
@@ -598,6 +602,8 @@ export type Database = {
           color_g?: number
           color_r?: number
           created_at?: string
+          grid_col?: number
+          grid_row?: number
           id?: string
           position?: number
           resolution_h?: number
