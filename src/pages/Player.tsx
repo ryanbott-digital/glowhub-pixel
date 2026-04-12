@@ -864,17 +864,25 @@ export default function Player() {
     return () => { supabase.removeChannel(channel); };
   }, [screenId, paired, fetchPlaylist]);
 
-  // ── HEARTBEAT SYNC: Leader broadcasts timestamp, followers rubber-band to match ──
+  // ── SYNC RECOVERY & DRIFT CORRECTION ──
   const syncGroupIdRef = useRef<string | null>(null);
   const isLeaderRef = useRef(false);
+  const [showSyncPulse, setShowSyncPulse] = useState(false);
+  const driftCorrectionActive = useRef(false);
 
   useEffect(() => {
     if (!screenId || !paired || !syncInfo) return;
 
-    // Position 0 = Time Leader
     isLeaderRef.current = syncInfo.position === 0;
+    let broadcastInterval: ReturnType<typeof setInterval> | null = null;
+    let channelRef: ReturnType<typeof supabase.channel> | null = null;
 
-    // Get sync group ID for this screen
+    const getActiveVideo = () => {
+      const a = videoRefA.current;
+      const b = videoRefB.current;
+      return activeBuffer === "A" ? a : b;
+    };
+
     const setupSync = async () => {
       const { data: membership } = await supabase
         .from("sync_group_screens")
@@ -887,68 +895,134 @@ export default function Player() {
       const channelName = `sync-heartbeat-${membership.sync_group_id}`;
 
       if (isLeaderRef.current) {
-        // Leader: broadcast current video time every 100ms
-        const broadcastInterval = setInterval(() => {
-          const videoA = videoRefA.current;
-          const videoB = videoRefB.current;
-          const activeVideo = activeBuffer === "A" ? videoA : videoB;
-          if (!activeVideo || activeVideo.paused) return;
+        // ── MASTER CLOCK: broadcast currentTime every 200ms ──
+        const channel = supabase.channel(channelName);
+        channelRef = channel;
 
-          supabase.channel(channelName).send({
+        // Listen for WAIT signals from followers
+        channel.on("broadcast", { event: "sync-wait" }, () => {
+          // Pause the wall for 1 second to let laggard catch up
+          const video = getActiveVideo();
+          if (video && !video.paused) {
+            video.pause();
+            setTimeout(() => {
+              if (video) {
+                video.play().catch(() => {});
+              }
+            }, 1000);
+          }
+        });
+
+        channel.on("broadcast", { event: "sync-start" }, ({ payload }) => {
+          if (payload.playlist_id) fetchPlaylist(payload.playlist_id);
+        });
+
+        channel.subscribe();
+
+        broadcastInterval = setInterval(() => {
+          const video = getActiveVideo();
+          if (!video || video.paused) return;
+
+          channel.send({
             type: "broadcast",
             event: "sync-tick",
             payload: {
-              t: activeVideo.currentTime,
+              t: video.currentTime,
               index: currentIndex,
               ts: Date.now(),
             },
           });
-        }, 100);
-
-        return () => clearInterval(broadcastInterval);
+        }, 200);
       } else {
-        // Follower: listen for leader timestamp and rubber-band
+        // ── FOLLOWER: Drift detection & recovery ──
         const channel = supabase
           .channel(channelName)
           .on("broadcast", { event: "sync-tick" }, ({ payload }) => {
             const { t: leaderTime, index: leaderIndex } = payload;
-            const videoA = videoRefA.current;
-            const videoB = videoRefB.current;
-            const activeVideo = activeBuffer === "A" ? videoA : videoB;
-            if (!activeVideo || activeVideo.paused) return;
+            const video = getActiveVideo();
+            if (!video) return;
 
-            // If on different playlist item, jump
+            // If on different playlist item, jump to correct item
             if (leaderIndex !== currentIndex) return;
 
-            const drift = activeVideo.currentTime - leaderTime;
+            // If video is paused/buffering, don't correct — send WAIT instead
+            if (video.paused || video.readyState < 3) {
+              channel.send({
+                type: "broadcast",
+                event: "sync-wait",
+                payload: { screen_id: screenId },
+              });
+              return;
+            }
+
+            const drift = video.currentTime - leaderTime;
             const absDrift = Math.abs(drift);
 
-            if (absDrift > 2) {
-              // Too far off — hard seek
-              activeVideo.currentTime = leaderTime;
-            } else if (absDrift > 0.05) {
-              // Rubber-band: slightly adjust playback speed
-              activeVideo.playbackRate = drift > 0 ? 0.95 : 1.05;
-              // Reset after 500ms
-              setTimeout(() => {
-                if (activeVideo) activeVideo.playbackRate = 1.0;
-              }, 500);
+            if (absDrift <= 0.05) {
+              // ✅ < 50ms: In sync — reset rate if correcting
+              if (driftCorrectionActive.current) {
+                video.playbackRate = 1.0;
+                driftCorrectionActive.current = false;
+              }
+              if (showSyncPulse) setShowSyncPulse(false);
+            } else if (absDrift <= 0.5) {
+              // ⚡ 50ms–500ms: Rubber-band correction
+              driftCorrectionActive.current = true;
+              video.playbackRate = drift > 0 ? 0.95 : 1.05;
+
+              // Reset to 1.0 once drift drops below 20ms
+              const checkInterval = setInterval(() => {
+                const v = getActiveVideo();
+                if (!v) { clearInterval(checkInterval); return; }
+                // Can't check leader time here, just let next tick handle it
+                clearInterval(checkInterval);
+              }, 200);
+            } else {
+              // 🔴 > 500ms: Hard re-sync (recovery)
+              setShowSyncPulse(true);
+              video.currentTime = leaderTime;
+              video.playbackRate = 1.0;
+              driftCorrectionActive.current = false;
+
+              // Ensure playback resumes instantly after jump
+              if (video.paused) {
+                video.play().catch(() => {});
+              }
+
+              // Hide syncing indicator after 1.5s
+              setTimeout(() => setShowSyncPulse(false), 1500);
             }
           })
           .on("broadcast", { event: "sync-start" }, ({ payload }) => {
-            // Deploy event: sync all screens to start together
-            if (payload.playlist_id) {
-              fetchPlaylist(payload.playlist_id);
-            }
+            if (payload.playlist_id) fetchPlaylist(payload.playlist_id);
           })
           .subscribe();
 
-        return () => { supabase.removeChannel(channel); };
+        channelRef = channel;
+
+        // Buffer awareness: send WAIT on buffering events
+        const video = getActiveVideo();
+        const handleWaiting = () => {
+          channel.send({
+            type: "broadcast",
+            event: "sync-wait",
+            payload: { screen_id: screenId },
+          });
+        };
+        video?.addEventListener("waiting", handleWaiting);
+
+        return () => {
+          video?.removeEventListener("waiting", handleWaiting);
+        };
       }
     };
 
-    const cleanup = setupSync();
-    return () => { cleanup.then?.(fn => fn?.()); };
+    const cleanupPromise = setupSync();
+    return () => {
+      cleanupPromise?.then?.(fn => fn?.());
+      if (broadcastInterval) clearInterval(broadcastInterval);
+      if (channelRef) supabase.removeChannel(channelRef);
+    };
   }, [screenId, paired, syncInfo, activeBuffer, currentIndex, fetchPlaylist]);
 
   useEffect(() => {
@@ -1805,6 +1879,14 @@ export default function Player() {
         <CalibrationOverlay screenId={screenId} syncGroupId={playerSyncGroupId} />
       )}
 
+      {/* Sync Recovery Pulse — shown during hard re-sync */}
+      {showSyncPulse && (
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 pointer-events-none" style={{ animation: "syncPulseGlow 1s ease-in-out infinite" }}>
+          <div className="w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary))", animation: "syncPulseDot 0.6s ease-in-out infinite" }} />
+          <span className="text-xs font-mono tracking-widest uppercase" style={{ color: "hsl(var(--primary))" }}>Syncing…</span>
+        </div>
+      )}
+
       {/* Branded loading placeholder — shown when media takes >2s to load */}
       {bufferLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
@@ -1922,6 +2004,14 @@ export default function Player() {
         @keyframes settingsHintOut {
           0% { opacity: 1; transform: translateX(0); }
           100% { opacity: 0; transform: translateX(10px); }
+        }
+        @keyframes syncPulseGlow {
+          0%, 100% { box-shadow: 0 0 8px hsla(180, 100%, 50%, 0.3); }
+          50% { box-shadow: 0 0 20px hsla(180, 100%, 50%, 0.6), 0 0 40px hsla(180, 100%, 50%, 0.2); }
+        }
+        @keyframes syncPulseDot {
+          0%, 100% { opacity: 0.5; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
         }
       `}</style>
 
