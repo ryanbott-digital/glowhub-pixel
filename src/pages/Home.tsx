@@ -356,7 +356,7 @@ const Home = () => {
         title="Glow — Pro Digital Signage Software"
         description="Turn any Firestick into professional digital signage. Upload, schedule, and sync content to remote screens. Cloud-synced screen manager from $9/mo."
         canonical="/home"
-        jsonLd={{ ...GLOW_JSON_LD, ...FAQ_JSON_LD }}
+        jsonLd={{ "@context": "https://schema.org", "@graph": [GLOW_JSON_LD, FAQ_JSON_LD].map(({ "@context": _, ...rest }) => rest) }}
       />
       {/* ── Mouse Spotlight ── */}
       <div
