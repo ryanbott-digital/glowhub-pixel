@@ -25,7 +25,7 @@ const PLANS = [
     period: "/month",
     description: "For growing businesses with multiple screens",
     features: [
-      "Up to 5 screens",
+      "Up to 5 screens (expandable in packs of 5)",
       "All media types",
       "Advanced scheduling",
       "Heartbeat monitoring",
