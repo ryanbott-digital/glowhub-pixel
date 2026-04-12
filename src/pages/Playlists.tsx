@@ -142,9 +142,20 @@ export default function Playlists() {
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
                   )}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
+                    title="Send to screen"
+                    className="p-1 rounded-md hover:bg-primary/10 transition-colors"
+                  >
+                    <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}
+                    className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  </button>
+                </div>
               </div>
             );
           })}
