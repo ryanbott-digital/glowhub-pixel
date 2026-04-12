@@ -73,6 +73,20 @@ export default function Playlists() {
     fetchPlaylists();
   };
 
+  const startRename = (pl: Playlist, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenamingId(pl.id);
+    setRenameValue(pl.title);
+  };
+
+  const commitRename = async () => {
+    if (!renamingId || !renameValue.trim()) { setRenamingId(null); return; }
+    const { error } = await supabase.from("playlists").update({ title: renameValue.trim() }).eq("id", renamingId);
+    if (error) { toast.error(error.message); } else { toast.success("Playlist renamed"); fetchPlaylists(); }
+    if (selectedPlaylist?.id === renamingId) setSelectedPlaylist({ ...selectedPlaylist, title: renameValue.trim() });
+    setRenamingId(null);
+  };
+
   const openSendDialog = (playlist: Playlist) => {
     if (!user) return;
     setSendTargetPlaylist(playlist);
