@@ -161,7 +161,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in relative">
+    <div className="space-y-5 animate-fade-in relative min-w-0">
       {/* Success Modal */}
       <PairSuccessModal open={showCelebration} onOpenChange={setShowCelebration} screenName={newScreenName} />
 
@@ -180,7 +180,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3 min-w-0">
         {/* Holographic Quick Pair Terminal */}
         <div className="glass glass-spotlight rounded-2xl p-5 sm:col-span-1 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-3">
@@ -260,7 +260,7 @@ export default function Dashboard() {
       {/* Watchdog Status Indicator */}
       {watchdogStatus && (
         <div
-          className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer hover:border-primary/30 transition-colors"
+          className="glass rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 cursor-pointer hover:border-primary/30 transition-colors min-w-0"
           onClick={() => navigate(watchdogStatus.allHealthy ? "/screens" : "/screens?filter=offline")}
           role="link"
           tabIndex={0}
@@ -277,13 +277,13 @@ export default function Dashboard() {
             ) : (
               <ShieldAlert className="h-4 w-4 badge-flicker" style={{ color: "hsl(348, 100%, 55%)" }} />
             )}
-            <div className="flex flex-col">
-              <span className="text-[11px] font-semibold tracking-wider uppercase" style={{
+            <div className="flex flex-col min-w-0">
+              <span className="text-[11px] font-semibold tracking-wider uppercase truncate" style={{
                 color: watchdogStatus.allHealthy ? "hsl(180, 100%, 40%)" : "hsl(348, 100%, 60%)",
               }}>
                 {watchdogStatus.allHealthy ? "Watchdog — All Clear" : `Watchdog — ${watchdogStatus.offlineCount} Alert${watchdogStatus.offlineCount !== 1 ? "s" : ""}`}
               </span>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground truncate">
                 Monitoring {watchdogStatus.monitored} screen{watchdogStatus.monitored !== 1 ? "s" : ""}
                 {watchdogStatus.lastCheck && (
                   <> · Last check {formatDistanceToNow(watchdogStatus.lastCheck, { addSuffix: true })}</>
