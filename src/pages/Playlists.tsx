@@ -38,6 +38,7 @@ export default function Playlists() {
   const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
   const [sending, setSending] = useState(false);
   const [sendTargetPlaylist, setSendTargetPlaylist] = useState<Playlist | null>(null);
+  const [sentPlaylistId, setSentPlaylistId] = useState<string | null>(null);
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
@@ -95,6 +96,9 @@ export default function Playlists() {
       const screen = pairedScreens.find((s) => s.id === screenId);
       toast.success(`"${sendTargetPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
       setSendDialogOpen(false);
+      // Flash the playlist card
+      setSentPlaylistId(sendTargetPlaylist.id);
+      setTimeout(() => setSentPlaylistId(null), 1500);
     } catch {
       toast.error("Failed to send playlist to screen");
     }
@@ -128,9 +132,18 @@ export default function Playlists() {
             return (
               <div
                 key={pl.id}
-                className={`glass glass-spotlight rounded-2xl cursor-pointer transition-all border p-4 flex items-center justify-between ${selectedPlaylist?.id === pl.id ? "ring-2 ring-primary border-primary" : "border-white/[0.06] hover:border-primary/30"}`}
+                className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
+                  sentPlaylistId === pl.id
+                    ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
+                    : selectedPlaylist?.id === pl.id
+                      ? "ring-2 ring-primary border-primary"
+                      : "border-white/[0.06] hover:border-primary/30"
+                }`}
                 onClick={() => setSelectedPlaylist(pl)}
               >
+                {sentPlaylistId === pl.id && (
+                  <div className="absolute inset-0 rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
+                )}
                 <div className="flex items-center gap-2 min-w-0">
                   {isQuickSend ? (
                     <Send className="h-4 w-4 text-muted-foreground shrink-0" />
