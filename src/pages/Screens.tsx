@@ -107,9 +107,24 @@ export default function Screens() {
 
   const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+  const [screenPackLoading, setScreenPackLoading] = useState(false);
+
+  const handleScreenPackCheckout = async () => {
+    setScreenPackLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("screen-pack-checkout");
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setScreenPackLoading(false);
+    }
+  };
+
   const showUpgradeModal = (tier: string, limit: number) => {
     if (tier === "pro") {
-      setUpgradeMessage({ title: "Pro Limit Reached", description: `You've reached the Pro limit of ${limit} screens. Contact us for an Enterprise plan with unlimited screens.`, showUpgrade: false });
+      setUpgradeMessage({ title: "Need More Screens?", description: `You've reached your current limit of ${limit} screens. Add another 5 screens for just $9 — one-time payment!`, showUpgrade: false });
     } else {
       setUpgradeMessage({ title: "Upgrade to Pro", description: `Your ${tier === "free" ? "Free" : "Basic"} plan supports ${limit} screen${limit !== 1 ? "s" : ""}. Upgrade to Pro to manage up to 5 screens.`, showUpgrade: true });
     }
