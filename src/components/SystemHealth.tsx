@@ -178,7 +178,7 @@ export function SystemHealth() {
             return (
               <div key={screen.id} className="space-y-2">
                 <div
-                  className="flex items-center justify-between rounded-lg border p-3 transition-all"
+                  className="rounded-lg border p-3 transition-all space-y-2.5"
                   style={{
                     borderColor: offline ? "hsl(0, 70%, 50%)" : "hsl(var(--primary))",
                     boxShadow: offline
@@ -186,66 +186,71 @@ export function SystemHealth() {
                       : "0 0 12px hsl(var(--primary) / 0.2), inset 0 0 8px hsl(var(--primary) / 0.04)",
                   }}
                 >
-                  <div className="flex items-center gap-3">
-                    <Monitor className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{screen.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Last ping: {timeAgo(screen.last_ping)}
-                        {currentMedia && (
-                          <span className="ml-2">
-                            · Playing: <span className="text-foreground/70">{currentMedia.name}</span>
-                          </span>
-                        )}
-                      </p>
-                      {/* Uptime metric */}
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <ArrowUpCircle className="h-3 w-3 text-muted-foreground" />
-                        <Progress
-                          value={uptimeMap[screen.id] ?? 0}
-                          className="h-1.5 w-20"
-                        />
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          {uptimeMap[screen.id] ?? 0}% uptime
-                        </span>
-                        <span className="text-[10px] text-muted-foreground/60">24h</span>
+                  {/* Top row: name + status badge */}
+                  <div className="flex items-start justify-between gap-2 min-w-0">
+                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                      <Monitor className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{screen.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          Last ping: {timeAgo(screen.last_ping)}
+                          {currentMedia && (
+                            <span className="ml-1">
+                              · <span className="text-foreground/70">{currentMedia.name}</span>
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
                     <Badge
                       variant={offline ? "destructive" : "default"}
-                      className={
+                      className={`shrink-0 ${
                         offline
                           ? "animate-pulse"
                           : "bg-primary/15 text-primary hover:bg-primary/20"
-                      }
+                      }`}
                     >
                       {offline ? "Offline" : "Online"}
                     </Badge>
+                  </div>
+
+                  {/* Uptime bar */}
+                  <div className="flex items-center gap-2 pl-6.5">
+                    <ArrowUpCircle className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <Progress
+                      value={uptimeMap[screen.id] ?? 0}
+                      className="h-1.5 flex-1 max-w-[80px]"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground whitespace-nowrap">
+                      {uptimeMap[screen.id] ?? 0}% · 24h
+                    </span>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 pl-6.5">
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 sm:h-8 text-xs gap-1.5"
                       onClick={() => handleScreenshot(screen.id)}
                       disabled={screenshottingId === screen.id || offline}
-                      title="Take Screenshot"
                     >
                       <Camera
-                        className={`h-4 w-4 ${screenshottingId === screen.id ? "animate-pulse text-primary" : "text-muted-foreground"}`}
+                        className={`h-3.5 w-3.5 ${screenshottingId === screen.id ? "animate-pulse text-primary" : ""}`}
                       />
+                      Capture
                     </Button>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 sm:h-8 text-xs gap-1.5"
                       onClick={() => handleRemoteRefresh(screen.id)}
                       disabled={refreshingId === screen.id}
-                      title="Remote Refresh"
                     >
                       <RefreshCw
-                        className={`h-4 w-4 ${refreshingId === screen.id ? "animate-spin text-primary" : "text-muted-foreground"}`}
+                        className={`h-3.5 w-3.5 ${refreshingId === screen.id ? "animate-spin text-primary" : ""}`}
                       />
+                      Refresh
                     </Button>
                   </div>
                 </div>
