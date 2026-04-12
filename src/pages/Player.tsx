@@ -1894,6 +1894,70 @@ export default function Player() {
         </div>
       )}
 
+      {/* ── DRIFT METER OVERLAY ── */}
+      {showDriftMeter && syncLayout && !showSettings && (
+        <div className="fixed bottom-6 left-6 z-50 pointer-events-none select-none" style={{ fontFamily: "monospace" }}>
+          <div className="bg-black/80 backdrop-blur-sm rounded-lg border border-white/10 px-4 py-3 min-w-[200px]">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-2">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  background: Math.abs(driftMs) <= 50 ? "#10b981" : Math.abs(driftMs) <= 500 ? "#f59e0b" : "#ef4444",
+                  boxShadow: `0 0 6px ${Math.abs(driftMs) <= 50 ? "#10b981" : Math.abs(driftMs) <= 500 ? "#f59e0b" : "#ef4444"}`,
+                }}
+              />
+              <span className="text-[10px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Drift Meter
+              </span>
+              {isLeaderRef.current && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[hsl(180,100%,35%)]/20 text-[hsl(180,100%,55%)] tracking-wider">MASTER</span>
+              )}
+            </div>
+
+            {/* Drift value */}
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className="text-2xl font-bold tabular-nums"
+                style={{
+                  color: Math.abs(driftMs) <= 50 ? "#10b981" : Math.abs(driftMs) <= 500 ? "#f59e0b" : "#ef4444",
+                  textShadow: `0 0 10px ${Math.abs(driftMs) <= 50 ? "rgba(16,185,129,0.4)" : Math.abs(driftMs) <= 500 ? "rgba(245,158,11,0.4)" : "rgba(239,68,68,0.4)"}`,
+                }}
+              >
+                {driftMs > 0 ? "+" : ""}{driftMs}
+              </span>
+              <span className="text-xs text-white/40">ms</span>
+            </div>
+
+            {/* Visual bar */}
+            <div className="mt-2 relative h-1.5 rounded-full bg-white/10 overflow-hidden">
+              {/* Center marker */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/30 z-10" />
+              {/* Drift indicator */}
+              <div
+                className="absolute top-0 bottom-0 rounded-full transition-all duration-200"
+                style={{
+                  background: Math.abs(driftMs) <= 50 ? "#10b981" : Math.abs(driftMs) <= 500 ? "#f59e0b" : "#ef4444",
+                  left: `${50 + Math.max(-50, Math.min(50, (driftMs / 1000) * 50))}%`,
+                  width: "4px",
+                  marginLeft: "-2px",
+                  boxShadow: `0 0 8px ${Math.abs(driftMs) <= 50 ? "#10b981" : Math.abs(driftMs) <= 500 ? "#f59e0b" : "#ef4444"}`,
+                }}
+              />
+            </div>
+
+            {/* Labels */}
+            <div className="flex justify-between mt-1">
+              <span className="text-[8px] text-white/30">-1000ms</span>
+              <span className="text-[8px] text-white/30">
+                {Math.abs(driftMs) <= 50 ? "IN SYNC" : Math.abs(driftMs) <= 500 ? "RUBBER-BAND" : "HARD RESYNC"}
+              </span>
+              <span className="text-[8px] text-white/30">+1000ms</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Branded loading placeholder — shown when media takes >2s to load */}
       {bufferLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
