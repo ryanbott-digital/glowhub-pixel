@@ -230,7 +230,12 @@ export default function Screens() {
   };
 
   const copyDisplayUrl = (screenId: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/display/${screenId}`);
+    // Always use the published URL so the link works in any browser without Lovable auth
+    const publishedOrigin = "https://glowhub-pixel.lovable.app";
+    const origin = window.location.hostname.includes("lovableproject.com") || window.location.hostname.includes("id-preview--")
+      ? publishedOrigin
+      : window.location.origin;
+    navigator.clipboard.writeText(`${origin}/display/${screenId}`);
     toast.success("Display URL copied!");
   };
 
