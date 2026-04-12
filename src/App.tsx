@@ -37,6 +37,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const PwaDiagnostics = lazy(() => import("./pages/PwaDiagnostics"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const UseCase = lazy(() => import("./pages/UseCase"));
+const SolutionsRestaurants = lazy(() => import("./pages/SolutionsRestaurants"));
 
 const queryClient = new QueryClient();
 
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
               <Route path="/use-cases" element={<UseCase />} />
               <Route path="/use-cases/:slug" element={<UseCase />} />
+              <Route path="/solutions/restaurants" element={<SolutionsRestaurants />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
