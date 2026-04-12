@@ -112,12 +112,15 @@ export default function Display() {
     if (timerRef.current) clearTimeout(timerRef.current);
 
     if (item.media.type === "image") {
-      const duration = (item.override_duration || 10) * 1000;
-      timerRef.current = setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % items.length);
-      }, duration);
+      // Single image → stay forever; multiple items → advance after duration
+      if (items.length > 1) {
+        const duration = (item.override_duration || 10) * 1000;
+        timerRef.current = setTimeout(() => {
+          setCurrentIndex((prev) => (prev + 1) % items.length);
+        }, duration);
+      }
     }
-    // Video advancement is handled by onEnded
+    // Video advancement is handled by onEnded (single video loops via loop attr)
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -169,8 +172,9 @@ export default function Display() {
           src={url}
           autoPlay
           muted
+          loop={items.length === 1}
           className="max-w-full max-h-screen object-contain"
-          onEnded={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
+          onEnded={items.length > 1 ? () => setCurrentIndex((prev) => (prev + 1) % items.length) : undefined}
         />
       )}
       {showWatermark && (

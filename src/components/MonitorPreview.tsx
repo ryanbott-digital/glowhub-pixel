@@ -123,7 +123,7 @@ export function MonitorPreview() {
     const item = items[currentIndex];
     if (!item) return;
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (item.media.type === "image") {
+    if (item.media.type === "image" && items.length > 1) {
       const dur = (item.override_duration || item.media.duration || 10) * 1000;
       timerRef.current = setTimeout(() => {
         setCurrentIndex((prev) => (prev + 1) % items.length);
@@ -244,8 +244,9 @@ export function MonitorPreview() {
                     src={getPublicUrl(currentItem.media.storage_path)}
                     autoPlay
                     muted
+                    loop={items.length === 1}
                     className="w-full h-full object-cover"
-                    onEnded={() => setCurrentIndex((prev) => (prev + 1) % items.length)}
+                    onEnded={items.length > 1 ? () => setCurrentIndex((prev) => (prev + 1) % items.length) : undefined}
                   />
                 )}
                 {/* LIVE badge - pulsing red */}
