@@ -19,6 +19,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { DraggableScreenWrapper } from "@/components/screens/DraggableScreenWrapper";
 import { DroppableGroupZone } from "@/components/screens/DroppableGroupZone";
+import { FleetAlertBar } from "@/components/FleetAlertBar";
 
 interface Screen {
   id: string;
