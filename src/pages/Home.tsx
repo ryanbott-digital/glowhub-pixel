@@ -697,47 +697,21 @@ const Home = () => {
       {/* ── Pricing ── */}
       <section id="pricing" className="px-6 py-24 max-w-5xl mx-auto">
         <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
-          Simple, Honest Pricing
+          Affordable Multi-Screen Digital Signage
         </h2>
         <p className="text-[#94A3B8] text-center mb-4 text-base max-w-lg mx-auto">
-          No hidden fees. No per-screen surprises. One flat fee — whether you have 2 screens or 20.
+          The industry's best 5-screen bundle for Firestick. Low-cost professional menu boards and retail displays — no proprietary hardware.
         </p>
         <p className="text-center text-sm text-[#64748B] italic mb-16 max-w-md mx-auto">
-          One flat fee. Whether you have 2 screens or 20, the price stays the same. That's the Glow promise.
+          One flat fee. Whether you have 1 screen or 5, the price stays the same. That's the Glow promise.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto items-start">
-          {/* Lite Plan */}
-          <div
-            data-animate
-            className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight hover:-translate-y-2 hover:shadow-[0_0_40px_hsla(180,100%,45%,0.15),0_20px_40px_-10px_hsla(220,60%,7%,0.5)] hover:border-primary/30"
-          >
-            <h3 className="text-xl font-semibold mb-1">The Lite Plan</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">Free forever — no credit card</p>
-            <div className="text-5xl font-extrabold mb-8">
-              $0<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
-            </div>
-            <ul className="space-y-3.5 mb-8 flex-1">
-              {["1 Screen", "Standard 30fps Sync", "1GB Cloud Storage", "Web Dashboard Access", "'Powered by GLOW' watermark"].map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
-                  <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              to="/auth"
-              className="block text-center py-3.5 rounded-xl font-semibold border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300 tracking-wide"
-            >
-              GET STARTED
-            </Link>
-          </div>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
 
-          {/* Pro Ecosystem — Founder's Tier */}
+          {/* Pro Ecosystem — 5-screen bundle */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible mt-4 md:mt-0 hover:-translate-y-2 hover:shadow-[0_0_50px_hsla(180,100%,45%,0.25),0_0_80px_hsla(220,80%,55%,0.12),0_20px_40px_-10px_hsla(220,60%,7%,0.5)]"
-            style={{ transitionDelay: "120ms" }}
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible hover:-translate-y-2 hover:shadow-[0_0_50px_hsla(180,100%,45%,0.25),0_0_80px_hsla(220,80%,55%,0.12),0_20px_40px_-10px_hsla(220,60%,7%,0.5)]"
           >
             {/* Most Popular badge */}
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] shadow-[0_0_20px_rgba(0,163,163,0.3)] whitespace-nowrap">
@@ -751,21 +725,35 @@ const Home = () => {
                 <div className="absolute inset-0 rounded-[14px] border border-[#00A3A3]/20 animate-pulse pointer-events-none" />
 
                 <h3 className="text-xl font-semibold mb-1">The Pro Ecosystem</h3>
-                <p className="text-sm text-[#94A3B8] mb-6">Founder's Tier — Billed Monthly</p>
+                <p className="text-sm text-[#94A3B8] mb-4">5-Screen Bundle — Billed Monthly</p>
+
+                {/* Value comparison callout */}
+                <div className="rounded-xl bg-[#00A3A3]/[0.08] border border-[#00A3A3]/15 px-4 py-3 mb-6">
+                  <p className="text-xs text-[#00E5CC] font-semibold tracking-wide uppercase mb-1">Value Comparison</p>
+                  <p className="text-sm text-[#94A3B8]">
+                    Legacy signage: <span className="line-through text-red-400/70">$20+ per screen</span> →
+                    Glow: <span className="text-[#00E5CC] font-bold">$1.80 per screen</span>
+                  </p>
+                </div>
+
                 <div className="text-5xl font-extrabold mb-2">
                   $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
                 </div>
-                <p className="text-base font-bold text-[#00A3A3] mb-8">
-                  Unlimited Screens
+                <p className="text-base font-bold text-[#00A3A3] mb-2">
+                  Up to 5 Screens Included
                 </p>
+                <p className="text-xs text-[#64748B] mb-8">
+                  That's just <span className="text-[#00E5CC] font-semibold">$1.80 per screen</span>. Stop paying $20+ for legacy lag.
+                </p>
+
                 <ul className="space-y-3.5 mb-8 flex-1">
                   {[
-                    "Unlimited Screens",
+                    "Up to 5 Screens Included",
                     "Millisecond 60fps Sync",
                     "50GB Cloud Storage",
                     "Native Admin App Access",
-                    "Instant 'Hype' Triggers",
-                    "24/7 Engine Support",
+                    "'Launch on Boot' Priority",
+                    "'Hype' Trigger Commands",
                     "No Watermarks",
                   ].map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
@@ -782,6 +770,44 @@ const Home = () => {
                 </Link>
               </div>
             </div>
+          </div>
+
+          {/* Enterprise Tier */}
+          <div
+            data-animate
+            className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight hover:-translate-y-2 hover:shadow-[0_0_40px_hsla(220,80%,55%,0.15),0_20px_40px_-10px_hsla(220,60%,7%,0.5)] hover:border-[#3B82F6]/30"
+            style={{ transitionDelay: "120ms" }}
+          >
+            <h3 className="text-xl font-semibold mb-1">The Enterprise Tier</h3>
+            <p className="text-sm text-[#94A3B8] mb-6">Volume pricing for large deployments</p>
+            <div className="text-4xl sm:text-5xl font-extrabold mb-2">
+              Custom<span className="text-lg font-normal text-[#94A3B8]"> / volume</span>
+            </div>
+            <p className="text-base font-bold text-[#3B82F6] mb-8">
+              6+ Screens
+            </p>
+            <ul className="space-y-3.5 mb-8 flex-1">
+              {[
+                "Everything in Pro",
+                "6+ Screens (Unlimited)",
+                "Dedicated Server Instances",
+                "White-Label Options",
+                "Unlimited Cloud Storage",
+                "Priority 24/7 Support",
+                "Custom Onboarding",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
+                  <Check className="w-4 h-4 mt-0.5 text-[#3B82F6] shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <a
+              href="mailto:hello@glowhub.io?subject=Enterprise%20Inquiry"
+              className="block text-center py-3.5 rounded-xl font-semibold border border-[#3B82F6]/30 text-[#60A5FA] shadow-[0_0_12px_hsla(220,80%,55%,0.15)] hover:border-[#3B82F6]/60 hover:shadow-[0_0_20px_hsla(220,80%,55%,0.3)] hover:bg-[#3B82F6]/5 transition-all duration-300 tracking-wide"
+            >
+              CONTACT COMMAND
+            </a>
           </div>
         </div>
 
