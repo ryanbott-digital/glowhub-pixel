@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Check, ArrowRight, Tv, Utensils, Clock, Wifi, WifiOff, BarChart3, Palette } from "lucide-react";
+import { RelatedSolutions } from "@/components/RelatedSolutions";
 
 const USE_CASES = {
   "restaurant-digital-menu-boards": {
@@ -218,6 +219,8 @@ export default function UseCase() {
           ))}
         </div>
       </section>
+
+      <RelatedSolutions currentPath={window.location.pathname} />
 
       {/* Footer */}
       <footer className="border-t border-[#1E293B] py-10 px-6">

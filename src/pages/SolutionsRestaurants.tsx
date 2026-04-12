@@ -3,6 +3,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DollarSign, Sun, Moon, Zap, Check, WifiOff, Clock, ArrowRight } from "lucide-react";
+import { RelatedSolutions } from "@/components/RelatedSolutions";
 import restaurantMockup from "@/assets/restaurant-menu-mockup.jpg";
 import menuEditorMockup from "@/assets/glow-menu-editor-mockup.jpg";
 import moodSyncImg from "@/assets/mood-sync-restaurant.jpg";
@@ -297,6 +298,8 @@ const SolutionsRestaurants = () => {
           <p className="text-xs text-[#475569] mt-4">Free plan available · No credit card required · 5-minute setup</p>
         </div>
       </section>
+
+      <RelatedSolutions currentPath="/solutions/restaurants" />
 
       {/* ── Footer ── */}
       <footer className="border-t border-white/5 px-6 py-10 text-center text-xs text-[#475569]">
