@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -27,6 +27,20 @@ export default function Billing() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [screenPackLoading, setScreenPackLoading] = useState(false);
+
+  const handleScreenPackCheckout = async () => {
+    setScreenPackLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("screen-pack-checkout");
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setScreenPackLoading(false);
+    }
+  };
 
   const handleRefreshSubscription = async () => {
     setRefreshing(true);
@@ -182,16 +196,42 @@ export default function Billing() {
 
       {/* Conditional content based on tier */}
       {isPro ? (
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Your Pro Subscription</h2>
-          <p className="text-sm text-muted-foreground">
-            You have access to all Glow features. Update your card, download invoices, or manage your subscription below.
-          </p>
-          <Button onClick={handlePortal} disabled={portalLoading} variant="outline" className="border-cyan-400/30 hover:border-cyan-400/60 hover:bg-cyan-400/5">
-            {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Settings className="h-4 w-4 mr-2" />}
-            Billing Settings
-          </Button>
-          <p className="text-xs text-muted-foreground">Update card, download invoices, manage subscription</p>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Your Pro Subscription</h2>
+            <p className="text-sm text-muted-foreground">
+              You have access to all Glow features. Update your card, download invoices, or manage your subscription below.
+            </p>
+            <Button onClick={handlePortal} disabled={portalLoading} variant="outline" className="border-cyan-400/30 hover:border-cyan-400/60 hover:bg-cyan-400/5">
+              {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Settings className="h-4 w-4 mr-2" />}
+              Billing Settings
+            </Button>
+            <p className="text-xs text-muted-foreground">Update card, download invoices, manage subscription</p>
+          </div>
+
+          {/* Screen Pack Add-on */}
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Monitor className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Need More Screens?</h3>
+                <p className="text-xs text-muted-foreground">Add 5 extra screens to your account</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Running out of screen slots? Purchase an additional <span className="text-primary font-medium">5-screen pack</span> for a one-time payment of <span className="text-primary font-bold">$9</span>. Stacks with any existing packs.
+            </p>
+            <Button
+              onClick={handleScreenPackCheckout}
+              disabled={screenPackLoading}
+              className="bg-gradient-to-r from-primary to-accent text-primary-foreground"
+            >
+              {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
+              Add 5 Screens — $9
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="rounded-2xl border border-cyan-400/20 bg-white/5 backdrop-blur-xl p-6 space-y-4">
