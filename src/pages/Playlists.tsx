@@ -55,7 +55,7 @@ export default function Playlists() {
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from("playlists").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase.from("playlists").select("*").eq("user_id", user.id).order("position", { ascending: true });
     if (data) setPlaylists(data);
   }, [user]);
 
