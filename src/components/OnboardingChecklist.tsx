@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Circle, X, Monitor, Upload, ListVideo, Link2, PartyPopper, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,13 @@ export function OnboardingChecklist({ screens, playlists, mediaCount }: Onboardi
 
   const doneCount = steps.filter(s => s.complete).length;
   const allDone = doneCount === steps.length;
-  const progress = (doneCount / steps.length) * 100;
+
+  // Auto-dismiss once all steps are completed so it never reappears
+  useEffect(() => {
+    if (allDone && !dismissed) {
+      localStorage.setItem(DISMISS_KEY, "true");
+    }
+  }, [allDone, dismissed]);
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, "true");
