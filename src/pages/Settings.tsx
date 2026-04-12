@@ -194,7 +194,44 @@ export default function Settings() {
         </SettingRow>
       </div>
 
-      {/* Display */}
+      {/* Glow Watchdog — Push Notifications */}
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Wifi className="h-4 w-4 text-primary" />
+          Glow Watchdog
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Get push notifications on your device when a screen goes offline for more than 5 minutes.
+        </p>
+        <SettingRow>
+          <div className="space-y-0.5">
+            <Label htmlFor="push-alerts" className="text-sm font-medium text-foreground">Enable Offline Alerts</Label>
+            <p className="text-xs text-muted-foreground">
+              {!push.isSupported
+                ? "Push notifications are not supported in this browser."
+                : push.isSubscribed
+                  ? "You'll receive alerts when screens go offline."
+                  : "Enable to receive real-time offline alerts."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {push.isSubscribed ? (
+              <Wifi className="h-3.5 w-3.5 text-primary" />
+            ) : (
+              <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+            <Switch
+              id="push-alerts"
+              checked={push.isSubscribed}
+              disabled={!push.isSupported || push.loading}
+              onCheckedChange={(checked) => {
+                if (checked) push.subscribe();
+                else push.unsubscribe();
+              }}
+            />
+          </div>
+        </SettingRow>
+      </div>
       <div className="glass rounded-2xl p-5 space-y-3">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Monitor className="h-4 w-4 text-muted-foreground" />
