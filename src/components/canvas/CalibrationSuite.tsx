@@ -6,8 +6,9 @@ import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ScanLine, Ruler, Palette, Zap, Monitor, Heart,
+  ScanLine, Ruler, Palette, Zap, Monitor, Heart, MonitorSmartphone,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Screen {
   id: string;
@@ -24,6 +25,8 @@ interface SyncGroupMember {
   color_g?: number;
   color_b?: number;
   brightness_offset?: number;
+  resolution_w?: number;
+  resolution_h?: number;
 }
 
 interface SyncGroup {
