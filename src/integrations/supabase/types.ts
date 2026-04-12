@@ -476,6 +476,7 @@ export type Database = {
           id: string
           last_ping: string | null
           last_screenshot_url: string | null
+          launch_on_boot: boolean
           loop_enabled: boolean
           name: string
           pairing_code: string | null
@@ -493,6 +494,7 @@ export type Database = {
           id?: string
           last_ping?: string | null
           last_screenshot_url?: string | null
+          launch_on_boot?: boolean
           loop_enabled?: boolean
           name?: string
           pairing_code?: string | null
@@ -510,6 +512,7 @@ export type Database = {
           id?: string
           last_ping?: string | null
           last_screenshot_url?: string | null
+          launch_on_boot?: boolean
           loop_enabled?: boolean
           name?: string
           pairing_code?: string | null
