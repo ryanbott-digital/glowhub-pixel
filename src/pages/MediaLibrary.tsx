@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,7 +57,8 @@ export default function MediaLibrary() {
   const [pairedScreens, setPairedScreens] = useState<PairedScreen[]>([]);
   const [sending, setSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
   const isSelecting = selected.size > 0;
 
   // Fetch user's screens
@@ -329,12 +331,39 @@ export default function MediaLibrary() {
   };
 
   const toggleSelect = (id: string) => {
+    if (renamingId) return; // don't toggle while renaming
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+  };
+
+  const startRename = (item: MediaWithSize, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenamingId(item.id);
+    setRenameValue(item.name);
+  };
+
+  const commitRename = async () => {
+    if (!renamingId || !renameValue.trim()) {
+      setRenamingId(null);
+      return;
+    }
+    const { error } = await supabase
+      .from("media")
+      .update({ name: renameValue.trim() })
+      .eq("id", renamingId);
+    if (error) {
+      toast.error("Rename failed");
+    } else {
+      setMedia((prev) =>
+        prev.map((m) => (m.id === renamingId ? { ...m, name: renameValue.trim() } : m))
+      );
+      toast.success("Renamed");
+    }
+    setRenamingId(null);
   };
 
   const selectAll = () => {
@@ -561,9 +590,34 @@ export default function MediaLibrary() {
                   )}
                 </div>
                 <div className="p-2 sm:p-3">
-                  <p className="text-xs sm:text-sm font-medium truncate text-foreground" title={item.name}>
-                    {item.name}
-                  </p>
+                  <div className="flex items-center gap-1 min-w-0">
+                    {renamingId === item.id ? (
+                      <Input
+                        autoFocus
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onBlur={commitRename}
+                        onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenamingId(null); }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-6 text-xs py-0 px-1.5 bg-background/50 border-primary/30 flex-1 min-w-0"
+                      />
+                    ) : (
+                      <>
+                        <p className="text-xs sm:text-sm font-medium truncate text-foreground flex-1 min-w-0" title={item.name}>
+                          {item.name}
+                        </p>
+                        {!isSelecting && (
+                          <button
+                            onClick={(e) => startRename(item, e)}
+                            className="p-1 rounded hover:bg-primary/10 transition-colors shrink-0 sm:opacity-0 sm:group-hover:opacity-100 opacity-70"
+                            title="Rename"
+                          >
+                            <Pencil className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between mt-0.5">
                     <p className="text-[10px] sm:text-xs text-muted-foreground">
                       {new Date(item.created_at).toLocaleDateString()}
