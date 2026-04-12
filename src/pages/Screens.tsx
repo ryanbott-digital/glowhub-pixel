@@ -59,6 +59,7 @@ export default function Screens() {
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
   const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
   const [broadcastScreenName, setBroadcastScreenName] = useState("");
+  const [filterOfflineOnly, setFilterOfflineOnly] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
