@@ -327,12 +327,12 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
           )}
 
           {/* Playlist selector */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Select
               value={screen.current_playlist_id || ""}
               onValueChange={(val) => onPublish(screen.id, val)}
             >
-              <SelectTrigger className="flex-1 h-8 text-xs glass">
+              <SelectTrigger className="flex-1 h-10 sm:h-8 text-xs glass">
                 <SelectValue placeholder="Select playlist" />
               </SelectTrigger>
               <SelectContent>
@@ -342,11 +342,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               </SelectContent>
             </Select>
             <Button
-              size="icon" variant="outline" className="h-8 w-8"
+              size="icon" variant="outline" className="h-10 w-10 sm:h-8 sm:w-8 shrink-0"
               onClick={() => screen.current_playlist_id && onPublish(screen.id, screen.current_playlist_id)}
               title="Publish"
             >
-              <Send className="h-3 w-3" />
+              <Send className="h-3.5 w-3.5" />
             </Button>
           </div>
 
