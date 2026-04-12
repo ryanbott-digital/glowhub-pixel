@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/use-admin-role";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,6 +69,8 @@ function formatGrantExpiry(dateStr: string | null): string {
 }
 
 export default function Admin() {
+  const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -79,6 +83,13 @@ export default function Admin() {
   // Grant dialog state
   const [grantUser, setGrantUser] = useState<AdminUser | null>(null);
   const [grantDuration, setGrantDuration] = useState("1m");
+
+  // Redirect non-admins
+  useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      navigate("/", { replace: true });
+    }
+  }, [isAdmin, adminLoading, navigate]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -232,6 +243,8 @@ export default function Admin() {
       </div>
     );
   };
+
+  if (adminLoading || !isAdmin) return null;
 
   return (
     <div className="space-y-6">

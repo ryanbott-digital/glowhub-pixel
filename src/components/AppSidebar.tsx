@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { LogOut, Download, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
+import { useIsAdmin } from "@/hooks/use-admin-role";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,17 +25,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkScreenLimit } from "@/lib/subscription";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: BrandCalendarIcon, pro: false },
-  { title: "Media Library", url: "/media", icon: BrandGridIcon, pro: false },
-  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false },
-  { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false },
-  { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true },
-  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false, newTab: true },
-  { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true },
-  { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false },
-  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false },
-  { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false },
-  { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false },
+  { title: "Dashboard", url: "/", icon: BrandCalendarIcon, pro: false, adminOnly: false },
+  { title: "Media Library", url: "/media", icon: BrandGridIcon, pro: false, adminOnly: false },
+  { title: "Playlists", url: "/playlists", icon: BrandPlayIcon, pro: false, adminOnly: false },
+  { title: "Screens", url: "/screens", icon: BrandMonitorIcon, pro: false, adminOnly: false },
+  { title: "Canvas", url: "/canvas", icon: ({ className }: { className?: string }) => <Layers className={className} />, pro: true, adminOnly: false },
+  { title: "Studio", url: "/studio", icon: ({ className }: { className?: string }) => <PenTool className={className} />, pro: false, adminOnly: false, newTab: true },
+  { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true, adminOnly: false },
+  { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false, adminOnly: false },
+  { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false, adminOnly: true },
+  { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false, adminOnly: false },
+  { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false, adminOnly: false },
 ];
 
 export function AppSidebar() {
@@ -43,6 +44,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const { isAdmin } = useIsAdmin();
 
   const [screenUsage, setScreenUsage] = useState<{ count: number; limit: number } | null>(null);
   const [unreadSubmissions, setUnreadSubmissions] = useState(0);
@@ -86,7 +88,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {items.filter((item) => !item.adminOnly || isAdmin).map((item) => {
                 const isLockedPro = item.pro && !isProTier(userTier);
                 const isNewTab = 'newTab' in item && item.newTab;
                 return (
