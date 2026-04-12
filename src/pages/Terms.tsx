@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowLeft, Shield, FileText } from "lucide-react";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -46,6 +47,11 @@ export default function Terms() {
 
   return (
     <div className="min-h-screen bg-[#0B1120] font-['Satoshi',sans-serif] relative overflow-hidden">
+      <SEOHead
+        title="Terms of Service & Privacy | Glow"
+        description="Read the Glow digital signage platform terms of service and privacy policy. Learn how we protect your data."
+        canonical="/terms"
+      />
       {/* Mesh gradient accents */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-cyan-500/5 blur-[120px]" />

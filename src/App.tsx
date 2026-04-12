@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useSearchParams } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { GHLoaderPage } from "@/components/GHLoader";
 import { ThemeProvider } from "next-themes";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -35,6 +36,7 @@ const Download = lazy(() => import("./pages/Download"));
 const Terms = lazy(() => import("./pages/Terms"));
 const PwaDiagnostics = lazy(() => import("./pages/PwaDiagnostics"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const UseCase = lazy(() => import("./pages/UseCase"));
 
 const queryClient = new QueryClient();
 
@@ -92,6 +94,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
+  <HelmetProvider>
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <TooltipProvider>
@@ -127,6 +130,8 @@ const App = () => (
               <Route path="/download" element={<Download />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
+              <Route path="/use-cases" element={<UseCase />} />
+              <Route path="/use-cases/:slug" element={<UseCase />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
@@ -135,6 +140,7 @@ const App = () => (
     </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

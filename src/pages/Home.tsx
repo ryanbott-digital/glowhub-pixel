@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
+import { SEOHead, GLOW_JSON_LD, FAQ_JSON_LD } from "@/components/SEOHead";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
@@ -351,6 +352,12 @@ const Home = () => {
       onMouseMove={handleMouseMove}
       className="min-h-screen bg-[#0B1120] text-[#E2E8F0] font-['Satoshi','Inter',system-ui,sans-serif] overflow-x-hidden scroll-smooth relative"
     >
+      <SEOHead
+        title="Glow — Pro Digital Signage Software"
+        description="Turn any Firestick into professional digital signage. Upload, schedule, and sync content to remote screens. Cloud-synced screen manager from $9/mo."
+        canonical="/home"
+        jsonLd={{ ...GLOW_JSON_LD, ...FAQ_JSON_LD }}
+      />
       {/* ── Mouse Spotlight ── */}
       <div
         className="pointer-events-none fixed inset-0 z-[999] transition-opacity duration-300"
@@ -454,7 +461,7 @@ const Home = () => {
                     <div className="absolute inset-0 scanline-overlay pointer-events-none" />
                     {/* Brand GLOW logo */}
                     <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <GlowLogoImage className="h-20 sm:h-28 drop-shadow-[0_0_30px_hsl(180,100%,40%,0.5)]" alt="GLOW" />
+                      <GlowLogoImage className="h-20 sm:h-28 drop-shadow-[0_0_30px_hsl(180,100%,40%,0.5)]" alt="Glow digital signage platform logo on TV screen" />
                     </div>
                   </div>
                 </div>
@@ -493,7 +500,7 @@ const Home = () => {
         <div className="flex items-center justify-center gap-12 sm:gap-20">
           <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ animationDelay: "0.5s" }}>
             <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative hover:-translate-y-2">
-              <img src={firestickIcon} alt="Amazon Fire TV Stick" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
+              <img src={firestickIcon} alt="Amazon Fire TV Stick — compatible with Glow digital signage app" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
             {/* Floor reflection */}
             <div className="w-28 sm:w-36 h-14 sm:h-18 -mt-2 overflow-hidden opacity-25 pointer-events-none" style={{ transform: "scaleY(-1)" }}>
@@ -506,7 +513,7 @@ const Home = () => {
           <div className="h-16 w-px bg-gradient-to-b from-transparent via-[#1E293B] to-transparent" />
           <div data-animate className="reveal-card flex flex-col items-center gap-4" style={{ transitionDelay: "120ms", animationDelay: "1s" }}>
             <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl glass-card light-catch-border flex items-center justify-center p-4 group hover:border-[#00A3A3]/30 hover:shadow-[0_0_30px_rgba(0,163,163,0.15)] transition-all duration-500 glass-spotlight relative hover:-translate-y-2">
-              <img src={googletvIcon} alt="Google TV Remote" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
+              <img src={googletvIcon} alt="Google TV remote — compatible with Glow cloud-synced screen manager" loading="lazy" width={512} height={512} className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300" />
             </div>
             {/* Floor reflection */}
             <div className="w-28 sm:w-36 h-14 sm:h-18 -mt-2 overflow-hidden opacity-25 pointer-events-none" style={{ transform: "scaleY(-1)" }}>
@@ -846,6 +853,7 @@ const Home = () => {
           <GlowLogoImage className="h-6" />
           <div className="flex items-center gap-6 text-sm text-[#64748B]">
             <Link to="/auth" className="hover:text-[#E2E8F0] transition-colors">Login</Link>
+            <Link to="/use-cases" className="hover:text-[#E2E8F0] transition-colors">Use Cases</Link>
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
             <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
             <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>

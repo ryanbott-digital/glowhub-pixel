@@ -1,14 +1,57 @@
 User-agent: Googlebot
-Allow: /
+Allow: /home
+Allow: /download
+Allow: /terms
+Allow: /use-cases/
+Disallow: /admin
+Disallow: /player
+Disallow: /display/
+Disallow: /auth
+Disallow: /billing
+Disallow: /media
+Disallow: /playlists
+Disallow: /screens
+Disallow: /analytics
+Disallow: /settings
+Disallow: /canvas
+Disallow: /studio
+Disallow: /pwa-diagnostics
+Disallow: /pair
+Disallow: /welcome-pro
+Disallow: /payment/
+Disallow: /reset-password
 
 User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+Allow: /home
+Allow: /download
+Allow: /terms
+Allow: /use-cases/
+Disallow: /admin
+Disallow: /player
+Disallow: /display/
+Disallow: /auth
+Disallow: /billing
+Disallow: /media
+Disallow: /playlists
+Disallow: /screens
+Disallow: /analytics
+Disallow: /settings
+Disallow: /canvas
+Disallow: /studio
+Disallow: /pwa-diagnostics
+Disallow: /pair
+Disallow: /welcome-pro
+Disallow: /payment/
+Disallow: /reset-password
 
 User-agent: *
-Allow: /
+Allow: /home
+Allow: /download
+Allow: /terms
+Allow: /use-cases/
+Disallow: /admin
+Disallow: /player
+Disallow: /display/
+Disallow: /auth
+
+Sitemap: https://glowhub-pixel.lovable.app/sitemap.xml
