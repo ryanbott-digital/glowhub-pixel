@@ -968,6 +968,7 @@ export default function Player() {
           if (updated.transition_type) setTransitionType(updated.transition_type);
           if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
           if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
+          if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
         }
       )
       .subscribe();
