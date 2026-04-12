@@ -312,11 +312,20 @@ export default function Screens() {
     toast.success(`Moved "${screen.name}" to ${targetName}`);
   };
 
-  // ── Organize screens by group ──
-  const ungroupedScreens = screens.filter((s) => !s.group_id);
+  // ── Filter & organize screens by group ──
+  const isScreenOffline = (s: Screen) => {
+    if (!s.last_ping) return s.status !== "online";
+    return Date.now() - new Date(s.last_ping).getTime() > 2 * 60 * 1000;
+  };
+
+  const filteredScreens = filterOfflineOnly
+    ? screens.filter(isScreenOffline)
+    : screens;
+
+  const ungroupedScreens = filteredScreens.filter((s) => !s.group_id);
   const groupedScreenMap = groups.map((g) => ({
     group: g,
-    screens: screens.filter((s) => s.group_id === g.id),
+    screens: filteredScreens.filter((s) => s.group_id === g.id),
   }));
 
   const activeScreen = activeScreenId ? screens.find((s) => s.id === activeScreenId) : null;
