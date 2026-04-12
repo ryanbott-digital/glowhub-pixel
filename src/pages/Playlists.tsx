@@ -73,6 +73,35 @@ export default function Playlists() {
     fetchPlaylists();
   };
 
+  const duplicatePlaylist = async (pl: Playlist) => {
+    if (!user) return;
+    const newTitle = `${pl.title} (Copy)`;
+    const { data: newPl, error } = await supabase
+      .from("playlists")
+      .insert({ user_id: user.id, title: newTitle })
+      .select("*")
+      .single();
+    if (error || !newPl) { toast.error("Failed to duplicate playlist"); return; }
+    // Copy all items
+    const { data: items } = await supabase
+      .from("playlist_items")
+      .select("media_id, position, override_duration")
+      .eq("playlist_id", pl.id)
+      .order("position");
+    if (items && items.length > 0) {
+      await supabase.from("playlist_items").insert(
+        items.map((item) => ({
+          playlist_id: newPl.id,
+          media_id: item.media_id,
+          position: item.position,
+          override_duration: item.override_duration,
+        }))
+      );
+    }
+    toast.success("Playlist duplicated!");
+    fetchPlaylists();
+  };
+
   const startRename = (pl: Playlist, e: React.MouseEvent) => {
     e.stopPropagation();
     setRenamingId(pl.id);
