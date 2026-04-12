@@ -21,6 +21,7 @@ import { Plus, X, Clock, Settings2, CheckCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { hapticSuccess } from "@/lib/haptics";
 import { TimelineBlock } from "./TimelineBlock";
 
 interface PlaylistItem {
@@ -73,7 +74,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-
+    hapticSuccess();
     const oldIndex = items.findIndex((i) => i.id === active.id);
     const newIndex = items.findIndex((i) => i.id === over.id);
     const reordered = arrayMove(items, oldIndex, newIndex);

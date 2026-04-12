@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { hapticMedium, hapticSuccess } from "@/lib/haptics";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -280,6 +281,7 @@ export default function Screens() {
 
   // ── Drag and drop ──
   const handleDragStart = (event: DragStartEvent) => {
+    hapticMedium();
     setActiveScreenId(event.active.id as string);
   };
 
@@ -295,6 +297,7 @@ export default function Screens() {
     const screen = screens.find((s) => s.id === screenId);
     if (!screen) return;
     if (screen.group_id === newGroupId) return;
+    hapticSuccess();
 
     // Optimistic update
     setScreens((prev) =>

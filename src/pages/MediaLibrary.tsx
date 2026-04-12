@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { hapticMedium } from "@/lib/haptics";
 
 interface PairedScreen {
   id: string;
@@ -516,8 +517,7 @@ export default function MediaLibrary() {
                    longPressRef.current = setTimeout(() => {
                     longPressFired.current = true;
                     if (!isSelecting) {
-                      // Haptic feedback on long-press rename
-                      if (navigator.vibrate) navigator.vibrate(15);
+                      hapticMedium();
                       setRenamingId(item.id);
                       setRenameValue(item.name);
                     }
