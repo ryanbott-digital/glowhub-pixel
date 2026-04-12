@@ -13,6 +13,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   // Anti-tamper protection (DOM + DevTools + server-side)
   useAntiTamper();
 
+  // Switch manifest to admin variant for dashboard routes
+  useAdminManifest();
+
   // Spotlight cursor effect for glass cards
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const cards = document.querySelectorAll('.glass-spotlight');
