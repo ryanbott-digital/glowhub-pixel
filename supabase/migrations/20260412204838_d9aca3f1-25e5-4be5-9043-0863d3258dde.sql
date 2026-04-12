@@ -1,0 +1,1 @@
+ALTER TABLE public.screens ADD COLUMN launch_on_boot boolean NOT NULL DEFAULT false;
