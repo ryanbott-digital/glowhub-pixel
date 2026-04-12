@@ -290,6 +290,7 @@ const Home = () => {
   const ctaRef = useMagnetic();
   const location = useLocation();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const [isAnnual, setIsAnnual] = useState(false);
 
   // Smooth scroll to hash anchor (e.g. /home#contact)
   useEffect(() => {
