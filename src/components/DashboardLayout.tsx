@@ -35,6 +35,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
+      <AdminInstallBanner />
       <div className="min-h-screen flex w-full mesh-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
