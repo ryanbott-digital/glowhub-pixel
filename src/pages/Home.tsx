@@ -699,23 +699,26 @@ const Home = () => {
         <h2 className="text-3xl sm:text-4xl font-bold text-center tracking-tight mb-3">
           Simple, Honest Pricing
         </h2>
-        <p className="text-[#94A3B8] text-center mb-16 text-base max-w-lg mx-auto">
-          No hidden fees. No per-screen surprises. Start free, upgrade when ready.
+        <p className="text-[#94A3B8] text-center mb-4 text-base max-w-lg mx-auto">
+          No hidden fees. No per-screen surprises. One flat fee — whether you have 2 screens or 20.
+        </p>
+        <p className="text-center text-sm text-[#64748B] italic mb-16 max-w-md mx-auto">
+          One flat fee. Whether you have 2 screens or 20, the price stays the same. That's the Glow promise.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          {/* Starter — glassmorphism */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto items-start">
+          {/* Lite Plan */}
           <div
             data-animate
             className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight hover:-translate-y-2 hover:shadow-[0_0_40px_hsla(180,100%,45%,0.15),0_20px_40px_-10px_hsla(220,60%,7%,0.5)] hover:border-primary/30"
           >
-            <h3 className="text-xl font-semibold mb-1">The Starter</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">Free forever</p>
+            <h3 className="text-xl font-semibold mb-1">The Lite Plan</h3>
+            <p className="text-sm text-[#94A3B8] mb-6">Free forever — no credit card</p>
             <div className="text-5xl font-extrabold mb-8">
               $0<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
             </div>
             <ul className="space-y-3.5 mb-8 flex-1">
-              {["1 Screen", "Basic Scheduling", "500MB Storage", "'Powered by GLOW' watermark"].map((f) => (
+              {["1 Screen", "Standard 30fps Sync", "1GB Cloud Storage", "Web Dashboard Access", "'Powered by GLOW' watermark"].map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
                   <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
                   {f}
@@ -724,37 +727,47 @@ const Home = () => {
             </ul>
             <Link
               to="/auth"
-              className="block text-center py-3 rounded-xl font-semibold border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300"
+              className="block text-center py-3.5 rounded-xl font-semibold border border-primary/30 shadow-[0_0_12px_hsla(180,100%,32%,0.15)] hover:border-primary/60 hover:shadow-[0_0_20px_hsla(180,100%,32%,0.3)] transition-all duration-300 tracking-wide"
             >
-              Get Started
+              GET STARTED
             </Link>
           </div>
 
-          {/* Pro Glow — rotating conic gradient border */}
+          {/* Pro Ecosystem — Founder's Tier */}
           <div
             data-animate
-            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible mt-4 hover:-translate-y-2 hover:shadow-[0_0_50px_hsla(180,100%,45%,0.2),0_0_80px_hsla(220,80%,55%,0.1),0_20px_40px_-10px_hsla(220,60%,7%,0.5)]"
+            className="reveal-card relative rounded-2xl flex flex-col transition-all duration-300 glass-spotlight overflow-visible mt-4 md:mt-0 hover:-translate-y-2 hover:shadow-[0_0_50px_hsla(180,100%,45%,0.25),0_0_80px_hsla(220,80%,55%,0.12),0_20px_40px_-10px_hsla(220,60%,7%,0.5)]"
             style={{ transitionDelay: "120ms" }}
           >
-            {/* Best Value badge — outside conic wrapper to avoid clipping */}
+            {/* Most Popular badge */}
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] shadow-[0_0_20px_rgba(0,163,163,0.3)] whitespace-nowrap">
-              ✦ Best Value
+              ✦ Most Popular
             </span>
 
-            {/* Rotating conic border wrapper */}
+            {/* Animated conic border */}
             <div className="conic-border-wrapper rounded-2xl p-[2px] overflow-hidden">
-              <div className="glass-card rounded-[14px] p-8 flex flex-col h-full pt-10">
+              <div className="glass-card rounded-[14px] p-8 flex flex-col h-full pt-10 relative">
+                {/* Pulse border glow */}
+                <div className="absolute inset-0 rounded-[14px] border border-[#00A3A3]/20 animate-pulse pointer-events-none" />
 
-                <h3 className="text-xl font-semibold mb-1">The Pro Glow</h3>
-                <p className="text-sm text-[#94A3B8] mb-6">For serious signage</p>
+                <h3 className="text-xl font-semibold mb-1">The Pro Ecosystem</h3>
+                <p className="text-sm text-[#94A3B8] mb-6">Founder's Tier — Billed Monthly</p>
                 <div className="text-5xl font-extrabold mb-2">
                   $9<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
                 </div>
                 <p className="text-base font-bold text-[#00A3A3] mb-8">
-                  Up to 5 Screens
+                  Unlimited Screens
                 </p>
                 <ul className="space-y-3.5 mb-8 flex-1">
-                  {["No Watermarks", "Offline Mode (Cache)", "Screen Health Monitoring", "5GB Storage", "Priority Support"].map((f) => (
+                  {[
+                    "Unlimited Screens",
+                    "Millisecond 60fps Sync",
+                    "50GB Cloud Storage",
+                    "Native Admin App Access",
+                    "Instant 'Hype' Triggers",
+                    "24/7 Engine Support",
+                    "No Watermarks",
+                  ].map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
                       <Check className="w-4 h-4 mt-0.5 text-[#00A3A3] shrink-0" />
                       {f}
@@ -763,12 +776,34 @@ const Home = () => {
                 </ul>
                 <Link
                   to="/auth"
-                  className="block text-center py-3 rounded-xl font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300"
+                  className="block text-center py-3.5 rounded-xl font-bold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.45)] transition-all duration-300 tracking-wide"
                 >
-                  Go Pro
+                  INITIALIZE DASHBOARD
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* No BS Feature Checklist */}
+        <div data-animate className="reveal-card max-w-2xl mx-auto mt-16 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl p-8">
+          <h3 className="text-lg font-bold text-center mb-6 text-[#E2E8F0]">Included with Every Plan</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[
+              "No Proprietary Hardware Needed",
+              "Cancel Anytime, No Contracts",
+              "Automatic 'Launch on Boot' Included",
+              "Global Cloud Sync",
+              "Offline Playback (Local Cache)",
+              "Unlimited Content Uploads",
+            ].map((item) => (
+              <div key={item} className="flex items-center gap-3 text-sm text-[#CBD5E1]">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#00A3A3]/15 shrink-0">
+                  <Check className="w-3 h-3 text-[#00E5CC]" />
+                </div>
+                {item}
+              </div>
+            ))}
           </div>
         </div>
       </section>
