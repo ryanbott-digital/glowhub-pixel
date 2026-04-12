@@ -35,10 +35,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AdminInstallBanner />
       <div className="min-h-screen flex w-full mesh-bg">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
+          <AdminInstallBanner />
           {/* Floating glass navbar */}
           <header className="h-14 flex items-center glass-strong mx-3 mt-3 rounded-2xl px-4 sticky top-3 z-30">
             <SidebarTrigger className="mr-4 text-muted-foreground hover:text-primary transition-colors" />
