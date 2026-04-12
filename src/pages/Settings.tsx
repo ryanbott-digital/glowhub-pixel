@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2, Crown, Wifi, WifiOff } from "lucide-react";
+import { Settings as SettingsIcon, BookOpen, Bell, BellOff, Monitor, Volume2, VolumeX, Palette, AlertTriangle, Download, Trash2, Loader2, Crown, Wifi, WifiOff, Lock, Smartphone, ExternalLink, Shield } from "lucide-react";
 import { ProGuard } from "@/components/ProGuard";
 import PremiumWidgetConfig from "@/components/PremiumWidgetConfig";
 import { Button } from "@/components/ui/button";
@@ -287,6 +287,80 @@ export default function Settings() {
         <ProGuard showUpgradePrompt featureName="Widget Configuration">
           <PremiumWidgetConfig />
         </ProGuard>
+      </div>
+
+      {/* Kiosk Mode */}
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Lock className="h-4 w-4 text-primary" />
+          Kiosk Mode
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Lock your Android / Fire TV device to GlowHub for unattended digital signage. These settings apply to native APK installations only.
+        </p>
+
+        <SettingRow>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+              <Smartphone className="h-3.5 w-3.5 text-primary" />
+              Display Over Other Apps
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Required for Hype Triggers and Takeover overlays to appear above other apps. Open your device's overlay permission settings to grant access.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 shrink-0"
+            onClick={() => {
+              window.location.href = "intent://settings/action_manage_overlay_permission#Intent;scheme=android.settings;end";
+            }}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Open
+          </Button>
+        </SettingRow>
+
+        <SettingRow>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5 text-primary" />
+              Pin App to Screen
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Prevents users from leaving GlowHub without a PIN.{" "}
+              <span className="font-medium text-foreground">Steps:</span> Go to{" "}
+              <span className="font-mono text-[11px]">Settings → Security → Screen Pinning</span>, enable it, then open GlowHub and tap the pin icon in Recents.
+            </p>
+          </div>
+        </SettingRow>
+
+        <SettingRow>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5 text-primary" />
+              Enterprise Lock (Device Owner)
+            </p>
+            <p className="text-xs text-muted-foreground">
+              For fully managed deployments, set GlowHub as the Device Owner using{" "}
+              <span className="font-mono text-[11px]">adb shell dpm set-device-owner</span>.
+              This enables <span className="font-mono text-[11px]">startLockTask()</span> to permanently lock the device to the app with no way to exit.
+            </p>
+          </div>
+        </SettingRow>
+
+        <SettingRow>
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+              <Monitor className="h-3.5 w-3.5 text-primary" />
+              Auto-Start on Boot
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Configured per-screen on the <span className="font-medium text-foreground">Screens</span> page. Enable the "Launch on Boot" toggle for each screen to auto-launch GlowHub when the device powers on.
+            </p>
+          </div>
+        </SettingRow>
       </div>
 
       {/* Danger Zone */}
