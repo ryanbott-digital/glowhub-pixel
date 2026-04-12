@@ -1879,6 +1879,14 @@ export default function Player() {
         <CalibrationOverlay screenId={screenId} syncGroupId={playerSyncGroupId} />
       )}
 
+      {/* Sync Recovery Pulse — shown during hard re-sync */}
+      {showSyncPulse && (
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 pointer-events-none" style={{ animation: "syncPulseGlow 1s ease-in-out infinite" }}>
+          <div className="w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary))", animation: "syncPulseDot 0.6s ease-in-out infinite" }} />
+          <span className="text-xs font-mono tracking-widest uppercase" style={{ color: "hsl(var(--primary))" }}>Syncing…</span>
+        </div>
+      )}
+
       {/* Branded loading placeholder — shown when media takes >2s to load */}
       {bufferLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
