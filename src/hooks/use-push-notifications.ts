@@ -63,12 +63,12 @@ export function usePushNotifications() {
 
       // Fetch VAPID public key from edge function
       const { data: vapidData, error: vapidErr } = await supabase.functions.invoke("glow-watchdog", {
-        method: "GET",
+        method: "POST",
+        body: JSON.stringify({ action: "get-vapid-key" }),
       });
 
-      // Use a fallback approach — get VAPID key from env
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      
+      const vapidPublicKey = vapidData?.vapidPublicKey;
+
       if (!vapidPublicKey) {
         toast.error("Push notifications are not configured yet. Please contact support.");
         setLoading(false);

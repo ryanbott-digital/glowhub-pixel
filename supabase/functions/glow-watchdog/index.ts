@@ -14,6 +14,21 @@ Deno.serve(async (req) => {
     const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
 
+    // Handle VAPID key request from frontend
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        if (body?.action === "get-vapid-key") {
+          return new Response(
+            JSON.stringify({ vapidPublicKey: vapidPublicKey || null }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch {
+        // Not a JSON body or no action — continue with watchdog logic
+      }
+    }
+
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const cutoff = new Date(Date.now() - OFFLINE_THRESHOLD_MS).toISOString();
