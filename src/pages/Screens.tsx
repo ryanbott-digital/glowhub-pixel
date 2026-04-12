@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare, Sparkles, Crown, FolderOpen } from "lucide-react";
+import { Plus, Monitor, Link2, Trash2, Send, X, CheckSquare, Sparkles, Crown, FolderOpen, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -652,7 +652,17 @@ export default function Screens() {
                 <Crown className="h-4 w-4 mr-2" /> View Plans
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => setUpgradeOpen(false)}>Got it</Button>
+              <>
+                <Button
+                  onClick={handleScreenPackCheckout}
+                  disabled={screenPackLoading}
+                  className="bg-gradient-to-r from-primary to-accent text-primary-foreground"
+                >
+                  {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Add 5 Screens — $9
+                </Button>
+                <Button variant="outline" onClick={() => setUpgradeOpen(false)}>Maybe Later</Button>
+              </>
             )}
           </div>
         </DialogContent>
