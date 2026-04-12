@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { LogOut, Download, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink } from "lucide-react";
+import { useIsAdmin } from "@/hooks/use-admin-role";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
