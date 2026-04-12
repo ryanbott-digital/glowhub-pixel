@@ -38,6 +38,7 @@ const PwaDiagnostics = lazy(() => import("./pages/PwaDiagnostics"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const UseCase = lazy(() => import("./pages/UseCase"));
 const SolutionsRestaurants = lazy(() => import("./pages/SolutionsRestaurants"));
+const SolutionsRetail = lazy(() => import("./pages/SolutionsRetail"));
 
 const queryClient = new QueryClient();
 
