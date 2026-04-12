@@ -72,9 +72,9 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <SwipeHandler />
-      <div className="min-h-screen flex w-full mesh-bg">
+      <div className="min-h-screen flex w-full mesh-bg overflow-x-hidden">
         <AppSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <AdminInstallBanner />
           <header className="h-14 flex items-center glass-strong mx-3 mt-3 rounded-2xl px-4 sticky top-3 z-30">
             <SidebarTrigger className="mr-4 text-muted-foreground hover:text-primary transition-colors" />
@@ -84,7 +84,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <span className="text-[10px] font-medium text-muted-foreground tracking-widest uppercase">Live</span>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 overflow-auto">
+          <main className="flex-1 p-3 md:p-6 overflow-x-hidden overflow-y-auto">
             {children}
           </main>
         </div>
