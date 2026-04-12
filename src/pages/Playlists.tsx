@@ -65,7 +65,7 @@ function SortablePlaylistCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
+      className={`relative glass glass-spotlight rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-300 border p-3 sm:p-4 active:scale-[0.98] ${
         isSent
           ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
           : bulkMode && isChecked
@@ -77,12 +77,12 @@ function SortablePlaylistCard({
       onClick={onSelect}
     >
       {isSent && (
-        <div className="absolute inset-0 rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
+        <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
       )}
       <div className="flex items-center gap-2 min-w-0">
         {!bulkMode && (
-          <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-0.5 -ml-1 shrink-0 touch-none" onClick={(e) => e.stopPropagation()}>
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 -ml-1 shrink-0 touch-none" onClick={(e) => e.stopPropagation()}>
+            <GripVertical className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />
           </button>
         )}
         {bulkMode ? (
@@ -90,45 +90,47 @@ function SortablePlaylistCard({
             checked={isChecked}
             onCheckedChange={onToggleBulk}
             onClick={(e) => e.stopPropagation()}
-            className="shrink-0"
+            className="shrink-0 h-5 w-5"
           />
         ) : isQuickSend ? (
           <Send className="h-4 w-4 text-muted-foreground shrink-0" />
         ) : (
           <ListVideo className="h-4 w-4 text-primary shrink-0" />
         )}
-        {isRenaming && !bulkMode ? (
-          <Input
-            autoFocus
-            value={renameValue}
-            onChange={(e) => onRenameChange(e.target.value)}
-            onBlur={onCommitRename}
-            onKeyDown={(e) => { if (e.key === "Enter") onCommitRename(); if (e.key === "Escape") onCancelRename(); }}
-            onClick={(e) => e.stopPropagation()}
-            className="h-6 text-sm py-0 px-1 bg-background/50 border-primary/30"
-          />
-        ) : (
-          <span
-            className={`font-medium truncate ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
-            onDoubleClick={(e) => !bulkMode && onStartRename(pl, e)}
-            onClick={(e) => { if (!bulkMode) { e.stopPropagation(); onStartRename(pl, e); } }}
-          >
-            {pl.title}
-          </span>
-        )}
+        <div className="flex-1 min-w-0">
+          {isRenaming && !bulkMode ? (
+            <Input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => onRenameChange(e.target.value)}
+              onBlur={onCommitRename}
+              onKeyDown={(e) => { if (e.key === "Enter") onCommitRename(); if (e.key === "Escape") onCancelRename(); }}
+              onClick={(e) => e.stopPropagation()}
+              className="h-8 text-sm py-0 px-2 bg-background/50 border-primary/30"
+            />
+          ) : (
+            <span
+              className={`font-medium truncate block ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
+              onDoubleClick={(e) => !bulkMode && onStartRename(pl, e)}
+              onClick={(e) => { if (!bulkMode) { e.stopPropagation(); onStartRename(pl, e); } }}
+            >
+              {pl.title}
+            </span>
+          )}
+        </div>
         {isQuickSend && (
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
         )}
       </div>
       {!bulkMode && (
-        <div className="flex items-center gap-1 shrink-0">
-          <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} title="Duplicate playlist" className="p-1 rounded-md hover:bg-primary/10 transition-colors">
-            <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+        <div className="flex items-center gap-0.5 shrink-0 mt-2 sm:mt-0 sm:absolute sm:right-3 sm:top-1/2 sm:-translate-y-1/2">
+          <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} title="Duplicate playlist" className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-primary/10 transition-colors">
+            <Copy className="h-4 w-4 sm:h-3.5 sm:w-3.5 text-muted-foreground hover:text-primary" />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onSend(); }} title="Send to screen" className="p-1 rounded-md hover:bg-primary/10 transition-colors">
-            <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+          <button onClick={(e) => { e.stopPropagation(); onSend(); }} title="Send to screen" className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-primary/10 transition-colors">
+            <Send className="h-4 w-4 sm:h-3.5 sm:w-3.5 text-muted-foreground hover:text-primary" />
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1 rounded-md hover:bg-destructive/10 transition-colors">
+          <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-2 sm:p-1.5 rounded-lg sm:rounded-md hover:bg-destructive/10 transition-colors">
             <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
           </button>
         </div>
@@ -350,27 +352,30 @@ export default function Playlists() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Playlists</h1>
-        <div className="flex items-center gap-2">
-          {!bulkMode && playlists.length > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setBulkMode(true)}>
-              <CheckSquare className="h-4 w-4 mr-2" /> Select
-            </Button>
-          )}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
-            </DialogTrigger>
-            <DialogContent className="glass-strong border-white/[0.06]">
-              <DialogHeader><DialogTitle>Create Playlist</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <Input placeholder="Playlist title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
-                <Button onClick={createPlaylist} className="w-full">Create</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+    <div className="space-y-5 animate-fade-in min-w-0">
+      {/* Header */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Playlists</h1>
+          <div className="flex items-center gap-2 shrink-0">
+            {!bulkMode && playlists.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setBulkMode(true)} className="h-10 sm:h-9 text-xs px-3">
+                <CheckSquare className="h-4 w-4 mr-1.5" /> Select
+              </Button>
+            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-10 sm:h-9 text-xs px-3"><Plus className="h-4 w-4 mr-1.5" /> New</Button>
+              </DialogTrigger>
+              <DialogContent className="glass-strong border-white/[0.06]">
+                <DialogHeader><DialogTitle>Create Playlist</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <Input placeholder="Playlist title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
+                  <Button onClick={createPlaylist} className="w-full">Create</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
@@ -386,7 +391,72 @@ export default function Playlists() {
         />
       )}
 
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* On mobile: show builder fullscreen with back button, on desktop: side-by-side */}
+      {selectedPlaylist && !bulkMode ? (
+        <>
+          {/* Mobile: back button + builder */}
+          <div className="md:hidden space-y-3">
+            <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setSelectedPlaylist(null)}>
+              ← Back to playlists
+            </Button>
+            <PlaylistBuilder
+              key={selectedPlaylist.id}
+              playlistId={selectedPlaylist.id}
+              playlistTitle={selectedPlaylist.title}
+              media={media}
+            />
+          </div>
+
+          {/* Desktop: side-by-side grid */}
+          <div className="hidden md:grid md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <div className="relative mb-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search playlists…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9 bg-white/[0.03] border-white/[0.08] text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                  {playlists.filter((p) => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map((pl) => (
+                    <SortablePlaylistCard
+                      key={pl.id}
+                      pl={pl}
+                      bulkMode={bulkMode}
+                      isChecked={bulkSelected.has(pl.id)}
+                      isSelected={selectedPlaylist?.id === pl.id}
+                      isSent={sentPlaylistId === pl.id}
+                      isRenaming={renamingId === pl.id}
+                      renameValue={renameValue}
+                      onRenameChange={setRenameValue}
+                      onCommitRename={commitRename}
+                      onCancelRename={() => setRenamingId(null)}
+                      onStartRename={startRename}
+                      onSelect={() => bulkMode ? toggleBulkSelect(pl.id) : setSelectedPlaylist(pl)}
+                      onToggleBulk={() => toggleBulkSelect(pl.id)}
+                      onDuplicate={() => duplicatePlaylist(pl)}
+                      onSend={() => openSendDialog(pl)}
+                      onDelete={() => deletePlaylist(pl.id)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </div>
+            <div className="md:col-span-2">
+              <PlaylistBuilder
+                key={selectedPlaylist.id}
+                playlistId={selectedPlaylist.id}
+                playlistTitle={selectedPlaylist.title}
+                media={media}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        /* No playlist selected or bulk mode — show list only */
         <div className="space-y-2 stagger-in">
           <div className="relative mb-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -394,7 +464,7 @@ export default function Playlists() {
               placeholder="Search playlists…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 bg-white/[0.03] border-white/[0.08] text-foreground placeholder:text-muted-foreground"
+              className="pl-9 h-10 sm:h-9 bg-white/[0.03] border-white/[0.08] text-foreground placeholder:text-muted-foreground"
             />
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -425,23 +495,18 @@ export default function Playlists() {
           {playlists.length === 0 && (
             <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] text-center text-muted-foreground py-8">No playlists yet</div>
           )}
-        </div>
-
-        <div className="md:col-span-2">
-          {selectedPlaylist && !bulkMode ? (
-            <PlaylistBuilder
-              key={selectedPlaylist.id}
-              playlistId={selectedPlaylist.id}
-              playlistTitle={selectedPlaylist.title}
-              media={media}
-            />
-          ) : (
-            <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] flex items-center justify-center h-64 text-muted-foreground">
-              {bulkMode ? "Select playlists to manage in bulk" : "Select a playlist to edit"}
+          {!bulkMode && playlists.length > 0 && !selectedPlaylist && (
+            <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] flex items-center justify-center h-32 sm:h-64 text-muted-foreground text-sm">
+              Tap a playlist to edit
+            </div>
+          )}
+          {bulkMode && (
+            <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] flex items-center justify-center h-32 sm:h-64 text-muted-foreground text-sm">
+              Select playlists to manage in bulk
             </div>
           )}
         </div>
-      </div>
+      )}
 
       {/* Single Send to Screen Dialog */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>

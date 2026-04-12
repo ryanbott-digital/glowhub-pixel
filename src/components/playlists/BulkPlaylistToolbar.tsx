@@ -23,43 +23,48 @@ export function BulkPlaylistToolbar({
   const allSelected = selectedCount === totalCount && totalCount > 0;
 
   return (
-    <div className="flex items-center gap-2 flex-wrap animate-fade-in">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={allSelected ? onDeselectAll : onSelectAll}
-        className="text-xs"
-      >
-        <CheckSquare className="h-3.5 w-3.5 mr-1" />
-        {allSelected ? "Deselect All" : "Select All"}
-      </Button>
-      <span className="text-sm text-muted-foreground">
-        {selectedCount} selected
-      </span>
-      <div className="flex-1" />
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={selectedCount === 0}
-        onClick={onBulkSend}
-        className="text-xs"
-      >
-        <Send className="h-3.5 w-3.5 mr-1" />
-        Send to Screen
-      </Button>
-      <Button
-        variant="destructive"
-        size="sm"
-        disabled={selectedCount === 0}
-        onClick={onBulkDelete}
-        className="text-xs"
-      >
-        <Trash2 className="h-3.5 w-3.5 mr-1" />
-        Delete
-      </Button>
-      <Button variant="ghost" size="sm" onClick={onExit} className="text-xs">
-        <X className="h-3.5 w-3.5" />
-      </Button>
+    <div className="rounded-xl glass border-primary/20 px-3 py-2.5 space-y-2 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-foreground">
+          {selectedCount} selected
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={allSelected ? onDeselectAll : onSelectAll}
+            className="h-8 text-xs"
+          >
+            <CheckSquare className="h-3.5 w-3.5 mr-1" />
+            {allSelected ? "None" : "All"}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onExit} className="h-8 text-xs">
+            <X className="h-3.5 w-3.5 mr-1" /> Cancel
+          </Button>
+        </div>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={selectedCount === 0}
+          onClick={onBulkSend}
+          className="h-10 sm:h-8 text-xs flex-1 min-w-[120px]"
+        >
+          <Send className="h-3.5 w-3.5 mr-1.5" />
+          Send to Screen
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          disabled={selectedCount === 0}
+          onClick={onBulkDelete}
+          className="h-10 sm:h-8 text-xs"
+        >
+          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+          Delete
+        </Button>
+      </div>
     </div>
   );
 }
