@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowLeft, Shield, FileText } from "lucide-react";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
