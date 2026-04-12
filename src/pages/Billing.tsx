@@ -51,6 +51,22 @@ export default function Billing() {
     toast.success("Subscription status refreshed");
   };
 
+  // Fetch screen pack count
+  useEffect(() => {
+    if (!user) return;
+    const fetchPacks = async () => {
+      setScreenPacksLoading(true);
+      const { data } = await supabase
+        .from("profiles")
+        .select("screen_packs")
+        .eq("id", user.id)
+        .single();
+      setScreenPacks((data as any)?.screen_packs ?? 0);
+      setScreenPacksLoading(false);
+    };
+    fetchPacks();
+  }, [user]);
+
   // System Level Up animation on upgrade
   useEffect(() => {
     if (searchParams.get("upgraded") === "true") {
