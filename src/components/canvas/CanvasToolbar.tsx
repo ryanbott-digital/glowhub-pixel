@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ZoomIn, ZoomOut, Maximize, Rocket, ListMusic } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, Rocket, ListMusic, ScanLine } from "lucide-react";
 
 interface SyncGroup {
   id: string;
@@ -23,13 +23,14 @@ interface CanvasToolbarProps {
   playlists: Playlist[];
   onDeploy: (groupId: string) => void;
   onAssignPlaylist: (groupId: string, playlistId: string | null) => void;
+  onCalibrate: (groupId: string) => void;
   selectedGroup: string | null;
   onSelectGroup: (id: string | null) => void;
 }
 
 export function CanvasToolbar({
   zoom, onZoomIn, onZoomOut, onReset,
-  syncGroups, playlists, onDeploy, onAssignPlaylist,
+  syncGroups, playlists, onDeploy, onAssignPlaylist, onCalibrate,
   selectedGroup, onSelectGroup,
 }: CanvasToolbarProps) {
   const group = syncGroups.find(g => g.id === selectedGroup);
@@ -90,6 +91,15 @@ export function CanvasToolbar({
                   </SelectContent>
                 </Select>
                 <div className="w-px h-4 bg-border/50" />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onCalibrate(group.id)}
+                  className="h-7 text-xs gap-1.5 glass font-semibold tracking-wider rounded-lg"
+                >
+                  <ScanLine className="h-3.5 w-3.5" />
+                  Calibrate
+                </Button>
                 <Button
                   size="sm"
                   onClick={() => onDeploy(group.id)}

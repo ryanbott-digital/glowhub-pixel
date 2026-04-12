@@ -63,7 +63,7 @@ export default function Canvas() {
       for (const g of groupRes.data) {
         const { data: members } = await supabase
           .from("sync_group_screens")
-          .select("id, screen_id, position")
+          .select("id, screen_id, position, bezel_compensation, color_r, color_g, color_b, brightness_offset")
           .eq("sync_group_id", g.id)
           .order("position");
 
