@@ -5,12 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy, CheckSquare } from "lucide-react";
+import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy, CheckSquare, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { PlaylistBuilder } from "@/components/playlists/PlaylistBuilder";
 import { BulkPlaylistToolbar } from "@/components/playlists/BulkPlaylistToolbar";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Playlist {
   id: string;
@@ -28,6 +31,110 @@ interface PairedScreen {
   id: string;
   name: string;
   status: string;
+}
+
+interface SortablePlaylistCardProps {
+  pl: Playlist;
+  bulkMode: boolean;
+  isChecked: boolean;
+  isSelected: boolean;
+  isSent: boolean;
+  isRenaming: boolean;
+  renameValue: string;
+  onRenameChange: (v: string) => void;
+  onCommitRename: () => void;
+  onCancelRename: () => void;
+  onStartRename: (pl: Playlist, e: React.MouseEvent) => void;
+  onSelect: () => void;
+  onToggleBulk: () => void;
+  onDuplicate: () => void;
+  onSend: () => void;
+  onDelete: () => void;
+}
+
+function SortablePlaylistCard({
+  pl, bulkMode, isChecked, isSelected, isSent, isRenaming, renameValue,
+  onRenameChange, onCommitRename, onCancelRename, onStartRename,
+  onSelect, onToggleBulk, onDuplicate, onSend, onDelete,
+}: SortablePlaylistCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pl.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 50 : undefined, opacity: isDragging ? 0.5 : 1 };
+  const isQuickSend = pl.title.startsWith("Quick Send ·");
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
+        isSent
+          ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
+          : bulkMode && isChecked
+            ? "ring-2 ring-primary border-primary"
+            : isSelected && !bulkMode
+              ? "ring-2 ring-primary border-primary"
+              : "border-white/[0.06] hover:border-primary/30"
+      }`}
+      onClick={onSelect}
+    >
+      {isSent && (
+        <div className="absolute inset-0 rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
+      )}
+      <div className="flex items-center gap-2 min-w-0">
+        {!bulkMode && (
+          <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-0.5 -ml-1 shrink-0 touch-none" onClick={(e) => e.stopPropagation()}>
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
+        {bulkMode ? (
+          <Checkbox
+            checked={isChecked}
+            onCheckedChange={onToggleBulk}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0"
+          />
+        ) : isQuickSend ? (
+          <Send className="h-4 w-4 text-muted-foreground shrink-0" />
+        ) : (
+          <ListVideo className="h-4 w-4 text-primary shrink-0" />
+        )}
+        {isRenaming && !bulkMode ? (
+          <Input
+            autoFocus
+            value={renameValue}
+            onChange={(e) => onRenameChange(e.target.value)}
+            onBlur={onCommitRename}
+            onKeyDown={(e) => { if (e.key === "Enter") onCommitRename(); if (e.key === "Escape") onCancelRename(); }}
+            onClick={(e) => e.stopPropagation()}
+            className="h-6 text-sm py-0 px-1 bg-background/50 border-primary/30"
+          />
+        ) : (
+          <span
+            className={`font-medium truncate ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
+            onDoubleClick={(e) => !bulkMode && onStartRename(pl, e)}
+            onClick={(e) => { if (!bulkMode) { e.stopPropagation(); onStartRename(pl, e); } }}
+          >
+            {pl.title}
+          </span>
+        )}
+        {isQuickSend && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
+        )}
+      </div>
+      {!bulkMode && (
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} title="Duplicate playlist" className="p-1 rounded-md hover:bg-primary/10 transition-colors">
+            <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); onSend(); }} title="Send to screen" className="p-1 rounded-md hover:bg-primary/10 transition-colors">
+            <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1 rounded-md hover:bg-destructive/10 transition-colors">
+            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function Playlists() {
@@ -52,7 +159,7 @@ export default function Playlists() {
 
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from("playlists").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data } = await supabase.from("playlists").select("*").eq("user_id", user.id).order("position", { ascending: true });
     if (data) setPlaylists(data);
   }, [user]);
 
@@ -170,6 +277,26 @@ export default function Playlists() {
     setBulkSelected(new Set());
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = playlists.findIndex((p) => p.id === active.id);
+    const newIndex = playlists.findIndex((p) => p.id === over.id);
+    const reordered = arrayMove(playlists, oldIndex, newIndex);
+    setPlaylists(reordered);
+    // Persist positions
+    await Promise.all(
+      reordered.map((pl, i) =>
+        supabase.from("playlists").update({ position: i }).eq("id", pl.id)
+      )
+    );
+  };
+
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const bulkDelete = async () => {
@@ -260,94 +387,31 @@ export default function Playlists() {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2 stagger-in">
-          {playlists.map((pl) => {
-            const isQuickSend = pl.title.startsWith("Quick Send ·");
-            const isChecked = bulkSelected.has(pl.id);
-            return (
-              <div
-                key={pl.id}
-                className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
-                  sentPlaylistId === pl.id
-                    ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
-                    : bulkMode && isChecked
-                      ? "ring-2 ring-primary border-primary"
-                      : selectedPlaylist?.id === pl.id && !bulkMode
-                        ? "ring-2 ring-primary border-primary"
-                        : "border-white/[0.06] hover:border-primary/30"
-                }`}
-                onClick={() => {
-                  if (bulkMode) {
-                    toggleBulkSelect(pl.id);
-                  } else {
-                    setSelectedPlaylist(pl);
-                  }
-                }}
-              >
-                {sentPlaylistId === pl.id && (
-                  <div className="absolute inset-0 rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
-                )}
-                <div className="flex items-center gap-2 min-w-0">
-                  {bulkMode ? (
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => toggleBulkSelect(pl.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="shrink-0"
-                    />
-                  ) : isQuickSend ? (
-                    <Send className="h-4 w-4 text-muted-foreground shrink-0" />
-                  ) : (
-                    <ListVideo className="h-4 w-4 text-primary shrink-0" />
-                  )}
-                  {renamingId === pl.id && !bulkMode ? (
-                    <Input
-                      autoFocus
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onBlur={commitRename}
-                      onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenamingId(null); }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="h-6 text-sm py-0 px-1 bg-background/50 border-primary/30"
-                    />
-                  ) : (
-                    <span
-                      className={`font-medium truncate ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
-                      onDoubleClick={(e) => !bulkMode && startRename(pl, e)}
-                      onClick={(e) => { if (!bulkMode) { e.stopPropagation(); startRename(pl, e); } }}
-                    >
-                      {pl.title}
-                    </span>
-                  )}
-                  {isQuickSend && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
-                  )}
-                </div>
-                {!bulkMode && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); duplicatePlaylist(pl); }}
-                      title="Duplicate playlist"
-                      className="p-1 rounded-md hover:bg-primary/10 transition-colors"
-                    >
-                      <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
-                      title="Send to screen"
-                      className="p-1 rounded-md hover:bg-primary/10 transition-colors"
-                    >
-                      <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}
-                      className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={playlists.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+              {playlists.map((pl) => (
+                <SortablePlaylistCard
+                  key={pl.id}
+                  pl={pl}
+                  bulkMode={bulkMode}
+                  isChecked={bulkSelected.has(pl.id)}
+                  isSelected={selectedPlaylist?.id === pl.id}
+                  isSent={sentPlaylistId === pl.id}
+                  isRenaming={renamingId === pl.id}
+                  renameValue={renameValue}
+                  onRenameChange={setRenameValue}
+                  onCommitRename={commitRename}
+                  onCancelRename={() => setRenamingId(null)}
+                  onStartRename={startRename}
+                  onSelect={() => bulkMode ? toggleBulkSelect(pl.id) : setSelectedPlaylist(pl)}
+                  onToggleBulk={() => toggleBulkSelect(pl.id)}
+                  onDuplicate={() => duplicatePlaylist(pl)}
+                  onSend={() => openSendDialog(pl)}
+                  onDelete={() => deletePlaylist(pl.id)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
           {playlists.length === 0 && (
             <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] text-center text-muted-foreground py-8">No playlists yet</div>
           )}
