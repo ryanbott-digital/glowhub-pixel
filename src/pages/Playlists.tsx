@@ -220,6 +220,13 @@ export default function Playlists() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
+                    onClick={(e) => { e.stopPropagation(); duplicatePlaylist(pl); }}
+                    title="Duplicate playlist"
+                    className="p-1 rounded-md hover:bg-primary/10 transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                  </button>
+                  <button
                     onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
                     title="Send to screen"
                     className="p-1 rounded-md hover:bg-primary/10 transition-colors"
