@@ -1,0 +1,1 @@
+UPDATE screens SET status = 'offline' WHERE last_ping IS NULL AND status = 'online';
