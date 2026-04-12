@@ -173,6 +173,26 @@ export default function Playlists() {
     setBulkSelected(new Set());
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = playlists.findIndex((p) => p.id === active.id);
+    const newIndex = playlists.findIndex((p) => p.id === over.id);
+    const reordered = arrayMove(playlists, oldIndex, newIndex);
+    setPlaylists(reordered);
+    // Persist positions
+    await Promise.all(
+      reordered.map((pl, i) =>
+        supabase.from("playlists").update({ position: i }).eq("id", pl.id)
+      )
+    );
+  };
+
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const bulkDelete = async () => {
