@@ -374,6 +374,20 @@ export default function Screens() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-foreground">Screens</h1>
+          {filterOfflineOnly && (
+            <button
+              onClick={() => setFilterOfflineOnly(false)}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-colors"
+              style={{
+                background: "hsla(348, 100%, 50%, 0.12)",
+                color: "hsl(348, 100%, 60%)",
+                border: "1px solid hsla(348, 100%, 50%, 0.2)",
+              }}
+            >
+              Showing offline only
+              <X className="h-3 w-3" />
+            </button>
+          )}
           {screenLimit !== null && (
             <span className="text-sm text-muted-foreground font-medium">
               {screens.length}/{screenLimit} used
