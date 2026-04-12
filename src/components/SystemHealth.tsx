@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { isProTier } from "@/lib/subscription";
 import { toast } from "sonner";
-import { Activity, RefreshCw, Monitor, Camera, ExternalLink, ArrowUpCircle } from "lucide-react";
+import { Activity, RefreshCw, Monitor, Camera, ExternalLink, ArrowUpCircle, ShieldAlert } from "lucide-react";
 
 interface Screen {
   id: string;
@@ -17,6 +17,7 @@ interface Screen {
   current_playlist_id: string | null;
   last_screenshot_url?: string | null;
   current_media_id?: string | null;
+  launch_on_boot?: boolean;
 }
 
 interface MediaInfo {
@@ -74,7 +75,7 @@ export function SystemHealth() {
     if (!user) return;
     const { data } = await supabase
       .from("screens")
-      .select("id, name, status, last_ping, current_playlist_id, last_screenshot_url, current_media_id")
+      .select("id, name, status, last_ping, current_playlist_id, last_screenshot_url, current_media_id, launch_on_boot")
       .eq("user_id", user.id);
     if (data) {
       setScreens(data as Screen[]);
@@ -175,6 +176,7 @@ export function SystemHealth() {
           {screens.map((screen) => {
             const offline = isOffline(screen.last_ping, screen.status);
             const currentMedia = screen.current_media_id ? mediaMap[screen.current_media_id] : null;
+            const isProtectedOffline = offline && screen.launch_on_boot;
             return (
               <div key={screen.id} className="space-y-2">
                 <div
@@ -210,7 +212,12 @@ export function SystemHealth() {
                           : "bg-primary/15 text-primary hover:bg-primary/20"
                       }`}
                     >
-                      {offline ? "Offline" : "Online"}
+                      {isProtectedOffline ? (
+                        <span className="flex items-center gap-1">
+                          <ShieldAlert className="h-3 w-3" />
+                          Protected · Offline
+                        </span>
+                      ) : offline ? "Offline" : "Online"}
                     </Badge>
                   </div>
 
