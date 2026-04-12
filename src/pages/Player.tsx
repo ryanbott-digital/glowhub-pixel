@@ -1778,6 +1778,11 @@ export default function Player() {
 
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
+      {/* Calibration Overlay (scanline, flash, bezel, color correction) */}
+      {screenId && playerSyncGroupId && (
+        <CalibrationOverlay screenId={screenId} syncGroupId={playerSyncGroupId} />
+      )}
+
       {/* Branded loading placeholder — shown when media takes >2s to load */}
       {bufferLoading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[hsl(215,55%,10%)]">
