@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy } from "lucide-react";
+import { Plus, ListVideo, Trash2, Send, Monitor, Loader2, Copy, CheckSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { PlaylistBuilder } from "@/components/playlists/PlaylistBuilder";
+import { BulkPlaylistToolbar } from "@/components/playlists/BulkPlaylistToolbar";
 
 interface Playlist {
   id: string;
@@ -42,6 +44,11 @@ export default function Playlists() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
 
+  // Bulk select state
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
+  const [bulkSendDialogOpen, setBulkSendDialogOpen] = useState(false);
+
   const fetchPlaylists = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase.from("playlists").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
@@ -75,14 +82,13 @@ export default function Playlists() {
 
   const duplicatePlaylist = async (pl: Playlist) => {
     if (!user) return;
-    const newTitle = `${pl.title} (Copy)`;
+    const dupTitle = `${pl.title} (Copy)`;
     const { data: newPl, error } = await supabase
       .from("playlists")
-      .insert({ user_id: user.id, title: newTitle })
+      .insert({ user_id: user.id, title: dupTitle })
       .select("*")
       .single();
     if (error || !newPl) { toast.error("Failed to duplicate playlist"); return; }
-    // Copy all items
     const { data: items } = await supabase
       .from("playlist_items")
       .select("media_id, position, override_duration")
@@ -141,9 +147,71 @@ export default function Playlists() {
       const screen = pairedScreens.find((s) => s.id === screenId);
       toast.success(`"${sendTargetPlaylist.title}" sent to ${screen?.name ?? "screen"}`);
       setSendDialogOpen(false);
-      // Flash the playlist card
       setSentPlaylistId(sendTargetPlaylist.id);
       setTimeout(() => setSentPlaylistId(null), 1500);
+    } catch {
+      toast.error("Failed to send playlist to screen");
+    }
+    setSending(false);
+  };
+
+  // Bulk actions
+  const toggleBulkSelect = (id: string) => {
+    setBulkSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const exitBulkMode = () => {
+    setBulkMode(false);
+    setBulkSelected(new Set());
+  };
+
+  const bulkDelete = async () => {
+    if (bulkSelected.size === 0) return;
+    const ids = Array.from(bulkSelected);
+    const { error } = await supabase.from("playlists").delete().in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    if (selectedPlaylist && bulkSelected.has(selectedPlaylist.id)) setSelectedPlaylist(null);
+    toast.success(`${ids.length} playlist${ids.length > 1 ? "s" : ""} deleted`);
+    exitBulkMode();
+    fetchPlaylists();
+  };
+
+  const openBulkSendDialog = () => {
+    if (!user || bulkSelected.size === 0) return;
+    supabase
+      .from("screens")
+      .select("id, name, status")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (data) setPairedScreens(data);
+      });
+    setBulkSendDialogOpen(true);
+  };
+
+  const bulkSendToScreen = async (screenId: string) => {
+    if (bulkSelected.size === 0) return;
+    setSending(true);
+    try {
+      // Send last selected playlist to screen (most recent selection)
+      const ids = Array.from(bulkSelected);
+      // For multiple playlists, we set each screen to use each playlist
+      // Since one screen can only have one playlist, we cycle through screens isn't practical
+      // Instead: assign the first selected playlist to the chosen screen
+      const playlistId = ids[0];
+      const { error } = await supabase
+        .from("screens")
+        .update({ current_playlist_id: playlistId })
+        .eq("id", screenId);
+      if (error) throw error;
+      const screen = pairedScreens.find((s) => s.id === screenId);
+      const pl = playlists.find((p) => p.id === playlistId);
+      toast.success(`"${pl?.title}" sent to ${screen?.name ?? "screen"}`);
+      setBulkSendDialogOpen(false);
+      exitBulkMode();
     } catch {
       toast.error("Failed to send playlist to screen");
     }
@@ -155,6 +223,11 @@ export default function Playlists() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Playlists</h1>
         <div className="flex items-center gap-2">
+          {!bulkMode && playlists.length > 0 && (
+            <Button variant="outline" size="sm" onClick={() => setBulkMode(true)}>
+              <CheckSquare className="h-4 w-4 mr-2" /> Select
+            </Button>
+          )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" /> New Playlist</Button>
@@ -170,32 +243,60 @@ export default function Playlists() {
         </div>
       </div>
 
+      {bulkMode && (
+        <BulkPlaylistToolbar
+          selectedCount={bulkSelected.size}
+          totalCount={playlists.length}
+          onSelectAll={() => setBulkSelected(new Set(playlists.map((p) => p.id)))}
+          onDeselectAll={() => setBulkSelected(new Set())}
+          onBulkDelete={bulkDelete}
+          onBulkSend={openBulkSendDialog}
+          onExit={exitBulkMode}
+        />
+      )}
+
       <div className="grid md:grid-cols-3 gap-6">
         <div className="space-y-2 stagger-in">
           {playlists.map((pl) => {
             const isQuickSend = pl.title.startsWith("Quick Send ·");
+            const isChecked = bulkSelected.has(pl.id);
             return (
               <div
                 key={pl.id}
                 className={`relative glass glass-spotlight rounded-2xl cursor-pointer transition-all duration-300 border p-4 flex items-center justify-between ${
                   sentPlaylistId === pl.id
                     ? "ring-2 ring-green-500 border-green-500/60 shadow-[0_0_20px_hsla(150,80%,50%,0.2)]"
-                    : selectedPlaylist?.id === pl.id
+                    : bulkMode && isChecked
                       ? "ring-2 ring-primary border-primary"
-                      : "border-white/[0.06] hover:border-primary/30"
+                      : selectedPlaylist?.id === pl.id && !bulkMode
+                        ? "ring-2 ring-primary border-primary"
+                        : "border-white/[0.06] hover:border-primary/30"
                 }`}
-                onClick={() => setSelectedPlaylist(pl)}
+                onClick={() => {
+                  if (bulkMode) {
+                    toggleBulkSelect(pl.id);
+                  } else {
+                    setSelectedPlaylist(pl);
+                  }
+                }}
               >
                 {sentPlaylistId === pl.id && (
                   <div className="absolute inset-0 rounded-2xl bg-green-500/10 animate-fade-out pointer-events-none" />
                 )}
                 <div className="flex items-center gap-2 min-w-0">
-                  {isQuickSend ? (
+                  {bulkMode ? (
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => toggleBulkSelect(pl.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0"
+                    />
+                  ) : isQuickSend ? (
                     <Send className="h-4 w-4 text-muted-foreground shrink-0" />
                   ) : (
                     <ListVideo className="h-4 w-4 text-primary shrink-0" />
                   )}
-                  {renamingId === pl.id ? (
+                  {renamingId === pl.id && !bulkMode ? (
                     <Input
                       autoFocus
                       value={renameValue}
@@ -207,9 +308,9 @@ export default function Playlists() {
                     />
                   ) : (
                     <span
-                      className={`font-medium truncate cursor-text ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
-                      onDoubleClick={(e) => startRename(pl, e)}
-                      onClick={(e) => { e.stopPropagation(); startRename(pl, e); }}
+                      className={`font-medium truncate ${bulkMode ? "" : "cursor-text"} ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
+                      onDoubleClick={(e) => !bulkMode && startRename(pl, e)}
+                      onClick={(e) => { if (!bulkMode) { e.stopPropagation(); startRename(pl, e); } }}
                     >
                       {pl.title}
                     </span>
@@ -218,27 +319,29 @@ export default function Playlists() {
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); duplicatePlaylist(pl); }}
-                    title="Duplicate playlist"
-                    className="p-1 rounded-md hover:bg-primary/10 transition-colors"
-                  >
-                    <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
-                    title="Send to screen"
-                    className="p-1 rounded-md hover:bg-primary/10 transition-colors"
-                  >
-                    <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}
-                    className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                  </button>
-                </div>
+                {!bulkMode && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); duplicatePlaylist(pl); }}
+                      title="Duplicate playlist"
+                      className="p-1 rounded-md hover:bg-primary/10 transition-colors"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openSendDialog(pl); }}
+                      title="Send to screen"
+                      className="p-1 rounded-md hover:bg-primary/10 transition-colors"
+                    >
+                      <Send className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); deletePlaylist(pl.id); }}
+                      className="p-1 rounded-md hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -248,7 +351,7 @@ export default function Playlists() {
         </div>
 
         <div className="md:col-span-2">
-          {selectedPlaylist ? (
+          {selectedPlaylist && !bulkMode ? (
             <PlaylistBuilder
               key={selectedPlaylist.id}
               playlistId={selectedPlaylist.id}
@@ -257,13 +360,13 @@ export default function Playlists() {
             />
           ) : (
             <div className="glass glass-spotlight rounded-2xl border border-white/[0.06] flex items-center justify-center h-64 text-muted-foreground">
-              Select a playlist to edit
+              {bulkMode ? "Select playlists to manage in bulk" : "Select a playlist to edit"}
             </div>
           )}
         </div>
       </div>
 
-      {/* Send to Screen Dialog */}
+      {/* Single Send to Screen Dialog */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
         <DialogContent className="glass-strong border-white/[0.06]">
           <DialogHeader>
@@ -284,6 +387,48 @@ export default function Playlists() {
                   key={screen.id}
                   disabled={sending}
                   onClick={() => sendToScreen(screen.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
+                >
+                  <Monitor className="h-5 w-5 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm text-foreground">{screen.name}</span>
+                    <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {screen.status}
+                    </span>
+                  </div>
+                  {sending ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Send to Screen Dialog */}
+      <Dialog open={bulkSendDialogOpen} onOpenChange={setBulkSendDialogOpen}>
+        <DialogContent className="glass-strong border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-primary" />
+              Send {bulkSelected.size} Playlist{bulkSelected.size > 1 ? "s" : ""} to Screen
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Choose a screen. The first selected playlist will be assigned.
+          </p>
+          <div className="space-y-2 mt-2">
+            {pairedScreens.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No screens paired yet</p>
+            ) : (
+              pairedScreens.map((screen) => (
+                <button
+                  key={screen.id}
+                  disabled={sending}
+                  onClick={() => bulkSendToScreen(screen.id)}
                   className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] hover:border-primary/40 hover:bg-primary/5 transition-all text-left"
                 >
                   <Monitor className="h-5 w-5 text-primary shrink-0" />
