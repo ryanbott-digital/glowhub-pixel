@@ -213,6 +213,31 @@ export default function DownloadPage() {
         </div>
       </nav>
 
+      {/* ── SYSTEM BOOTING OVERLAY ── */}
+      {bootPhase === 1 && !unlocked && (
+        <div className="fixed inset-0 z-[99] flex items-center justify-center" style={{ background: "linear-gradient(180deg, #020617 0%, #0B1120 100%)" }}>
+          <div className="text-center space-y-8 animate-fade-in">
+            <div className="relative inline-block">
+              <GlowLogoImage className="h-20 mx-auto" />
+              <div className="absolute inset-0 bg-[#00E5FF]/20 blur-[30px] animate-pulse" />
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-2xl font-extrabold tracking-[0.15em] uppercase text-[#E2E8F0] font-mono">
+                SYSTEM BOOTING
+              </h2>
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse" />
+                <span className="text-xs font-mono text-[#00E5FF] tracking-widest">INITIALIZING GLOW ENGINE</span>
+                <div className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse" style={{ animationDelay: "0.3s" }} />
+              </div>
+              <div className="w-48 h-1 mx-auto rounded-full overflow-hidden" style={{ background: "rgba(0,229,255,0.1)", border: "1px solid rgba(0,229,255,0.2)" }}>
+                <div className="h-full rounded-full animate-[bootProgress_2s_ease-in-out_forwards]" style={{ background: "linear-gradient(90deg, #00E5FF, #3B82F6)", width: "0%" }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── PHASE 1: THE GATE ── */}
       <div
         className={`transition-all duration-700 ease-in-out ${unlocked ? "opacity-0 max-h-0 overflow-hidden pointer-events-none" : "opacity-100 max-h-[800px]"}`}
