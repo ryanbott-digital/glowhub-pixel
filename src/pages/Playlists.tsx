@@ -166,7 +166,25 @@ export default function Playlists() {
                   ) : (
                     <ListVideo className="h-4 w-4 text-primary shrink-0" />
                   )}
-                  <span className={`font-medium truncate ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}>{pl.title}</span>
+                  {renamingId === pl.id ? (
+                    <Input
+                      autoFocus
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={commitRename}
+                      onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenamingId(null); }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-6 text-sm py-0 px-1 bg-background/50 border-primary/30"
+                    />
+                  ) : (
+                    <span
+                      className={`font-medium truncate cursor-text ${isQuickSend ? "text-muted-foreground" : "text-foreground"}`}
+                      onDoubleClick={(e) => startRename(pl, e)}
+                      onClick={(e) => { e.stopPropagation(); startRename(pl, e); }}
+                    >
+                      {pl.title}
+                    </span>
+                  )}
                   {isQuickSend && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Quick</Badge>
                   )}
