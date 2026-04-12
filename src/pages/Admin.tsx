@@ -133,6 +133,7 @@ export default function Admin() {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
+  const [userSearch, setUserSearch] = useState("");
 
   // Admin: remote restart a screen via broadcast
   const handleAdminRestart = async (screenId: string, screenName: string) => {
@@ -432,7 +433,15 @@ export default function Admin() {
             <p className="text-muted-foreground text-sm">No users found</p>
           ) : (
             <div className="space-y-3">
-              {users.map((user) => (
+              <Input
+                placeholder="Search by email…"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="max-w-sm"
+              />
+              {users
+                .filter((u) => !userSearch || u.email.toLowerCase().includes(userSearch.toLowerCase()))
+                .map((user) => (
                 <div
                   key={user.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card cursor-pointer hover:border-primary/40 transition-colors"
