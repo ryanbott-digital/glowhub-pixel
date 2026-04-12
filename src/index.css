@@ -492,3 +492,11 @@ html {
 .badge-flicker {
   animation: badgeFlicker 3s ease-in-out infinite;
 }
+
+@keyframes bootProgress {
+  0% { width: 0%; }
+  30% { width: 35%; }
+  60% { width: 70%; }
+  80% { width: 90%; }
+  100% { width: 100%; }
+}
