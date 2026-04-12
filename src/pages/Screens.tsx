@@ -182,7 +182,7 @@ export default function Screens() {
           user_id: user.id,
           name: "Paired Screen",
           pairing_code: pairingCode,
-          status: "online",
+          status: "offline",
         }).select("id, name").single();
       if (createErr || !newScreen) { toast.error("Failed to create screen: " + (createErr?.message || "Unknown error")); return; }
 
@@ -341,7 +341,7 @@ export default function Screens() {
 
   // ── Filter & organize screens by group ──
   const isScreenOffline = (s: Screen) => {
-    if (!s.last_ping) return s.status !== "online";
+    if (!s.last_ping) return true;
     return Date.now() - new Date(s.last_ping).getTime() > 2 * 60 * 1000;
   };
 
