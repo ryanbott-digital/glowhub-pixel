@@ -497,7 +497,7 @@ export function InfiniteCanvas({ screens, syncGroups, playlists, userId, onRefre
       />
 
       {/* Sync Health Panel */}
-      <SyncHealthPanel nodes={nodeData} syncGroups={syncGroups} />
+      <SyncHealthPanel nodes={nodeData} syncGroups={syncGroups} screens={screens} />
 
       {/* Canvas */}
       <div
