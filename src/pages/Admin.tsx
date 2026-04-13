@@ -613,11 +613,18 @@ export default function Admin() {
                     setActivityLoading(true);
                     setActivityScreenFilter("all");
                     setActivityActionFilter("all");
+                    setBroadcastHistory([]);
+                    setBroadcastHistoryLoading(true);
                     const screenIds = user.screens.map((s) => s.id);
-                    if (screenIds.length === 0) { setActivityLoading(false); return; }
-                    supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
-                      .in("screen_id", screenIds).order("created_at", { ascending: false }).limit(25)
-                      .then(({ data }) => { setActivityLogs(data ?? []); setActivityLoading(false); });
+                    if (screenIds.length === 0) { setActivityLoading(false); }
+                    else {
+                      supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
+                        .in("screen_id", screenIds).order("created_at", { ascending: false }).limit(25)
+                        .then(({ data }) => { setActivityLogs(data ?? []); setActivityLoading(false); });
+                    }
+                    supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
+                      .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(20)
+                      .then(({ data }) => { setBroadcastHistory((data as any) ?? []); setBroadcastHistoryLoading(false); });
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
