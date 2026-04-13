@@ -1122,6 +1122,37 @@ export default function Player() {
     };
   }, [screenId, paired, fetchPlaylist]);
 
+  // ── BACKGROUND AUDIO ENGINE ──
+  useEffect(() => {
+    if (!audioEnabled || !audioStationUrl) {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setAudioPlaying(false); }
+      return;
+    }
+    const audio = new Audio();
+    audio.src = audioStationUrl;
+    audio.volume = audioVolume / 100;
+    audio.preload = "auto";
+    audio.loop = true;
+    audioRef.current = audio;
+    audio.play().then(() => setAudioPlaying(true)).catch(() => setAudioPlaying(false));
+    return () => { audio.pause(); audio.src = ""; audioRef.current = null; setAudioPlaying(false); };
+  }, [audioEnabled, audioStationUrl]);
+
+  // Update volume in real-time
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = audioVolume / 100;
+  }, [audioVolume]);
+
+  // Mute on Hype Takeover
+  useEffect(() => {
+    if (!audioMuteOnHype || !audioRef.current) return;
+    const onHypeStart = () => { if (audioRef.current) audioRef.current.volume = 0; };
+    const onHypeEnd = () => { if (audioRef.current) audioRef.current.volume = audioVolume / 100; };
+    window.addEventListener("glow-hype-start", onHypeStart);
+    window.addEventListener("glow-hype-end", onHypeEnd);
+    return () => { window.removeEventListener("glow-hype-start", onHypeStart); window.removeEventListener("glow-hype-end", onHypeEnd); };
+  }, [audioMuteOnHype, audioVolume]);
+
   // Heartbeat: ping last_ping + current_media_id every 60s (battery-friendly)
   useEffect(() => {
     if (!screenId || !paired) return;
