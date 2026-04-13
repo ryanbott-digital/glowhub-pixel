@@ -422,6 +422,7 @@ export default function Schedule() {
 
     const onMove = (ev: MouseEvent | TouchEvent) => {
       if (!resizingRef.current) return;
+      if ('touches' in ev) ev.preventDefault(); // prevent scroll while resizing
       const currentY = 'touches' in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
       const delta = currentY - resizingRef.current.startY;
       const newHeight = Math.max(SNAP_PX, snapToGrid(resizingRef.current.originalHeight + delta));
