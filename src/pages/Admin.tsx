@@ -960,6 +960,35 @@ export default function Admin() {
                 </div>
               </div>
 
+              {/* Broadcast History */}
+              {broadcastHistory.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" /> Broadcast History
+                  </h4>
+                  <div className="max-h-40 overflow-y-auto space-y-1.5">
+                    {broadcastHistory.map((b) => (
+                      <div key={b.id} className="rounded-md border px-2.5 py-1.5 text-xs space-y-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {b.broadcast_type === "alert" ? "🚨" : b.broadcast_type === "warning" ? "⚠️" : "ℹ️"} {b.broadcast_type}
+                          </Badge>
+                          <span className="text-muted-foreground text-[10px] shrink-0">
+                            {new Date(b.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-foreground leading-snug">{b.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {broadcastHistoryLoading && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Loading history…
+                </div>
+              )}
+
               <Separator />
 
               {/* Billing / Screen Packs */}
