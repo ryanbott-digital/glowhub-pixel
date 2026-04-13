@@ -14,6 +14,7 @@ interface PlaylistItem {
     type: string;
     name: string;
     duration: number | null;
+    audio_muted: boolean;
   };
 }
 
@@ -87,7 +88,7 @@ export default function Display() {
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
       .from("playlist_items")
-      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration)")
+      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted)")
       .eq("playlist_id", playlistId)
       .order("position");
 

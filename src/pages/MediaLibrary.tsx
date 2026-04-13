@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,10 +28,12 @@ interface MediaItem {
   duration: number | null;
   mux_asset_id: string | null;
   mux_status: string | null;
+  audio_muted: boolean;
 }
 
 interface MediaWithSize extends MediaItem {
   fileSize: number | null;
+  hasAudio?: boolean;
 }
 
 const formatFileSize = (bytes: number) => {
@@ -390,6 +392,39 @@ export default function MediaLibrary() {
       video.src = URL.createObjectURL(file);
     });
 
+  const getVideoHasAudio = (file: File): Promise<boolean> =>
+    new Promise((resolve) => {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        // Check for audio tracks using mozHasAudio or webkitAudioDecodedByteCount
+        const hasAudio =
+          (video as any).mozHasAudio ||
+          Boolean((video as any).webkitAudioDecodedByteCount) ||
+          Boolean((video as any).audioTracks?.length);
+        URL.revokeObjectURL(video.src);
+        resolve(hasAudio);
+      };
+      video.onerror = () => resolve(false);
+      video.src = URL.createObjectURL(file);
+    });
+
+  const toggleAudioMuted = async (item: MediaWithSize) => {
+    const newMuted = !item.audio_muted;
+    const { error } = await supabase
+      .from("media")
+      .update({ audio_muted: newMuted })
+      .eq("id", item.id);
+    if (error) {
+      toast.error("Failed to update audio setting");
+    } else {
+      setMedia((prev) =>
+        prev.map((m) => (m.id === item.id ? { ...m, audio_muted: newMuted } : m))
+      );
+      toast.success(newMuted ? "Audio muted" : "Audio unmuted");
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -685,10 +720,28 @@ export default function MediaLibrary() {
                     </Badge>
                   )}
 
+                  {/* Audio mute toggle for videos */}
+                  {item.type === "video" && !isSelecting && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleAudioMuted(item);
+                      }}
+                      className="absolute bottom-2 left-2 p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-background/90 transition-colors z-10"
+                      title={item.audio_muted ? "Unmute audio" : "Mute audio"}
+                    >
+                      {item.audio_muted ? (
+                        <VolumeX className="h-3.5 w-3.5 text-destructive" />
+                      ) : (
+                        <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </button>
+                  )}
+
                   {/* Mux processing badge */}
                   {item.type === "video" && item.mux_asset_id && item.mux_status === "preparing" && (
                     <Badge
-                      className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-white backdrop-blur-sm animate-pulse border-0"
+                      className="absolute bottom-2 left-10 text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-white backdrop-blur-sm animate-pulse border-0"
                     >
                       <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
                       Processing

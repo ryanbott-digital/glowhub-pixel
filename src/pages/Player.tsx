@@ -28,6 +28,7 @@ interface PlaylistItem {
     type: string;
     name: string;
     duration: number | null;
+    audio_muted: boolean;
   };
 }
 
@@ -605,7 +606,7 @@ export default function Player() {
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
       .from("playlist_items")
-      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration)")
+      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted)")
       .eq("playlist_id", playlistId)
       .order("position");
 
@@ -1427,8 +1428,9 @@ export default function Player() {
         setBufferLoading(false);
         if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
       }).catch(() => {});
-      // Unmute after play starts if volume > 0
-      if (volume > 0) {
+      // Unmute after play starts if volume > 0 and media audio is not muted
+      const mediaAudioMuted = item.media.audio_muted === true;
+      if (volume > 0 && !mediaAudioMuted) {
         setTimeout(() => {
           if (video.current) {
             video.current.muted = false;
