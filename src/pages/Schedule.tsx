@@ -11,10 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   CalendarClock, Plus, Trash2, ChevronLeft, ChevronRight, Monitor, Image, Film, Moon, Zap,
   Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal, Clipboard, CalendarRange, Sparkles,
-  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X, ListMusic
+  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X, ListMusic, CalendarIcon
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
@@ -144,6 +147,7 @@ export default function Schedule() {
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
+    recurrence_end: null as Date | null,
     label: "", color_code: "teal", priority: 0, media_id: "" as string, playlist_id: "" as string,
   });
 
@@ -307,6 +311,7 @@ export default function Schedule() {
       screen_id: selectedScreenId, media_id: newBlock.media_id || null, playlist_id: newBlock.playlist_id || null,
       start_at: startDate.toISOString(), end_at: endDate.toISOString(), block_type: newBlock.block_type,
       recurrence: newBlock.recurrence,
+      recurrence_end: newBlock.recurrence !== "none" && newBlock.recurrence_end ? newBlock.recurrence_end.toISOString() : null,
       color_code: newBlock.block_type === "blackout" ? "dark" : newBlock.block_type === "hype_override" ? "magenta" : newBlock.color_code,
       priority: newBlock.block_type === "hype_override" ? 999 : newBlock.priority,
       label: newBlock.label || (newBlock.block_type === "blackout" ? "Blackout" : ""), user_id: user.id,
@@ -315,7 +320,7 @@ export default function Schedule() {
     hapticSuccess();
     toast.success("Schedule block created");
     setShowCreateDialog(false); setPendingSlot(null);
-    setNewBlock({ block_type: "content", start_time: "09:00", end_time: "17:00", recurrence: "none", label: "", color_code: "teal", priority: 0, media_id: "", playlist_id: "" });
+    setNewBlock({ block_type: "content", start_time: "09:00", end_time: "17:00", recurrence: "none", recurrence_end: null, label: "", color_code: "teal", priority: 0, media_id: "", playlist_id: "" });
     fetchBlocks();
   };
 
@@ -1256,6 +1261,34 @@ export default function Schedule() {
                 </SelectContent>
               </Select>
             </div>
+            {newBlock.recurrence !== "none" && (
+              <div>
+                <Label className="text-xs text-[#94A3B8]">Repeat Until (optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1 bg-[#0B1120] border-[#1E293B]", !newBlock.recurrence_end && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newBlock.recurrence_end ? format(newBlock.recurrence_end, "PPP") : "No end date (repeats forever)"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={newBlock.recurrence_end || undefined}
+                      onSelect={(d) => setNewBlock((p) => ({ ...p, recurrence_end: d || null }))}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {newBlock.recurrence_end && (
+                  <Button variant="ghost" size="sm" className="mt-1 text-xs text-muted-foreground" onClick={() => setNewBlock((p) => ({ ...p, recurrence_end: null }))}>
+                    <X className="h-3 w-3 mr-1" /> Clear end date
+                  </Button>
+                )}
+              </div>
+            )}
             {newBlock.block_type !== "hype_override" && (
               <div><Label className="text-xs text-[#94A3B8]">Priority</Label><Input type="number" value={newBlock.priority} onChange={(e) => setNewBlock((p) => ({ ...p, priority: parseInt(e.target.value) || 0 }))} className="bg-[#0B1120] border-[#1E293B] mt-1 w-24" min={0} max={100} /></div>
             )}
