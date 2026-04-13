@@ -570,8 +570,10 @@ export type Database = {
           current_media_id: string | null
           current_playlist_id: string | null
           group_id: string | null
+          hardware_uuid: string | null
           id: string
           last_ping: string | null
+          last_remote_trigger: string | null
           last_screenshot_url: string | null
           launch_on_boot: boolean
           loop_enabled: boolean
@@ -588,8 +590,10 @@ export type Database = {
           current_media_id?: string | null
           current_playlist_id?: string | null
           group_id?: string | null
+          hardware_uuid?: string | null
           id?: string
           last_ping?: string | null
+          last_remote_trigger?: string | null
           last_screenshot_url?: string | null
           launch_on_boot?: boolean
           loop_enabled?: boolean
@@ -606,8 +610,10 @@ export type Database = {
           current_media_id?: string | null
           current_playlist_id?: string | null
           group_id?: string | null
+          hardware_uuid?: string | null
           id?: string
           last_ping?: string | null
+          last_remote_trigger?: string | null
           last_screenshot_url?: string | null
           launch_on_boot?: boolean
           loop_enabled?: boolean
@@ -765,6 +771,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_api_keys: {
+        Row: {
+          api_key_hash: string
+          created_at: string
+          id: string
+          key_prefix: string
+          user_id: string
+        }
+        Insert: {
+          api_key_hash: string
+          created_at?: string
+          id?: string
+          key_prefix: string
+          user_id: string
+        }
+        Update: {
+          api_key_hash?: string
+          created_at?: string
+          id?: string
+          key_prefix?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
