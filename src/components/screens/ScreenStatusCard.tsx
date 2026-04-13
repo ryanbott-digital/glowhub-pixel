@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
