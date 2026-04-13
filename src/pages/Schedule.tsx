@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { usePinchZoom } from "@/hooks/use-pinch-zoom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,20 +47,18 @@ const COLOR_MAP: Record<string, { bg: string; border: string; text: string; glow
 };
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_HEIGHT = 80;
-const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
+const DEFAULT_HOUR_HEIGHT = 80;
 const SNAP_MINUTES = 15;
-const SNAP_PX = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /* ──────── Helpers ──────── */
-function getBlockStyle(block: ScheduleBlock, dayStart: Date) {
+function getBlockStyle(block: ScheduleBlock, dayStart: Date, hourHeight: number) {
   const start = new Date(block.start_at);
   const end = new Date(block.end_at);
   const dayBegin = new Date(dayStart); dayBegin.setHours(0, 0, 0, 0);
   const startMin = Math.max(0, (start.getTime() - dayBegin.getTime()) / 60000);
   const endMin = Math.min(1440, (end.getTime() - dayBegin.getTime()) / 60000);
-  return { top: (startMin / 60) * HOUR_HEIGHT, height: Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 24) };
+  return { top: (startMin / 60) * hourHeight, height: Math.max(((endMin - startMin) / 60) * hourHeight, 24) };
 }
 
 function blocksOverlap(a: ScheduleBlock, b: ScheduleBlock): boolean {
@@ -94,12 +93,12 @@ function expandRecurrence(block: ScheduleBlock, rangeStart: Date, rangeEnd: Date
   return results;
 }
 
-function snapToGrid(px: number): number {
-  return Math.round(px / SNAP_PX) * SNAP_PX;
+function snapToGrid(px: number, snapPx: number): number {
+  return Math.round(px / snapPx) * snapPx;
 }
 
-function pxToTime(px: number, dayStart: Date): Date {
-  const minutes = (px / HOUR_HEIGHT) * 60;
+function pxToTime(px: number, dayStart: Date, hourHeight: number): Date {
+  const minutes = (px / hourHeight) * 60;
   const d = new Date(dayStart); d.setHours(0, 0, 0, 0);
   d.setMinutes(Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES);
   return d;
@@ -150,6 +149,13 @@ export default function Schedule() {
     recurrence_end: null as Date | null,
     label: "", color_code: "teal", priority: 0, media_id: "" as string, playlist_id: "" as string,
   });
+
+  /* Pinch-to-zoom for hour height */
+  const { value: HOUR_HEIGHT, containerRef: pinchContainerRef } = usePinchZoom({
+    min: 40, max: 160, initial: DEFAULT_HOUR_HEIGHT, step: 5,
+  });
+  const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
+  const SNAP_PX = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
 
   /* Refs for synced scroll */
   const gutterScrollRef = useRef<HTMLDivElement>(null);
@@ -437,7 +443,7 @@ export default function Schedule() {
       if ('touches' in ev) ev.preventDefault(); // prevent scroll while resizing
       const currentY = 'touches' in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
       const delta = currentY - resizingRef.current.startY;
-      const newHeight = Math.max(SNAP_PX, snapToGrid(resizingRef.current.originalHeight + delta));
+      const newHeight = Math.max(SNAP_PX, snapToGrid(resizingRef.current.originalHeight + delta, SNAP_PX));
       const handle = document.getElementById(`resize-block-${block.id}`);
       if (handle) {
         const parent = handle.parentElement;
@@ -862,7 +868,7 @@ export default function Schedule() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-hidden flex">
+        <div ref={pinchContainerRef} className="flex-1 overflow-hidden flex touch-manipulation">
           {/* ── Media & Playlists Sidebar ── */}
           {mediaSidebarOpen && (
             <div className="fixed inset-0 z-40 sm:relative sm:inset-auto sm:z-auto w-full sm:w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
@@ -1076,7 +1082,7 @@ export default function Schedule() {
 
                       {/* Blocks */}
                       {dayBlocks.map((block, idx) => {
-                        const { top, height } = getBlockStyle(block, day);
+                        const { top, height } = getBlockStyle(block, day, HOUR_HEIGHT);
                         const colors = COLOR_MAP[block.color_code] || COLOR_MAP.teal;
                         const hasOverlap = isOverlapping(block.id);
                         const mediaType = block.media_id ? getMediaType(block.media_id) : "";
