@@ -348,6 +348,7 @@ export default function Integrations() {
               { file: "power", label: "Power" }, { file: "blackout", label: "Blackout" }, { file: "always-on", label: "Always-On" },
               { file: "sleep", label: "Sleep" }, { file: "volume-up", label: "Vol Up" }, { file: "volume-down", label: "Vol Down" },
               { file: "settings", label: "Settings" }, { file: "link", label: "Link" }, { file: "compass", label: "Compass" },
+              { file: "hype", label: "Hype" }, { file: "refresh", label: "Refresh" }, { file: "screenshot", label: "Screenshot" },
             ].map((icon) => (
               <div key={icon.file} className="flex flex-col items-center gap-1.5">
                 <div className="w-[72px] h-[72px] rounded-lg border border-border/30 overflow-hidden">
