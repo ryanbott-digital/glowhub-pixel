@@ -147,6 +147,7 @@ export default function Schedule() {
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
+    recurrence_end: null as Date | null,
     label: "", color_code: "teal", priority: 0, media_id: "" as string, playlist_id: "" as string,
   });
 
