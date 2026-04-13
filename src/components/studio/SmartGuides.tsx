@@ -110,6 +110,13 @@ export function SmartGuides({ guides }: { guides: GuideLine[] }) {
   if (guides.length === 0) return null;
   return (
     <div className="absolute inset-0 pointer-events-none z-50">
+      <style>{`
+        @keyframes snapPulse {
+          0% { opacity: 1; box-shadow: 0 0 4px #ff00ff, 0 0 8px #ff00ff80; }
+          40% { opacity: 1; box-shadow: 0 0 12px #ff00ff, 0 0 24px #ff00ffaa, 0 0 40px #ff00ff44; }
+          100% { opacity: 1; box-shadow: 0 0 4px #ff00ff, 0 0 8px #ff00ff80; }
+        }
+      `}</style>
       {guides.map((g, i) =>
         g.orientation === "v" ? (
           <div
@@ -120,6 +127,7 @@ export function SmartGuides({ guides }: { guides: GuideLine[] }) {
               width: 1,
               background: "#ff00ff",
               boxShadow: "0 0 4px #ff00ff, 0 0 8px #ff00ff80",
+              animation: "snapPulse 0.4s ease-out",
             }}
           />
         ) : (
@@ -131,6 +139,7 @@ export function SmartGuides({ guides }: { guides: GuideLine[] }) {
               height: 1,
               background: "#ff00ff",
               boxShadow: "0 0 4px #ff00ff, 0 0 8px #ff00ff80",
+              animation: "snapPulse 0.4s ease-out",
             }}
           />
         )
