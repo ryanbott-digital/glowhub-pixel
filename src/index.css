@@ -502,6 +502,14 @@ html, body {
   100% { width: 100%; }
 }
 
+/* ── Audio bars equalizer animation for Now Playing ticker ── */
+@keyframes audioBars {
+  0%, 100% { height: 20%; }
+  25% { height: 80%; }
+  50% { height: 40%; }
+  75% { height: 100%; }
+}
+
 /* Hide scrollbar but allow scroll */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
