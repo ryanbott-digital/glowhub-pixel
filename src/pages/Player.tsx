@@ -621,14 +621,10 @@ export default function Player() {
       setCurrentIndex(0);
       setActiveBuffer("A");
 
-      // Proactively cache all media files for offline playback
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
       precacheMediaUrls(urls);
       evictStaleMedia(urls);
     } else {
-      setItems([]);
-    }
-  }, []);
       setItems([]);
     }
   }, []);
