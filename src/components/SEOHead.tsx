@@ -44,7 +44,7 @@ export const GLOW_JSON_LD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Glow Digital Signage",
-  operatingSystem: "Android",
+  operatingSystem: "Android, FireOS",
   applicationCategory: "BusinessApplication",
   applicationSubCategory: "Digital Signage Software",
   description:
