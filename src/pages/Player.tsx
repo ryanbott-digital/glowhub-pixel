@@ -2520,6 +2520,42 @@ export default function Player() {
         </div>
       )}
 
+      {/* Broadcast Message Overlay */}
+      {broadcastMsg && (
+        <div className="fixed top-0 left-0 right-0 z-[56] animate-in slide-in-from-top duration-500">
+          <div
+            className="w-full flex items-center gap-4 px-6 py-4"
+            style={{
+              background: broadcastMsg.type === "alert"
+                ? "linear-gradient(135deg, #DC2626, #991B1B)"
+                : broadcastMsg.type === "warning"
+                ? "linear-gradient(135deg, #D97706, #92400E)"
+                : "linear-gradient(135deg, #0891B2, #164E63)",
+              boxShadow: broadcastMsg.type === "alert"
+                ? "0 4px 30px rgba(220,38,38,0.5)"
+                : broadcastMsg.type === "warning"
+                ? "0 4px 30px rgba(217,119,6,0.4)"
+                : "0 4px 30px rgba(8,145,178,0.4)",
+            }}
+          >
+            <div className="shrink-0 text-2xl">
+              {broadcastMsg.type === "alert" ? "🚨" : broadcastMsg.type === "warning" ? "⚠️" : "ℹ️"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-lg leading-snug" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
+                {broadcastMsg.message}
+              </p>
+            </div>
+            <button
+              onClick={() => { clearTimeout(broadcastTimerRef.current); setBroadcastMsg(null); }}
+              className="shrink-0 p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <span className="text-white text-sm font-bold px-1">✕</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Powered by GLOW watermark for free-tier users */}
       {showWatermark && !showSettings && (
         <a href="https://glowhub-pixel.lovable.app/home" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 hover:opacity-70 transition-opacity select-none no-underline">
