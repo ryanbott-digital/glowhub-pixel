@@ -805,8 +805,11 @@ export default function Schedule() {
                       {/* Hour grid lines */}
                       {HOURS.map((h) => (
                         <div key={h} style={{ height: HOUR_HEIGHT }}
-                          className="border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative"
+                          className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative`}
                           onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
+                          onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; e.currentTarget.classList.add("bg-[#00A3A3]/10"); }}
+                          onDragLeave={(e) => { e.currentTarget.classList.remove("bg-[#00A3A3]/10"); }}
+                          onDrop={(e) => { e.currentTarget.classList.remove("bg-[#00A3A3]/10"); handleMediaDrop(day, h, e); }}
                         >
                           <div className="absolute left-0 right-0 border-b border-dashed border-[#1E293B]/10" style={{ top: HALF_HOUR_HEIGHT }} />
                         </div>
