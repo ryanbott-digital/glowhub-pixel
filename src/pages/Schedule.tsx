@@ -162,10 +162,11 @@ export default function Schedule() {
   /* Refs for synced scroll */
   const gutterScrollRef = useRef<HTMLDivElement>(null);
   const columnsScrollRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
   const scrollingSource = useRef<string | null>(null);
   const resizingRef = useRef<{ blockId: string; startY: number; originalEndAt: string; originalHeight: number } | null>(null);
 
-  /* ── Synced vertical scroll ── */
+  /* ── Synced vertical scroll + horizontal header sync ── */
   const handleGutterScroll = () => {
     if (scrollingSource.current === "columns") return;
     scrollingSource.current = "gutter";
@@ -179,6 +180,9 @@ export default function Schedule() {
     scrollingSource.current = "columns";
     if (gutterScrollRef.current && columnsScrollRef.current) {
       gutterScrollRef.current.scrollTop = columnsScrollRef.current.scrollTop;
+    }
+    if (headerScrollRef.current && columnsScrollRef.current) {
+      headerScrollRef.current.scrollLeft = columnsScrollRef.current.scrollLeft;
     }
     requestAnimationFrame(() => { scrollingSource.current = null; });
   };
@@ -1030,7 +1034,7 @@ export default function Schedule() {
           {/* Day columns — horizontal scroll wrapper for week */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Fixed column headers */}
-            <div className="flex shrink-0 border-b border-[#1E293B]/40 overflow-x-auto" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
+            <div ref={headerScrollRef} className="flex shrink-0 border-b border-[#1E293B]/40 overflow-hidden" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
               <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%" }}>
                 {days.map((day) => {
                   const isToday = isSameDay(day, new Date());
