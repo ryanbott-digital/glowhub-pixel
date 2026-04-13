@@ -503,10 +503,15 @@ export default function Schedule() {
     const item = media.find((m) => m.id === mediaId);
     if (!item) return;
 
+    // Calculate precise 15-min snap from Y offset within the hour cell
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const minuteOffset = Math.round((offsetY / HOUR_HEIGHT) * 60 / SNAP_MINUTES) * SNAP_MINUTES;
+
     const startDate = new Date(day);
-    startDate.setHours(hour, 0, 0, 0);
-    const endDate = new Date(day);
-    endDate.setHours(hour + 1, 0, 0, 0);
+    startDate.setHours(hour, Math.min(minuteOffset, 45), 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setMinutes(endDate.getMinutes() + 60); // 1-hour default duration
 
     const { error } = await supabase.from("schedule_blocks").insert({
       screen_id: selectedScreenId, media_id: mediaId, playlist_id: null,
@@ -516,9 +521,30 @@ export default function Schedule() {
     } as any);
     if (error) { toast.error("Failed to create block"); return; }
     hapticSuccess();
-    toast.success(`"${item.name}" scheduled at ${hour.toString().padStart(2, "0")}:00`);
+    const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
+    toast.success(`"${item.name}" scheduled at ${timeStr}`);
     setMediaDragItem(null);
     fetchBlocks();
+  };
+
+  /* ── Show precise drop indicator during drag over ── */
+  const handleMediaDragOver = (e: React.DragEvent, hour: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const snappedY = Math.round(offsetY / SNAP_PX) * SNAP_PX;
+    // Show indicator line
+    const indicator = e.currentTarget.querySelector("[data-drop-indicator]") as HTMLElement;
+    if (indicator) {
+      indicator.style.top = `${snappedY}px`;
+      indicator.style.opacity = "1";
+    }
+  };
+
+  const handleMediaDragLeave = (e: React.DragEvent) => {
+    const indicator = e.currentTarget.querySelector("[data-drop-indicator]") as HTMLElement;
+    if (indicator) indicator.style.opacity = "0";
   };
 
 
