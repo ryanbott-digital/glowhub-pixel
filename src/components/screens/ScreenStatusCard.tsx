@@ -607,6 +607,125 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             )}
           </div>
 
+          {/* Background Audio */}
+          <div className="space-y-3 rounded-xl bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <Radio className="h-3 w-3 text-primary" /> Background Audio
+              </h4>
+              <Switch
+                checked={audioEnabled}
+                onCheckedChange={(checked) => {
+                  setAudioEnabled(checked);
+                  updateScreenSetting({ audio_enabled: checked });
+                  toast.success(checked ? "Background audio enabled" : "Background audio disabled");
+                }}
+              />
+            </div>
+
+            {audioEnabled && (
+              <div className="space-y-3">
+                {/* Current station */}
+                {audioStationName && (
+                  <div className="flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
+                    <Radio className="h-3.5 w-3.5 text-primary animate-pulse" />
+                    <span className="text-xs font-medium text-foreground truncate flex-1">{audioStationName}</span>
+                    <button
+                      onClick={() => {
+                        setAudioStationUrl("");
+                        setAudioStationName("");
+                        updateScreenSetting({ audio_station_url: null, audio_station_name: null });
+                        toast("Station removed");
+                      }}
+                      className="p-0.5 rounded hover:bg-muted"
+                    >
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Station search */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                  <Input
+                    placeholder="Search radio stations…"
+                    value={radioQuery}
+                    onChange={(e) => searchRadioStations(e.target.value)}
+                    className="pl-8 h-8 text-xs"
+                  />
+                  {radioSearching && (
+                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Search results */}
+                {radioResults.length > 0 && (
+                  <div className="max-h-36 overflow-y-auto space-y-1 rounded-lg border border-border/50 bg-card/50 p-1">
+                    {radioResults.map((station) => (
+                      <button
+                        key={station.id}
+                        onClick={() => {
+                          setAudioStationUrl(station.url);
+                          setAudioStationName(station.name);
+                          setRadioQuery("");
+                          setRadioResults([]);
+                          updateScreenSetting({
+                            audio_station_url: station.url,
+                            audio_station_name: station.name,
+                          });
+                          toast.success(`Station set: ${station.name}`);
+                        }}
+                        className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/60 transition-colors"
+                      >
+                        {station.favicon ? (
+                          <img src={station.favicon} alt="" className="h-5 w-5 rounded object-cover shrink-0" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
+                        ) : (
+                          <Radio className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{station.name}</p>
+                          {station.country && (
+                            <p className="text-[10px] text-muted-foreground">{station.country}{station.bitrate ? ` · ${station.bitrate}kbps` : ''}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Volume slider */}
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={[audioVolume]}
+                    onValueChange={([val]) => setAudioVolume(val)}
+                    onValueCommit={([val]) => updateScreenSetting({ audio_volume: val })}
+                    className="flex-1"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono w-8 text-right">{audioVolume}%</span>
+                </div>
+
+                {/* Mute on Hype toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <VolumeX className="h-3 w-3 text-muted-foreground" />
+                    <Label className="text-xs text-muted-foreground">Mute on Hype Takeover</Label>
+                  </div>
+                  <Switch
+                    checked={audioMuteOnHype}
+                    onCheckedChange={(checked) => {
+                      setAudioMuteOnHype(checked);
+                      updateScreenSetting({ audio_mute_on_hype: checked });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Actions row */}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="text-xs h-10 sm:h-8 flex-1" onClick={() => onCopyUrl(screen.id)}>
