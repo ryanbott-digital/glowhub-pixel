@@ -849,12 +849,19 @@ export default function Schedule() {
                         <div key={h} style={{ height: HOUR_HEIGHT }}
                           className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative`}
                           onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
-                          onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; e.currentTarget.classList.add("bg-[#00A3A3]/10"); }}
-                          onDragLeave={(e) => { e.currentTarget.classList.remove("bg-[#00A3A3]/10"); }}
-                          onDrop={(e) => { e.currentTarget.classList.remove("bg-[#00A3A3]/10"); handleMediaDrop(day, h, e); }}
+                          onDragOver={(e) => handleMediaDragOver(e, h)}
+                          onDragLeave={handleMediaDragLeave}
+                          onDrop={(e) => { handleMediaDragLeave(e); handleMediaDrop(day, h, e); }}
                         >
                           <div className="absolute left-0 right-0 border-b border-dashed border-[#1E293B]/10" style={{ top: HALF_HOUR_HEIGHT }} />
+                          {/* Drop indicator line */}
+                          <div
+                            data-drop-indicator
+                            className="absolute left-0 right-0 h-[2px] pointer-events-none z-20 transition-opacity duration-100"
+                            style={{ opacity: 0, background: "linear-gradient(to right, #00E5CC, #3B82F6)", boxShadow: "0 0 8px rgba(0,229,204,0.6)" }}
+                          />
                         </div>
+                      ))}
                       ))}
 
                       {/* Blocks */}
