@@ -140,6 +140,8 @@ export default function Admin() {
   const [broadcastDuration, setBroadcastDuration] = useState(30);
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [dismissingBroadcasts, setDismissingBroadcasts] = useState(false);
+  const [broadcastHistory, setBroadcastHistory] = useState<{ id: string; message: string; broadcast_type: string; duration_seconds: number; created_at: string }[]>([]);
+  const [broadcastHistoryLoading, setBroadcastHistoryLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -264,6 +266,10 @@ export default function Admin() {
 
       toast.success(`Broadcast sent to ${selectedUser.screens.length} screen(s)`);
       setBroadcastMessage("");
+      // Refresh broadcast history
+      supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
+        .eq("target_user_id", selectedUser.id).order("created_at", { ascending: false }).limit(20)
+        .then(({ data }) => { setBroadcastHistory((data as any) ?? []); });
     } catch (err: any) {
       toast.error(err.message || "Failed to send broadcast");
     }
@@ -611,11 +617,18 @@ export default function Admin() {
                     setActivityLoading(true);
                     setActivityScreenFilter("all");
                     setActivityActionFilter("all");
+                    setBroadcastHistory([]);
+                    setBroadcastHistoryLoading(true);
                     const screenIds = user.screens.map((s) => s.id);
-                    if (screenIds.length === 0) { setActivityLoading(false); return; }
-                    supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
-                      .in("screen_id", screenIds).order("created_at", { ascending: false }).limit(25)
-                      .then(({ data }) => { setActivityLogs(data ?? []); setActivityLoading(false); });
+                    if (screenIds.length === 0) { setActivityLoading(false); }
+                    else {
+                      supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
+                        .in("screen_id", screenIds).order("created_at", { ascending: false }).limit(25)
+                        .then(({ data }) => { setActivityLogs(data ?? []); setActivityLoading(false); });
+                    }
+                    supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
+                      .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(20)
+                      .then(({ data }) => { setBroadcastHistory((data as any) ?? []); setBroadcastHistoryLoading(false); });
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -946,6 +959,35 @@ export default function Admin() {
                   </div>
                 </div>
               </div>
+
+              {/* Broadcast History */}
+              {broadcastHistory.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" /> Broadcast History
+                  </h4>
+                  <div className="max-h-40 overflow-y-auto space-y-1.5">
+                    {broadcastHistory.map((b) => (
+                      <div key={b.id} className="rounded-md border px-2.5 py-1.5 text-xs space-y-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {b.broadcast_type === "alert" ? "🚨" : b.broadcast_type === "warning" ? "⚠️" : "ℹ️"} {b.broadcast_type}
+                          </Badge>
+                          <span className="text-muted-foreground text-[10px] shrink-0">
+                            {new Date(b.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-foreground leading-snug">{b.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {broadcastHistoryLoading && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Loading history…
+                </div>
+              )}
 
               <Separator />
 
