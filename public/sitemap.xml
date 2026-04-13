@@ -19,6 +19,30 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://glowhub-pixel.lovable.app/use-cases</loc>
+    <lastmod>2026-04-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://glowhub-pixel.lovable.app/solutions/restaurants</loc>
+    <lastmod>2026-04-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://glowhub-pixel.lovable.app/solutions/retail</loc>
+    <lastmod>2026-04-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://glowhub-pixel.lovable.app/solutions/hospitality</loc>
+    <lastmod>2026-04-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://glowhub-pixel.lovable.app/use-cases/restaurant-digital-menu-boards</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>monthly</changefreq>
