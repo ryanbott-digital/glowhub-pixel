@@ -370,15 +370,19 @@ export default function Player() {
     };
   }, []);
 
-  // Toast when pre-caching completes
+  // Toast when pre-caching completes (once per cycle)
+  const cacheToastedRef = useRef(false);
   useEffect(() => {
-    if (syncProgress?.done && syncProgress.total > 0) {
+    if (syncProgress?.done && syncProgress.total > 0 && !cacheToastedRef.current) {
+      cacheToastedRef.current = true;
       const failed = syncProgress.failed;
       if (failed > 0) {
         toast.warning(`Cached ${syncProgress.completed}/${syncProgress.total} files (${failed} failed)`);
       } else {
         toast.success(`All ${syncProgress.total} media files cached for offline playback`);
       }
+    } else if (!syncProgress?.done) {
+      cacheToastedRef.current = false;
     }
   }, [syncProgress?.done]);
 
