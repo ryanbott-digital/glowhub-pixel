@@ -503,10 +503,15 @@ export default function Schedule() {
     const item = media.find((m) => m.id === mediaId);
     if (!item) return;
 
+    // Calculate precise 15-min snap from Y offset within the hour cell
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const minuteOffset = Math.round((offsetY / HOUR_HEIGHT) * 60 / SNAP_MINUTES) * SNAP_MINUTES;
+
     const startDate = new Date(day);
-    startDate.setHours(hour, 0, 0, 0);
-    const endDate = new Date(day);
-    endDate.setHours(hour + 1, 0, 0, 0);
+    startDate.setHours(hour, Math.min(minuteOffset, 45), 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setMinutes(endDate.getMinutes() + 60); // 1-hour default duration
 
     const { error } = await supabase.from("schedule_blocks").insert({
       screen_id: selectedScreenId, media_id: mediaId, playlist_id: null,
@@ -516,9 +521,30 @@ export default function Schedule() {
     } as any);
     if (error) { toast.error("Failed to create block"); return; }
     hapticSuccess();
-    toast.success(`"${item.name}" scheduled at ${hour.toString().padStart(2, "0")}:00`);
+    const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
+    toast.success(`"${item.name}" scheduled at ${timeStr}`);
     setMediaDragItem(null);
     fetchBlocks();
+  };
+
+  /* ── Show precise drop indicator during drag over ── */
+  const handleMediaDragOver = (e: React.DragEvent, hour: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const snappedY = Math.round(offsetY / SNAP_PX) * SNAP_PX;
+    // Show indicator line
+    const indicator = e.currentTarget.querySelector("[data-drop-indicator]") as HTMLElement;
+    if (indicator) {
+      indicator.style.top = `${snappedY}px`;
+      indicator.style.opacity = "1";
+    }
+  };
+
+  const handleMediaDragLeave = (e: React.DragEvent) => {
+    const indicator = e.currentTarget.querySelector("[data-drop-indicator]") as HTMLElement;
+    if (indicator) indicator.style.opacity = "0";
   };
 
 
@@ -823,11 +849,17 @@ export default function Schedule() {
                         <div key={h} style={{ height: HOUR_HEIGHT }}
                           className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative`}
                           onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
-                          onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; e.currentTarget.classList.add("bg-[#00A3A3]/10"); }}
-                          onDragLeave={(e) => { e.currentTarget.classList.remove("bg-[#00A3A3]/10"); }}
-                          onDrop={(e) => { e.currentTarget.classList.remove("bg-[#00A3A3]/10"); handleMediaDrop(day, h, e); }}
+                          onDragOver={(e) => handleMediaDragOver(e, h)}
+                          onDragLeave={handleMediaDragLeave}
+                          onDrop={(e) => { handleMediaDragLeave(e); handleMediaDrop(day, h, e); }}
                         >
                           <div className="absolute left-0 right-0 border-b border-dashed border-[#1E293B]/10" style={{ top: HALF_HOUR_HEIGHT }} />
+                          {/* Drop indicator line */}
+                          <div
+                            data-drop-indicator
+                            className="absolute left-0 right-0 h-[2px] pointer-events-none z-20 transition-opacity duration-100"
+                            style={{ opacity: 0, background: "linear-gradient(to right, #00E5CC, #3B82F6)", boxShadow: "0 0 8px rgba(0,229,204,0.6)" }}
+                          />
                         </div>
                       ))}
 
