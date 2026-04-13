@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert, Megaphone } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert, Megaphone, X } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
