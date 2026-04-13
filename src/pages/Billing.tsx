@@ -42,7 +42,7 @@ const FREE_FEATURES = [
 ];
 
 export default function Billing() {
-  const { user, subscriptionTier, refreshSubscription, grantedProUntil, isGrantExpired } = useAuth();
+  const { user, subscriptionTier, subscriptionEnd, cancelAtPeriodEnd, refreshSubscription, grantedProUntil, isGrantExpired } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTier = subscriptionTier;
   const loading = !user;
@@ -252,6 +252,26 @@ export default function Billing() {
 
         return null;
       })()}
+
+      {/* Cancellation pending banner */}
+      {cancelAtPeriodEnd && subscriptionEnd && isPro && (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 backdrop-blur-xl p-4 flex items-start gap-3 animate-fade-in">
+          <Clock className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              Your subscription has been cancelled
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              You'll retain Pro access until <span className="font-medium text-foreground">{new Date(subscriptionEnd).toLocaleDateString()}</span>.
+              After that, your account will revert to the Free plan.
+            </p>
+          </div>
+          <Button size="sm" onClick={handlePortal} disabled={portalLoading} variant="outline" className="flex-shrink-0 border-amber-400/30 text-amber-400 hover:bg-amber-400/10">
+            {portalLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Settings className="h-3.5 w-3.5 mr-1" />}
+            Resubscribe
+          </Button>
+        </div>
+      )}
 
       {/* Conditional content based on tier */}
       {isPro ? (

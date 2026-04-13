@@ -7,6 +7,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   subscriptionTier: string;
+  subscriptionEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   grantedProUntil: string | null;
   isGrantExpired: boolean;
   refreshSubscription: () => Promise<void>;
@@ -18,6 +20,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   subscriptionTier: "free",
+  subscriptionEnd: null,
+  cancelAtPeriodEnd: false,
   grantedProUntil: null,
   isGrantExpired: false,
   refreshSubscription: async () => {},
@@ -30,6 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscriptionTier, setSubscriptionTier] = useState("free");
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [grantedProUntil, setGrantedProUntil] = useState<string | null>(null);
 
   const isGrantExpired = grantedProUntil !== null && new Date(grantedProUntil) < new Date();
@@ -37,12 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchTier = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("subscription_tier, granted_pro_until")
+      .select("subscription_tier, granted_pro_until, subscription_end, cancel_at_period_end")
       .eq("id", userId)
       .single();
     if (data) {
       const grant = (data as any).granted_pro_until as string | null;
       setGrantedProUntil(grant);
+      setSubscriptionEnd((data as any).subscription_end as string | null);
+      setCancelAtPeriodEnd((data as any).cancel_at_period_end ?? false);
 
       // If grant has expired, show as free so user is prompted to subscribe
       if (grant && new Date(grant) < new Date() && data.subscription_tier === "pro") {
@@ -74,6 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }, 0);
       } else {
         setSubscriptionTier("free");
+        setSubscriptionEnd(null);
+        setCancelAtPeriodEnd(false);
         setGrantedProUntil(null);
       }
     });
@@ -100,6 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setSession(null);
     setSubscriptionTier("free");
+    setSubscriptionEnd(null);
+    setCancelAtPeriodEnd(false);
     setGrantedProUntil(null);
     window.location.href = "/home";
   }, []);
@@ -110,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: session?.user ?? null,
       loading,
       subscriptionTier,
+      subscriptionEnd,
+      cancelAtPeriodEnd,
       grantedProUntil,
       isGrantExpired,
       refreshSubscription,
