@@ -1107,6 +1107,12 @@ export default function Player() {
           if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
           if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
           if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
+          // Apply audio settings in real-time
+          if (updated.audio_enabled != null) setAudioEnabled(updated.audio_enabled);
+          if (updated.audio_station_url !== undefined) setAudioStationUrl(updated.audio_station_url);
+          if (updated.audio_station_name !== undefined) setAudioStationName(updated.audio_station_name);
+          if (updated.audio_volume != null) setAudioVolume(updated.audio_volume);
+          if (updated.audio_mute_on_hype != null) setAudioMuteOnHype(updated.audio_mute_on_hype);
         }
       )
       .subscribe();
