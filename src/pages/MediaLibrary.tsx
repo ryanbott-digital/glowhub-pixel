@@ -3,9 +3,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -46,6 +46,45 @@ const formatDuration = (seconds: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
+const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+const VIDEO_MAX_SIZE = 500 * 1024 * 1024; // 500MB for videos (Mux transcodes)
+
+const compressImage = (file: File, maxDim = 4000, quality = 0.8): Promise<File> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error("Compression failed"));
+          const compressed = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+            type: "image/jpeg",
+          });
+          resolve(compressed);
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+
+interface OversizedFile {
+  file: File;
+  isImage: boolean;
+}
+
 export default function MediaLibrary() {
   const { user } = useAuth();
   const [media, setMedia] = useState<MediaWithSize[]>([]);
@@ -63,6 +102,12 @@ export default function MediaLibrary() {
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressFired = useRef(false);
   const isSelecting = selected.size > 0;
+
+  // Compression dialog state
+  const [compressDialogOpen, setCompressDialogOpen] = useState(false);
+  const [oversizedFiles, setOversizedFiles] = useState<OversizedFile[]>([]);
+  const [pendingValidFiles, setPendingValidFiles] = useState<File[]>([]);
+  const [compressing, setCompressing] = useState(false);
 
   // Fetch user's screens
   const fetchScreens = useCallback(async () => {
@@ -184,26 +229,75 @@ export default function MediaLibrary() {
   const uploadFiles = async (files: File[]) => {
     if (!user) {
       toast.error("You must be logged in to upload files");
-      console.error("[Upload] No authenticated user found");
       return;
     }
 
-    console.log(`[Upload] Starting upload for ${files.length} file(s), user: ${user.id}`);
+    const validFiles: File[] = [];
+    const oversized: OversizedFile[] = [];
 
-    const validFiles = files.filter((f) => {
+    for (const f of files) {
       if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) {
         toast.error(`${f.name}: only images and videos are supported`);
-        console.warn(`[Upload] Rejected ${f.name} — unsupported type: ${f.type}`);
-        return false;
+        continue;
       }
-      if (f.size > 50 * 1024 * 1024) {
-        toast.error(`${f.name}: file exceeds 50 MB — consider compressing before upload`);
-        console.warn(`[Upload] Rejected ${f.name} — size ${(f.size / 1024 / 1024).toFixed(1)} MB exceeds limit`);
-        return false;
+      const isImage = f.type.startsWith("image/");
+      const limit = isImage ? MAX_SIZE : VIDEO_MAX_SIZE;
+      if (f.size > limit) {
+        if (isImage) {
+          oversized.push({ file: f, isImage: true });
+        } else {
+          toast.error(`${f.name}: video exceeds 500 MB — please compress with HandBrake or similar`);
+        }
+        continue;
       }
-      return true;
-    });
+      validFiles.push(f);
+    }
+
+    // If there are oversized images, show the compress dialog
+    if (oversized.length > 0) {
+      setOversizedFiles(oversized);
+      setPendingValidFiles(validFiles);
+      setCompressDialogOpen(true);
+      return;
+    }
+
     if (validFiles.length === 0) return;
+    await doUpload(validFiles);
+  };
+
+  const handleCompressAndUpload = async () => {
+    setCompressing(true);
+    const compressed: File[] = [];
+    for (const { file } of oversizedFiles) {
+      try {
+        const result = await compressImage(file);
+        if (result.size > MAX_SIZE) {
+          // Try again with lower quality
+          const result2 = await compressImage(file, 3000, 0.6);
+          if (result2.size > MAX_SIZE) {
+            toast.error(`${file.name}: still too large after compression`);
+            continue;
+          }
+          compressed.push(result2);
+        } else {
+          compressed.push(result);
+        }
+        toast.success(`Compressed ${file.name} → ${formatFileSize(result.size)}`);
+      } catch {
+        toast.error(`Failed to compress ${file.name}`);
+      }
+    }
+    setCompressing(false);
+    setCompressDialogOpen(false);
+    const allFiles = [...pendingValidFiles, ...compressed];
+    setOversizedFiles([]);
+    setPendingValidFiles([]);
+    if (allFiles.length > 0) await doUpload(allFiles);
+  };
+
+  const doUpload = async (validFiles: File[]) => {
+    if (!user) return;
+    console.log(`[Upload] Starting upload for ${validFiles.length} file(s), user: ${user.id}`);
 
     setUploading(true);
     setUploadProgress(0);
@@ -483,7 +577,7 @@ export default function MediaLibrary() {
             <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
           <p className="font-medium text-foreground text-sm sm:text-base">Tap to upload or drag & drop</p>
-          <p className="text-xs sm:text-sm text-muted-foreground">Images and videos up to 50MB</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Images auto-compressed if needed · Videos up to 500 MB</p>
         </div>
       </div>
 
@@ -701,6 +795,69 @@ export default function MediaLibrary() {
               ))}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Compress oversized images dialog */}
+      <Dialog open={compressDialogOpen} onOpenChange={(open) => {
+        if (!open && !compressing) {
+          setCompressDialogOpen(false);
+          // Upload valid files even if user cancels compression
+          if (pendingValidFiles.length > 0) {
+            doUpload(pendingValidFiles);
+            setPendingValidFiles([]);
+          }
+          setOversizedFiles([]);
+        }
+      }}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Shrink className="h-5 w-5 text-primary" />
+              Compress & Upload
+            </DialogTitle>
+            <DialogDescription>
+              {oversizedFiles.length} image{oversizedFiles.length !== 1 ? "s" : ""} exceed{oversizedFiles.length === 1 ? "s" : ""} 50 MB. Compress to fit?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {oversizedFiles.map(({ file }, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                <span className="text-sm truncate flex-1 min-w-0 text-foreground">{file.name}</span>
+                <Badge variant="secondary" className="ml-2 shrink-0 text-xs">
+                  {formatFileSize(file.size)}
+                </Badge>
+              </div>
+            ))}
+          </div>
+          {pendingValidFiles.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {pendingValidFiles.length} other file{pendingValidFiles.length !== 1 ? "s" : ""} will upload normally.
+            </p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCompressDialogOpen(false);
+                if (pendingValidFiles.length > 0) {
+                  doUpload(pendingValidFiles);
+                  setPendingValidFiles([]);
+                }
+                setOversizedFiles([]);
+              }}
+              disabled={compressing}
+            >
+              Skip
+            </Button>
+            <Button onClick={handleCompressAndUpload} disabled={compressing}>
+              {compressing ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <Shrink className="h-4 w-4 mr-1.5" />
+              )}
+              {compressing ? "Compressing…" : "Compress & Upload"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
