@@ -43,12 +43,15 @@ export default function Dashboard() {
         supabase.from("playlists").select("*").eq("user_id", user.id),
         supabase.from("media").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
-          .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(10),
+          .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(BROADCAST_PAGE_SIZE + 1),
       ]);
       if (s.data) setScreens(s.data);
       if (p.data) setPlaylists(p.data);
       setMediaCount(m.count ?? 0);
-      if (b.data) setBroadcasts(b.data as any);
+      if (b.data) {
+        setBroadcastsHasMore(b.data.length > BROADCAST_PAGE_SIZE);
+        setBroadcasts((b.data as any).slice(0, BROADCAST_PAGE_SIZE));
+      }
     };
     fetchData();
   }, [user]);
