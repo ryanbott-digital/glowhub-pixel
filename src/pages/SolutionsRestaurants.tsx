@@ -88,9 +88,8 @@ const SolutionsRestaurants = () => {
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between backdrop-blur-xl bg-[#0B1120]/70 border-b border-white/5">
-        <Link to="/home" className="flex items-center gap-2">
-          <GlowLogoImage className="h-8 w-8" />
-          <span className="text-lg font-bold tracking-tight text-white">Glow</span>
+        <Link to="/home">
+          <GlowLogoImage className="h-8" />
         </Link>
         <div className="flex items-center gap-4">
           <Link to="/solutions" className="text-sm text-[#94A3B8] hover:text-white transition-colors hidden sm:inline">Solutions</Link>
