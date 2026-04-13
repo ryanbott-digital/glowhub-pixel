@@ -46,6 +46,7 @@ const Solutions = lazy(() => import("./pages/Solutions"));
 const CompareOptiSigns = lazy(() => import("./pages/CompareOptiSigns"));
 const CompareScreenCloud = lazy(() => import("./pages/CompareScreenCloud"));
 const CompareYodeck = lazy(() => import("./pages/CompareYodeck"));
+const CompareIndex = lazy(() => import("./pages/CompareIndex"));
 
 const queryClient = new QueryClient();
 
