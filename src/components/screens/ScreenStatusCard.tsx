@@ -5,7 +5,7 @@ import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -37,6 +37,7 @@ export interface ScreenStatusCardProps {
     crossfade_ms?: number;
     loop_enabled?: boolean;
     launch_on_boot?: boolean;
+    last_remote_trigger?: string | null;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
@@ -336,6 +337,13 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               ? `Last seen ${formatDistanceToNow(new Date(screen.last_ping), { addSuffix: true })}`
               : <span className="animate-pulse text-primary">Just paired</span>}
           </div>
+
+          {screen.last_remote_trigger && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Zap className="h-3 w-3 text-primary" />
+              Last remote trigger {formatDistanceToNow(new Date(screen.last_remote_trigger), { addSuffix: true })}
+            </div>
+          )}
 
           {screen.pairing_code && (
             <div className="flex items-center gap-1.5">
