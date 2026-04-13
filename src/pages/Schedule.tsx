@@ -882,11 +882,11 @@ export default function Schedule() {
                                 )}
                               </div>
                             </div>
-                            {/* Resize handle */}
-                            <div className="absolute bottom-0 left-0 right-0 h-3 flex items-center justify-center cursor-s-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                            {/* Resize handle — larger touch target on mobile */}
+                            <div className="absolute bottom-0 left-0 right-0 h-5 sm:h-3 flex items-center justify-center cursor-s-resize sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity touch-none"
                               onMouseDown={(e) => handleResizeStart(e, block, height)}
                               onTouchStart={(e) => handleResizeStart(e, block, height)}>
-                              <GripHorizontal className="h-3 w-3 text-[#64748B]" />
+                              <GripHorizontal className="h-3 w-3 text-muted-foreground" />
                             </div>
                           </div>
                         );
