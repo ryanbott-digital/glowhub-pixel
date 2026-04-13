@@ -31,6 +31,9 @@ export default function Dashboard() {
   const [onlineFlash, setOnlineFlash] = useState(false);
   const [mediaCount, setMediaCount] = useState(0);
   const [broadcasts, setBroadcasts] = useState<{ id: string; message: string; broadcast_type: string; duration_seconds: number; created_at: string }[]>([]);
+  const [broadcastsHasMore, setBroadcastsHasMore] = useState(false);
+  const [broadcastsLoading, setBroadcastsLoading] = useState(false);
+  const BROADCAST_PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!user) return;
@@ -40,12 +43,15 @@ export default function Dashboard() {
         supabase.from("playlists").select("*").eq("user_id", user.id),
         supabase.from("media").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
-          .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(10),
+          .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(BROADCAST_PAGE_SIZE + 1),
       ]);
       if (s.data) setScreens(s.data);
       if (p.data) setPlaylists(p.data);
       setMediaCount(m.count ?? 0);
-      if (b.data) setBroadcasts(b.data as any);
+      if (b.data) {
+        setBroadcastsHasMore(b.data.length > BROADCAST_PAGE_SIZE);
+        setBroadcasts((b.data as any).slice(0, BROADCAST_PAGE_SIZE));
+      }
     };
     fetchData();
   }, [user]);
@@ -155,6 +161,22 @@ export default function Dashboard() {
     const allHealthy = offlineCount === 0;
     return { lastCheck, monitored, allHealthy, offlineCount };
   }, [screens, offlineCount]);
+
+  const loadMoreBroadcasts = async () => {
+    if (!user || broadcastsLoading) return;
+    setBroadcastsLoading(true);
+    const { data } = await supabase
+      .from("screen_broadcasts")
+      .select("id, message, broadcast_type, duration_seconds, created_at")
+      .eq("target_user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(broadcasts.length, broadcasts.length + BROADCAST_PAGE_SIZE);
+    if (data) {
+      setBroadcastsHasMore(data.length === BROADCAST_PAGE_SIZE + 1);
+      setBroadcasts((prev) => [...prev, ...(data as any).slice(0, BROADCAST_PAGE_SIZE)]);
+    }
+    setBroadcastsLoading(false);
+  };
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
@@ -368,6 +390,13 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+          {broadcastsHasMore && (
+            <div className="pt-2 text-center">
+              <Button variant="ghost" size="sm" onClick={loadMoreBroadcasts} disabled={broadcastsLoading} className="text-xs text-muted-foreground hover:text-foreground">
+                {broadcastsLoading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Loading...</> : "Load more"}
+              </Button>
+            </div>
+          )}
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         </div>
       )}
