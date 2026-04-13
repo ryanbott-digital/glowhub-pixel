@@ -306,34 +306,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cancel_at_period_end: boolean
           created_at: string
           granted_pro_until: string | null
           id: string
           screen_packs: number
           single_screen_subs: number
           stripe_customer_id: string | null
+          subscription_end: string | null
           subscription_status: string
           subscription_tier: string
           updated_at: string
         }
         Insert: {
+          cancel_at_period_end?: boolean
           created_at?: string
           granted_pro_until?: string | null
           id: string
           screen_packs?: number
           single_screen_subs?: number
           stripe_customer_id?: string | null
+          subscription_end?: string | null
           subscription_status?: string
           subscription_tier?: string
           updated_at?: string
         }
         Update: {
+          cancel_at_period_end?: boolean
           created_at?: string
           granted_pro_until?: string | null
           id?: string
           screen_packs?: number
           single_screen_subs?: number
           stripe_customer_id?: string | null
+          subscription_end?: string | null
           subscription_status?: string
           subscription_tier?: string
           updated_at?: string
