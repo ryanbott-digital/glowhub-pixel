@@ -109,6 +109,8 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(screen.name);
   const [displayName, setDisplayName] = useState(screen.name);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = useRef(false);
 
   const handleRename = async () => {
     const trimmed = renameValue.trim();
