@@ -330,30 +330,48 @@ export default function Billing() {
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Loading…</span>
               </div>
-            ) : screenPacks > 0 ? (
+            ) : (screenPacks > 0 || singleScreenSubs > 0) ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {screenPacks} Screen Pack{screenPacks !== 1 ? "s" : ""} Purchased
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        +{screenPacks * 5} extra screens added to your account
-                      </p>
+                {screenPacks > 0 && (
+                  <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {screenPacks} × 5-Screen Pack{screenPacks !== 1 ? "s" : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          +{screenPacks * 5} screens (one-time)
+                        </p>
+                      </div>
                     </div>
+                    <span className="text-sm font-semibold text-foreground">${screenPacks * 9}</span>
                   </div>
-                  <span className="text-sm font-semibold text-foreground">${screenPacks * 9}</span>
-                </div>
+                )}
+                {singleScreenSubs > 0 && (
+                  <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
+                    <div className="flex items-center gap-3">
+                      <Monitor className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {singleScreenSubs} × Single Screen Sub{singleScreenSubs !== 1 ? "s" : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          +{singleScreenSubs} screen{singleScreenSubs !== 1 ? "s" : ""} ($3/mo each)
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-foreground">${singleScreenSubs * 3}/mo</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
                   <span>Base Pro screens: 5</span>
-                  <span className="text-primary font-medium">Total capacity: {5 + screenPacks * 5} screens</span>
+                  <span className="text-primary font-medium">Total capacity: {5 + screenPacks * 5 + singleScreenSubs} screens</span>
                 </div>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-2">
-                No screen packs purchased yet. Each pack adds 5 additional screens for $9.
+                No screen add-ons yet. Add single screens for $3/mo or 5-screen packs for $9.
               </p>
             )}
           </div>
