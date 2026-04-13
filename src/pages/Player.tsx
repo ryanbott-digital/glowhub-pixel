@@ -120,6 +120,11 @@ export default function Player() {
   const [alertActive, setAlertActive] = useState(false);
   const alertTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // ── BROADCAST MESSAGE ──
+  const [broadcastMsg, setBroadcastMsg] = useState<{ message: string; type: string } | null>(null);
+  const broadcastTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [screenOwnerId, setScreenOwnerId] = useState<string | null>(null);
+
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
   // Active buffer: opacity 1, z-index 10
