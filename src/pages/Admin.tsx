@@ -266,6 +266,10 @@ export default function Admin() {
 
       toast.success(`Broadcast sent to ${selectedUser.screens.length} screen(s)`);
       setBroadcastMessage("");
+      // Refresh broadcast history
+      supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
+        .eq("target_user_id", selectedUser.id).order("created_at", { ascending: false }).limit(20)
+        .then(({ data }) => { setBroadcastHistory((data as any) ?? []); });
     } catch (err: any) {
       toast.error(err.message || "Failed to send broadcast");
     }
