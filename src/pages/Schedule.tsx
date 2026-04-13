@@ -443,7 +443,7 @@ export default function Schedule() {
       if ('touches' in ev) ev.preventDefault(); // prevent scroll while resizing
       const currentY = 'touches' in ev ? ev.touches[0].clientY : (ev as MouseEvent).clientY;
       const delta = currentY - resizingRef.current.startY;
-      const newHeight = Math.max(SNAP_PX, snapToGrid(resizingRef.current.originalHeight + delta));
+      const newHeight = Math.max(SNAP_PX, snapToGrid(resizingRef.current.originalHeight + delta, SNAP_PX));
       const handle = document.getElementById(`resize-block-${block.id}`);
       if (handle) {
         const parent = handle.parentElement;
@@ -1082,7 +1082,7 @@ export default function Schedule() {
 
                       {/* Blocks */}
                       {dayBlocks.map((block, idx) => {
-                        const { top, height } = getBlockStyle(block, day);
+                        const { top, height } = getBlockStyle(block, day, HOUR_HEIGHT);
                         const colors = COLOR_MAP[block.color_code] || COLOR_MAP.teal;
                         const hasOverlap = isOverlapping(block.id);
                         const mediaType = block.media_id ? getMediaType(block.media_id) : "";
