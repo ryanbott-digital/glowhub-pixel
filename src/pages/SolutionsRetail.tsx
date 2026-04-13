@@ -100,13 +100,15 @@ const SolutionsRetail = () => {
           <span className="text-lg font-bold tracking-tight text-white">Glow</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link to="/home#comparison" className="text-sm text-[#94A3B8] hover:text-white transition-colors">Compare</Link>
+          <Link to="/solutions" className="text-sm text-[#94A3B8] hover:text-white transition-colors hidden sm:inline">Solutions</Link>
+          <Link to="/home#comparison" className="text-sm text-[#94A3B8] hover:text-white transition-colors hidden sm:inline">Compare</Link>
           <Link to="/home#pricing" className="text-sm text-[#94A3B8] hover:text-white transition-colors hidden sm:inline">Pricing</Link>
           <Link
             to="/auth"
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-[#00A3A3] to-[#00C2B7] text-[#0B1120] hover:shadow-[0_0_30px_hsla(180,100%,40%,0.4)] transition-all duration-300"
+            className="px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-[#00A3A3] to-[#00C2B7] text-[#0B1120] hover:shadow-[0_0_30px_hsla(180,100%,40%,0.4)] transition-all duration-300"
           >
-            INITIALIZE DASHBOARD
+            <span className="hidden sm:inline">INITIALIZE DASHBOARD</span>
+            <span className="sm:hidden">Login</span>
           </Link>
         </div>
       </nav>
