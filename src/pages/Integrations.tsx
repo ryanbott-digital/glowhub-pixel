@@ -322,25 +322,30 @@ export default function Integrations() {
             Stream Deck Icons
           </CardTitle>
           <CardDescription>
-            72×72px neon-teal icons on black backgrounds — designed to match the Glow aesthetic on your physical Stream Deck buttons.
+            15 neon-teal icons (72×72px) — designed to match the Glow aesthetic on your physical Stream Deck buttons.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
-            {["Play", "Stop", "Next", "Power", "Reload", "Logo"].map((label) => (
-              <div key={label} className="flex flex-col items-center gap-1.5">
-                <div className="w-[72px] h-[72px] rounded-lg bg-black border border-border/30 flex items-center justify-center overflow-hidden">
+            {[
+              { file: "play", label: "Play" }, { file: "skip", label: "Skip" }, { file: "sync", label: "Sync" },
+              { file: "power", label: "Power" }, { file: "blackout", label: "Blackout" }, { file: "always-on", label: "Always-On" },
+              { file: "sleep", label: "Sleep" }, { file: "volume-up", label: "Vol Up" }, { file: "volume-down", label: "Vol Down" },
+              { file: "settings", label: "Settings" }, { file: "link", label: "Link" }, { file: "compass", label: "Compass" },
+            ].map((icon) => (
+              <div key={icon.file} className="flex flex-col items-center gap-1.5">
+                <div className="w-[72px] h-[72px] rounded-lg border border-border/30 overflow-hidden">
                   <img
-                    src={`/glow-streamdeck-icons/${label.toLowerCase()}.png`}
-                    alt={`Glow ${label} icon`}
+                    src={`/glow-streamdeck-icons/${icon.file}.png`}
+                    alt={`Glow ${icon.label} icon`}
                     width={72}
                     height={72}
                     loading="lazy"
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 </div>
-                <span className="text-[10px] text-muted-foreground">{label}</span>
+                <span className="text-[10px] text-muted-foreground">{icon.label}</span>
               </div>
             ))}
           </div>
