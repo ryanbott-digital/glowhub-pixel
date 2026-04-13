@@ -139,6 +139,8 @@ export default function Admin() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activityLogs, setActivityLogs] = useState<{ id: string; action: string; screen_id: string; playlist_title: string | null; created_at: string }[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
+  const [activityScreenFilter, setActivityScreenFilter] = useState("all");
+  const [activityActionFilter, setActivityActionFilter] = useState("all");
 
   // Admin: remote restart a screen via broadcast
   const handleAdminRestart = async (screenId: string, screenName: string) => {
@@ -497,6 +499,8 @@ export default function Admin() {
                     setSelectedUser(user);
                     setActivityLogs([]);
                     setActivityLoading(true);
+                    setActivityScreenFilter("all");
+                    setActivityActionFilter("all");
                     const screenIds = user.screens.map((s) => s.id);
                     if (screenIds.length === 0) { setActivityLoading(false); return; }
                     supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
@@ -788,26 +792,64 @@ export default function Admin() {
                 ) : activityLogs.length === 0 ? (
                   <p className="text-xs text-muted-foreground">No recent activity</p>
                 ) : (
-                  <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
-                    {activityLogs.map((log) => {
-                      const screen = selectedUser?.screens.find((s) => s.id === log.screen_id);
+                  <>
+                    {/* Filters */}
+                    <div className="flex gap-2">
+                      <Select value={activityScreenFilter} onValueChange={setActivityScreenFilter}>
+                        <SelectTrigger className="h-7 text-xs flex-1">
+                          <SelectValue placeholder="All Screens" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Screens</SelectItem>
+                          {selectedUser?.screens.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={activityActionFilter} onValueChange={setActivityActionFilter}>
+                        <SelectTrigger className="h-7 text-xs flex-1">
+                          <SelectValue placeholder="All Actions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Actions</SelectItem>
+                          {[...new Set(activityLogs.map((l) => l.action))].sort().map((action) => (
+                            <SelectItem key={action} value={action}>{action}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(() => {
+                      const filtered = activityLogs
+                        .filter((l) => activityScreenFilter === "all" || l.screen_id === activityScreenFilter)
+                        .filter((l) => activityActionFilter === "all" || l.action === activityActionFilter);
+                      if (filtered.length === 0) return (
+                        <p className="text-xs text-muted-foreground">No activity matches filters</p>
+                      );
                       return (
-                        <div key={log.id} className="flex items-start gap-2 p-2 rounded-lg border bg-muted/30 text-xs">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <span className="font-medium text-foreground">{log.action}</span>
-                            {log.playlist_title && (
-                              <span className="text-muted-foreground"> — {log.playlist_title}</span>
-                            )}
-                            <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
-                              <span className="flex items-center gap-1"><Monitor className="h-2.5 w-2.5" />{screen?.name || "Unknown"}</span>
-                              <span>{timeAgo(log.created_at)}</span>
-                            </div>
-                          </div>
+                        <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
+                          {filtered.map((log) => {
+                            const screen = selectedUser?.screens.find((s) => s.id === log.screen_id);
+                            return (
+                              <div key={log.id} className="flex items-start gap-2 p-2 rounded-lg border bg-muted/30 text-xs">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-medium text-foreground">{log.action}</span>
+                                  {log.playlist_title && (
+                                    <span className="text-muted-foreground"> — {log.playlist_title}</span>
+                                  )}
+                                  <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
+                                    <span className="flex items-center gap-1"><Monitor className="h-2.5 w-2.5" />{screen?.name || "Unknown"}</span>
+                                    <span>{timeAgo(log.created_at)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       );
-                    })}
-                  </div>
+                    })()}
+                  </>
                 )}
               </div>
             </div>
