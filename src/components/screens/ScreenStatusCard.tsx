@@ -284,7 +284,25 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         {/* Name + status row */}
         <div className="px-4 pt-2 pb-3 flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{displayName}</h3>
+            <h3
+              className="font-semibold text-sm text-foreground truncate min-w-0 select-none"
+              onTouchStart={(e) => {
+                longPressTriggered.current = false;
+                longPressTimer.current = setTimeout(() => {
+                  longPressTriggered.current = true;
+                  e.preventDefault();
+                  setRenameValue(displayName);
+                  setRenaming(true);
+                }, 500);
+              }}
+              onTouchEnd={() => {
+                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+              }}
+              onTouchMove={() => {
+                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+              }}
+              onContextMenu={(e) => e.preventDefault()}
+            >{displayName}</h3>
             {launchOnBoot && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0"
