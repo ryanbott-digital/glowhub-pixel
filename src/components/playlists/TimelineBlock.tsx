@@ -17,9 +17,6 @@ interface TimelineBlockProps {
   onPreview?: (url: string, type: string, name: string) => void;
 }
 
-const PX_PER_SECOND = 8;
-const MIN_BLOCK_WIDTH = 100;
-
 export function TimelineBlock({
   id,
   index,
@@ -49,89 +46,69 @@ export function TimelineBlock({
     ? supabase.storage.from("signage-content").getPublicUrl(storagePath).data.publicUrl
     : null;
 
-  const blockWidth = Math.max(MIN_BLOCK_WIDTH, duration * PX_PER_SECOND);
+  const formatDuration = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m > 0 ? `${m}:${sec.toString().padStart(2, "0")}` : `0:${sec.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        width: `${blockWidth}px`,
-        minWidth: `${MIN_BLOCK_WIDTH}px`,
-      }}
-      className="relative flex-shrink-0 h-24 rounded-lg overflow-hidden border border-border group select-none"
+      style={style}
+      className={`flex items-center gap-3 rounded-lg border border-border bg-card/50 px-2 py-2 group select-none transition-colors hover:bg-card/80 ${isDragging ? "shadow-lg" : ""}`}
     >
-      {/* Background — thumbnail or gradient */}
-      {thumbnailUrl ? (
-        <div className="absolute inset-0">
-          {mediaType === "video" ? (
-            <video src={thumbnailUrl} muted preload="metadata" className="w-full h-full object-cover" />
-          ) : (
-            <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-black/60" />
-        </div>
-      ) : (
-        <div
-          className="absolute inset-0"
-          style={{
-            background: isImage
-              ? "linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.15))"
-              : "linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--muted)))",
-          }}
-        />
-      )}
-
-      {/* Drag handle (reorder) */}
+      {/* Drag handle */}
       <button
         {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 z-10 p-0.5 rounded bg-black/50 cursor-grab active:cursor-grabbing touch-none opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+        className="p-0.5 rounded cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50 hover:text-muted-foreground transition-colors shrink-0"
       >
-        <GripVertical className="h-3 w-3 text-white/80" />
+        <GripVertical className="h-4 w-4" />
       </button>
 
-      {/* Content overlay */}
+      {/* Index */}
+      <span className="text-xs text-muted-foreground/60 font-mono tabular-nums w-4 text-center shrink-0">
+        {index + 1}
+      </span>
+
+      {/* Thumbnail */}
       <button
         type="button"
-        className="relative z-[5] w-full h-full flex flex-col justify-between p-1.5 cursor-pointer"
+        className="w-10 h-10 rounded overflow-hidden shrink-0 bg-muted/30 flex items-center justify-center cursor-pointer"
         onClick={() => thumbnailUrl && mediaType && onPreview?.(thumbnailUrl, mediaType, mediaName)}
       >
-        {/* Top row: type icon */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded px-1 py-0.5">
-            {isImage ? (
-              <ImageIcon className="h-2.5 w-2.5 text-[hsl(var(--primary))]" />
-            ) : (
-              <Film className="h-2.5 w-2.5 text-accent" />
-            )}
-            <span className="text-[9px] text-white/80 font-medium uppercase">
-              {isImage ? "IMG" : "VID"}
-            </span>
-          </div>
-        </div>
-
-        {/* Name */}
-        <div className="flex items-end justify-between gap-1">
-          <span className="text-[10px] text-white font-medium truncate max-w-[70%] drop-shadow-sm">
-            {mediaName}
-          </span>
-        </div>
+        {thumbnailUrl ? (
+          mediaType === "video" ? (
+            <video src={thumbnailUrl} muted preload="metadata" className="w-full h-full object-cover" />
+          ) : (
+            <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+          )
+        ) : (
+          isImage ? (
+            <ImageIcon className="h-4 w-4 text-primary/60" />
+          ) : (
+            <Film className="h-4 w-4 text-accent/60" />
+          )
+        )}
       </button>
 
-      {/* Delete button */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onRemove(id); }}
-        className="absolute top-1 right-1 z-10 p-0.5 rounded bg-black/50 hover:bg-destructive/80 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-      >
-        <Trash2 className="h-2.5 w-2.5 text-white" />
-      </button>
+      {/* Name + type badge */}
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        <button
+          type="button"
+          className="text-sm text-foreground truncate text-left cursor-pointer hover:text-primary transition-colors"
+          onClick={() => thumbnailUrl && mediaType && onPreview?.(thumbnailUrl, mediaType, mediaName)}
+        >
+          {mediaName}
+        </button>
+        <span className="shrink-0 text-[9px] font-semibold uppercase px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground">
+          {isImage ? "IMG" : "VID"}
+        </span>
+      </div>
 
-      {/* Duration input at bottom */}
-      <div
-        className="absolute bottom-1 right-1 z-10 flex items-center gap-0.5"
-        onClick={(e) => e.stopPropagation()}
-      >
+      {/* Duration */}
+      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
         <Input
           type="number"
           min={1}
@@ -142,15 +119,18 @@ export function TimelineBlock({
             const val = e.target.value;
             onUpdateDuration(id, val ? Math.max(1, parseInt(val)) : null);
           }}
-          className="w-12 h-5 text-[10px] px-1 py-0 bg-black/60 border-white/20 text-white placeholder:text-white/40 rounded font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-12 h-7 text-xs px-1 py-0 font-mono text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <span className="text-[9px] text-white/70 font-mono">s</span>
+        <span className="text-xs text-muted-foreground font-mono">{formatDuration(duration)}</span>
       </div>
 
-      {/* Index indicator */}
-      <div className="absolute bottom-1 left-1.5 z-10">
-        <span className="text-[8px] text-white/40 font-bold">{index + 1}</span>
-      </div>
+      {/* Delete */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onRemove(id); }}
+        className="p-1 rounded text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }
