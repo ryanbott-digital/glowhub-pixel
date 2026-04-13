@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN single_screen_subs integer NOT NULL DEFAULT 0;
