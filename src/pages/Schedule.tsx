@@ -311,6 +311,7 @@ export default function Schedule() {
       screen_id: selectedScreenId, media_id: newBlock.media_id || null, playlist_id: newBlock.playlist_id || null,
       start_at: startDate.toISOString(), end_at: endDate.toISOString(), block_type: newBlock.block_type,
       recurrence: newBlock.recurrence,
+      recurrence_end: newBlock.recurrence !== "none" && newBlock.recurrence_end ? newBlock.recurrence_end.toISOString() : null,
       color_code: newBlock.block_type === "blackout" ? "dark" : newBlock.block_type === "hype_override" ? "magenta" : newBlock.color_code,
       priority: newBlock.block_type === "hype_override" ? 999 : newBlock.priority,
       label: newBlock.label || (newBlock.block_type === "blackout" ? "Blackout" : ""), user_id: user.id,
