@@ -162,10 +162,11 @@ export default function Schedule() {
   /* Refs for synced scroll */
   const gutterScrollRef = useRef<HTMLDivElement>(null);
   const columnsScrollRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
   const scrollingSource = useRef<string | null>(null);
   const resizingRef = useRef<{ blockId: string; startY: number; originalEndAt: string; originalHeight: number } | null>(null);
 
-  /* ── Synced vertical scroll ── */
+  /* ── Synced vertical scroll + horizontal header sync ── */
   const handleGutterScroll = () => {
     if (scrollingSource.current === "columns") return;
     scrollingSource.current = "gutter";
@@ -179,6 +180,9 @@ export default function Schedule() {
     scrollingSource.current = "columns";
     if (gutterScrollRef.current && columnsScrollRef.current) {
       gutterScrollRef.current.scrollTop = columnsScrollRef.current.scrollTop;
+    }
+    if (headerScrollRef.current && columnsScrollRef.current) {
+      headerScrollRef.current.scrollLeft = columnsScrollRef.current.scrollLeft;
     }
     requestAnimationFrame(() => { scrollingSource.current = null; });
   };
