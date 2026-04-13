@@ -911,26 +911,26 @@ export default function Schedule() {
 
       {/* ══════════ CLIPBOARD DOCK ══════════ */}
       {clipboard && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border border-[#00A3A3]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(0,163,163,0.15)]">
-          <Clipboard className="h-4 w-4 text-[#00E5CC]" />
-          <div className="text-xs">
+        <div className="fixed bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-auto z-50 flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-[#00A3A3]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(0,163,163,0.15)]">
+          <Clipboard className="h-4 w-4 text-[#00E5CC] shrink-0" />
+          <div className="text-xs min-w-0">
             <span className="text-[#94A3B8]">Clipboard: </span>
-            <span className="text-[#00E5CC] font-medium">{clipboard.label || getMediaName(clipboard.media_id) || "Block"}</span>
-            <span className="text-[#64748B] ml-2">{format(new Date(clipboard.start_at), "HH:mm")}–{format(new Date(clipboard.end_at), "HH:mm")}</span>
+            <span className="text-[#00E5CC] font-medium truncate">{clipboard.label || getMediaName(clipboard.media_id) || "Block"}</span>
+            <span className="text-[#64748B] ml-1 hidden sm:inline">{format(new Date(clipboard.start_at), "HH:mm")}–{format(new Date(clipboard.end_at), "HH:mm")}</span>
           </div>
-          <span className="text-[10px] text-[#475569]">Click any time slot to paste</span>
-          <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors ml-1">
-            <Trash2 className="h-3.5 w-3.5" />
+          <span className="text-[10px] text-[#475569] hidden sm:inline shrink-0">Click any slot to paste</span>
+          <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors shrink-0">
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
       {/* ══════════ DRAG INDICATOR ══════════ */}
       {draggingBlock && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border border-[#FF66FF]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(255,0,255,0.15)]">
-          <CalendarRange className="h-4 w-4 text-[#FF66FF]" />
-          <span className="text-xs text-[#FF66FF] font-medium">Moving "{draggingBlock.block.label || "Block"}" — click a day header to drop</span>
-          <button onClick={() => setDraggingBlock(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors ml-1 text-xs">Cancel</button>
+        <div className="fixed bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-auto z-50 flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-[#FF66FF]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(255,0,255,0.15)]">
+          <CalendarRange className="h-4 w-4 text-[#FF66FF] shrink-0" />
+          <span className="text-xs text-[#FF66FF] font-medium truncate">Moving "{draggingBlock.block.label || "Block"}"</span>
+          <button onClick={() => setDraggingBlock(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors text-xs shrink-0">Cancel</button>
         </div>
       )}
 
