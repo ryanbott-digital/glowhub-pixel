@@ -1091,15 +1091,13 @@ export default function Schedule() {
 
             {/* Scrollable columns body — synced with gutter */}
             <div ref={columnsScrollRef} className="flex-1 overflow-auto relative" onScroll={handleColumnsScroll}>
-              {/* Full-width NOW indicator line spanning all columns */}
-              {days.some((d) => isSameDay(d, new Date())) && (
-                <div className="absolute left-0 right-0 z-40 pointer-events-none" style={{ top: currentTimeTop, position: 'sticky' }}>
-                  <div className="absolute left-0 right-0" style={{ top: currentTimeTop }}>
-                    <div className="h-[2px] bg-[#00E5CC]/40" />
-                  </div>
-                </div>
-              )}
               <div className="flex relative" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%", height: 24 * HOUR_HEIGHT }}>
+                {/* Full-width NOW indicator line spanning all columns */}
+                {days.some((d) => isSameDay(d, new Date())) && (
+                  <div className="absolute left-0 right-0 z-40 pointer-events-none" style={{ top: currentTimeTop }}>
+                    <div className="h-[2px] bg-gradient-to-r from-[#00E5CC] via-[#00E5CC]/60 to-[#00E5CC]/20 shadow-[0_0_8px_rgba(0,229,204,0.5)]" />
+                  </div>
+                )}
                 {days.map((day, dayIdx) => {
                   const dayBlocks = expandedBlocks.filter((b) => isSameDay(new Date(b.start_at), day));
                   const isToday = isSameDay(day, new Date());
