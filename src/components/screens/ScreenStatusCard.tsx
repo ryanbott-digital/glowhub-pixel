@@ -283,26 +283,44 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
         {/* Name + status row */}
         <div className="px-4 pt-2 pb-3 flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h3
-              className="font-semibold text-sm text-foreground truncate min-w-0 select-none"
-              onTouchStart={(e) => {
-                longPressTriggered.current = false;
-                longPressTimer.current = setTimeout(() => {
-                  longPressTriggered.current = true;
-                  e.preventDefault();
-                  setRenameValue(displayName);
-                  setRenaming(true);
-                }, 500);
-              }}
-              onTouchEnd={() => {
-                if (longPressTimer.current) clearTimeout(longPressTimer.current);
-              }}
-              onTouchMove={() => {
-                if (longPressTimer.current) clearTimeout(longPressTimer.current);
-              }}
-              onContextMenu={(e) => e.preventDefault()}
-            >{displayName}</h3>
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            {renaming ? (
+              <div className="flex items-center gap-1.5 flex-1" onClick={(e) => e.stopPropagation()}>
+                <Input
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  className="h-8 text-sm flex-1"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") { setRenaming(false); setRenameValue(displayName); } }}
+                />
+                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={(e) => { e.stopPropagation(); handleRename(); }}>
+                  <Check className="h-4 w-4 text-primary" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={(e) => { e.stopPropagation(); setRenaming(false); setRenameValue(displayName); }}>
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <h3
+                  className="font-semibold text-sm text-foreground truncate min-w-0 select-none"
+                  onTouchStart={(e) => {
+                    longPressTriggered.current = false;
+                    longPressTimer.current = setTimeout(() => {
+                      longPressTriggered.current = true;
+                      e.preventDefault();
+                      setRenameValue(displayName);
+                      setRenaming(true);
+                    }, 500);
+                  }}
+                  onTouchEnd={() => {
+                    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                  }}
+                  onTouchMove={() => {
+                    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                  }}
+                  onContextMenu={(e) => e.preventDefault()}
+                >{displayName}</h3>
             {launchOnBoot && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0"
