@@ -182,6 +182,31 @@ export default function Admin() {
     setBulkRestarting(false);
   };
 
+  // Admin: unpair all screens for a user
+  const [bulkUnpairing, setBulkUnpairing] = useState(false);
+  const handleUnpairAllScreens = async (screens: AdminScreen[]) => {
+    if (screens.length === 0) return;
+    setBulkUnpairing(true);
+    let done = 0;
+    for (const screen of screens) {
+      try {
+        const { error } = await supabase.functions.invoke("admin-screen-command", {
+          body: { action: "unpair", screen_id: screen.id },
+        });
+        if (!error) done++;
+      } catch { /* continue */ }
+    }
+    toast.success(`Unpaired ${done} screen${done !== 1 ? "s" : ""}`);
+    // Update local state
+    if (selectedUser) {
+      setSelectedUser({
+        ...selectedUser,
+        screens: [],
+      });
+    }
+    setBulkUnpairing(false);
+  };
+
   // Admin: unpair confirmation state
   const [unpairTarget, setUnpairTarget] = useState<{ id: string; name: string } | null>(null);
   const [restartTarget, setRestartTarget] = useState<{ id: string; name: string } | null>(null);
