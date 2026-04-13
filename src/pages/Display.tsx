@@ -188,7 +188,6 @@ export default function Display() {
 
     return () => {
       supabase.removeChannel(screenChannel);
-      supabase.removeChannel(itemsChannel);
     };
   }, [screenId, fetchPlaylist, showSyncIndicator]);
 
