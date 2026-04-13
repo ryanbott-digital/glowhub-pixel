@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   CalendarClock, Plus, Trash2, ChevronLeft, ChevronRight, Monitor, Image, Film, Moon, Zap,
   Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal, Clipboard, CalendarRange, Sparkles,
-  PanelLeftOpen, PanelLeftClose, Search, GripVertical
+  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
@@ -111,6 +112,7 @@ function getStorageUrl(path: string): string {
 /* ══════════════════════════════════════════════════════════════ */
 export default function Schedule() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [selectedScreenId, setSelectedScreenId] = useState("");
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
@@ -542,7 +544,7 @@ export default function Schedule() {
 
   if (loading) return <div className="flex items-center justify-center h-full"><RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
-  const timelineHeight = "calc(100vh - 220px)";
+  const timelineHeight = "calc(100vh - 280px)";
 
   /* ══════════════════ RENDER ══════════════════ */
   return (
@@ -550,77 +552,87 @@ export default function Schedule() {
       <SEOHead title="Schedule — Glow" description="Advanced multi-day scheduling engine" />
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-b border-[#1E293B]/60 bg-[#0B1120]/80 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <CalendarClock className="h-5 w-5 text-[#00E5CC]" />
-          <h1 className="text-lg font-bold text-[#E2E8F0]">Schedule Engine</h1>
-        </div>
+      <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-[#1E293B]/60 bg-[#0B1120]/80 backdrop-blur-xl">
+        {/* Back / Close button */}
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-[#94A3B8] hover:text-[#E2E8F0]" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <CalendarClock className="h-5 w-5 text-[#00E5CC] shrink-0 hidden sm:block" />
+        <h1 className="text-sm sm:text-lg font-bold text-[#E2E8F0] truncate">Schedule</h1>
+
+        <div className="flex-1" />
+
+        {/* Controls row — scrollable on mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
           <Select value={selectedScreenId} onValueChange={setSelectedScreenId}>
-            <SelectTrigger className="w-[180px] bg-[#0F1A2E] border-[#1E293B]">
-              <Monitor className="h-3.5 w-3.5 mr-1.5 text-[#00E5CC]" /><SelectValue placeholder="Select screen" />
+            <SelectTrigger className="w-[130px] sm:w-[180px] bg-[#0F1A2E] border-[#1E293B] h-8 text-xs">
+              <Monitor className="h-3 w-3 mr-1 text-[#00E5CC]" /><SelectValue placeholder="Screen" />
             </SelectTrigger>
             <SelectContent>{screens.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
           </Select>
 
-          <div className="flex rounded-lg border border-[#1E293B] bg-[#0F1A2E] overflow-hidden">
+          <div className="flex rounded-lg border border-[#1E293B] bg-[#0F1A2E] overflow-hidden shrink-0">
             {(["day", "week", "month"] as ViewMode[]).map((mode) => (
               <button key={mode} onClick={() => setViewMode(mode)}
-                className={`px-3 py-1.5 text-xs font-medium capitalize transition-all ${viewMode === mode ? "bg-[#00A3A3]/20 text-[#00E5CC] shadow-[inset_0_0_10px_rgba(0,163,163,0.15)]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
+                className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-medium capitalize transition-all ${viewMode === mode ? "bg-[#00A3A3]/20 text-[#00E5CC] shadow-[inset_0_0_10px_rgba(0,163,163,0.15)]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
                 {mode}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => nav(-1)}><ChevronLeft className="h-4 w-4" /></Button>
-            <button onClick={() => setFocusDate(new Date())} className="text-xs font-medium px-2 py-1 rounded hover:bg-[#1E293B]/50 text-[#94A3B8] transition-colors">Today</button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => nav(1)}><ChevronRight className="h-4 w-4" /></Button>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => nav(-1)}><ChevronLeft className="h-3.5 w-3.5" /></Button>
+            <button onClick={() => setFocusDate(new Date())} className="text-[10px] sm:text-xs font-medium px-1.5 py-1 rounded hover:bg-[#1E293B]/50 text-[#94A3B8] transition-colors">Today</button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => nav(1)}><ChevronRight className="h-3.5 w-3.5" /></Button>
           </div>
-
-          <span className="text-sm font-medium text-[#94A3B8]">
-            {viewMode === "day" && format(focusDate, "EEEE, MMM d, yyyy")}
-            {viewMode === "week" && `${format(rangeStart, "MMM d")} — ${format(rangeEnd, "MMM d, yyyy")}`}
-            {viewMode === "month" && format(focusDate, "MMMM yyyy")}
-          </span>
         </div>
       </div>
 
-      {/* ── Action bar ── */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-[#1E293B]/40 text-xs bg-[#0B1120]/60">
+      {/* ── Date label (separate row on mobile for space) ── */}
+      <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 border-b border-[#1E293B]/30 bg-[#0B1120]/40">
+        <span className="text-xs sm:text-sm font-medium text-[#94A3B8] truncate">
+          {viewMode === "day" && format(focusDate, "EEE, MMM d, yyyy")}
+          {viewMode === "week" && `${format(rangeStart, "MMM d")} — ${format(rangeEnd, "MMM d, yyyy")}`}
+          {viewMode === "month" && format(focusDate, "MMMM yyyy")}
+        </span>
+        <div className="flex-1" />
+        {/* Quick action buttons — visible on mobile too */}
+        {viewMode === "day" && (
+          <>
+            <Button variant="outline" size="sm" className="h-6 sm:h-7 text-[10px] sm:text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B] px-2" onClick={handleCopyToTomorrow} disabled={copyingTomorrow}>
+              <Copy className="h-3 w-3 mr-1" /><span className="hidden sm:inline">{copyingTomorrow ? "Copying…" : "Copy to Tomorrow"}</span><span className="sm:hidden">Copy</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-6 sm:h-7 text-[10px] sm:text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B] px-2" onClick={() => setShowPreview(true)}>
+              <Eye className="h-3 w-3 mr-1" /><span className="hidden sm:inline">Preview Now</span><span className="sm:hidden">Preview</span>
+            </Button>
+          </>
+        )}
+      </div>
+
+      {/* ── Action bar (legend + media toggle) ── */}
+      <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 border-b border-[#1E293B]/40 text-[10px] sm:text-xs bg-[#0B1120]/60 overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setMediaSidebarOpen((v) => !v)}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all ${mediaSidebarOpen ? "border-[#00A3A3]/40 bg-[#00A3A3]/10 text-[#00E5CC]" : "border-[#1E293B] text-[#64748B] hover:text-[#94A3B8] hover:border-[#475569]"}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-all shrink-0 ${mediaSidebarOpen ? "border-[#00A3A3]/40 bg-[#00A3A3]/10 text-[#00E5CC]" : "border-[#1E293B] text-[#64748B] hover:text-[#94A3B8] hover:border-[#475569]"}`}
         >
           {mediaSidebarOpen ? <PanelLeftClose className="h-3 w-3" /> : <PanelLeftOpen className="h-3 w-3" />}
-          Media
+          <span className="hidden sm:inline">Media</span>
         </button>
-        <span className="flex items-center gap-1.5"><Film className="h-3 w-3 text-[#00E5CC]" /> Video</span>
-        <span className="flex items-center gap-1.5"><Image className="h-3 w-3 text-[#60A5FA]" /> Image</span>
-        <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-[#FF66FF]" /> Hype</span>
-        <span className="flex items-center gap-1.5"><Moon className="h-3 w-3 text-[#94A3B8]" /> Blackout</span>
-        {overlappingPairs.length > 0 && <span className="flex items-center gap-1.5 text-[#FF4466]"><AlertTriangle className="h-3 w-3" /> {overlappingPairs.length} conflict{overlappingPairs.length > 1 ? "s" : ""}</span>}
+        <span className="flex items-center gap-1 shrink-0"><Film className="h-3 w-3 text-[#00E5CC]" /><span className="hidden sm:inline">Video</span></span>
+        <span className="flex items-center gap-1 shrink-0"><Image className="h-3 w-3 text-[#60A5FA]" /><span className="hidden sm:inline">Image</span></span>
+        <span className="flex items-center gap-1 shrink-0"><Zap className="h-3 w-3 text-[#FF66FF]" /><span className="hidden sm:inline">Hype</span></span>
+        <span className="flex items-center gap-1 shrink-0"><Moon className="h-3 w-3 text-[#94A3B8]" /><span className="hidden sm:inline">Blackout</span></span>
+        {overlappingPairs.length > 0 && <span className="flex items-center gap-1 text-[#FF4466] shrink-0"><AlertTriangle className="h-3 w-3" /> {overlappingPairs.length}</span>}
         <div className="flex-1" />
 
         {/* Clipboard indicator */}
         {clipboard && (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-[#00A3A3]/30 bg-[#00A3A3]/10">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg border border-[#00A3A3]/30 bg-[#00A3A3]/10 shrink-0">
             <Clipboard className="h-3 w-3 text-[#00E5CC]" />
-            <span className="text-[#00E5CC] text-[11px] font-medium truncate max-w-[100px]">{clipboard.label || "Block"}</span>
-            <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] text-[11px]">✕</button>
+            <span className="text-[#00E5CC] text-[10px] font-medium truncate max-w-[60px] sm:max-w-[100px]">{clipboard.label || "Block"}</span>
+            <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] text-[10px]">✕</button>
           </div>
-        )}
-
-        {viewMode === "day" && (
-          <>
-            <Button variant="outline" size="sm" className="h-7 text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B]" onClick={handleCopyToTomorrow} disabled={copyingTomorrow}>
-              <Copy className="h-3 w-3 mr-1" />{copyingTomorrow ? "Copying…" : "Copy to Tomorrow"}
-            </Button>
-            <Button variant="outline" size="sm" className="h-7 text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B]" onClick={() => setShowPreview(true)}>
-              <Eye className="h-3 w-3 mr-1" />Preview Now
-            </Button>
-          </>
         )}
       </div>
 
@@ -640,8 +652,8 @@ export default function Schedule() {
 
       {/* ── Timeline ── */}
       {viewMode === "month" ? (
-        <div className="flex-1 overflow-auto p-4">
-          <div className="grid grid-cols-7 gap-1">
+        <div className="flex-1 overflow-auto p-2 sm:p-4">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {DAY_NAMES.map((d) => <div key={d} className="text-center text-xs font-medium text-[#64748B] pb-2">{d}</div>)}
             {Array.from({ length: (days[0].getDay() + 6) % 7 }).map((_, i) => <div key={`pad-${i}`} />)}
             {days.map((day) => {
@@ -666,12 +678,15 @@ export default function Schedule() {
         <div className="flex-1 overflow-hidden flex">
           {/* ── Media Library Sidebar ── */}
           {mediaSidebarOpen && (
-            <div className="w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
+            <div className="fixed inset-0 z-40 sm:relative sm:inset-auto sm:z-auto w-full sm:w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
               <div className="px-3 py-2 border-b border-[#1E293B]/40 shrink-0">
                 <div className="flex items-center gap-2 mb-2">
                   <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
                   <span className="text-xs font-semibold text-[#E2E8F0]">Media Library</span>
                   <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-[#1E293B] text-[#64748B]">{media.length}</Badge>
+                  <button onClick={() => setMediaSidebarOpen(false)} className="sm:hidden ml-1 text-[#64748B] hover:text-[#E2E8F0] transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[#475569]" />
@@ -744,13 +759,13 @@ export default function Schedule() {
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Fixed column headers */}
             <div className="flex shrink-0 border-b border-[#1E293B]/40 overflow-x-auto" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
-              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 180}px` : "100%" }}>
+              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%" }}>
                 {days.map((day) => {
                   const isToday = isSameDay(day, new Date());
                   const isDragTarget = draggingBlock && !isSameDay(draggingBlock.originDay, day);
                   return (
                     <div key={day.toISOString()}
-                      className={`flex-1 min-w-[160px] h-10 flex items-center justify-center text-xs font-semibold transition-all relative
+                      className={`flex-1 min-w-[100px] sm:min-w-[160px] h-10 flex items-center justify-center text-xs font-semibold transition-all relative
                         ${isToday ? "text-[#00E5CC] bg-[#00A3A3]/8 border-b-2 border-[#00E5CC]" : "text-[#94A3B8]"}
                         ${isDragTarget ? "bg-[#00A3A3]/10" : ""}`}
                       onClick={() => {
@@ -772,7 +787,7 @@ export default function Schedule() {
 
             {/* Scrollable columns body — synced with gutter */}
             <div ref={columnsScrollRef} className="flex-1 overflow-auto" onScroll={handleColumnsScroll}>
-              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 180}px` : "100%", height: 24 * HOUR_HEIGHT }}>
+              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%", height: 24 * HOUR_HEIGHT }}>
                 {days.map((day, dayIdx) => {
                   const dayBlocks = expandedBlocks.filter((b) => isSameDay(new Date(b.start_at), day));
                   const isToday = isSameDay(day, new Date());
@@ -780,7 +795,7 @@ export default function Schedule() {
 
                   return (
                     <div key={day.toISOString()}
-                      className={`flex-1 min-w-[160px] relative
+                      className={`flex-1 min-w-[100px] sm:min-w-[160px] relative
                         ${dayIdx < days.length - 1 ? "border-r border-[#1E293B]/20" : ""}
                         ${isToday ? "bg-[#00A3A3]/[0.03]" : ""}
                         ${isDragTarget ? "bg-[#00A3A3]/[0.04]" : ""}`}
@@ -896,32 +911,32 @@ export default function Schedule() {
 
       {/* ══════════ CLIPBOARD DOCK ══════════ */}
       {clipboard && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border border-[#00A3A3]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(0,163,163,0.15)]">
-          <Clipboard className="h-4 w-4 text-[#00E5CC]" />
-          <div className="text-xs">
+        <div className="fixed bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-auto z-50 flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-[#00A3A3]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(0,163,163,0.15)]">
+          <Clipboard className="h-4 w-4 text-[#00E5CC] shrink-0" />
+          <div className="text-xs min-w-0">
             <span className="text-[#94A3B8]">Clipboard: </span>
-            <span className="text-[#00E5CC] font-medium">{clipboard.label || getMediaName(clipboard.media_id) || "Block"}</span>
-            <span className="text-[#64748B] ml-2">{format(new Date(clipboard.start_at), "HH:mm")}–{format(new Date(clipboard.end_at), "HH:mm")}</span>
+            <span className="text-[#00E5CC] font-medium truncate">{clipboard.label || getMediaName(clipboard.media_id) || "Block"}</span>
+            <span className="text-[#64748B] ml-1 hidden sm:inline">{format(new Date(clipboard.start_at), "HH:mm")}–{format(new Date(clipboard.end_at), "HH:mm")}</span>
           </div>
-          <span className="text-[10px] text-[#475569]">Click any time slot to paste</span>
-          <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors ml-1">
-            <Trash2 className="h-3.5 w-3.5" />
+          <span className="text-[10px] text-[#475569] hidden sm:inline shrink-0">Click any slot to paste</span>
+          <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors shrink-0">
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
       {/* ══════════ DRAG INDICATOR ══════════ */}
       {draggingBlock && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border border-[#FF66FF]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(255,0,255,0.15)]">
-          <CalendarRange className="h-4 w-4 text-[#FF66FF]" />
-          <span className="text-xs text-[#FF66FF] font-medium">Moving "{draggingBlock.block.label || "Block"}" — click a day header to drop</span>
-          <button onClick={() => setDraggingBlock(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors ml-1 text-xs">Cancel</button>
+        <div className="fixed bottom-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-auto z-50 flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-[#FF66FF]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(255,0,255,0.15)]">
+          <CalendarRange className="h-4 w-4 text-[#FF66FF] shrink-0" />
+          <span className="text-xs text-[#FF66FF] font-medium truncate">Moving "{draggingBlock.block.label || "Block"}"</span>
+          <button onClick={() => setDraggingBlock(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors text-xs shrink-0">Cancel</button>
         </div>
       )}
 
       {/* ══════════ CREATE DIALOG ══════════ */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-lg">
+        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-lg max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-[#00E5CC]" /> New Schedule Block</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
@@ -992,7 +1007,7 @@ export default function Schedule() {
 
       {/* ══════════ EDIT DIALOG ══════════ */}
       <Dialog open={!!editBlock} onOpenChange={() => setEditBlock(null)}>
-        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-md">
+        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-md max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {editBlock?.block_type === "blackout" && <Moon className="h-4 w-4 text-[#94A3B8]" />}
