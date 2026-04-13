@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Zap, Loader2 } from "lucide-react";
+import { Check, Crown, Zap, Loader2, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -151,7 +152,21 @@ export default function Subscription() {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                      <span className="text-foreground">{feature}</span>
+                      <span className="text-foreground inline-flex items-center gap-1">
+                        {feature}
+                        {feature.toLowerCase().includes("expandable") && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                Add more screens anytime — $9 per 5-screen pack, one-time payment.
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </span>
                     </li>
                   ))}
                 </ul>

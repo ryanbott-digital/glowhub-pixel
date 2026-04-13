@@ -1,16 +1,39 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor, Package, Receipt } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor, Package, Receipt, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useSearchParams, Link } from "react-router-dom";
 
+const EXPANDABLE_FEATURE = "Up to 5 screens + expandable";
+const EXPANDABLE_TOOLTIP = "Add more screens anytime — $9 per 5-screen pack, one-time payment. Stacks with existing packs.";
+
+const FeatureName = ({ name }: { name: string }) => {
+  if (name !== EXPANDABLE_FEATURE) return <>{name}</>;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center gap-1 cursor-help">
+            {name}
+            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[220px] text-xs">
+          {EXPANDABLE_TOOLTIP}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 const FREE_FEATURES = [
   { name: "1 screen", free: true, pro: true },
   { name: "Basic media support", free: true, pro: true },
   { name: "Community support", free: true, pro: true },
-  { name: "Up to 5 screens + expandable", free: false, pro: true },
+  { name: EXPANDABLE_FEATURE, free: false, pro: true },
   { name: "Weather & RSS widgets", free: false, pro: true },
   { name: "4K video support", free: false, pro: true },
   { name: "Advanced scheduling", free: false, pro: true },
@@ -301,10 +324,10 @@ export default function Billing() {
             <Crown className="h-5 w-5 text-cyan-400" /> Why Go Pro?
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {["Up to 5 screens + expandable", "Weather & RSS widgets", "4K video support", "Advanced scheduling", "Priority support"].map((f) => (
+            {[EXPANDABLE_FEATURE, "Weather & RSS widgets", "4K video support", "Advanced scheduling", "Priority support"].map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-foreground">
                 <Check className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                {f}
+                <FeatureName name={f} />
               </li>
             ))}
           </ul>
@@ -343,7 +366,9 @@ export default function Billing() {
                 ) : (
                   <X className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
                 )}
-                <span className={f.free ? "text-foreground" : "text-muted-foreground/50"}>{f.name}</span>
+                <span className={f.free ? "text-foreground" : "text-muted-foreground/50"}>
+                  <FeatureName name={f.name} />
+                </span>
               </li>
             ))}
           </ul>
@@ -378,7 +403,7 @@ export default function Billing() {
             {FREE_FEATURES.map((f) => (
               <li key={f.name} className="flex items-center gap-2 text-sm">
                 <Check className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                <span className="text-foreground">{f.name}</span>
+                <span className="text-foreground"><FeatureName name={f.name} /></span>
               </li>
             ))}
           </ul>
