@@ -335,7 +335,8 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                 Protected
               </span>
             )}
-          </div>
+              </>
+            )}
           <div className="flex items-center gap-2 shrink-0">
             {isAlive ? (
               <span
