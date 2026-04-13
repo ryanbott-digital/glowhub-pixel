@@ -808,6 +808,60 @@ export default function Admin() {
 
               <Separator />
 
+              {/* Broadcast Message */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Megaphone className="h-4 w-4" /> Broadcast Message
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Push a message to all {selectedUser.screens.length} screen{selectedUser.screens.length !== 1 ? "s" : ""} at once.
+                </p>
+                <div className="space-y-2">
+                  <textarea
+                    placeholder="Type your broadcast message…"
+                    value={broadcastMessage}
+                    onChange={(e) => setBroadcastMessage(e.target.value)}
+                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    rows={2}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Select value={broadcastType} onValueChange={(v) => setBroadcastType(v as any)}>
+                      <SelectTrigger className="w-28 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="info">ℹ️ Info</SelectItem>
+                        <SelectItem value="warning">⚠️ Warning</SelectItem>
+                        <SelectItem value="alert">🚨 Alert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <Input
+                        type="number"
+                        min={5}
+                        max={300}
+                        value={broadcastDuration}
+                        onChange={(e) => setBroadcastDuration(Math.max(5, parseInt(e.target.value) || 30))}
+                        className="w-14 h-8 text-xs px-1 text-center"
+                      />
+                      <span>sec</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="ml-auto gap-1.5"
+                      disabled={!broadcastMessage.trim() || broadcastSending || selectedUser.screens.length === 0}
+                      onClick={handleSendBroadcast}
+                    >
+                      {broadcastSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
               {/* Billing / Screen Packs */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
