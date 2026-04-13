@@ -162,17 +162,31 @@ export default function Schedule() {
 
   /* Keyboard zoom: Ctrl+Plus / Ctrl+Minus / Ctrl+0 */
   useEffect(() => {
+    const showZoomToast = (newHeight: number) => {
+      const pct = Math.round((newHeight / DEFAULT_HOUR_HEIGHT) * 100);
+      toast(`Zoom: ${pct}%`, { id: "schedule-zoom", duration: 1200 });
+    };
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       if (e.key === "=" || e.key === "+") {
         e.preventDefault();
-        setHourHeight((v: number) => Math.min(160, v + 10));
+        setHourHeight((v: number) => {
+          const nv = Math.min(160, v + 10);
+          showZoomToast(nv);
+          return nv;
+        });
       } else if (e.key === "-") {
         e.preventDefault();
-        setHourHeight((v: number) => Math.max(40, v - 10));
+        setHourHeight((v: number) => {
+          const nv = Math.max(40, v - 10);
+          showZoomToast(nv);
+          return nv;
+        });
       } else if (e.key === "0") {
         e.preventDefault();
         setHourHeight(DEFAULT_HOUR_HEIGHT);
+        showZoomToast(DEFAULT_HOUR_HEIGHT);
       }
     };
     window.addEventListener("keydown", onKeyDown);
