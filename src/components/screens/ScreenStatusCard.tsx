@@ -5,7 +5,8 @@ import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -105,6 +106,19 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [crossfadeMs, setCrossfadeMs] = useState(screen.crossfade_ms ?? 500);
   const [loopEnabled, setLoopEnabled] = useState(screen.loop_enabled !== false);
   const [launchOnBoot, setLaunchOnBoot] = useState(screen.launch_on_boot === true);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(screen.name);
+  const [displayName, setDisplayName] = useState(screen.name);
+
+  const handleRename = async () => {
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === displayName) { setRenaming(false); return; }
+    const { error } = await supabase.from("screens").update({ name: trimmed } as any).eq("id", screen.id);
+    if (error) { toast.error("Failed to rename screen"); return; }
+    setDisplayName(trimmed);
+    setRenaming(false);
+    toast.success(`Screen renamed to "${trimmed}"`);
+  };
 
   const updateScreenSetting = useCallback(async (updates: Partial<{ transition_type: string; crossfade_ms: number; loop_enabled: boolean; launch_on_boot: boolean }>) => {
     const { error } = await supabase.from("screens").update(updates as any).eq("id", screen.id);
@@ -268,7 +282,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         {/* Name + status row */}
         <div className="px-4 pt-2 pb-3 flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{screen.name}</h3>
+            <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{displayName}</h3>
             {launchOnBoot && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0"
@@ -331,6 +345,34 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         style={{ maxHeight: expanded ? "800px" : "0", opacity: expanded ? 1 : 0 }}
       >
         <div className="px-4 pb-4 space-y-4 border-t border-border/50 pt-3">
+          {/* Rename */}
+          <div className="flex items-center gap-2">
+            {renaming ? (
+              <>
+                <Input
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  className="h-8 text-sm flex-1"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
+                />
+                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={handleRename}>
+                  <Check className="h-3.5 w-3.5 text-primary" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => { setRenaming(false); setRenameValue(displayName); }}>
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+              </>
+            ) : (
+              <button
+                onClick={() => { setRenameValue(displayName); setRenaming(true); }}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Pencil className="h-3 w-3" /> Rename screen
+              </button>
+            )}
+          </div>
+
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
             {screen.last_ping

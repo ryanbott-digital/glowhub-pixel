@@ -49,6 +49,7 @@ export default function Screens() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pairOpen, setPairOpen] = useState(false);
   const [pairingCode, setPairingCode] = useState("");
+  const [pairScreenName, setPairScreenName] = useState("");
   const [pairing, setPairing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkPlaylistId, setBulkPlaylistId] = useState("");
@@ -180,7 +181,7 @@ export default function Screens() {
       const { data: newScreen, error: createErr } = await supabase
         .from("screens").insert({
           user_id: user.id,
-          name: "Paired Screen",
+          name: pairScreenName.trim() || "Paired Screen",
           pairing_code: pairingCode,
           status: "offline",
         }).select("id, name").single();
@@ -194,6 +195,7 @@ export default function Screens() {
 
       toast.success(`Screen "${newScreen.name}" paired successfully!`);
       setPairingCode("");
+      setPairScreenName("");
       setPairOpen(false);
       fetchData();
     } finally { setPairing(false); }
@@ -470,6 +472,11 @@ export default function Screens() {
             <p className="text-sm text-muted-foreground text-center">
               Enter the 6-digit code shown on your display device.
             </p>
+            <Input
+              placeholder="Screen name (e.g. Lobby TV)"
+              value={pairScreenName}
+              onChange={(e) => setPairScreenName(e.target.value)}
+            />
             <div className="flex justify-center">
               <InputOTP maxLength={6} value={pairingCode} onChange={setPairingCode}>
                 <InputOTPGroup>
