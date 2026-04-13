@@ -1007,7 +1007,7 @@ export default function Schedule() {
 
       {/* ══════════ EDIT DIALOG ══════════ */}
       <Dialog open={!!editBlock} onOpenChange={() => setEditBlock(null)}>
-        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-md">
+        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-md max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {editBlock?.block_type === "blackout" && <Moon className="h-4 w-4 text-[#94A3B8]" />}
