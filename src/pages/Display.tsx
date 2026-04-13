@@ -141,7 +141,7 @@ export default function Display() {
         .single();
 
       if (screen?.current_playlist_id) {
-        fetchPlaylist(screen.current_playlist_id);
+        fetchPlaylist(screen.current_playlist_id, true);
       } else {
         try {
           const cached = localStorage.getItem(CACHE_KEY + "_" + screenId);
