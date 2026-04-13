@@ -686,7 +686,7 @@ export default function Player() {
         // Fetch playlist if assigned
         const { data: screen } = await supabase
           .from("screens")
-          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled")
+          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype")
           .eq("id", pairing.screen_id)
           .maybeSingle();
 
@@ -695,6 +695,11 @@ export default function Player() {
           if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
           if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
           if (screen.current_playlist_id) await fetchPlaylist(screen.current_playlist_id);
+          setAudioEnabled((screen as any).audio_enabled === true);
+          setAudioStationUrl((screen as any).audio_station_url || null);
+          setAudioStationName((screen as any).audio_station_name || null);
+          setAudioVolume((screen as any).audio_volume ?? 80);
+          setAudioMuteOnHype((screen as any).audio_mute_on_hype !== false);
         }
       }
     }, 3000);
