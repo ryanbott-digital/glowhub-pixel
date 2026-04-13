@@ -1978,6 +1978,18 @@ export default function Player() {
       {/* Hype Takeover Overlay */}
       <HypeTakeover />
 
+      {/* Now Playing audio indicator */}
+      {audioPlaying && audioStationName && (
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1 animate-fade-in">
+          <div className="flex items-end gap-[2px] h-3">
+            <span className="w-[2px] bg-primary rounded-full animate-[audioBars_0.8s_ease-in-out_infinite]" style={{ height: '40%' }} />
+            <span className="w-[2px] bg-primary rounded-full animate-[audioBars_0.6s_ease-in-out_infinite_0.2s]" style={{ height: '70%' }} />
+            <span className="w-[2px] bg-primary rounded-full animate-[audioBars_0.7s_ease-in-out_infinite_0.1s]" style={{ height: '50%' }} />
+          </div>
+          <span className="text-[10px] text-white/70 max-w-[120px] truncate">{audioStationName}</span>
+        </div>
+      )}
+
       {/* Calibration Overlay (scanline, flash, bezel, color correction) */}
       {screenId && playerSyncGroupId && (
         <CalibrationOverlay screenId={screenId} syncGroupId={playerSyncGroupId} />
