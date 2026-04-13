@@ -440,48 +440,56 @@ export default function Admin() {
             <p className="text-muted-foreground text-sm">No users found</p>
           ) : (
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  placeholder="Search by email…"
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  className="max-w-sm"
-                />
-                <Select value={tierFilter} onValueChange={setTierFilter}>
-                  <SelectTrigger className="w-full sm:w-[150px]">
-                    <SelectValue placeholder="All Tiers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Tiers</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="basic">Basic</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[170px]">
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="has-online">Has Online Screen</SelectItem>
-                    <SelectItem value="all-offline">All Screens Offline</SelectItem>
-                    <SelectItem value="no-screens">No Screens</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {users
-                .filter((u) => !userSearch || u.email.toLowerCase().includes(userSearch.toLowerCase()))
-                .filter((u) => tierFilter === "all" || u.subscription_tier === tierFilter)
-                .filter((u) => {
-                  if (statusFilter === "all") return true;
-                  if (statusFilter === "no-screens") return u.screens.length === 0;
-                  if (statusFilter === "has-online") return u.screens.some((s) => isOnline(s.last_ping));
-                  if (statusFilter === "all-offline") return u.screens.length > 0 && u.screens.every((s) => !isOnline(s.last_ping));
-                  return true;
-                })
-                .map((user) => (
+              {(() => {
+                const filteredUsers = users
+                  .filter((u) => !userSearch || u.email.toLowerCase().includes(userSearch.toLowerCase()))
+                  .filter((u) => tierFilter === "all" || u.subscription_tier === tierFilter)
+                  .filter((u) => {
+                    if (statusFilter === "all") return true;
+                    if (statusFilter === "no-screens") return u.screens.length === 0;
+                    if (statusFilter === "has-online") return u.screens.some((s) => isOnline(s.last_ping));
+                    if (statusFilter === "all-offline") return u.screens.length > 0 && u.screens.every((s) => !isOnline(s.last_ping));
+                    return true;
+                  });
+                const isFiltered = userSearch || tierFilter !== "all" || statusFilter !== "all";
+                return (
+                  <>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        placeholder="Search by email…"
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        className="max-w-sm"
+                      />
+                      <Select value={tierFilter} onValueChange={setTierFilter}>
+                        <SelectTrigger className="w-full sm:w-[150px]">
+                          <SelectValue placeholder="All Tiers" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Tiers</SelectItem>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="pro">Pro</SelectItem>
+                          <SelectItem value="enterprise">Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[170px]">
+                          <SelectValue placeholder="All Statuses" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Statuses</SelectItem>
+                          <SelectItem value="has-online">Has Online Screen</SelectItem>
+                          <SelectItem value="all-offline">All Screens Offline</SelectItem>
+                          <SelectItem value="no-screens">No Screens</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Badge variant="secondary" className="self-center whitespace-nowrap h-7 px-2.5 text-xs">
+                        <Users className="h-3 w-3 mr-1" />
+                        {isFiltered ? `${filteredUsers.length} / ${users.length}` : users.length}
+                      </Badge>
+                    </div>
+                    {filteredUsers.map((user) => (
                 <div
                   key={user.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card cursor-pointer hover:border-primary/40 transition-colors"
@@ -533,7 +541,10 @@ export default function Admin() {
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
-              ))}
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           )}
         </CardContent>
