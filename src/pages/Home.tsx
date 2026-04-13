@@ -374,7 +374,7 @@ const Home = () => {
           <div className="flex items-center gap-6">
             <button onClick={() => scrollTo("process")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">How it works</button>
             <button onClick={() => scrollTo("features")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Features</button>
-            <button onClick={() => scrollTo("comparison")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
+            <button onClick={() => scrollTo("comparison")} className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
             <button onClick={() => scrollTo("pricing")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
             <div className="hidden sm:block relative group">
               <button className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors flex items-center gap-1">

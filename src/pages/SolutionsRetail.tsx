@@ -100,7 +100,7 @@ const SolutionsRetail = () => {
           <span className="text-lg font-bold tracking-tight text-white">Glow</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link to="/home#comparison" className="text-sm text-[#94A3B8] hover:text-white transition-colors hidden sm:inline">Compare</Link>
+          <Link to="/home#comparison" className="text-sm text-[#94A3B8] hover:text-white transition-colors">Compare</Link>
           <Link to="/home#pricing" className="text-sm text-[#94A3B8] hover:text-white transition-colors hidden sm:inline">Pricing</Link>
           <Link
             to="/auth"
