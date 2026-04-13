@@ -467,6 +467,111 @@ export default function Billing() {
         </div>
       </div>
 
+      {/* Feature-by-Feature Comparison Table */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
+        <div className="p-6 border-b border-white/5">
+          <h2 className="text-lg font-semibold text-foreground">Feature-by-Feature Comparison</h2>
+          <p className="text-xs text-muted-foreground mt-1">A detailed breakdown of what's included in each plan</p>
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/5">
+                <th className="text-left py-3 px-6 text-muted-foreground font-medium">Feature</th>
+                <th className="text-center py-3 px-4 text-muted-foreground font-medium">Starter</th>
+                <th className="text-center py-3 px-4 text-cyan-400 font-medium">Pro</th>
+                <th className="text-center py-3 px-4 text-amber-400 font-medium">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { feature: "Screens", starter: "1", pro: "5 + packs", enterprise: "Unlimited" },
+                { feature: "Media uploads", starter: true, pro: true, enterprise: true },
+                { feature: "Playlist builder", starter: true, pro: true, enterprise: true },
+                { feature: "Remote screen pairing", starter: true, pro: true, enterprise: true },
+                { feature: "4K video support", starter: false, pro: true, enterprise: true },
+                { feature: "Weather & RSS widgets", starter: false, pro: true, enterprise: true },
+                { feature: "Advanced scheduling", starter: false, pro: true, enterprise: true },
+                { feature: "Heartbeat monitoring", starter: false, pro: true, enterprise: true },
+                { feature: "Proof-of-play analytics", starter: false, pro: true, enterprise: true },
+                { feature: "Screen sync groups", starter: false, pro: true, enterprise: true },
+                { feature: "Remote trigger API", starter: false, pro: true, enterprise: true },
+                { feature: "Additional screen packs", starter: false, pro: "$9 / 5 screens", enterprise: "Included" },
+                { feature: "SSO & team management", starter: false, pro: false, enterprise: true },
+                { feature: "White-label branding", starter: false, pro: false, enterprise: true },
+                { feature: "Custom SLA", starter: false, pro: false, enterprise: true },
+                { feature: "Dedicated account manager", starter: false, pro: false, enterprise: true },
+                { feature: "Support", starter: "Community", pro: "Priority email", enterprise: "24/7 dedicated" },
+              ].map((row, i) => (
+                <tr key={row.feature} className={`border-b border-white/5 ${i % 2 === 0 ? "bg-white/[0.01]" : ""}`}>
+                  <td className="py-3 px-6 text-foreground">{row.feature}</td>
+                  {[row.starter, row.pro, row.enterprise].map((val, j) => (
+                    <td key={j} className="py-3 px-4 text-center">
+                      {val === true ? (
+                        <Check className="h-4 w-4 text-primary mx-auto" />
+                      ) : val === false ? (
+                        <X className="h-4 w-4 text-muted-foreground/30 mx-auto" />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">{val}</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile stacked cards */}
+        <div className="sm:hidden divide-y divide-white/5">
+          {[
+            { feature: "Screens", starter: "1", pro: "5 + packs", enterprise: "Unlimited" },
+            { feature: "Media uploads", starter: true, pro: true, enterprise: true },
+            { feature: "Playlist builder", starter: true, pro: true, enterprise: true },
+            { feature: "Remote screen pairing", starter: true, pro: true, enterprise: true },
+            { feature: "4K video support", starter: false, pro: true, enterprise: true },
+            { feature: "Weather & RSS widgets", starter: false, pro: true, enterprise: true },
+            { feature: "Advanced scheduling", starter: false, pro: true, enterprise: true },
+            { feature: "Heartbeat monitoring", starter: false, pro: true, enterprise: true },
+            { feature: "Proof-of-play analytics", starter: false, pro: true, enterprise: true },
+            { feature: "Screen sync groups", starter: false, pro: true, enterprise: true },
+            { feature: "Remote trigger API", starter: false, pro: true, enterprise: true },
+            { feature: "Additional screen packs", starter: false, pro: "$9 / 5 screens", enterprise: "Included" },
+            { feature: "SSO & team management", starter: false, pro: false, enterprise: true },
+            { feature: "White-label branding", starter: false, pro: false, enterprise: true },
+            { feature: "Custom SLA", starter: false, pro: false, enterprise: true },
+            { feature: "Dedicated account manager", starter: false, pro: false, enterprise: true },
+            { feature: "Support", starter: "Community", pro: "Priority email", enterprise: "24/7 dedicated" },
+          ].map((row) => {
+            const renderVal = (val: string | boolean) =>
+              val === true ? <Check className="h-4 w-4 text-primary" /> :
+              val === false ? <X className="h-4 w-4 text-muted-foreground/30" /> :
+              <span className="text-xs text-muted-foreground">{val}</span>;
+            return (
+              <div key={row.feature} className="px-5 py-3">
+                <p className="text-sm font-medium text-foreground mb-2">{row.feature}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[10px] text-muted-foreground">Starter</span>
+                    {renderVal(row.starter)}
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[10px] text-cyan-400">Pro</span>
+                    {renderVal(row.pro)}
+                  </div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[10px] text-amber-400">Enterprise</span>
+                    {renderVal(row.enterprise)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Secure Checkout Badge */}
       {!isPro && (
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/60">
