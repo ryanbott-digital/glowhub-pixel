@@ -652,8 +652,8 @@ export default function Schedule() {
 
       {/* ── Timeline ── */}
       {viewMode === "month" ? (
-        <div className="flex-1 overflow-auto p-4">
-          <div className="grid grid-cols-7 gap-1">
+        <div className="flex-1 overflow-auto p-2 sm:p-4">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {DAY_NAMES.map((d) => <div key={d} className="text-center text-xs font-medium text-[#64748B] pb-2">{d}</div>)}
             {Array.from({ length: (days[0].getDay() + 6) % 7 }).map((_, i) => <div key={`pad-${i}`} />)}
             {days.map((day) => {
