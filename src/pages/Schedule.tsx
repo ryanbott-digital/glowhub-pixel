@@ -738,6 +738,7 @@ export default function Schedule() {
       setTouchDragItem(null);
       setTouchDragPlaylist(null);
       setTouchDragPos(null);
+      setTouchDropHighlight(null);
     }, { once: true });
     return () => { document.removeEventListener("touchmove", onMove); };
   }, [touchDragItem, touchDragPlaylist, user, selectedScreenId, fetchBlocks]);
