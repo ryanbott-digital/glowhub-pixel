@@ -402,8 +402,15 @@ export default function Dashboard() {
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {broadcasts.map((b) => (
-              <div key={b.id} className="rounded-lg border border-border/50 bg-card/50 px-3 py-2 text-xs space-y-1">
-                <div className="flex items-center justify-between gap-2">
+              <div key={b.id} className="group rounded-lg border border-border/50 bg-card/50 px-3 py-2 text-xs space-y-1 relative">
+                <button
+                  onClick={() => dismissBroadcast(b.id)}
+                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted"
+                  aria-label="Dismiss broadcast"
+                >
+                  <X className="h-3 w-3 text-muted-foreground" />
+                </button>
+                <div className="flex items-center justify-between gap-2 pr-4">
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                     {b.broadcast_type === "alert" ? "🚨" : b.broadcast_type === "warning" ? "⚠️" : "ℹ️"} {b.broadcast_type}
                   </Badge>
