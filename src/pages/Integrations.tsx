@@ -23,6 +23,12 @@ interface Playlist {
   title: string;
 }
 
+interface MediaItem {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export default function Integrations() {
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
