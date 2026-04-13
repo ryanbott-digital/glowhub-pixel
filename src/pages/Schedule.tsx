@@ -11,6 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   CalendarClock, Plus, Trash2, ChevronLeft, ChevronRight, Monitor, Image, Film, Moon, Zap,
   Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal, Clipboard, CalendarRange, Sparkles,
