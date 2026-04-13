@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2, Monitor, Wifi, WifiOff, AlertTriangle, CreditCard, Plus, ChevronRight, Package, Image, RotateCcw, Unplug, Activity } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2, Monitor, Wifi, WifiOff, AlertTriangle, CreditCard, Plus, ChevronRight, Package, Image, RotateCcw, Unplug, Activity, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -135,6 +135,10 @@ export default function Admin() {
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
   const [bulkRestarting, setBulkRestarting] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [broadcastType, setBroadcastType] = useState<"info" | "warning" | "alert">("info");
+  const [broadcastDuration, setBroadcastDuration] = useState(30);
+  const [broadcastSending, setBroadcastSending] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -203,6 +207,41 @@ export default function Admin() {
       toast.error(err.message || "Failed to unpair screen");
     }
     setScreenCommandLoading(null);
+  };
+
+  /* ── Send broadcast to all user's screens ── */
+  const handleSendBroadcast = async () => {
+    if (!selectedUser || !broadcastMessage.trim()) return;
+    setBroadcastSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase.from("screen_broadcasts").insert({
+        target_user_id: selectedUser.id,
+        sent_by: user.id,
+        message: broadcastMessage.trim(),
+        broadcast_type: broadcastType,
+        duration_seconds: broadcastDuration,
+      } as any);
+      if (error) throw error;
+
+      await supabase.channel(`user-broadcast-${selectedUser.id}`).send({
+        type: "broadcast",
+        event: "screen-message",
+        payload: {
+          message: broadcastMessage.trim(),
+          type: broadcastType,
+          duration: broadcastDuration,
+        },
+      });
+
+      toast.success(`Broadcast sent to ${selectedUser.screens.length} screen(s)`);
+      setBroadcastMessage("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send broadcast");
+    }
+    setBroadcastSending(false);
   };
 
   // Redirect non-admins
@@ -764,6 +803,60 @@ export default function Admin() {
                 <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Wifi className="h-3 w-3 text-green-500" />
                   {getOnlineCount(selectedUser.screens)} online
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Broadcast Message */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Megaphone className="h-4 w-4" /> Broadcast Message
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Push a message to all {selectedUser.screens.length} screen{selectedUser.screens.length !== 1 ? "s" : ""} at once.
+                </p>
+                <div className="space-y-2">
+                  <textarea
+                    placeholder="Type your broadcast message…"
+                    value={broadcastMessage}
+                    onChange={(e) => setBroadcastMessage(e.target.value)}
+                    className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    rows={2}
+                  />
+                  <div className="flex items-center gap-2">
+                    <Select value={broadcastType} onValueChange={(v) => setBroadcastType(v as any)}>
+                      <SelectTrigger className="w-28 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="info">ℹ️ Info</SelectItem>
+                        <SelectItem value="warning">⚠️ Warning</SelectItem>
+                        <SelectItem value="alert">🚨 Alert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <Input
+                        type="number"
+                        min={5}
+                        max={300}
+                        value={broadcastDuration}
+                        onChange={(e) => setBroadcastDuration(Math.max(5, parseInt(e.target.value) || 30))}
+                        className="w-14 h-8 text-xs px-1 text-center"
+                      />
+                      <span>sec</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="ml-auto gap-1.5"
+                      disabled={!broadcastMessage.trim() || broadcastSending || selectedUser.screens.length === 0}
+                      onClick={handleSendBroadcast}
+                    >
+                      {broadcastSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                      Send
+                    </Button>
+                  </div>
                 </div>
               </div>
 

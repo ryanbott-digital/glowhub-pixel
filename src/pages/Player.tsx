@@ -120,6 +120,11 @@ export default function Player() {
   const [alertActive, setAlertActive] = useState(false);
   const alertTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // ── BROADCAST MESSAGE ──
+  const [broadcastMsg, setBroadcastMsg] = useState<{ message: string; type: string } | null>(null);
+  const broadcastTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [screenOwnerId, setScreenOwnerId] = useState<string | null>(null);
+
   // ── DOUBLE BUFFER SYSTEM ──
   // Buffer A and Buffer B each contain a <video> + <img>.
   // Active buffer: opacity 1, z-index 10
@@ -497,6 +502,25 @@ export default function Player() {
     };
   }, []);
 
+  // ── BROADCAST MESSAGE LISTENER ──
+  useEffect(() => {
+    if (!screenOwnerId) return;
+    const channel = supabase
+      .channel(`user-broadcast-${screenOwnerId}`)
+      .on("broadcast", { event: "screen-message" }, ({ payload }) => {
+        if (!payload?.message) return;
+        clearTimeout(broadcastTimerRef.current);
+        setBroadcastMsg({ message: payload.message, type: payload.type || "info" });
+        const dur = (payload.duration || 30) * 1000;
+        broadcastTimerRef.current = setTimeout(() => setBroadcastMsg(null), dur);
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+      clearTimeout(broadcastTimerRef.current);
+    };
+  }, [screenOwnerId]);
+
   // Offline duration counter + 60s threshold alert
   const thresholdFiredRef = useRef(false);
 
@@ -672,7 +696,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -697,6 +721,7 @@ export default function Player() {
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
       if ((screen as any).sync_layout) setSyncLayout((screen as any).sync_layout);
+      if ((screen as any).user_id) setScreenOwnerId((screen as any).user_id);
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
@@ -2492,6 +2517,42 @@ export default function Player() {
               100% { transform: translateX(-100%); }
             }
           `}</style>
+        </div>
+      )}
+
+      {/* Broadcast Message Overlay */}
+      {broadcastMsg && (
+        <div className="fixed top-0 left-0 right-0 z-[56] animate-in slide-in-from-top duration-500">
+          <div
+            className="w-full flex items-center gap-4 px-6 py-4"
+            style={{
+              background: broadcastMsg.type === "alert"
+                ? "linear-gradient(135deg, #DC2626, #991B1B)"
+                : broadcastMsg.type === "warning"
+                ? "linear-gradient(135deg, #D97706, #92400E)"
+                : "linear-gradient(135deg, #0891B2, #164E63)",
+              boxShadow: broadcastMsg.type === "alert"
+                ? "0 4px 30px rgba(220,38,38,0.5)"
+                : broadcastMsg.type === "warning"
+                ? "0 4px 30px rgba(217,119,6,0.4)"
+                : "0 4px 30px rgba(8,145,178,0.4)",
+            }}
+          >
+            <div className="shrink-0 text-2xl">
+              {broadcastMsg.type === "alert" ? "🚨" : broadcastMsg.type === "warning" ? "⚠️" : "ℹ️"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-lg leading-snug" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
+                {broadcastMsg.message}
+              </p>
+            </div>
+            <button
+              onClick={() => { clearTimeout(broadcastTimerRef.current); setBroadcastMsg(null); }}
+              className="shrink-0 p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <span className="text-white text-sm font-bold px-1">✕</span>
+            </button>
+          </div>
         </div>
       )}
 
