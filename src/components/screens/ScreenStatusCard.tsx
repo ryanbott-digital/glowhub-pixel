@@ -136,10 +136,35 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     toast.success(`Screen renamed to "${trimmed}"`);
   };
 
-  const updateScreenSetting = useCallback(async (updates: Partial<{ transition_type: string; crossfade_ms: number; loop_enabled: boolean; launch_on_boot: boolean }>) => {
+  const updateScreenSetting = useCallback(async (updates: Record<string, any>) => {
     const { error } = await supabase.from("screens").update(updates as any).eq("id", screen.id);
     if (error) toast.error("Failed to save setting");
   }, [screen.id]);
+
+  const searchRadioStations = useCallback((q: string) => {
+    setRadioQuery(q);
+    if (radioDebounce.current) clearTimeout(radioDebounce.current);
+    if (q.length < 2) { setRadioResults([]); return; }
+    radioDebounce.current = setTimeout(async () => {
+      setRadioSearching(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("radio-search", {
+          body: null,
+          headers: { "Content-Type": "application/json" },
+        });
+        // Use query params approach
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/radio-search?q=${encodeURIComponent(q)}&limit=15`,
+          { headers: { "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY } }
+        );
+        const json = await res.json();
+        setRadioResults(json.stations || []);
+      } catch {
+        setRadioResults([]);
+      }
+      setRadioSearching(false);
+    }, 400);
+  }, []);
 
   const isAlive = (() => {
     // Freshly paired screens with no heartbeat yet are considered alive
