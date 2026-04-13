@@ -54,6 +54,27 @@ export default function Dashboard() {
       }
     };
     fetchData();
+
+    const broadcastChannel = supabase
+      .channel("dashboard-broadcasts")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "screen_broadcasts",
+          filter: `target_user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const nb = payload.new as { id: string; message: string; broadcast_type: string; duration_seconds: number; created_at: string };
+          setBroadcasts((prev) => [nb, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(broadcastChannel);
+    };
   }, [user]);
 
   const triggerCelebration = useCallback((screenName?: string) => {
