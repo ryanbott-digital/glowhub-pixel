@@ -129,6 +129,9 @@ export default function Schedule() {
   const [showClipboard, setShowClipboard] = useState(false);
   const [patternSuggestion, setPatternSuggestion] = useState<{ block: ScheduleBlock; daysFound: number[] } | null>(null);
   const [draggingBlock, setDraggingBlock] = useState<{ block: ScheduleBlock; originDay: Date } | null>(null);
+  const [mediaSidebarOpen, setMediaSidebarOpen] = useState(false);
+  const [mediaSidebarSearch, setMediaSidebarSearch] = useState("");
+  const [mediaDragItem, setMediaDragItem] = useState<MediaItem | null>(null);
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
