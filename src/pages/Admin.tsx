@@ -134,6 +134,7 @@ export default function Admin() {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
+  const [bulkRestarting, setBulkRestarting] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -155,6 +156,25 @@ export default function Admin() {
       toast.error("Failed to send restart signal");
     }
     setTimeout(() => setScreenCommandLoading(null), 2000);
+  };
+
+  // Admin: restart all screens for a user
+  const handleRestartAllScreens = async (screens: AdminScreen[]) => {
+    const onlineScreens = screens.filter((s) => isOnline(s.last_ping));
+    if (onlineScreens.length === 0) { toast.error("No online screens to restart"); return; }
+    setBulkRestarting(true);
+    let sent = 0;
+    for (const screen of onlineScreens) {
+      try {
+        const channel = supabase.channel(`remote-refresh-${screen.id}`);
+        await channel.subscribe();
+        await channel.send({ type: "broadcast", event: "remote-refresh", payload: {} });
+        supabase.removeChannel(channel);
+        sent++;
+      } catch { /* continue */ }
+    }
+    toast.success(`Restart signal sent to ${sent} screen${sent !== 1 ? "s" : ""}`);
+    setBulkRestarting(false);
   };
 
   // Admin: unpair confirmation state
@@ -604,10 +624,36 @@ export default function Admin() {
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Monitor className="h-4 w-4" /> Screens
                   </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {selectedUser.screens.length} of {getUserScreenLimit(selectedUser)} used
-                    {selectedUser.screen_packs > 0 && ` (${selectedUser.screen_packs} pack${selectedUser.screen_packs !== 1 ? "s" : ""})`}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {selectedUser.screens.length > 1 && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" disabled={bulkRestarting || getOnlineCount(selectedUser.screens) === 0}>
+                            {bulkRestarting ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />}
+                            Restart All
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Restart All Screens</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will send a restart signal to all <span className="font-semibold text-foreground">{getOnlineCount(selectedUser.screens)} online</span> screen{getOnlineCount(selectedUser.screens) !== 1 ? "s" : ""} for {selectedUser.email}. Screens will briefly disconnect and reload.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleRestartAllScreens(selectedUser.screens)}>
+                              Restart {getOnlineCount(selectedUser.screens)} Screen{getOnlineCount(selectedUser.screens) !== 1 ? "s" : ""}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {selectedUser.screens.length} of {getUserScreenLimit(selectedUser)} used
+                      {selectedUser.screen_packs > 0 && ` (${selectedUser.screen_packs} pack${selectedUser.screen_packs !== 1 ? "s" : ""})`}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Health Alerts */}
