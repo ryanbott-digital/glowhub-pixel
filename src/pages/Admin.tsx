@@ -209,6 +209,41 @@ export default function Admin() {
     setScreenCommandLoading(null);
   };
 
+  /* ── Send broadcast to all user's screens ── */
+  const handleSendBroadcast = async () => {
+    if (!selectedUser || !broadcastMessage.trim()) return;
+    setBroadcastSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase.from("screen_broadcasts").insert({
+        target_user_id: selectedUser.id,
+        sent_by: user.id,
+        message: broadcastMessage.trim(),
+        broadcast_type: broadcastType,
+        duration_seconds: broadcastDuration,
+      } as any);
+      if (error) throw error;
+
+      await supabase.channel(`user-broadcast-${selectedUser.id}`).send({
+        type: "broadcast",
+        event: "screen-message",
+        payload: {
+          message: broadcastMessage.trim(),
+          type: broadcastType,
+          duration: broadcastDuration,
+        },
+      });
+
+      toast.success(`Broadcast sent to ${selectedUser.screens.length} screen(s)`);
+      setBroadcastMessage("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send broadcast");
+    }
+    setBroadcastSending(false);
+  };
+
   // Redirect non-admins
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
