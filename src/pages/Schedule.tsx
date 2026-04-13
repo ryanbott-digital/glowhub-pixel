@@ -1090,25 +1090,40 @@ export default function Schedule() {
                       )}
 
                       {/* Hour grid lines */}
-                      {HOURS.map((h) => (
+                      {HOURS.map((h) => {
+                        const isTouchTarget = touchDropHighlight && touchDropHighlight.day === day.toISOString() && touchDropHighlight.hour === h;
+                        return (
                         <div key={h} style={{ height: HOUR_HEIGHT }}
                           data-drop-day={day.toISOString()}
                           data-drop-hour={h}
-                          className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative`}
+                          className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative
+                            ${isTouchTarget ? "bg-[#00A3A3]/[0.08]" : ""}`}
                           onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
                           onDragOver={(e) => handleMediaDragOver(e, h)}
                           onDragLeave={handleMediaDragLeave}
                           onDrop={(e) => { handleMediaDragLeave(e); handleMediaDrop(day, h, e); }}
                         >
                           <div className="absolute left-0 right-0 border-b border-dashed border-[#1E293B]/10" style={{ top: HALF_HOUR_HEIGHT }} />
-                          {/* Drop indicator line */}
+                          {/* Touch drop highlight line */}
+                          {isTouchTarget && (
+                            <div
+                              className="absolute left-0 right-0 h-[2px] pointer-events-none z-20"
+                              style={{
+                                top: touchDropHighlight.offsetY,
+                                background: "linear-gradient(to right, #00E5CC, #3B82F6)",
+                                boxShadow: "0 0 10px rgba(0,229,204,0.7), 0 0 20px rgba(0,229,204,0.3)",
+                              }}
+                            />
+                          )}
+                          {/* Drop indicator line (desktop drag) */}
                           <div
                             data-drop-indicator
                             className="absolute left-0 right-0 h-[2px] pointer-events-none z-20 transition-opacity duration-100"
                             style={{ opacity: 0, background: "linear-gradient(to right, #00E5CC, #3B82F6)", boxShadow: "0 0 8px rgba(0,229,204,0.6)" }}
                           />
                         </div>
-                      ))}
+                        );
+                      })}
 
                       {/* Blocks */}
                       {dayBlocks.map((block, idx) => {
