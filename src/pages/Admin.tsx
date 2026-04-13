@@ -1196,6 +1196,30 @@ export default function Admin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Restart confirmation dialog */}
+      <AlertDialog open={!!restartTarget} onOpenChange={(open) => { if (!open) setRestartTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restart Screen</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send a remote restart signal to <span className="font-semibold text-foreground">"{restartTarget?.name}"</span>. The screen will reload its content.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (restartTarget) {
+                  handleAdminRestart(restartTarget.id, restartTarget.name);
+                  setRestartTarget(null);
+                }
+              }}
+            >
+              Restart Screen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
