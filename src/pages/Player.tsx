@@ -1157,6 +1157,18 @@ export default function Player() {
     return () => { window.removeEventListener("glow-hype-start", onHypeStart); window.removeEventListener("glow-hype-end", onHypeEnd); };
   }, [audioMuteOnHype, audioVolume]);
 
+  // Smart Ducking: lower radio to 10% when a video is playing
+  useEffect(() => {
+    if (!audioEnabled || !audioRef.current) return;
+    const currentItem = items[currentIndex];
+    const isVideo = currentItem?.media?.type?.startsWith("video");
+    if (isVideo) {
+      audioRef.current.volume = (audioVolume / 100) * 0.1;
+    } else {
+      audioRef.current.volume = audioVolume / 100;
+    }
+  }, [currentIndex, items, audioEnabled, audioVolume]);
+
   // Heartbeat: ping last_ping + current_media_id every 60s (battery-friendly)
   useEffect(() => {
     if (!screenId || !paired) return;
