@@ -55,13 +55,16 @@ const FAQ_DATA = [
   },
 ];
 
-const RETAIL_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  name: "Multi-Screen Retail Window Displays | Glow",
-  description: "Synchronize multiple Firestick-powered screens into one seamless video wall for retail storefronts. No proprietary hardware needed.",
-  url: "https://glowhub-pixel.lovable.app/solutions/retail",
-  mainEntity: {
+const RETAIL_JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Multi-Screen Retail Window Displays | Glow",
+    description: "Synchronize multiple Firestick-powered screens into one seamless video wall for retail storefronts. No proprietary hardware needed.",
+    url: "https://glowhub-pixel.lovable.app/solutions/retail",
+  },
+  {
+    "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: FAQ_DATA.map(f => ({
       "@type": "Question",
@@ -69,7 +72,7 @@ const RETAIL_JSON_LD = {
       acceptedAnswer: { "@type": "Answer", text: f.a }
     }))
   }
-};
+];
 
 const SAVINGS = [
   { label: "Video Wall Controller", legacy: "$2,000–$10,000", glow: "$0" },

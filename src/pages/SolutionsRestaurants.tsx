@@ -55,13 +55,16 @@ const FAQ_DATA = [
   },
 ];
 
-const RESTAURANT_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  name: "Digital Menu Boards for Restaurants | Glow",
-  description: "Turn any Firestick into a cloud-controlled digital menu board. Dynamic pricing, mood sync, and flash promos for restaurants and cafés.",
-  url: "https://glowhub-pixel.lovable.app/solutions/restaurants",
-  mainEntity: {
+const RESTAURANT_JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Digital Menu Boards for Restaurants | Glow",
+    description: "Turn any Firestick into a cloud-controlled digital menu board. Dynamic pricing, mood sync, and flash promos for restaurants and cafés.",
+    url: "https://glowhub-pixel.lovable.app/solutions/restaurants",
+  },
+  {
+    "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: FAQ_DATA.map(f => ({
       "@type": "Question",
@@ -69,7 +72,7 @@ const RESTAURANT_JSON_LD = {
       acceptedAnswer: { "@type": "Answer", text: f.a }
     }))
   }
-};
+];
 
 const SolutionsRestaurants = () => {
   const revealRef = useScrollReveal();

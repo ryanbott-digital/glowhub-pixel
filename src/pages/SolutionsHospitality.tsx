@@ -56,22 +56,25 @@ const FAQ_DATA = [
   },
 ];
 
-const HOSPITALITY_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  name: "Hotel & Venue Digital Signage | Glow",
-  description:
-    "Transform hotel lobbies and event venues with cloud-managed digital signage. Welcome screens, event boards, and wayfinding displays — 5-minute setup.",
-  url: "https://glowhub-pixel.lovable.app/solutions/hospitality",
-  mainEntity: {
+const HOSPITALITY_JSON_LD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Hotel & Venue Digital Signage | Glow",
+    description:
+      "Transform hotel lobbies and event venues with cloud-managed digital signage. Welcome screens, event boards, and wayfinding displays — 5-minute setup.",
+    url: "https://glowhub-pixel.lovable.app/solutions/hospitality",
+  },
+  {
+    "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: FAQ_DATA.map((f) => ({
       "@type": "Question",
       name: f.q,
       acceptedAnswer: { "@type": "Answer", text: f.a },
     })),
-  },
-};
+  }
+];
 
 const SolutionsHospitality = () => {
   const revealRef = useScrollReveal();

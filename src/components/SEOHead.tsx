@@ -4,7 +4,7 @@ interface SEOHeadProps {
   title: string;
   description: string;
   canonical?: string;
-  jsonLd?: Record<string, any>;
+  jsonLd?: Record<string, any> | Record<string, any>[];
   ogImage?: string;
 }
 
@@ -31,11 +31,11 @@ export function SEOHead({ title, description, canonical, jsonLd, ogImage }: SEOH
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
 
-      {jsonLd && (
-        <script type="application/ld+json">
-          {JSON.stringify(jsonLd)}
+      {jsonLd && (Array.isArray(jsonLd) ? jsonLd : [jsonLd]).map((ld, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(ld)}
         </script>
-      )}
+      ))}
     </Helmet>
   );
 }
