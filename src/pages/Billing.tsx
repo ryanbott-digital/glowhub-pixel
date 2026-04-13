@@ -268,28 +268,50 @@ export default function Billing() {
             <p className="text-xs text-muted-foreground">Update card, download invoices, manage subscription</p>
           </div>
 
-          {/* Screen Pack Add-on */}
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 space-y-3">
+          {/* Screen Pack Add-ons */}
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <Monitor className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Need More Screens?</h3>
-                <p className="text-xs text-muted-foreground">Add 5 extra screens to your account</p>
+                <p className="text-xs text-muted-foreground">Expand your screen capacity</p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Running out of screen slots? Purchase an additional <span className="text-primary font-medium">5-screen pack</span> for a one-time payment of <span className="text-primary font-bold">$9</span>. Stacks with any existing packs.
-            </p>
-            <Button
-              onClick={handleScreenPackCheckout}
-              disabled={screenPackLoading}
-              className="bg-gradient-to-r from-primary to-accent text-primary-foreground"
-            >
-              {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
-              Add 5 Screens — $9
-            </Button>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {/* Single Screen – $3/mo */}
+              <div className="rounded-xl border border-border/30 bg-card/50 p-4 space-y-2">
+                <p className="text-sm font-medium text-foreground">+1 Screen</p>
+                <p className="text-xs text-muted-foreground">$3/month subscription. Cancel anytime.</p>
+                <Button
+                  onClick={handleSingleScreenCheckout}
+                  disabled={singleScreenLoading}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  {singleScreenLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
+                  Add 1 Screen — $3/mo
+                </Button>
+              </div>
+
+              {/* 5-Screen Pack – $9 one-time */}
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                <p className="text-sm font-medium text-foreground">+5 Screens</p>
+                <p className="text-xs text-muted-foreground">One-time payment of $9. Permanent.</p>
+                <Button
+                  onClick={handleScreenPackCheckout}
+                  disabled={screenPackLoading}
+                  className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground"
+                  size="sm"
+                >
+                  {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
+                  Add 5 Screens — $9
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Screen Pack Purchase History */}
