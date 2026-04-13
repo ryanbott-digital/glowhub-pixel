@@ -1044,8 +1044,8 @@ export default function Schedule() {
           <div className="w-16 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
             {/* Gutter header spacer */}
             <div className="h-10 border-b border-[#1E293B]/40 shrink-0" />
-            <div ref={gutterScrollRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-hide" style={{ height: timelineHeight }} onScroll={handleGutterScroll}>
-              <div style={{ height: 24 * HOUR_HEIGHT }}>
+            <div ref={gutterScrollRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-hide relative" style={{ height: timelineHeight }} onScroll={handleGutterScroll}>
+              <div style={{ height: 24 * HOUR_HEIGHT }} className="relative">
                 {HOURS.map((h) => (
                   <div key={h} style={{ height: HOUR_HEIGHT }} className="relative">
                     <span className="absolute -top-2 right-3 text-[11px] text-[#475569] font-mono select-none">
@@ -1055,6 +1055,13 @@ export default function Schedule() {
                     <div className="absolute right-0 w-1.5 border-t border-[#1E293B]/15" style={{ top: HALF_HOUR_HEIGHT }} />
                   </div>
                 ))}
+                {/* NOW label in gutter */}
+                <div className="absolute left-0 right-0 z-30 pointer-events-none" style={{ top: currentTimeTop }}>
+                  <div className="absolute right-1 -top-[9px] bg-[#00E5CC] text-[#0B1120] text-[9px] font-bold px-1.5 py-0.5 rounded-sm shadow-[0_0_8px_rgba(0,229,204,0.5)] leading-none">
+                    NOW
+                  </div>
+                  <div className="h-[2px] bg-[#00E5CC] shadow-[0_0_8px_rgba(0,229,204,0.5)]" />
+                </div>
               </div>
             </div>
           </div>
