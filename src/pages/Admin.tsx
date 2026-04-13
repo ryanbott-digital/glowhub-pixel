@@ -243,9 +243,9 @@ export default function Admin() {
       toast.error(err.message || "Failed to send broadcast");
     }
   setBroadcastSending(false);
+  };
 
   /* ── Dismiss all active broadcasts for the selected user ── */
-  const [dismissingBroadcasts, setDismissingBroadcasts] = useState(false);
   const handleDismissAllBroadcasts = async () => {
     if (!selectedUser) return;
     setDismissingBroadcasts(true);
@@ -267,7 +267,6 @@ export default function Admin() {
       toast.error(err.message || "Failed to dismiss broadcasts");
     }
     setDismissingBroadcasts(false);
-  };
   };
 
   // Redirect non-admins
