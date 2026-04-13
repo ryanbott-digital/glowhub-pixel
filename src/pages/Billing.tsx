@@ -324,10 +324,10 @@ export default function Billing() {
             <Crown className="h-5 w-5 text-cyan-400" /> Why Go Pro?
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {["Up to 5 screens + expandable", "Weather & RSS widgets", "4K video support", "Advanced scheduling", "Priority support"].map((f) => (
+            {[EXPANDABLE_FEATURE, "Weather & RSS widgets", "4K video support", "Advanced scheduling", "Priority support"].map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm text-foreground">
                 <Check className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                {f}
+                <FeatureName name={f} />
               </li>
             ))}
           </ul>
@@ -366,7 +366,9 @@ export default function Billing() {
                 ) : (
                   <X className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
                 )}
-                <span className={f.free ? "text-foreground" : "text-muted-foreground/50"}>{f.name}</span>
+                <span className={f.free ? "text-foreground" : "text-muted-foreground/50"}>
+                  <FeatureName name={f.name} />
+                </span>
               </li>
             ))}
           </ul>
@@ -401,7 +403,7 @@ export default function Billing() {
             {FREE_FEATURES.map((f) => (
               <li key={f.name} className="flex items-center gap-2 text-sm">
                 <Check className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                <span className="text-foreground">{f.name}</span>
+                <span className="text-foreground"><FeatureName name={f.name} /></span>
               </li>
             ))}
           </ul>
