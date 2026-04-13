@@ -739,6 +739,11 @@ export default function Player() {
       if (screen.transition_type) setTransitionType(screen.transition_type);
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
+      setAudioEnabled((screen as any).audio_enabled === true);
+      setAudioStationUrl((screen as any).audio_station_url || null);
+      setAudioStationName((screen as any).audio_station_name || null);
+      setAudioVolume((screen as any).audio_volume ?? 80);
+      setAudioMuteOnHype((screen as any).audio_mute_on_hype !== false);
       if ((screen as any).sync_layout) setSyncLayout((screen as any).sync_layout);
       if ((screen as any).user_id) setScreenOwnerId((screen as any).user_id);
       setPaired(true);
