@@ -492,7 +492,33 @@ export default function Schedule() {
     setShowCreateDialog(true);
   };
 
-  /* ── Scroll to 8am on mount ── */
+  /* ── Drop media onto timeline slot ── */
+  const handleMediaDrop = async (day: Date, hour: number, e: React.DragEvent) => {
+    e.preventDefault();
+    const mediaId = e.dataTransfer.getData("application/glow-media-id");
+    if (!mediaId || !user || !selectedScreenId) return;
+    const item = media.find((m) => m.id === mediaId);
+    if (!item) return;
+
+    const startDate = new Date(day);
+    startDate.setHours(hour, 0, 0, 0);
+    const endDate = new Date(day);
+    endDate.setHours(hour + 1, 0, 0, 0);
+
+    const { error } = await supabase.from("schedule_blocks").insert({
+      screen_id: selectedScreenId, media_id: mediaId, playlist_id: null,
+      start_at: startDate.toISOString(), end_at: endDate.toISOString(),
+      block_type: "content", recurrence: "none", color_code: "teal",
+      priority: 0, label: item.name, user_id: user.id,
+    } as any);
+    if (error) { toast.error("Failed to create block"); return; }
+    hapticSuccess();
+    toast.success(`"${item.name}" scheduled at ${hour.toString().padStart(2, "0")}:00`);
+    setMediaDragItem(null);
+    fetchBlocks();
+  };
+
+
   useEffect(() => {
     const scrollTo8am = () => {
       if (gutterScrollRef.current) gutterScrollRef.current.scrollTop = 8 * HOUR_HEIGHT;
