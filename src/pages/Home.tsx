@@ -376,7 +376,7 @@ const Home = () => {
           <div className="flex items-center gap-6">
             <button onClick={() => scrollTo("process")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">How it works</button>
             <button onClick={() => scrollTo("features")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Features</button>
-            <button onClick={() => scrollTo("comparison")} className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
+            <button onClick={() => scrollTo("comparison")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
             <button onClick={() => scrollTo("pricing")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
             <div className="hidden sm:block relative group">
               <button className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors flex items-center gap-1">
@@ -391,12 +391,46 @@ const Home = () => {
             </div>
             <Link
               to="/auth"
-              className="text-sm font-medium px-5 py-2 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_20px_rgba(0,163,163,0.35)] transition-all"
+              className="hidden sm:inline text-sm font-medium px-5 py-2 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_20px_rgba(0,163,163,0.35)] transition-all"
             >
               Login
             </Link>
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 text-[#94A3B8] hover:text-[#E2E8F0] transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu panel */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-[#1E293B]/50 bg-[#0B1120]/95 backdrop-blur-xl px-6 py-4 space-y-1 animate-fade-in">
+            <button onClick={() => scrollTo("process")} className="block w-full text-left py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">How it works</button>
+            <button onClick={() => scrollTo("features")} className="block w-full text-left py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Features</button>
+            <button onClick={() => scrollTo("comparison")} className="block w-full text-left py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
+            <button onClick={() => scrollTo("pricing")} className="block w-full text-left py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
+            <div className="border-t border-[#1E293B]/50 pt-2 mt-2">
+              <p className="text-xs text-[#475569] uppercase tracking-wider mb-1">Solutions</p>
+              <Link to="/solutions/restaurants" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">Restaurants</Link>
+              <Link to="/solutions/retail" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">Retail</Link>
+              <Link to="/solutions/hospitality" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">Hospitality</Link>
+              <Link to="/use-cases" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">All Use Cases</Link>
+            </div>
+            <div className="pt-3">
+              <Link
+                to="/auth"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-center text-sm font-medium px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_20px_rgba(0,163,163,0.35)] transition-all"
+              >
+                Login
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ── Hero with mesh gradient ── */}
