@@ -154,7 +154,7 @@ export default function Schedule() {
   });
 
   /* Pinch-to-zoom for hour height */
-  const { value: HOUR_HEIGHT, setValue: setHourHeight, containerRef: pinchContainerRef } = usePinchZoom({
+  const { value: HOUR_HEIGHT, setValue: setHourHeight, containerRef: pinchContainerRef, isPinching } = usePinchZoom({
     min: 40, max: 160, initial: DEFAULT_HOUR_HEIGHT, step: 5, storageKey: "glow-schedule-zoom",
   });
   const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
@@ -937,6 +937,16 @@ export default function Schedule() {
         </div>
       ) : (
         <div ref={pinchContainerRef} className="flex-1 overflow-hidden flex touch-manipulation relative">
+          {/* Pinch zoom indicator (mobile) */}
+          {isPinching && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none sm:hidden animate-fade-in">
+              <div className="bg-background/80 backdrop-blur-md border border-border/60 rounded-xl px-4 py-2 shadow-lg">
+                <span className="text-sm font-mono font-semibold text-foreground">
+                  {Math.round((HOUR_HEIGHT / DEFAULT_HOUR_HEIGHT) * 100)}%
+                </span>
+              </div>
+            </div>
+          )}
           {/* Zoom controls */}
           <div className="absolute bottom-3 right-3 z-30 hidden sm:flex items-center gap-1 bg-[#0F1A2E]/90 backdrop-blur-sm border border-[#1E293B] rounded-lg p-1 shadow-lg">
             <button

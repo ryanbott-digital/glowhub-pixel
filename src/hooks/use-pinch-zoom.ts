@@ -19,6 +19,8 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
     }
     return initial;
   });
+  const [isPinching, setIsPinching] = useState(false);
+  const pinchFadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const initialDistance = useRef<number | null>(null);
   const initialValue = useRef(value);
@@ -64,6 +66,8 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         cancelInertia();
+        if (pinchFadeTimer.current) clearTimeout(pinchFadeTimer.current);
+        setIsPinching(true);
         initialDistance.current = getDistance(e.touches);
         initialValue.current = latestValue.current;
         lastScaleRef.current = 1;
@@ -108,6 +112,8 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
       }
+      // Fade out indicator after a delay
+      pinchFadeTimer.current = setTimeout(() => setIsPinching(false), 800);
 
       // Apply inertia if there's meaningful velocity
       const v = velocityRef.current;
@@ -160,5 +166,5 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
     };
   }, [clamp, step, min, max]);
 
-  return { value, setValue, containerRef };
+  return { value, setValue, containerRef, isPinching };
 }
