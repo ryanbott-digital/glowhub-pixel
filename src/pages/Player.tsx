@@ -502,6 +502,25 @@ export default function Player() {
     };
   }, []);
 
+  // ── BROADCAST MESSAGE LISTENER ──
+  useEffect(() => {
+    if (!screenOwnerId) return;
+    const channel = supabase
+      .channel(`user-broadcast-${screenOwnerId}`)
+      .on("broadcast", { event: "screen-message" }, ({ payload }) => {
+        if (!payload?.message) return;
+        clearTimeout(broadcastTimerRef.current);
+        setBroadcastMsg({ message: payload.message, type: payload.type || "info" });
+        const dur = (payload.duration || 30) * 1000;
+        broadcastTimerRef.current = setTimeout(() => setBroadcastMsg(null), dur);
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+      clearTimeout(broadcastTimerRef.current);
+    };
+  }, [screenOwnerId]);
+
   // Offline duration counter + 60s threshold alert
   const thresholdFiredRef = useRef(false);
 
