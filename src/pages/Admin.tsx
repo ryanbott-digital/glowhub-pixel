@@ -134,6 +134,7 @@ export default function Admin() {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
+  const [bulkRestarting, setBulkRestarting] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
