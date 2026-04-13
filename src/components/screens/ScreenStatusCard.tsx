@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2, Lock, Crown } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2, Lock, Crown, Monitor, Smartphone } from "lucide-react";
 import { Signal, SignalLow, SignalMedium, SignalZero } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
@@ -46,6 +46,7 @@ export interface ScreenStatusCardProps {
     audio_station_name?: string | null;
     audio_volume?: number;
     audio_mute_on_hype?: boolean;
+    orientation?: string;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
@@ -118,6 +119,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [audioStationName, setAudioStationName] = useState(screen.audio_station_name || "");
   const [audioVolume, setAudioVolume] = useState(screen.audio_volume ?? 80);
   const [audioMuteOnHype, setAudioMuteOnHype] = useState(screen.audio_mute_on_hype !== false);
+  const [orientation, setOrientation] = useState(screen.orientation || "landscape");
   const [radioQuery, setRadioQuery] = useState("");
   const [radioResults, setRadioResults] = useState<{ id: string; name: string; url: string; favicon: string | null; country: string | null; bitrate: number }[]>([]);
   const [radioSearching, setRadioSearching] = useState(false);
@@ -647,6 +649,43 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                 <ShieldCheck className="h-2.5 w-2.5" /> This screen will auto-launch Glow Player on device boot
               </p>
             )}
+          </div>
+
+          {/* Screen Orientation */}
+          <div className="space-y-2 rounded-xl bg-muted/30 p-3">
+            <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              <Monitor className="h-3 w-3 text-primary" /> Screen Orientation
+            </h4>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setOrientation("landscape");
+                  updateScreenSetting({ orientation: "landscape" } as any);
+                  toast.success("Orientation set to Landscape");
+                }}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
+                  orientation === "landscape"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <Monitor className="h-4 w-4" /> Landscape
+              </button>
+              <button
+                onClick={() => {
+                  setOrientation("portrait");
+                  updateScreenSetting({ orientation: "portrait" } as any);
+                  toast.success("Orientation set to Portrait");
+                }}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
+                  orientation === "portrait"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <Smartphone className="h-4 w-4" /> Portrait
+              </button>
+            </div>
           </div>
 
           {/* Background Audio — Pro Only */}
