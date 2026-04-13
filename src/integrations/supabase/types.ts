@@ -379,6 +379,47 @@ export type Database = {
         }
         Relationships: []
       }
+      remote_trigger_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          payload: string | null
+          screen_id: string
+          source_ip: string | null
+          toggled_off: boolean
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          payload?: string | null
+          screen_id: string
+          source_ip?: string | null
+          toggled_off?: boolean
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          payload?: string | null
+          screen_id?: string
+          source_ip?: string | null
+          toggled_off?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remote_trigger_logs_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule_blocks: {
         Row: {
           block_type: string
