@@ -4,7 +4,7 @@ interface SEOHeadProps {
   title: string;
   description: string;
   canonical?: string;
-  jsonLd?: Record<string, any>;
+  jsonLd?: Record<string, any> | Record<string, any>[];
   ogImage?: string;
 }
 
