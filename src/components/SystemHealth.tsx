@@ -263,37 +263,46 @@ export function SystemHealth() {
                 </div>
 
                 {/* Screenshot preview */}
-                {screen.last_screenshot_url && (
-                  <div className="ml-7 flex items-center gap-2">
-                    <a
-                      href={screen.last_screenshot_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group relative block w-32 aspect-video rounded-md overflow-hidden border border-border/50 hover:border-primary/40 transition-colors"
-                    >
-                      <img
-                        src={screen.last_screenshot_url}
-                        alt="Screen snapshot"
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          img.style.display = 'none';
-                          const placeholder = img.nextElementSibling as HTMLElement;
-                          if (placeholder) placeholder.style.display = 'flex';
-                        }}
-                      />
-                      <div className="hidden w-full h-full flex-col items-center justify-center bg-muted/30 gap-1">
+                <div className="ml-7 flex items-center gap-2">
+                  <div className="group relative block w-32 aspect-video rounded-md overflow-hidden border border-border/50 hover:border-primary/40 transition-colors">
+                    {screen.last_screenshot_url ? (
+                      <>
+                        <img
+                          src={screen.last_screenshot_url}
+                          alt="Screen snapshot"
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.style.display = 'none';
+                            const placeholder = img.nextElementSibling as HTMLElement;
+                            if (placeholder) placeholder.style.display = 'flex';
+                          }}
+                        />
+                        <div className="hidden absolute inset-0 w-full h-full flex-col items-center justify-center bg-muted/30 gap-1">
+                          <ImageOff className="h-5 w-5 text-muted-foreground/40" />
+                          <span className="text-[10px] text-muted-foreground/50">Tap Capture to retake</span>
+                        </div>
+                        <a
+                          href={screen.last_screenshot_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
+                        >
+                          <ExternalLink className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-muted/30 gap-1">
                         <ImageOff className="h-5 w-5 text-muted-foreground/40" />
-                        <span className="text-[10px] text-muted-foreground/50">Tap Capture to retake</span>
+                        <span className="text-[10px] text-muted-foreground/50">Tap Capture</span>
                       </div>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <ExternalLink className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </a>
-                    <span className="text-xs text-muted-foreground">Latest snapshot</span>
+                    )}
                   </div>
-                )}
+                  <span className="text-xs text-muted-foreground">
+                    {screen.last_screenshot_url ? "Latest snapshot" : "No snapshot yet"}
+                  </span>
+                </div>
               </div>
             );
           })}
