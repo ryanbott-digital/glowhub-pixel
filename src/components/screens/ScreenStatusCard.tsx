@@ -185,7 +185,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
       {/* Clickable top area — monitor + name */}
       <button
         type="button"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => { if (longPressTriggered.current) { longPressTriggered.current = false; return; } setExpanded((v) => !v); }}
         className="text-left w-full focus:outline-none"
       >
         {/* Mini-Monitor with Radiant Glow */}
