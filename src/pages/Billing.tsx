@@ -7,11 +7,33 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useSearchParams, Link } from "react-router-dom";
 
+const EXPANDABLE_FEATURE = "Up to 5 screens + expandable";
+const EXPANDABLE_TOOLTIP = "Add more screens anytime — $9 per 5-screen pack, one-time payment. Stacks with existing packs.";
+
+const FeatureName = ({ name }: { name: string }) => {
+  if (name !== EXPANDABLE_FEATURE) return <>{name}</>;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center gap-1 cursor-help">
+            {name}
+            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[220px] text-xs">
+          {EXPANDABLE_TOOLTIP}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 const FREE_FEATURES = [
   { name: "1 screen", free: true, pro: true },
   { name: "Basic media support", free: true, pro: true },
   { name: "Community support", free: true, pro: true },
-  { name: "Up to 5 screens + expandable", free: false, pro: true },
+  { name: EXPANDABLE_FEATURE, free: false, pro: true },
   { name: "Weather & RSS widgets", free: false, pro: true },
   { name: "4K video support", free: false, pro: true },
   { name: "Advanced scheduling", free: false, pro: true },
