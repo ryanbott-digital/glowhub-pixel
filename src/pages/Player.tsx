@@ -677,7 +677,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id")
         .eq("id", screenId)
         .maybeSingle();
 
