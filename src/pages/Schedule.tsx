@@ -1174,19 +1174,25 @@ export default function Schedule() {
       )}
 
       {/* ══════════ TOUCH DRAG GHOST ══════════ */}
-      {touchDragItem && touchDragPos && (
+      {(touchDragItem || touchDragPlaylist) && touchDragPos && (
         <div
-          className="fixed z-[100] pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl border border-[#00A3A3]/50 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_20px_rgba(0,229,204,0.3)]"
+          className={`fixed z-[100] pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl border backdrop-blur-xl ${
+            touchDragPlaylist ? "border-[#3B82F6]/50 bg-[#0F1A2E]/95 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00A3A3]/50 bg-[#0F1A2E]/95 shadow-[0_0_20px_rgba(0,229,204,0.3)]"
+          }`}
           style={{ left: touchDragPos.x - 60, top: touchDragPos.y - 24, minWidth: 120 }}
         >
           <div className="w-6 h-6 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
-            {touchDragItem.type === "video" ? (
+            {touchDragPlaylist ? (
+              <ListMusic className="h-3 w-3 text-[#60A5FA]" />
+            ) : touchDragItem?.type === "video" ? (
               <Film className="h-3 w-3 text-[#00E5CC]" />
             ) : (
               <Image className="h-3 w-3 text-[#60A5FA]" />
             )}
           </div>
-          <span className="text-[11px] font-medium text-[#00E5CC] truncate max-w-[100px]">{touchDragItem.name}</span>
+          <span className={`text-[11px] font-medium truncate max-w-[100px] ${touchDragPlaylist ? "text-[#60A5FA]" : "text-[#00E5CC]"}`}>
+            {touchDragPlaylist?.title || touchDragItem?.name}
+          </span>
         </div>
       )}
 
