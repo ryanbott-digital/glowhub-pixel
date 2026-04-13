@@ -646,7 +646,33 @@ export default function Schedule() {
     if (!touchDragItem && !touchDragPlaylist) return;
     const onMove = (e: TouchEvent) => {
       e.preventDefault();
-      setTouchDragPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      setTouchDragPos({ x, y });
+      // Find cell under finger for highlight
+      const el = document.elementFromPoint(x, y) as HTMLElement | null;
+      let target = el;
+      let dayStr: string | null = null;
+      let hourStr: string | null = null;
+      while (target && !dayStr) {
+        dayStr = target.getAttribute("data-drop-day");
+        hourStr = target.getAttribute("data-drop-hour");
+        target = target.parentElement;
+      }
+      if (dayStr && hourStr) {
+        const cell = document.querySelector(`[data-drop-day="${dayStr}"][data-drop-hour="${hourStr}"]`) as HTMLElement;
+        let snapY = 0;
+        if (cell) {
+          const rect = cell.getBoundingClientRect();
+          const rawY = y - rect.top;
+          const snapPx = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
+          snapY = Math.round(rawY / snapPx) * snapPx;
+          snapY = Math.max(0, Math.min(HOUR_HEIGHT - snapPx, snapY));
+        }
+        setTouchDropHighlight({ day: dayStr, hour: parseInt(hourStr), offsetY: snapY });
+      } else {
+        setTouchDropHighlight(null);
+      }
     };
     const onEnd = async (e: TouchEvent) => {
       const endX = e.changedTouches[0].clientX;
