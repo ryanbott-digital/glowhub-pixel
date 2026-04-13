@@ -219,15 +219,26 @@ export default function UseCase() {
 
   const Icon = data.icon;
 
-  const useCaseJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: data.faq.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
+  const useCaseJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: data.faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://glowhub-pixel.lovable.app/home" },
+        { "@type": "ListItem", position: 2, name: "Use Cases", item: "https://glowhub-pixel.lovable.app/use-cases" },
+        { "@type": "ListItem", position: 3, name: data.h1, item: `https://glowhub-pixel.lovable.app/use-cases/${slug}` },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0B1120] text-[#E2E8F0]">
