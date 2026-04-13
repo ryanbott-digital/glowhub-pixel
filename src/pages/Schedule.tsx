@@ -787,7 +787,7 @@ export default function Schedule() {
 
             {/* Scrollable columns body — synced with gutter */}
             <div ref={columnsScrollRef} className="flex-1 overflow-auto" onScroll={handleColumnsScroll}>
-              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 180}px` : "100%", height: 24 * HOUR_HEIGHT }}>
+              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%", height: 24 * HOUR_HEIGHT }}>
                 {days.map((day, dayIdx) => {
                   const dayBlocks = expandedBlocks.filter((b) => isSameDay(new Date(b.start_at), day));
                   const isToday = isSameDay(day, new Date());
@@ -795,7 +795,7 @@ export default function Schedule() {
 
                   return (
                     <div key={day.toISOString()}
-                      className={`flex-1 min-w-[160px] relative
+                      className={`flex-1 min-w-[100px] sm:min-w-[160px] relative
                         ${dayIdx < days.length - 1 ? "border-r border-[#1E293B]/20" : ""}
                         ${isToday ? "bg-[#00A3A3]/[0.03]" : ""}
                         ${isDragTarget ? "bg-[#00A3A3]/[0.04]" : ""}`}
