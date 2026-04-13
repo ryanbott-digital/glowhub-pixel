@@ -936,7 +936,7 @@ export default function Schedule() {
 
       {/* ══════════ CREATE DIALOG ══════════ */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-lg">
+        <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-lg max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-[#00E5CC]" /> New Schedule Block</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
