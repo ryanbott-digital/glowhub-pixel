@@ -38,20 +38,16 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  // Check if a subscription contains the single-screen price
   const isSingleScreenSub = (subscription: Stripe.Subscription): boolean => {
     return subscription.items.data.some(
       (item) => item.price.id === SINGLE_SCREEN_PRICE_ID
     );
   };
 
-  // Get user id from subscription metadata or customer id
   const getUserIdFromSubscription = async (subscription: Stripe.Subscription): Promise<string | null> => {
-    // Try metadata first
     if (subscription.metadata?.supabase_user_id) {
       return subscription.metadata.supabase_user_id;
     }
-    // Fallback: look up by stripe_customer_id
     const customerId = subscription.customer as string;
     const { data } = await supabase
       .from("profiles")
@@ -71,8 +67,6 @@ serve(async (req) => {
         logStep("No user found for single screen sub", { customerId });
         return;
       }
-
-      const isActive = subscription.status === "active" || subscription.status === "trialing";
 
       // Count all active single-screen subscriptions for this customer
       const allSubs = await stripe.subscriptions.list({
@@ -101,34 +95,44 @@ serve(async (req) => {
     // Handle main Pro/Enterprise subscription
     const status = subscription.status;
     const tier = subscription.metadata?.tier || "pro";
+    const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+    const periodEnd = subscription.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : null;
 
     let subscriptionTier = "free";
     let subscriptionStatus = "free";
 
     if (status === "active" || status === "trialing") {
+      // Subscription is still active — user keeps access even if cancel_at_period_end is true
       subscriptionTier = tier;
-      subscriptionStatus = "active";
+      subscriptionStatus = cancelAtPeriodEnd ? "canceling" : "active";
     } else if (status === "past_due") {
       subscriptionTier = tier;
       subscriptionStatus = "past_due";
     } else {
+      // Subscription fully ended (canceled, unpaid, etc.)
       subscriptionTier = "free";
       subscriptionStatus = "free";
     }
 
+    const updatePayload: Record<string, unknown> = {
+      subscription_status: subscriptionStatus,
+      subscription_tier: subscriptionTier,
+      cancel_at_period_end: cancelAtPeriodEnd,
+      subscription_end: periodEnd,
+      updated_at: new Date().toISOString(),
+    };
+
     const { error } = await supabase
       .from("profiles")
-      .update({
-        subscription_status: subscriptionStatus,
-        subscription_tier: subscriptionTier,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("stripe_customer_id", customerId);
 
     if (error) {
       logStep("Error updating profile", { error });
     } else {
-      logStep("Profile updated", { customerId, subscriptionTier, subscriptionStatus });
+      logStep("Profile updated", { customerId, subscriptionTier, subscriptionStatus, cancelAtPeriodEnd, periodEnd });
     }
   };
 
@@ -144,7 +148,6 @@ serve(async (req) => {
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         );
-        // Store user ID in subscription metadata for future webhook events
         if (session.metadata?.supabase_user_id && !subscription.metadata?.supabase_user_id) {
           await stripe.subscriptions.update(subscription.id, {
             metadata: { supabase_user_id: session.metadata.supabase_user_id, type: session.metadata.type || "" },
