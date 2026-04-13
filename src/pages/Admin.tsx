@@ -139,6 +139,8 @@ export default function Admin() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [activityLogs, setActivityLogs] = useState<{ id: string; action: string; screen_id: string; playlist_title: string | null; created_at: string }[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
+  const [activityScreenFilter, setActivityScreenFilter] = useState("all");
+  const [activityActionFilter, setActivityActionFilter] = useState("all");
 
   // Admin: remote restart a screen via broadcast
   const handleAdminRestart = async (screenId: string, screenName: string) => {
