@@ -759,13 +759,13 @@ export default function Schedule() {
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Fixed column headers */}
             <div className="flex shrink-0 border-b border-[#1E293B]/40 overflow-x-auto" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
-              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 180}px` : "100%" }}>
+              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%" }}>
                 {days.map((day) => {
                   const isToday = isSameDay(day, new Date());
                   const isDragTarget = draggingBlock && !isSameDay(draggingBlock.originDay, day);
                   return (
                     <div key={day.toISOString()}
-                      className={`flex-1 min-w-[160px] h-10 flex items-center justify-center text-xs font-semibold transition-all relative
+                      className={`flex-1 min-w-[100px] sm:min-w-[160px] h-10 flex items-center justify-center text-xs font-semibold transition-all relative
                         ${isToday ? "text-[#00E5CC] bg-[#00A3A3]/8 border-b-2 border-[#00E5CC]" : "text-[#94A3B8]"}
                         ${isDragTarget ? "bg-[#00A3A3]/10" : ""}`}
                       onClick={() => {
