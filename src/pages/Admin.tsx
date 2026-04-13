@@ -158,6 +158,25 @@ export default function Admin() {
     setTimeout(() => setScreenCommandLoading(null), 2000);
   };
 
+  // Admin: restart all screens for a user
+  const handleRestartAllScreens = async (screens: AdminScreen[]) => {
+    const onlineScreens = screens.filter((s) => isOnline(s.last_ping));
+    if (onlineScreens.length === 0) { toast.error("No online screens to restart"); return; }
+    setBulkRestarting(true);
+    let sent = 0;
+    for (const screen of onlineScreens) {
+      try {
+        const channel = supabase.channel(`remote-refresh-${screen.id}`);
+        await channel.subscribe();
+        await channel.send({ type: "broadcast", event: "remote-refresh", payload: {} });
+        supabase.removeChannel(channel);
+        sent++;
+      } catch { /* continue */ }
+    }
+    toast.success(`Restart signal sent to ${sent} screen${sent !== 1 ? "s" : ""}`);
+    setBulkRestarting(false);
+  };
+
   // Admin: unpair confirmation state
   const [unpairTarget, setUnpairTarget] = useState<{ id: string; name: string } | null>(null);
 
