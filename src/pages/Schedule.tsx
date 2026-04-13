@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
+import { SwipeToDelete } from "@/components/SwipeToDelete";
 
 /* ──────── Types ──────── */
 interface Screen { id: string; name: string; status: string; }
@@ -1092,52 +1093,58 @@ export default function Schedule() {
                         const isCompact = viewMode === "week";
 
                         return (
-                          <div key={`${block.id}-${idx}`} id={`resize-block-${block.id}`}
-                            className={`absolute rounded-xl border backdrop-blur-sm cursor-pointer transition-shadow group
-                              ${colors.bg} ${colors.border} ${colors.glow}
-                              ${hasOverlap ? "ring-1 ring-[#FF003C]/50" : ""}
-                              ${block.block_type === "blackout" ? "opacity-70" : ""}
-                              ${draggingBlock?.block.id === block.id ? "opacity-40 pointer-events-none" : ""}`}
+                          <SwipeToDelete
+                            key={`${block.id}-${idx}`}
+                            onDelete={() => handleDeleteBlock(block.id)}
+                            className="absolute rounded-xl"
                             style={{ top, height, minHeight: 24, zIndex: 10 + block.priority, left: isCompact ? 4 : 8, right: isCompact ? 4 : 8 }}
-                            onClick={(e) => { e.stopPropagation(); setEditBlock(block); }}
                           >
-                            <div className={`overflow-hidden h-full flex gap-1.5 ${isCompact ? "px-1.5 py-1" : "px-2.5 py-1.5"}`}>
-                              {/* Thumbnail */}
-                              {showThumb && height > 40 && !isCompact && (
-                                <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                                  <img src={getStorageUrl(mediaPath)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                            <div id={`resize-block-${block.id}`}
+                              className={`w-full h-full rounded-xl border backdrop-blur-sm cursor-pointer transition-shadow group
+                                ${colors.bg} ${colors.border} ${colors.glow}
+                                ${hasOverlap ? "ring-1 ring-[#FF003C]/50" : ""}
+                                ${block.block_type === "blackout" ? "opacity-70" : ""}
+                                ${draggingBlock?.block.id === block.id ? "opacity-40 pointer-events-none" : ""}`}
+                              onClick={(e) => { e.stopPropagation(); setEditBlock(block); }}
+                            >
+                              <div className={`overflow-hidden h-full flex gap-1.5 ${isCompact ? "px-1.5 py-1" : "px-2.5 py-1.5"}`}>
+                                {/* Thumbnail */}
+                                {showThumb && height > 40 && !isCompact && (
+                                  <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                    <img src={getStorageUrl(mediaPath)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0 flex flex-col">
+                                  <div className="flex items-center gap-1">
+                                    {block.block_type === "blackout" && <Moon className="h-3 w-3 shrink-0" />}
+                                    {block.block_type === "hype_override" && <Zap className="h-3 w-3 shrink-0 animate-pulse" />}
+                                    {block.block_type === "content" && isVideo && <Film className="h-3 w-3 shrink-0" />}
+                                    {block.block_type === "content" && !isVideo && block.media_id && <Image className="h-3 w-3 shrink-0" />}
+                                    <span className={`font-semibold truncate ${colors.text} ${isCompact ? "text-[10px]" : "text-[11px]"}`}>
+                                      {block.label || getMediaName(block.media_id) || getPlaylistName(block.playlist_id) || block.block_type}
+                                    </span>
+                                  </div>
+                                  {height > 36 && (
+                                    <span className="text-[10px] text-[#64748B] mt-0.5">
+                                      {format(new Date(block.start_at), "HH:mm")} – {format(new Date(block.end_at), "HH:mm")}
+                                    </span>
+                                  )}
+                                  {height > 56 && block.recurrence !== "none" && !isCompact && (
+                                    <Badge variant="outline" className="text-[8px] px-1 py-0 mt-0.5 w-fit border-[#475569]/40 text-[#64748B]">↻ {block.recurrence}</Badge>
+                                  )}
+                                  {hasOverlap && height > 48 && !isCompact && (
+                                    <span className="text-[8px] text-[#FF4466] flex items-center gap-0.5 mt-0.5"><AlertTriangle className="h-2.5 w-2.5" /> Overlap</span>
+                                  )}
                                 </div>
-                              )}
-                              <div className="flex-1 min-w-0 flex flex-col">
-                                <div className="flex items-center gap-1">
-                                  {block.block_type === "blackout" && <Moon className="h-3 w-3 shrink-0" />}
-                                  {block.block_type === "hype_override" && <Zap className="h-3 w-3 shrink-0 animate-pulse" />}
-                                  {block.block_type === "content" && isVideo && <Film className="h-3 w-3 shrink-0" />}
-                                  {block.block_type === "content" && !isVideo && block.media_id && <Image className="h-3 w-3 shrink-0" />}
-                                  <span className={`font-semibold truncate ${colors.text} ${isCompact ? "text-[10px]" : "text-[11px]"}`}>
-                                    {block.label || getMediaName(block.media_id) || getPlaylistName(block.playlist_id) || block.block_type}
-                                  </span>
-                                </div>
-                                {height > 36 && (
-                                  <span className="text-[10px] text-[#64748B] mt-0.5">
-                                    {format(new Date(block.start_at), "HH:mm")} – {format(new Date(block.end_at), "HH:mm")}
-                                  </span>
-                                )}
-                                {height > 56 && block.recurrence !== "none" && !isCompact && (
-                                  <Badge variant="outline" className="text-[8px] px-1 py-0 mt-0.5 w-fit border-[#475569]/40 text-[#64748B]">↻ {block.recurrence}</Badge>
-                                )}
-                                {hasOverlap && height > 48 && !isCompact && (
-                                  <span className="text-[8px] text-[#FF4466] flex items-center gap-0.5 mt-0.5"><AlertTriangle className="h-2.5 w-2.5" /> Overlap</span>
-                                )}
+                              </div>
+                              {/* Resize handle — larger touch target on mobile */}
+                              <div className="absolute bottom-0 left-0 right-0 h-5 sm:h-3 flex items-center justify-center cursor-s-resize sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity touch-none"
+                                onMouseDown={(e) => handleResizeStart(e, block, height)}
+                                onTouchStart={(e) => handleResizeStart(e, block, height)}>
+                                <GripHorizontal className="h-3 w-3 text-muted-foreground" />
                               </div>
                             </div>
-                            {/* Resize handle — larger touch target on mobile */}
-                            <div className="absolute bottom-0 left-0 right-0 h-5 sm:h-3 flex items-center justify-center cursor-s-resize sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity touch-none"
-                              onMouseDown={(e) => handleResizeStart(e, block, height)}
-                              onTouchStart={(e) => handleResizeStart(e, block, height)}>
-                              <GripHorizontal className="h-3 w-3 text-muted-foreground" />
-                            </div>
-                          </div>
+                          </SwipeToDelete>
                         );
                       })}
 
