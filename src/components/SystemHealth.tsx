@@ -283,8 +283,9 @@ export function SystemHealth() {
                           if (placeholder) placeholder.style.display = 'flex';
                         }}
                       />
-                      <div className="hidden w-full h-full items-center justify-center bg-muted/30">
+                      <div className="hidden w-full h-full flex-col items-center justify-center bg-muted/30 gap-1">
                         <ImageOff className="h-5 w-5 text-muted-foreground/40" />
+                        <span className="text-[10px] text-muted-foreground/50">Tap Capture to retake</span>
                       </div>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                         <ExternalLink className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
