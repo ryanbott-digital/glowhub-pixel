@@ -947,6 +947,8 @@ export default function Schedule() {
                       {/* Hour grid lines */}
                       {HOURS.map((h) => (
                         <div key={h} style={{ height: HOUR_HEIGHT }}
+                          data-drop-day={day.toISOString()}
+                          data-drop-hour={h}
                           className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative`}
                           onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
                           onDragOver={(e) => handleMediaDragOver(e, h)}
