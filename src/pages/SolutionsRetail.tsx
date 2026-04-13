@@ -71,7 +71,16 @@ const RETAIL_JSON_LD = [
       name: f.q,
       acceptedAnswer: { "@type": "Answer", text: f.a }
     }))
-  }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://glowhub-pixel.lovable.app/home" },
+      { "@type": "ListItem", position: 2, name: "Solutions", item: "https://glowhub-pixel.lovable.app/use-cases" },
+      { "@type": "ListItem", position: 3, name: "Retail", item: "https://glowhub-pixel.lovable.app/solutions/retail" },
+    ],
+  },
 ];
 
 const SAVINGS = [
