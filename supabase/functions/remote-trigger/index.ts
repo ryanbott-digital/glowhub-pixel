@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Verify the device belongs to this user
     const { data: screen, error: screenError } = await supabase
       .from("screens")
-      .select("id, name, user_id")
+      .select("id, name, user_id, last_remote_trigger, current_playlist_id, current_media_id")
       .eq("hardware_uuid", device)
       .eq("user_id", apiKeyRow.user_id)
       .maybeSingle();
@@ -65,15 +65,28 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Execute the action
-    let updateData: Record<string, unknown> = {
-      last_remote_trigger: new Date().toISOString(),
-    };
+    // Toggle logic: if triggered within 5 seconds, treat as "toggle off"
+    const now = new Date();
+    const lastTrigger = screen.last_remote_trigger ? new Date(screen.last_remote_trigger) : null;
+    const isToggleOff = lastTrigger && (now.getTime() - lastTrigger.getTime()) < 5000;
 
-    if (action === "play_playlist" && payload) {
-      updateData.current_playlist_id = payload;
-    } else if (action === "play_media" && payload) {
-      updateData.current_media_id = payload;
+    let updateData: Record<string, unknown> = {
+      last_remote_trigger: now.toISOString(),
+    };
+    let resultAction = action;
+
+    if (isToggleOff) {
+      // Revert to default schedule — clear overrides
+      updateData.current_playlist_id = null;
+      updateData.current_media_id = null;
+      resultAction = "toggle_off";
+    } else {
+      // Apply the requested action
+      if (action === "play_playlist" && payload) {
+        updateData.current_playlist_id = payload;
+      } else if (action === "play_media" && payload) {
+        updateData.current_media_id = payload;
+      }
     }
 
     const { error: updateError } = await supabase
@@ -91,9 +104,12 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Command '${action}' sent to screen '${screen.name}'`,
+        toggled_off: !!isToggleOff,
+        message: isToggleOff
+          ? `Screen '${screen.name}' returned to default schedule`
+          : `Command '${action}' sent to screen '${screen.name}'`,
         screen_id: screen.id,
-        timestamp: new Date().toISOString(),
+        timestamp: now.toISOString(),
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

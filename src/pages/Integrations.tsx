@@ -234,7 +234,7 @@ export default function Integrations() {
             Trigger Builder
           </CardTitle>
           <CardDescription>
-            Select a screen and action, then copy the generated URL for your Stream Deck or automation tool.
+            Select a screen and action, then copy the URL for your Stream Deck. Hit the same URL twice within 5 seconds to toggle off and return to the default schedule.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
