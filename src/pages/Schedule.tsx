@@ -112,6 +112,7 @@ function getStorageUrl(path: string): string {
 /* ══════════════════════════════════════════════════════════════ */
 export default function Schedule() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [selectedScreenId, setSelectedScreenId] = useState("");
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
