@@ -101,6 +101,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Log the trigger event (fire-and-forget, don't block response)
+    const sourceIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") || "unknown";
+    supabase.from("remote_trigger_logs").insert({
+      user_id: apiKeyRow.user_id,
+      screen_id: screen.id,
+      action: resultAction,
+      payload: payload || null,
+      toggled_off: !!isToggleOff,
+      source_ip: sourceIp,
+    }).then(() => {});
+
     return new Response(
       JSON.stringify({
         success: true,
