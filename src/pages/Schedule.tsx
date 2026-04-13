@@ -1069,7 +1069,24 @@ export default function Schedule() {
         </div>
       )}
 
-      {/* ══════════ CREATE DIALOG ══════════ */}
+      {/* ══════════ TOUCH DRAG GHOST ══════════ */}
+      {touchDragItem && touchDragPos && (
+        <div
+          className="fixed z-[100] pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl border border-[#00A3A3]/50 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_20px_rgba(0,229,204,0.3)]"
+          style={{ left: touchDragPos.x - 60, top: touchDragPos.y - 24, minWidth: 120 }}
+        >
+          <div className="w-6 h-6 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+            {touchDragItem.type === "video" ? (
+              <Film className="h-3 w-3 text-[#00E5CC]" />
+            ) : (
+              <Image className="h-3 w-3 text-[#60A5FA]" />
+            )}
+          </div>
+          <span className="text-[11px] font-medium text-[#00E5CC] truncate max-w-[100px]">{touchDragItem.name}</span>
+        </div>
+      )}
+
+
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-lg max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-[#00E5CC]" /> New Schedule Block</DialogTitle></DialogHeader>
