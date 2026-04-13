@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2, Monitor, Wifi, WifiOff, AlertTriangle, CreditCard, Plus, ChevronRight, Package, Image, RotateCcw, Unplug } from "lucide-react";
+import { Shield, Users, Crown, Mail, Calendar, Megaphone, Trash2, ExternalLink, Reply, Clock, Infinity, Smartphone, Save, Loader2, Monitor, Wifi, WifiOff, AlertTriangle, CreditCard, Plus, ChevronRight, Package, Image, RotateCcw, Unplug, Activity } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -137,6 +137,8 @@ export default function Admin() {
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activityLogs, setActivityLogs] = useState<{ id: string; action: string; screen_id: string; playlist_title: string | null; created_at: string }[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   // Admin: remote restart a screen via broadcast
   const handleAdminRestart = async (screenId: string, screenName: string) => {
@@ -481,7 +483,16 @@ export default function Admin() {
                 <div
                   key={user.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card cursor-pointer hover:border-primary/40 transition-colors"
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setActivityLogs([]);
+                    setActivityLoading(true);
+                    const screenIds = user.screens.map((s) => s.id);
+                    if (screenIds.length === 0) { setActivityLoading(false); return; }
+                    supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
+                      .in("screen_id", screenIds).order("created_at", { ascending: false }).limit(25)
+                      .then(({ data }) => { setActivityLogs(data ?? []); setActivityLoading(false); });
+                  }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="min-w-0">
@@ -750,6 +761,39 @@ export default function Admin() {
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-muted-foreground">
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-500 inline mr-1" />
                     Cannot charge — user has no Stripe payment method linked. They need to subscribe or visit the billing portal first.
+                  </div>
+                )}
+              </div>
+
+              {/* Activity Log */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Activity className="h-4 w-4" /> Recent Screen Activity
+                </h3>
+                {activityLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading activity…</p>
+                ) : activityLogs.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No recent activity</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
+                    {activityLogs.map((log) => {
+                      const screen = selectedUser?.screens.find((s) => s.id === log.screen_id);
+                      return (
+                        <div key={log.id} className="flex items-start gap-2 p-2 rounded-lg border bg-muted/30 text-xs">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <span className="font-medium text-foreground">{log.action}</span>
+                            {log.playlist_title && (
+                              <span className="text-muted-foreground"> — {log.playlist_title}</span>
+                            )}
+                            <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
+                              <span className="flex items-center gap-1"><Monitor className="h-2.5 w-2.5" />{screen?.name || "Unknown"}</span>
+                              <span>{timeAgo(log.created_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
