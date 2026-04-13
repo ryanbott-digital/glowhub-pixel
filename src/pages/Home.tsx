@@ -461,6 +461,7 @@ const Home = () => {
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-[0.1em] leading-[1.05] mb-6 uppercase font-['Satoshi',system-ui,sans-serif]">
+              <span className="sr-only">Pro Digital Signage for Modern Business — </span>
               Your Content.<br /> Any Screen.{" "}
               <br />
               <span className="inline-block">

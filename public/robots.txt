@@ -3,6 +3,8 @@ Allow: /home
 Allow: /download
 Allow: /terms
 Allow: /use-cases/
+Allow: /solutions/
+Allow: /compare/
 Disallow: /admin
 Disallow: /player
 Disallow: /display/
@@ -26,6 +28,8 @@ Allow: /home
 Allow: /download
 Allow: /terms
 Allow: /use-cases/
+Allow: /solutions/
+Allow: /compare/
 Disallow: /admin
 Disallow: /player
 Disallow: /display/
@@ -49,6 +53,8 @@ Allow: /home
 Allow: /download
 Allow: /terms
 Allow: /use-cases/
+Allow: /solutions/
+Allow: /compare/
 Disallow: /admin
 Disallow: /player
 Disallow: /display/

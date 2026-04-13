@@ -43,6 +43,7 @@ const SolutionsHospitality = lazy(() => import("./pages/SolutionsHospitality"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Integrations = lazy(() => import("./pages/Integrations"));
 const Solutions = lazy(() => import("./pages/Solutions"));
+const CompareOptiSigns = lazy(() => import("./pages/CompareOptiSigns"));
 
 const queryClient = new QueryClient();
 
@@ -144,6 +145,7 @@ const App = () => (
               <Route path="/solutions/restaurants" element={<SolutionsRestaurants />} />
               <Route path="/solutions/retail" element={<SolutionsRetail />} />
               <Route path="/solutions/hospitality" element={<SolutionsHospitality />} />
+              <Route path="/compare/optisigns-alternative" element={<CompareOptiSigns />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
