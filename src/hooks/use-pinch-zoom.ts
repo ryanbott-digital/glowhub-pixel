@@ -8,7 +8,7 @@ interface UsePinchZoomOptions {
   storageKey?: string;
 }
 
-export function usePinchZoom({ min, max, initial, step = 5, storageKey }: UsePinchZoomOptions) {
+export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePinchZoomOptions) {
   const [value, setValue] = useState(() => {
     if (storageKey) {
       const stored = localStorage.getItem(storageKey);
@@ -22,12 +22,21 @@ export function usePinchZoom({ min, max, initial, step = 5, storageKey }: UsePin
   const containerRef = useRef<HTMLDivElement>(null);
   const initialDistance = useRef<number | null>(null);
   const initialValue = useRef(value);
+  const rafId = useRef<number | null>(null);
+  const latestValue = useRef(value);
 
   const clamp = useCallback((v: number) => Math.min(max, Math.max(min, v)), [min, max]);
 
-  // Persist to localStorage
+  // Keep ref in sync with state
   useEffect(() => {
-    if (storageKey) localStorage.setItem(storageKey, String(value));
+    latestValue.current = value;
+  }, [value]);
+
+  // Persist to localStorage (debounced)
+  useEffect(() => {
+    if (!storageKey) return;
+    const id = setTimeout(() => localStorage.setItem(storageKey, String(value)), 200);
+    return () => clearTimeout(id);
   }, [value, storageKey]);
 
   useEffect(() => {
@@ -44,7 +53,7 @@ export function usePinchZoom({ min, max, initial, step = 5, storageKey }: UsePin
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         initialDistance.current = getDistance(e.touches);
-        initialValue.current = value;
+        initialValue.current = latestValue.current;
       }
     };
 
@@ -53,13 +62,28 @@ export function usePinchZoom({ min, max, initial, step = 5, storageKey }: UsePin
         e.preventDefault();
         const dist = getDistance(e.touches);
         const scale = dist / initialDistance.current;
-        const newVal = clamp(Math.round(initialValue.current * scale / step) * step);
-        setValue(newVal);
+        const raw = initialValue.current * scale;
+        const snapped = step > 1 ? Math.round(raw / step) * step : Math.round(raw);
+        const clamped = clamp(snapped);
+
+        // Only update via rAF to avoid layout thrashing
+        if (clamped !== latestValue.current) {
+          if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+          rafId.current = requestAnimationFrame(() => {
+            latestValue.current = clamped;
+            setValue(clamped);
+            rafId.current = null;
+          });
+        }
       }
     };
 
     const onTouchEnd = () => {
       initialDistance.current = null;
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
     };
 
     el.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -70,8 +94,9 @@ export function usePinchZoom({ min, max, initial, step = 5, storageKey }: UsePin
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
+      if (rafId.current !== null) cancelAnimationFrame(rafId.current);
     };
-  }, [value, clamp, step]);
+  }, [clamp, step]);
 
   return { value, setValue, containerRef };
 }
