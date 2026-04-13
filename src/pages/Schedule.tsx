@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   CalendarClock, Plus, Trash2, ChevronLeft, ChevronRight, Monitor, Image, Film, Moon, Zap,
-  Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal
+  Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal, Clipboard, CalendarRange, Sparkles
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
@@ -41,10 +41,11 @@ const COLOR_MAP: Record<string, { bg: string; border: string; text: string; glow
 };
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_HEIGHT = 80; // taller for better UX
+const HOUR_HEIGHT = 80;
 const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
 const SNAP_MINUTES = 15;
 const SNAP_PX = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /* ──────── Helpers ──────── */
 function getBlockStyle(block: ScheduleBlock, dayStart: Date) {
@@ -114,7 +115,7 @@ export default function Schedule() {
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [playlists, setPlaylists] = useState<PlaylistItem[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [focusDate, setFocusDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [editBlock, setEditBlock] = useState<ScheduleBlock | null>(null);
@@ -123,13 +124,39 @@ export default function Schedule() {
   const [showPreview, setShowPreview] = useState(false);
   const [copyingTomorrow, setCopyingTomorrow] = useState(false);
   const [currentTimeTop, setCurrentTimeTop] = useState(0);
+  const [clipboard, setClipboard] = useState<ScheduleBlock | null>(null);
+  const [showClipboard, setShowClipboard] = useState(false);
+  const [patternSuggestion, setPatternSuggestion] = useState<{ block: ScheduleBlock; daysFound: number[] } | null>(null);
+  const [draggingBlock, setDraggingBlock] = useState<{ block: ScheduleBlock; originDay: Date } | null>(null);
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
     label: "", color_code: "teal", priority: 0, media_id: "" as string, playlist_id: "" as string,
   });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  /* Refs for synced scroll */
+  const gutterScrollRef = useRef<HTMLDivElement>(null);
+  const columnsScrollRef = useRef<HTMLDivElement>(null);
+  const scrollingSource = useRef<string | null>(null);
   const resizingRef = useRef<{ blockId: string; startY: number; originalEndAt: string; originalHeight: number } | null>(null);
+
+  /* ── Synced vertical scroll ── */
+  const handleGutterScroll = () => {
+    if (scrollingSource.current === "columns") return;
+    scrollingSource.current = "gutter";
+    if (columnsScrollRef.current && gutterScrollRef.current) {
+      columnsScrollRef.current.scrollTop = gutterScrollRef.current.scrollTop;
+    }
+    requestAnimationFrame(() => { scrollingSource.current = null; });
+  };
+  const handleColumnsScroll = () => {
+    if (scrollingSource.current === "gutter") return;
+    scrollingSource.current = "columns";
+    if (gutterScrollRef.current && columnsScrollRef.current) {
+      gutterScrollRef.current.scrollTop = columnsScrollRef.current.scrollTop;
+    }
+    requestAnimationFrame(() => { scrollingSource.current = null; });
+  };
 
   /* ── Real-time current time indicator ── */
   useEffect(() => {
@@ -159,10 +186,14 @@ export default function Schedule() {
     supabase.from("playlists").select("id, title").eq("user_id", user.id).order("title").then(({ data }) => { if (data) setPlaylists(data); });
   }, [user]);
 
-  /* ── Fetch blocks ── */
+  /* ── Fetch blocks — single query for entire week ── */
   const fetchBlocks = useCallback(async () => {
     if (!selectedScreenId) return;
-    const { data, error } = await supabase.from("schedule_blocks").select("*").eq("screen_id", selectedScreenId).order("start_at");
+    const { data, error } = await supabase
+      .from("schedule_blocks")
+      .select("*")
+      .eq("screen_id", selectedScreenId)
+      .order("start_at");
     if (data) setBlocks(data as unknown as ScheduleBlock[]);
     if (error) toast.error("Failed to load schedule");
   }, [selectedScreenId]);
@@ -209,6 +240,39 @@ export default function Schedule() {
 
   const isOverlapping = useCallback((blockId: string) => overlappingPairs.some(([a, b]) => a === blockId || b === blockId), [overlappingPairs]);
 
+  /* ── Pattern recognition ── */
+  useEffect(() => {
+    if (viewMode !== "week" || expandedBlocks.length < 2) { setPatternSuggestion(null); return; }
+    // Find blocks that appear on exactly 2 consecutive weekdays and suggest the rest
+    const weekdayBlocks = expandedBlocks.filter(b => {
+      const d = new Date(b.start_at).getDay();
+      return d >= 1 && d <= 5 && b.block_type === "content";
+    });
+    // Group by label + time
+    const groups = new Map<string, number[]>();
+    for (const b of weekdayBlocks) {
+      const start = new Date(b.start_at);
+      const key = `${b.label || b.media_id || b.playlist_id}__${start.getHours()}:${start.getMinutes()}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(start.getDay());
+    }
+    for (const [, foundDays] of groups) {
+      const unique = [...new Set(foundDays)].sort();
+      if (unique.length === 2 && unique[1] - unique[0] === 1 && unique.length < 5) {
+        // Found a pattern on 2 consecutive days — suggest the rest of the workweek
+        const sourceBlock = weekdayBlocks.find(b => {
+          const d = new Date(b.start_at).getDay();
+          return d === unique[0];
+        });
+        if (sourceBlock) {
+          setPatternSuggestion({ block: sourceBlock, daysFound: unique });
+          return;
+        }
+      }
+    }
+    setPatternSuggestion(null);
+  }, [expandedBlocks, viewMode]);
+
   /* ── Navigation ── */
   const nav = (dir: number) => {
     if (viewMode === "day") setFocusDate((d) => addDays(d, dir));
@@ -247,6 +311,100 @@ export default function Schedule() {
     const { error } = await supabase.from("schedule_blocks").delete().eq("id", blockId);
     if (error) toast.error("Failed to delete");
     else { hapticWarning(); toast.success("Block deleted"); fetchBlocks(); setEditBlock(null); }
+  };
+
+  /* ── Apply block to entire week ── */
+  const handleApplyToWeek = async (block: ScheduleBlock) => {
+    if (!user || !selectedScreenId) return;
+    const origStart = new Date(block.start_at);
+    const origEnd = new Date(block.end_at);
+    const duration = origEnd.getTime() - origStart.getTime();
+    const origDayOfWeek = origStart.getDay();
+    const weekStart = startOfWeek(origStart, { weekStartsOn: 1 });
+    const inserts: any[] = [];
+
+    for (let d = 0; d < 7; d++) {
+      const targetDay = addDays(weekStart, d);
+      if (targetDay.getDay() === origDayOfWeek) continue; // skip the original day
+      const newStart = new Date(targetDay);
+      newStart.setHours(origStart.getHours(), origStart.getMinutes(), origStart.getSeconds(), 0);
+      const newEnd = new Date(newStart.getTime() + duration);
+      inserts.push({
+        screen_id: selectedScreenId, media_id: block.media_id, playlist_id: block.playlist_id,
+        start_at: newStart.toISOString(), end_at: newEnd.toISOString(),
+        block_type: block.block_type, recurrence: "none", color_code: block.color_code,
+        priority: block.priority, label: block.label, user_id: user.id,
+      });
+    }
+    const { error } = await supabase.from("schedule_blocks").insert(inserts as any);
+    if (error) toast.error("Failed to apply to week");
+    else { hapticSuccess(); toast.success(`Applied to ${inserts.length} days`); fetchBlocks(); setEditBlock(null); }
+  };
+
+  /* ── Apply pattern to remaining weekdays ── */
+  const handleApplyPattern = async () => {
+    if (!patternSuggestion || !user || !selectedScreenId) return;
+    const block = patternSuggestion.block;
+    const origStart = new Date(block.start_at);
+    const origEnd = new Date(block.end_at);
+    const duration = origEnd.getTime() - origStart.getTime();
+    const weekStart = startOfWeek(origStart, { weekStartsOn: 1 });
+    const missingDays = [1, 2, 3, 4, 5].filter(d => !patternSuggestion.daysFound.includes(d));
+    const inserts: any[] = [];
+
+    for (const dayNum of missingDays) {
+      const offset = dayNum - 1; // Mon=1 → offset 0
+      const targetDay = addDays(weekStart, offset);
+      const newStart = new Date(targetDay);
+      newStart.setHours(origStart.getHours(), origStart.getMinutes(), 0, 0);
+      const newEnd = new Date(newStart.getTime() + duration);
+      inserts.push({
+        screen_id: selectedScreenId, media_id: block.media_id, playlist_id: block.playlist_id,
+        start_at: newStart.toISOString(), end_at: newEnd.toISOString(),
+        block_type: block.block_type, recurrence: "none", color_code: block.color_code,
+        priority: block.priority, label: block.label, user_id: user.id,
+      });
+    }
+    const { error } = await supabase.from("schedule_blocks").insert(inserts as any);
+    if (error) toast.error("Failed to apply pattern");
+    else { hapticSuccess(); toast.success(`Applied to ${inserts.length} remaining weekdays`); setPatternSuggestion(null); fetchBlocks(); }
+  };
+
+  /* ── Cross-day drag: move block to a different day ── */
+  const handleCrossDayDrop = async (block: ScheduleBlock, targetDay: Date) => {
+    const origStart = new Date(block.start_at);
+    const origEnd = new Date(block.end_at);
+    const duration = origEnd.getTime() - origStart.getTime();
+    const newStart = new Date(targetDay);
+    newStart.setHours(origStart.getHours(), origStart.getMinutes(), origStart.getSeconds(), 0);
+    const newEnd = new Date(newStart.getTime() + duration);
+
+    const { error } = await supabase.from("schedule_blocks").update({
+      start_at: newStart.toISOString(), end_at: newEnd.toISOString(),
+    } as any).eq("id", block.id);
+    if (error) toast.error("Failed to move block");
+    else { hapticSuccess(); toast.success(`Moved to ${format(targetDay, "EEE")}`); fetchBlocks(); }
+    setDraggingBlock(null);
+  };
+
+  /* ── Clipboard: paste block onto a day ── */
+  const handlePasteFromClipboard = async (targetDay: Date) => {
+    if (!clipboard || !user || !selectedScreenId) return;
+    const origStart = new Date(clipboard.start_at);
+    const origEnd = new Date(clipboard.end_at);
+    const duration = origEnd.getTime() - origStart.getTime();
+    const newStart = new Date(targetDay);
+    newStart.setHours(origStart.getHours(), origStart.getMinutes(), 0, 0);
+    const newEnd = new Date(newStart.getTime() + duration);
+
+    const { error } = await supabase.from("schedule_blocks").insert({
+      screen_id: selectedScreenId, media_id: clipboard.media_id, playlist_id: clipboard.playlist_id,
+      start_at: newStart.toISOString(), end_at: newEnd.toISOString(),
+      block_type: clipboard.block_type, recurrence: "none", color_code: clipboard.color_code,
+      priority: clipboard.priority, label: clipboard.label, user_id: user.id,
+    } as any);
+    if (error) toast.error("Failed to paste block");
+    else { hapticSuccess(); toast.success(`Pasted to ${format(targetDay, "EEE MMM d")}`); fetchBlocks(); }
   };
 
   /* ── Resize block (drag bottom edge) ── */
@@ -315,6 +473,12 @@ export default function Schedule() {
 
   /* ── Click on timeline slot ── */
   const handleSlotClick = (day: Date, hour: number) => {
+    if (draggingBlock) return;
+    // If clipboard is active, paste
+    if (clipboard) {
+      handlePasteFromClipboard(day);
+      return;
+    }
     hapticLight();
     setPendingSlot({ day, hour });
     setNewBlock((prev) => ({
@@ -326,7 +490,11 @@ export default function Schedule() {
 
   /* ── Scroll to 8am on mount ── */
   useEffect(() => {
-    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 8 * HOUR_HEIGHT;
+    const scrollTo8am = () => {
+      if (gutterScrollRef.current) gutterScrollRef.current.scrollTop = 8 * HOUR_HEIGHT;
+      if (columnsScrollRef.current) columnsScrollRef.current.scrollTop = 8 * HOUR_HEIGHT;
+    };
+    setTimeout(scrollTo8am, 100);
   }, [viewMode, selectedScreenId]);
 
   /* ── Now-playing detection ── */
@@ -343,6 +511,8 @@ export default function Schedule() {
   const getPlaylistName = (id: string | null) => playlists.find((p) => p.id === id)?.title ?? "";
 
   if (loading) return <div className="flex items-center justify-center h-full"><RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+
+  const timelineHeight = "calc(100vh - 220px)";
 
   /* ══════════════════ RENDER ══════════════════ */
   return (
@@ -395,6 +565,16 @@ export default function Schedule() {
         <span className="flex items-center gap-1.5"><Moon className="h-3 w-3 text-[#94A3B8]" /> Blackout</span>
         {overlappingPairs.length > 0 && <span className="flex items-center gap-1.5 text-[#FF4466]"><AlertTriangle className="h-3 w-3" /> {overlappingPairs.length} conflict{overlappingPairs.length > 1 ? "s" : ""}</span>}
         <div className="flex-1" />
+
+        {/* Clipboard indicator */}
+        {clipboard && (
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-[#00A3A3]/30 bg-[#00A3A3]/10">
+            <Clipboard className="h-3 w-3 text-[#00E5CC]" />
+            <span className="text-[#00E5CC] text-[11px] font-medium truncate max-w-[100px]">{clipboard.label || "Block"}</span>
+            <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] text-[11px]">✕</button>
+          </div>
+        )}
+
         {viewMode === "day" && (
           <>
             <Button variant="outline" size="sm" className="h-7 text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B]" onClick={handleCopyToTomorrow} disabled={copyingTomorrow}>
@@ -407,11 +587,25 @@ export default function Schedule() {
         )}
       </div>
 
+      {/* ── Pattern suggestion banner ── */}
+      {patternSuggestion && viewMode === "week" && (
+        <div className="mx-4 mt-2 flex items-center gap-3 px-4 py-2.5 rounded-xl border border-[#00A3A3]/30 bg-gradient-to-r from-[#00A3A3]/10 to-[#0B1120] backdrop-blur-sm">
+          <Sparkles className="h-4 w-4 text-[#00E5CC] shrink-0" />
+          <span className="text-xs text-[#94A3B8] flex-1">
+            <span className="text-[#00E5CC] font-medium">"{patternSuggestion.block.label || "Block"}"</span> is on {patternSuggestion.daysFound.map(d => DAY_NAMES[d - 1]).join(" & ")}. Apply to the rest of the work week?
+          </span>
+          <Button size="sm" className="h-7 text-xs bg-[#00A3A3]/20 text-[#00E5CC] border border-[#00A3A3]/40 hover:bg-[#00A3A3]/30" onClick={handleApplyPattern}>
+            <CalendarRange className="h-3 w-3 mr-1" />Apply
+          </Button>
+          <button onClick={() => setPatternSuggestion(null)} className="text-[#475569] hover:text-[#94A3B8] text-sm">✕</button>
+        </div>
+      )}
+
       {/* ── Timeline ── */}
       {viewMode === "month" ? (
         <div className="flex-1 overflow-auto p-4">
           <div className="grid grid-cols-7 gap-1">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d} className="text-center text-xs font-medium text-[#64748B] pb-2">{d}</div>)}
+            {DAY_NAMES.map((d) => <div key={d} className="text-center text-xs font-medium text-[#64748B] pb-2">{d}</div>)}
             {Array.from({ length: (days[0].getDay() + 6) % 7 }).map((_, i) => <div key={`pad-${i}`} />)}
             {days.map((day) => {
               const dayBlocks = expandedBlocks.filter((b) => isSameDay(new Date(b.start_at), day));
@@ -433,37 +627,93 @@ export default function Schedule() {
         </div>
       ) : (
         <div className="flex-1 overflow-hidden flex">
-          {/* Time gutter */}
-          <div className="w-16 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120]">
-            <div className="h-10" />
-            <div className="overflow-auto" style={{ height: "calc(100vh - 210px)" }}>
-              {HOURS.map((h) => (
-                <div key={h} style={{ height: HOUR_HEIGHT }} className="relative">
-                  <span className="absolute -top-2 right-3 text-[11px] text-[#475569] font-mono select-none">
-                    {`${h.toString().padStart(2, "0")}:00`}
-                  </span>
-                  <div className="absolute right-0 top-0 w-2 border-t border-[#1E293B]/30" />
-                  <div className="absolute right-0 w-1.5 border-t border-[#1E293B]/15" style={{ top: HALF_HOUR_HEIGHT }} />
-                </div>
-              ))}
+          {/* Time gutter — synced scroll */}
+          <div className="w-16 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
+            {/* Gutter header spacer */}
+            <div className="h-10 border-b border-[#1E293B]/40 shrink-0" />
+            <div ref={gutterScrollRef} className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-hide" style={{ height: timelineHeight }} onScroll={handleGutterScroll}>
+              <div style={{ height: 24 * HOUR_HEIGHT }}>
+                {HOURS.map((h) => (
+                  <div key={h} style={{ height: HOUR_HEIGHT }} className="relative">
+                    <span className="absolute -top-2 right-3 text-[11px] text-[#475569] font-mono select-none">
+                      {`${h.toString().padStart(2, "0")}:00`}
+                    </span>
+                    <div className="absolute right-0 top-0 w-2 border-t border-[#1E293B]/30" />
+                    <div className="absolute right-0 w-1.5 border-t border-[#1E293B]/15" style={{ top: HALF_HOUR_HEIGHT }} />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Day columns */}
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex" style={{ minWidth: viewMode === "day" ? "100%" : `${days.length * 200}px` }}>
-              {days.map((day) => {
-                const dayBlocks = expandedBlocks.filter((b) => isSameDay(new Date(b.start_at), day));
-                return (
-                  <div key={day.toISOString()} className="flex-1 min-w-[180px] border-r border-[#1E293B]/20">
-                    <div className={`h-10 flex items-center justify-center text-xs font-semibold border-b border-[#1E293B]/40 ${isSameDay(day, new Date()) ? "text-[#00E5CC] bg-[#00A3A3]/5" : "text-[#94A3B8]"}`}>
-                      {format(day, viewMode === "day" ? "EEEE, MMM d" : "EEE d")}
+          {/* Day columns — horizontal scroll wrapper for week */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Fixed column headers */}
+            <div className="flex shrink-0 border-b border-[#1E293B]/40 overflow-x-auto" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
+              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 180}px` : "100%" }}>
+                {days.map((day) => {
+                  const isToday = isSameDay(day, new Date());
+                  const isDragTarget = draggingBlock && !isSameDay(draggingBlock.originDay, day);
+                  return (
+                    <div key={day.toISOString()}
+                      className={`flex-1 min-w-[160px] h-10 flex items-center justify-center text-xs font-semibold transition-all relative
+                        ${isToday ? "text-[#00E5CC] bg-[#00A3A3]/8 border-b-2 border-[#00E5CC]" : "text-[#94A3B8]"}
+                        ${isDragTarget ? "bg-[#00A3A3]/10" : ""}`}
+                      onClick={() => {
+                        if (draggingBlock) {
+                          handleCrossDayDrop(draggingBlock.block, day);
+                        }
+                      }}
+                    >
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="text-[10px] uppercase tracking-wider">{format(day, "EEE")}</span>
+                        <span className={`text-sm ${isToday ? "font-bold" : "font-medium"}`}>{format(day, "d")}</span>
+                      </div>
+                      {isToday && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#00E5CC] shadow-[0_0_8px_rgba(0,229,204,0.6)]" />}
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    <div ref={viewMode === "day" ? scrollContainerRef : undefined} className="relative overflow-auto" style={{ height: "calc(100vh - 210px)" }}>
+            {/* Scrollable columns body — synced with gutter */}
+            <div ref={columnsScrollRef} className="flex-1 overflow-auto" onScroll={handleColumnsScroll}>
+              <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 180}px` : "100%", height: 24 * HOUR_HEIGHT }}>
+                {days.map((day, dayIdx) => {
+                  const dayBlocks = expandedBlocks.filter((b) => isSameDay(new Date(b.start_at), day));
+                  const isToday = isSameDay(day, new Date());
+                  const isDragTarget = draggingBlock && !isSameDay(draggingBlock.originDay, day);
+
+                  return (
+                    <div key={day.toISOString()}
+                      className={`flex-1 min-w-[160px] relative
+                        ${dayIdx < days.length - 1 ? "border-r border-[#1E293B]/20" : ""}
+                        ${isToday ? "bg-[#00A3A3]/[0.03]" : ""}
+                        ${isDragTarget ? "bg-[#00A3A3]/[0.04]" : ""}`}
+                      onClick={(e) => {
+                        if (draggingBlock) {
+                          handleCrossDayDrop(draggingBlock.block, day);
+                          return;
+                        }
+                      }}
+                    >
+                      {/* Grid glow background for today */}
+                      {isToday && (
+                        <div className="absolute inset-0 pointer-events-none"
+                          style={{
+                            background: "linear-gradient(180deg, rgba(0,163,163,0.03) 0%, transparent 20%, transparent 80%, rgba(0,163,163,0.03) 100%)",
+                            borderLeft: "1px solid rgba(0,229,204,0.08)",
+                            borderRight: "1px solid rgba(0,229,204,0.08)",
+                          }}
+                        />
+                      )}
+
                       {/* Hour grid lines */}
                       {HOURS.map((h) => (
-                        <div key={h} style={{ height: HOUR_HEIGHT }} className="border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative" onClick={() => handleSlotClick(day, h)}>
+                        <div key={h} style={{ height: HOUR_HEIGHT }}
+                          className="border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative"
+                          onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
+                        >
                           <div className="absolute left-0 right-0 border-b border-dashed border-[#1E293B]/10" style={{ top: HALF_HOUR_HEIGHT }} />
                         </div>
                       ))}
@@ -477,15 +727,21 @@ export default function Schedule() {
                         const isVideo = mediaType === "video";
                         const mediaPath = block.media_id ? getMediaPath(block.media_id) : "";
                         const showThumb = block.block_type === "content" && mediaPath && !isVideo;
+                        const isCompact = viewMode === "week";
 
                         return (
                           <div key={`${block.id}-${idx}`} id={`resize-block-${block.id}`}
-                            className={`absolute left-2 right-2 rounded-xl border backdrop-blur-sm cursor-pointer transition-shadow group ${colors.bg} ${colors.border} ${colors.glow} ${hasOverlap ? "ring-1 ring-[#FF003C]/50" : ""} ${block.block_type === "blackout" ? "opacity-70" : ""}`}
-                            style={{ top, height, minHeight: 28, zIndex: 10 + block.priority }}
-                            onClick={(e) => { e.stopPropagation(); setEditBlock(block); }}>
-                            <div className="px-2.5 py-1.5 overflow-hidden h-full flex gap-2">
+                            className={`absolute rounded-xl border backdrop-blur-sm cursor-pointer transition-shadow group
+                              ${colors.bg} ${colors.border} ${colors.glow}
+                              ${hasOverlap ? "ring-1 ring-[#FF003C]/50" : ""}
+                              ${block.block_type === "blackout" ? "opacity-70" : ""}
+                              ${draggingBlock?.block.id === block.id ? "opacity-40 pointer-events-none" : ""}`}
+                            style={{ top, height, minHeight: 24, zIndex: 10 + block.priority, left: isCompact ? 4 : 8, right: isCompact ? 4 : 8 }}
+                            onClick={(e) => { e.stopPropagation(); setEditBlock(block); }}
+                          >
+                            <div className={`overflow-hidden h-full flex gap-1.5 ${isCompact ? "px-1.5 py-1" : "px-2.5 py-1.5"}`}>
                               {/* Thumbnail */}
-                              {showThumb && height > 40 && (
+                              {showThumb && height > 40 && !isCompact && (
                                 <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-white/10">
                                   <img src={getStorageUrl(mediaPath)} alt="" className="w-full h-full object-cover" loading="lazy" />
                                 </div>
@@ -496,19 +752,19 @@ export default function Schedule() {
                                   {block.block_type === "hype_override" && <Zap className="h-3 w-3 shrink-0 animate-pulse" />}
                                   {block.block_type === "content" && isVideo && <Film className="h-3 w-3 shrink-0" />}
                                   {block.block_type === "content" && !isVideo && block.media_id && <Image className="h-3 w-3 shrink-0" />}
-                                  <span className={`text-[11px] font-semibold truncate ${colors.text}`}>
+                                  <span className={`font-semibold truncate ${colors.text} ${isCompact ? "text-[10px]" : "text-[11px]"}`}>
                                     {block.label || getMediaName(block.media_id) || getPlaylistName(block.playlist_id) || block.block_type}
                                   </span>
                                 </div>
-                                {height > 40 && (
+                                {height > 36 && (
                                   <span className="text-[10px] text-[#64748B] mt-0.5">
                                     {format(new Date(block.start_at), "HH:mm")} – {format(new Date(block.end_at), "HH:mm")}
                                   </span>
                                 )}
-                                {height > 56 && block.recurrence !== "none" && (
+                                {height > 56 && block.recurrence !== "none" && !isCompact && (
                                   <Badge variant="outline" className="text-[8px] px-1 py-0 mt-0.5 w-fit border-[#475569]/40 text-[#64748B]">↻ {block.recurrence}</Badge>
                                 )}
-                                {hasOverlap && height > 48 && (
+                                {hasOverlap && height > 48 && !isCompact && (
                                   <span className="text-[8px] text-[#FF4466] flex items-center gap-0.5 mt-0.5"><AlertTriangle className="h-2.5 w-2.5" /> Overlap</span>
                                 )}
                               </div>
@@ -524,7 +780,7 @@ export default function Schedule() {
                       })}
 
                       {/* Current time indicator */}
-                      {isSameDay(day, new Date()) && (
+                      {isToday && (
                         <div className="absolute left-0 right-0 z-30 pointer-events-none" style={{ top: currentTimeTop }}>
                           <div className="relative">
                             <div className="absolute -left-0.5 -top-[5px] w-3 h-3 rounded-full bg-[#00E5CC] shadow-[0_0_12px_rgba(0,229,204,0.7),0_0_24px_rgba(0,229,204,0.3)]" />
@@ -533,11 +789,36 @@ export default function Schedule() {
                         </div>
                       )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ══════════ CLIPBOARD DOCK ══════════ */}
+      {clipboard && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border border-[#00A3A3]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(0,163,163,0.15)]">
+          <Clipboard className="h-4 w-4 text-[#00E5CC]" />
+          <div className="text-xs">
+            <span className="text-[#94A3B8]">Clipboard: </span>
+            <span className="text-[#00E5CC] font-medium">{clipboard.label || getMediaName(clipboard.media_id) || "Block"}</span>
+            <span className="text-[#64748B] ml-2">{format(new Date(clipboard.start_at), "HH:mm")}–{format(new Date(clipboard.end_at), "HH:mm")}</span>
+          </div>
+          <span className="text-[10px] text-[#475569]">Click any time slot to paste</span>
+          <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors ml-1">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* ══════════ DRAG INDICATOR ══════════ */}
+      {draggingBlock && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border border-[#FF66FF]/30 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_30px_rgba(255,0,255,0.15)]">
+          <CalendarRange className="h-4 w-4 text-[#FF66FF]" />
+          <span className="text-xs text-[#FF66FF] font-medium">Moving "{draggingBlock.block.label || "Block"}" — click a day header to drop</span>
+          <button onClick={() => setDraggingBlock(null)} className="text-[#64748B] hover:text-[#FF4466] transition-colors ml-1 text-xs">Cancel</button>
         </div>
       )}
 
@@ -632,8 +913,8 @@ export default function Schedule() {
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3">
-                <div><span className="text-[#64748B] text-xs">Start</span><p className="text-[#E2E8F0]">{format(new Date(editBlock.start_at), "MMM d, HH:mm")}</p></div>
-                <div><span className="text-[#64748B] text-xs">End</span><p className="text-[#E2E8F0]">{format(new Date(editBlock.end_at), "MMM d, HH:mm")}</p></div>
+                <div><span className="text-[#64748B] text-xs">Start</span><p className="text-[#E2E8F0]">{format(new Date(editBlock.start_at), "EEE MMM d, HH:mm")}</p></div>
+                <div><span className="text-[#64748B] text-xs">End</span><p className="text-[#E2E8F0]">{format(new Date(editBlock.end_at), "EEE MMM d, HH:mm")}</p></div>
               </div>
               <Separator className="bg-[#1E293B]" />
               <div className="grid grid-cols-2 gap-3">
@@ -650,7 +931,30 @@ export default function Schedule() {
               )}
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex-wrap gap-2">
+            {/* Clipboard & Apply to Week actions */}
+            <div className="flex gap-2 flex-1">
+              <Button variant="outline" size="sm" className="text-xs border-[#1E293B] bg-[#0B1120] hover:bg-[#1E293B]"
+                onClick={() => { if (editBlock) { setClipboard(editBlock); setEditBlock(null); toast.success("Copied to clipboard"); } }}>
+                <Clipboard className="h-3 w-3 mr-1" />To Clipboard
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs border-[#1E293B] bg-[#0B1120] hover:bg-[#1E293B]"
+                onClick={() => { if (editBlock) handleApplyToWeek(editBlock); }}>
+                <CalendarRange className="h-3 w-3 mr-1" />Apply to Week
+              </Button>
+              {viewMode === "week" && (
+                <Button variant="outline" size="sm" className="text-xs border-[#FF66FF]/30 bg-[#FF00FF]/5 hover:bg-[#FF00FF]/10 text-[#FF66FF]"
+                  onClick={() => {
+                    if (editBlock) {
+                      setDraggingBlock({ block: editBlock, originDay: new Date(editBlock.start_at) });
+                      setEditBlock(null);
+                      toast.info("Click a day column to move this block");
+                    }
+                  }}>
+                  <GripHorizontal className="h-3 w-3 mr-1" />Move to Day
+                </Button>
+              )}
+            </div>
             <Button variant="ghost" size="sm" onClick={() => setEditBlock(null)}>Close</Button>
             <Button variant="destructive" size="sm" onClick={() => editBlock && handleDeleteBlock(editBlock.id)}><Trash2 className="h-3.5 w-3.5 mr-1" /> Delete</Button>
           </DialogFooter>
