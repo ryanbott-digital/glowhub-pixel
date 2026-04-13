@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { LogOut, Download, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink, CalendarClock } from "lucide-react";
+import { LogOut, Download, CreditCard, Shield, Settings, Layers, PenTool, ExternalLink, CalendarClock, Zap } from "lucide-react";
 import { useIsAdmin } from "@/hooks/use-admin-role";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { NavLink } from "@/components/NavLink";
@@ -34,6 +34,7 @@ const items = [
   { title: "Schedule", url: "/schedule", icon: ({ className }: { className?: string }) => <CalendarClock className={className} />, pro: false, adminOnly: false },
   { title: "Analytics", url: "/analytics", icon: BrandChartIcon, pro: true, adminOnly: false },
   { title: "Billing", url: "/billing", icon: ({ className }: { className?: string }) => <CreditCard className={className} />, pro: false, adminOnly: false },
+  { title: "Integrations", url: "/integrations", icon: ({ className }: { className?: string }) => <Zap className={className} />, pro: true, adminOnly: false },
   { title: "Admin", url: "/admin", icon: ({ className }: { className?: string }) => <Shield className={className} />, pro: false, adminOnly: true },
   { title: "Download", url: "/download", icon: ({ className }: { className?: string }) => <Download className={className} />, pro: false, adminOnly: false },
   { title: "Settings", url: "/settings", icon: ({ className }: { className?: string }) => <Settings className={className} />, pro: false, adminOnly: false },

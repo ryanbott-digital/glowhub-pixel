@@ -41,6 +41,7 @@ const SolutionsRestaurants = lazy(() => import("./pages/SolutionsRestaurants"));
 const SolutionsRetail = lazy(() => import("./pages/SolutionsRetail"));
 const SolutionsHospitality = lazy(() => import("./pages/SolutionsHospitality"));
 const Schedule = lazy(() => import("./pages/Schedule"));
+const Integrations = lazy(() => import("./pages/Integrations"));
 
 const queryClient = new QueryClient();
 
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
               <Route path="/studio" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
               <Route path="/studio/preview/:layoutId" element={<StudioPreview />} />
+              <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
               <Route path="/download" element={<Download />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
