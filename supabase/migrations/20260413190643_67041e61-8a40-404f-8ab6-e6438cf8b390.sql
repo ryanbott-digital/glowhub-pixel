@@ -1,0 +1,1 @@
+ALTER TABLE public.screens ADD COLUMN orientation text NOT NULL DEFAULT 'landscape' CHECK (orientation IN ('landscape', 'portrait'));
