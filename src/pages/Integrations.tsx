@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Key, Copy, RefreshCw, Loader2, Shield, Zap, Check, AlertTriangle, Monitor, Play, Download, Radio, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -277,6 +278,7 @@ export default function Integrations() {
                 <SelectContent>
                   <SelectItem value="play_playlist">Play Playlist</SelectItem>
                   <SelectItem value="play_media">Play Media</SelectItem>
+                  <SelectItem value="toggle_radio">Toggle Radio Station</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -284,28 +286,37 @@ export default function Integrations() {
             {/* Payload Selector */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {selectedAction === "play_playlist" ? "Playlist" : "Media"}
+                {selectedAction === "play_playlist" ? "Playlist" : selectedAction === "toggle_radio" ? "Station" : "Media"}
               </label>
-              <Select value={selectedPayload} onValueChange={setSelectedPayload}>
-                <SelectTrigger>
-                  <SelectValue placeholder={`Choose ${selectedAction === "play_playlist" ? "playlist" : "media"}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectedAction === "play_playlist"
-                    ? playlists.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-                      ))
-                    : mediaItems.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          <span className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-[10px] px-1 py-0">{m.type}</Badge>
-                            {m.name}
-                          </span>
-                        </SelectItem>
-                      ))
-                  }
-                </SelectContent>
-              </Select>
+              {selectedAction === "toggle_radio" ? (
+                <Input
+                  placeholder="Station URL (e.g. https://stream.capital.fm/...)"
+                  value={selectedPayload}
+                  onChange={(e) => setSelectedPayload(e.target.value)}
+                  className="text-sm"
+                />
+              ) : (
+                <Select value={selectedPayload} onValueChange={setSelectedPayload}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Choose ${selectedAction === "play_playlist" ? "playlist" : "media"}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedAction === "play_playlist"
+                      ? playlists.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                        ))
+                      : mediaItems.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            <span className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">{m.type}</Badge>
+                              {m.name}
+                            </span>
+                          </SelectItem>
+                        ))
+                    }
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 

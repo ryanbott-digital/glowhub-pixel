@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2 } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2, Lock, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -607,14 +607,27 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             )}
           </div>
 
-          {/* Background Audio */}
-          <div className="space-y-3 rounded-xl bg-muted/30 p-3">
+          {/* Background Audio — Pro Only */}
+          <div className="space-y-3 rounded-xl bg-muted/30 p-3 relative">
+            {!isProTier(tier || "free") && (
+              <div className="absolute inset-0 z-10 rounded-xl backdrop-blur-sm bg-background/60 flex flex-col items-center justify-center gap-2">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+                <p className="text-xs font-medium text-muted-foreground">Pro Feature</p>
+                <a
+                  href="/subscription"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <Crown className="h-3 w-3" /> Upgrade to Pro
+                </a>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
                 <Radio className="h-3 w-3 text-primary" /> Background Audio
               </h4>
               <Switch
                 checked={audioEnabled}
+                disabled={!isProTier(tier || "free")}
                 onCheckedChange={(checked) => {
                   setAudioEnabled(checked);
                   updateScreenSetting({ audio_enabled: checked });
@@ -722,6 +735,21 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                     }}
                   />
                 </div>
+
+                {/* Smart Ducking — auto-lower when video audio plays */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Volume2 className="h-3 w-3 text-muted-foreground" />
+                    <Label className="text-xs text-muted-foreground">Smart Duck (video audio)</Label>
+                  </div>
+                  <Switch
+                    checked={audioMuteOnHype}
+                    disabled
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground/70 -mt-1 ml-5">
+                  Radio auto-lowers to 10% when a video with audio plays
+                </p>
               </div>
             )}
           </div>
