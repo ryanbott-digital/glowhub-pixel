@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert, Megaphone } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -29,6 +30,7 @@ export default function Dashboard() {
   const [newScreenName, setNewScreenName] = useState("");
   const [onlineFlash, setOnlineFlash] = useState(false);
   const [mediaCount, setMediaCount] = useState(0);
+  const [broadcasts, setBroadcasts] = useState<{ id: string; message: string; broadcast_type: string; duration_seconds: number; created_at: string }[]>([]);
 
   useEffect(() => {
     if (!user) return;
