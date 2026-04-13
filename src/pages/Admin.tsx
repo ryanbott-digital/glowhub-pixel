@@ -483,7 +483,16 @@ export default function Admin() {
                 <div
                   key={user.id}
                   className="flex items-center justify-between p-3 rounded-lg border bg-card cursor-pointer hover:border-primary/40 transition-colors"
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setActivityLogs([]);
+                    setActivityLoading(true);
+                    const screenIds = user.screens.map((s) => s.id);
+                    if (screenIds.length === 0) { setActivityLoading(false); return; }
+                    supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
+                      .in("screen_id", screenIds).order("created_at", { ascending: false }).limit(25)
+                      .then(({ data }) => { setActivityLogs(data ?? []); setActivityLoading(false); });
+                  }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="min-w-0">
