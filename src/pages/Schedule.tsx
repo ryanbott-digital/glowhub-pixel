@@ -728,6 +728,7 @@ export default function Schedule() {
       setTouchDragItem(null);
       setTouchDragPlaylist(null);
       setTouchDragPos(null);
+      setTouchDropHighlight(null);
     };
     document.addEventListener("touchmove", onMove, { passive: false });
     document.addEventListener("touchend", onEnd, { once: true });
