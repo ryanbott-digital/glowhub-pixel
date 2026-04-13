@@ -395,7 +395,18 @@ export default function Integrations() {
                       <p className="text-xs font-mono text-muted-foreground">{s.hardware_uuid ? `${s.hardware_uuid.substring(0, 8)}...` : "—"}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    {(s.current_playlist_id || s.current_media_id) ? (
+                      <Badge variant="default" className="text-xs bg-primary/20 text-primary border-primary/30">
+                        <Radio className="h-3 w-3 mr-1" />
+                        Override
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Schedule
+                      </Badge>
+                    )}
                     {s.last_remote_trigger ? (
                       <Badge variant="secondary" className="text-xs">
                         <Play className="h-3 w-3 mr-1" />
