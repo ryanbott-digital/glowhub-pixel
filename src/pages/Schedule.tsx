@@ -862,7 +862,6 @@ export default function Schedule() {
                           />
                         </div>
                       ))}
-                      ))}
 
                       {/* Blocks */}
                       {dayBlocks.map((block, idx) => {
