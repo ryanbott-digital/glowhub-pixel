@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import {
   CalendarClock, Plus, Trash2, ChevronLeft, ChevronRight, Monitor, Image, Film, Moon, Zap,
   Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal, Clipboard, CalendarRange, Sparkles,
-  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X, ListMusic
+  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X, ListMusic, CalendarIcon
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
