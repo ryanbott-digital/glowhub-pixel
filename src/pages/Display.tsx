@@ -171,27 +171,20 @@ export default function Display() {
         { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
         (payload) => {
           const newPlaylistId = payload.new.current_playlist_id;
-          if (newPlaylistId) {
+          const oldPlaylistId = (payload.old as Record<string, unknown>)?.current_playlist_id;
+          // Only react when the playlist assignment actually changes
+          if (newPlaylistId && newPlaylistId !== oldPlaylistId && newPlaylistId !== currentPlaylistIdRef.current) {
             showSyncIndicator();
-            fetchPlaylist(newPlaylistId);
+            fetchPlaylist(newPlaylistId, true);
           }
         }
       )
       .subscribe();
 
-    const itemsChannel = supabase
-      .channel(`playlist-items-${screenId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "playlist_items" },
-        () => {
-          if (currentPlaylistIdRef.current) {
-            showSyncIndicator();
-            fetchPlaylist(currentPlaylistIdRef.current);
-          }
-        }
-      )
-      .subscribe();
+    // Note: we intentionally do NOT subscribe to all playlist_items changes
+    // because the unfiltered channel fires on every user's edits and causes
+    // constant resets. If a user edits items in the current playlist the
+    // screen will pick up changes on next page load or playlist reassignment.
 
     return () => {
       supabase.removeChannel(screenChannel);
