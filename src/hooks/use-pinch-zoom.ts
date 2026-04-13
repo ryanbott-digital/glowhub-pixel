@@ -166,5 +166,5 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
     };
   }, [clamp, step, min, max]);
 
-  return { value, setValue, containerRef };
+  return { value, setValue, containerRef, isPinching };
 }
