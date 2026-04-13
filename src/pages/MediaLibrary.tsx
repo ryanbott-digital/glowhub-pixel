@@ -577,7 +577,7 @@ export default function MediaLibrary() {
             <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
           <p className="font-medium text-foreground text-sm sm:text-base">Tap to upload or drag & drop</p>
-          <p className="text-xs sm:text-sm text-muted-foreground">Images and videos up to 50MB</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Images auto-compressed if needed · Videos up to 500 MB</p>
         </div>
       </div>
 
