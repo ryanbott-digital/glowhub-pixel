@@ -739,6 +739,31 @@ export default function Admin() {
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 text-destructive hover:text-destructive" disabled={bulkUnpairing || selectedUser.screens.length === 0}>
+                            {bulkUnpairing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Unplug className="h-3 w-3" />}
+                            Unpair All
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Unpair All Screens</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will disconnect and unpair all <span className="font-semibold text-foreground">{selectedUser.screens.length}</span> screen{selectedUser.screens.length !== 1 ? "s" : ""} for {selectedUser.email}. All pairing data, playlist assignments, and screenshots will be cleared. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => handleUnpairAllScreens(selectedUser.screens)}
+                            >
+                              Unpair {selectedUser.screens.length} Screen{selectedUser.screens.length !== 1 ? "s" : ""}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     <span className="text-xs text-muted-foreground">
                       {selectedUser.screens.length} of {getUserScreenLimit(selectedUser)} used
                       {selectedUser.screen_packs > 0 && ` (${selectedUser.screen_packs} pack${selectedUser.screen_packs !== 1 ? "s" : ""})`}
