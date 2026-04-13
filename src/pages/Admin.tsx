@@ -241,7 +241,32 @@ export default function Admin() {
     } catch (err: any) {
       toast.error(err.message || "Failed to send broadcast");
     }
-    setBroadcastSending(false);
+  setBroadcastSending(false);
+
+  /* ── Dismiss all active broadcasts for the selected user ── */
+  const [dismissingBroadcasts, setDismissingBroadcasts] = useState(false);
+  const handleDismissAllBroadcasts = async () => {
+    if (!selectedUser) return;
+    setDismissingBroadcasts(true);
+    try {
+      const { error } = await supabase
+        .from("screen_broadcasts")
+        .delete()
+        .eq("target_user_id", selectedUser.id);
+      if (error) throw error;
+
+      await supabase.channel(`user-broadcast-${selectedUser.id}`).send({
+        type: "broadcast",
+        event: "screen-message",
+        payload: { dismiss: true },
+      });
+
+      toast.success("All broadcasts dismissed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to dismiss broadcasts");
+    }
+    setDismissingBroadcasts(false);
+  };
   };
 
   // Redirect non-admins
@@ -847,15 +872,27 @@ export default function Admin() {
                       />
                       <span>sec</span>
                     </div>
-                    <Button
-                      size="sm"
-                      className="ml-auto gap-1.5"
-                      disabled={!broadcastMessage.trim() || broadcastSending || selectedUser.screens.length === 0}
-                      onClick={handleSendBroadcast}
-                    >
-                      {broadcastSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                      Send
-                    </Button>
+                    <div className="ml-auto flex gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="gap-1"
+                        disabled={dismissingBroadcasts || selectedUser.screens.length === 0}
+                        onClick={handleDismissAllBroadcasts}
+                      >
+                        {dismissingBroadcasts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+                        Dismiss All
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={!broadcastMessage.trim() || broadcastSending || selectedUser.screens.length === 0}
+                        onClick={handleSendBroadcast}
+                      >
+                        {broadcastSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                        Send
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
