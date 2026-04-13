@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor, Package, Receipt } from "lucide-react";
+import { Check, X, Crown, Zap, Shield, Loader2, Building2, Settings, RefreshCw, Clock, AlertTriangle, Monitor, Package, Receipt, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
