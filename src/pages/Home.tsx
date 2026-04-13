@@ -489,6 +489,12 @@ const Home = () => {
                 See how it works
               </button>
             </div>
+            <Link
+              to="/compare/optisigns-alternative"
+              className="inline-flex items-center gap-1.5 mt-4 text-sm text-[#64748B] hover:text-[#00A3A3] transition-colors lg:justify-start justify-center"
+            >
+              See how Glow compares to OptiSigns →
+            </Link>
           </div>
 
           {/* Right — 3D TV Mockup with Aurora Screen */}
@@ -1146,6 +1152,7 @@ const Home = () => {
             <Link to="/solutions/restaurants" className="hover:text-[#E2E8F0] transition-colors">Restaurants</Link>
             <Link to="/solutions/retail" className="hover:text-[#E2E8F0] transition-colors">Retail</Link>
             <Link to="/solutions/hospitality" className="hover:text-[#E2E8F0] transition-colors">Hospitality</Link>
+            <Link to="/compare/optisigns-alternative" className="hover:text-[#E2E8F0] transition-colors">Glow vs OptiSigns</Link>
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
             <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
             <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>
