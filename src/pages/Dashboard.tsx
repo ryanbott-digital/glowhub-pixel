@@ -135,9 +135,13 @@ export default function Dashboard() {
     setPairingCode("");
   };
 
-  const onlineCount = screens.filter((s) => s.status === "online").length;
-  const offlineCount = screens.filter((s) => s.status === "offline").length;
-  const liveCount = screens.filter((s) => s.status === "online" && s.current_playlist_id).length;
+  const isScreenOnline = (s: any) => {
+    if (!s.last_ping) return s.status === "online"; // just paired, no heartbeat yet
+    return Date.now() - new Date(s.last_ping).getTime() < 90_000; // 90s heartbeat window
+  };
+  const onlineCount = screens.filter(isScreenOnline).length;
+  const offlineCount = screens.length - onlineCount;
+  const liveCount = screens.filter((s) => isScreenOnline(s) && s.current_playlist_id).length;
   const activeCount = screens.filter((s) => s.current_playlist_id).length;
 
   // Watchdog status: find the most recent heartbeat across all screens
