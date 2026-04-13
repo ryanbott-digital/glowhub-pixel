@@ -66,6 +66,8 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         cancelInertia();
+        if (pinchFadeTimer.current) clearTimeout(pinchFadeTimer.current);
+        setIsPinching(true);
         initialDistance.current = getDistance(e.touches);
         initialValue.current = latestValue.current;
         lastScaleRef.current = 1;
