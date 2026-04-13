@@ -179,6 +179,7 @@ export default function Admin() {
 
   // Admin: unpair confirmation state
   const [unpairTarget, setUnpairTarget] = useState<{ id: string; name: string } | null>(null);
+  const [restartTarget, setRestartTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Admin: unpair a screen via edge function
   const handleAdminUnpair = async (screenId: string, screenName: string) => {
@@ -729,7 +730,7 @@ export default function Admin() {
                                         size="icon"
                                         className="h-7 w-7"
                                         disabled={isLoading}
-                                        onClick={() => handleAdminRestart(screen.id, screen.name)}
+                                        onClick={() => setRestartTarget({ id: screen.id, name: screen.name })}
                                       >
                                         {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
                                       </Button>
