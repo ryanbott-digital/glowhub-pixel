@@ -937,6 +937,16 @@ export default function Schedule() {
         </div>
       ) : (
         <div ref={pinchContainerRef} className="flex-1 overflow-hidden flex touch-manipulation relative">
+          {/* Pinch zoom indicator (mobile) */}
+          {isPinching && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none sm:hidden animate-fade-in">
+              <div className="bg-background/80 backdrop-blur-md border border-border/60 rounded-xl px-4 py-2 shadow-lg">
+                <span className="text-sm font-mono font-semibold text-foreground">
+                  {Math.round((HOUR_HEIGHT / DEFAULT_HOUR_HEIGHT) * 100)}%
+                </span>
+              </div>
+            </div>
+          )}
           {/* Zoom controls */}
           <div className="absolute bottom-3 right-3 z-30 hidden sm:flex items-center gap-1 bg-[#0F1A2E]/90 backdrop-blur-sm border border-[#1E293B] rounded-lg p-1 shadow-lg">
             <button
