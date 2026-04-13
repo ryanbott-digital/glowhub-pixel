@@ -39,6 +39,11 @@ export interface ScreenStatusCardProps {
     loop_enabled?: boolean;
     launch_on_boot?: boolean;
     last_remote_trigger?: string | null;
+    audio_enabled?: boolean;
+    audio_station_url?: string | null;
+    audio_station_name?: string | null;
+    audio_volume?: number;
+    audio_mute_on_hype?: boolean;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
