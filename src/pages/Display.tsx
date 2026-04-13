@@ -85,7 +85,7 @@ export default function Display() {
     // Videos advance via onEnded
   }, [advanceToNext]);
 
-  const fetchPlaylist = useCallback(async (playlistId: string) => {
+  const fetchPlaylist = useCallback(async (playlistId: string, forceReset = false) => {
     const { data } = await supabase
       .from("playlist_items")
       .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted)")
@@ -94,13 +94,20 @@ export default function Display() {
 
     if (data && data.length > 0) {
       const mapped = data as unknown as PlaylistItem[];
+      // Only reset playback if playlist actually changed or forced
+      const oldIds = itemsRef.current.map(i => i.id).join(",");
+      const newIds = mapped.map(i => i.id).join(",");
+      const changed = forceReset || oldIds !== newIds;
+
       itemsRef.current = mapped;
       setItems(mapped);
-      currentIndexRef.current = 0;
-      // Set first item into layer A
-      setLayerA(mapped[0]);
-      setLayerB(null);
-      setActiveLayer("A");
+
+      if (changed) {
+        currentIndexRef.current = 0;
+        setLayerA(mapped[0]);
+        setLayerB(null);
+        setActiveLayer("A");
+      }
       try {
         localStorage.setItem(CACHE_KEY + "_" + screenId, JSON.stringify(mapped));
       } catch {}
