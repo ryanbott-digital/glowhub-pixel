@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MonitorPreview } from "@/components/MonitorPreview";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert, Megaphone } from "lucide-react";
+import { Monitor, ListVideo, BarChart3, CreditCard, Loader2, Terminal, Crown, Lock, Siren, Shield, ShieldCheck, ShieldAlert, Megaphone, X } from "lucide-react";
 import { SystemHealth } from "@/components/SystemHealth";
 import { PlaybackInsights } from "@/components/PlaybackInsights";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
@@ -197,6 +197,11 @@ export default function Dashboard() {
       setBroadcasts((prev) => [...prev, ...(data as any).slice(0, BROADCAST_PAGE_SIZE)]);
     }
     setBroadcastsLoading(false);
+  };
+
+  const dismissBroadcast = async (id: string) => {
+    await supabase.from("screen_broadcasts").delete().eq("id", id);
+    setBroadcasts((prev) => prev.filter((b) => b.id !== id));
   };
 
   const handleManageSubscription = async () => {
@@ -397,8 +402,15 @@ export default function Dashboard() {
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {broadcasts.map((b) => (
-              <div key={b.id} className="rounded-lg border border-border/50 bg-card/50 px-3 py-2 text-xs space-y-1">
-                <div className="flex items-center justify-between gap-2">
+              <div key={b.id} className="group rounded-lg border border-border/50 bg-card/50 px-3 py-2 text-xs space-y-1 relative">
+                <button
+                  onClick={() => dismissBroadcast(b.id)}
+                  className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted"
+                  aria-label="Dismiss broadcast"
+                >
+                  <X className="h-3 w-3 text-muted-foreground" />
+                </button>
+                <div className="flex items-center justify-between gap-2 pr-4">
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                     {b.broadcast_type === "alert" ? "🚨" : b.broadcast_type === "warning" ? "⚠️" : "ℹ️"} {b.broadcast_type}
                   </Badge>
