@@ -903,7 +903,34 @@ export default function Schedule() {
           </div>
         </div>
       ) : (
-        <div ref={pinchContainerRef} className="flex-1 overflow-hidden flex touch-manipulation">
+        <div ref={pinchContainerRef} className="flex-1 overflow-hidden flex touch-manipulation relative">
+          {/* Zoom controls */}
+          <div className="absolute bottom-3 right-3 z-30 hidden sm:flex items-center gap-1 bg-[#0F1A2E]/90 backdrop-blur-sm border border-[#1E293B] rounded-lg p-1 shadow-lg">
+            <button
+              onClick={() => setHourHeight((v) => Math.max(40, v - 10))}
+              className="p-1.5 rounded-md hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#E2E8F0] transition-colors"
+              title="Zoom out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </button>
+            <span className="text-[10px] text-[#64748B] font-mono w-8 text-center">{Math.round((HOUR_HEIGHT / DEFAULT_HOUR_HEIGHT) * 100)}%</span>
+            <button
+              onClick={() => setHourHeight((v) => Math.min(160, v + 10))}
+              className="p-1.5 rounded-md hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#E2E8F0] transition-colors"
+              title="Zoom in"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+            {HOUR_HEIGHT !== DEFAULT_HOUR_HEIGHT && (
+              <button
+                onClick={() => setHourHeight(DEFAULT_HOUR_HEIGHT)}
+                className="p-1.5 rounded-md hover:bg-[#1E293B] text-[#64748B] hover:text-[#E2E8F0] transition-colors"
+                title="Reset zoom"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
           {/* ── Media & Playlists Sidebar ── */}
           {mediaSidebarOpen && (
             <div className="fixed inset-0 z-40 sm:relative sm:inset-auto sm:z-auto w-full sm:w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
