@@ -148,6 +148,7 @@ const App = () => (
               <Route path="/solutions/restaurants" element={<SolutionsRestaurants />} />
               <Route path="/solutions/retail" element={<SolutionsRetail />} />
               <Route path="/solutions/hospitality" element={<SolutionsHospitality />} />
+              <Route path="/compare" element={<CompareIndex />} />
               <Route path="/compare/optisigns-alternative" element={<CompareOptiSigns />} />
               <Route path="/compare/screencloud-alternative" element={<CompareScreenCloud />} />
               <Route path="/compare/yodeck-alternative" element={<CompareYodeck />} />
