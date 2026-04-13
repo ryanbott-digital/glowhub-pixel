@@ -111,11 +111,20 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [crossfadeMs, setCrossfadeMs] = useState(screen.crossfade_ms ?? 500);
   const [loopEnabled, setLoopEnabled] = useState(screen.loop_enabled !== false);
   const [launchOnBoot, setLaunchOnBoot] = useState(screen.launch_on_boot === true);
+  const [audioEnabled, setAudioEnabled] = useState(screen.audio_enabled === true);
+  const [audioStationUrl, setAudioStationUrl] = useState(screen.audio_station_url || "");
+  const [audioStationName, setAudioStationName] = useState(screen.audio_station_name || "");
+  const [audioVolume, setAudioVolume] = useState(screen.audio_volume ?? 80);
+  const [audioMuteOnHype, setAudioMuteOnHype] = useState(screen.audio_mute_on_hype !== false);
+  const [radioQuery, setRadioQuery] = useState("");
+  const [radioResults, setRadioResults] = useState<{ id: string; name: string; url: string; favicon: string | null; country: string | null; bitrate: number }[]>([]);
+  const [radioSearching, setRadioSearching] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(screen.name);
   const [displayName, setDisplayName] = useState(screen.name);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+  const radioDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleRename = async () => {
     const trimmed = renameValue.trim();
