@@ -87,10 +87,34 @@ export const FAQ_JSON_LD = {
     },
     {
       "@type": "Question",
-      name: "How to sync two TVs without a video wall controller?",
+      name: "What happens if I want to add a 6th screen?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Glow's multi-screen sync feature lets you group multiple screens into a sync group and push the same playlist simultaneously — no hardware controller needed.",
+        text: "Add a second Pro subscription for 5 more slots, or contact Command for Enterprise rates.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I play live radio like Capital or Heart?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes! Glow Pro includes a global radio engine to stream live UK and international stations directly in the background of your visuals.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do I need expensive media players?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. Glow runs on any Firestick or Android TV. Just download the APK and ignite.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What happens if my internet goes down?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Glow is built for the real world. Content is cached locally, and audio streams are buffered to ensure zero silence even if Wi-Fi flickers.",
       },
     },
     {
@@ -99,14 +123,6 @@ export const FAQ_JSON_LD = {
       acceptedAnswer: {
         "@type": "Answer",
         text: "Yes. The Starter plan gives you 1 screen with basic scheduling and 500 MB of storage at no cost, with no time limit and no credit card required.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What happens if my internet goes down?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Pro plan screens cache content locally. If the connection drops, your signage keeps playing without interruption.",
       },
     },
   ],
