@@ -49,14 +49,16 @@ export default function Integrations() {
     if (!user) return;
     setLoading(true);
 
-    const [screensRes, playlistsRes, keyRes] = await Promise.all([
+    const [screensRes, playlistsRes, mediaRes, keyRes] = await Promise.all([
       supabase.from("screens").select("id, name, hardware_uuid, last_remote_trigger").eq("user_id", user.id),
       supabase.from("playlists").select("id, title").eq("user_id", user.id),
+      supabase.from("media").select("id, name, type").eq("user_id", user.id).order("name"),
       supabase.functions.invoke("manage-api-key", { body: { action: "status" } }),
     ]);
 
     if (screensRes.data) setScreens(screensRes.data as Screen[]);
     if (playlistsRes.data) setPlaylists(playlistsRes.data);
+    if (mediaRes.data) setMediaItems(mediaRes.data as MediaItem[]);
     if (keyRes.data) {
       setHasKey(keyRes.data.hasKey);
       setKeyPrefix(keyRes.data.prefix || null);
