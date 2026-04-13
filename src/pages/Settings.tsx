@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { Zap } from "lucide-react";
 
 const DISMISS_KEY = "glowhub_onboarding_dismissed";
 
@@ -57,6 +58,7 @@ export default function Settings() {
   const [compactSidebar, setCompactSidebar] = useBoolPref("glowhub_compact_sidebar", false);
   const [defaultPreviewTab, setDefaultPreviewTab] = usePref("glowhub_default_tab", "preview");
   const [mediaGridSize, setMediaGridSize] = usePref("glowhub_media_grid", "medium");
+  const [liveRemoteEnabled, setLiveRemoteEnabled] = useBoolPref("glowhub_live_remote", true);
 
   const [exporting, setExporting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -274,6 +276,24 @@ export default function Settings() {
               <SelectItem value="large">Large</SelectItem>
             </SelectContent>
           </Select>
+        </SettingRow>
+      </div>
+
+      {/* Live Remote */}
+      <div className="glass rounded-2xl p-5 space-y-3">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Zap className="h-4 w-4 text-primary" />
+          Live Remote
+        </h2>
+        <SettingRow>
+          <div className="space-y-0.5">
+            <Label htmlFor="live-remote" className="text-sm font-medium text-foreground">Show Live Remote Dock</Label>
+            <p className="text-xs text-muted-foreground">Display the floating Hype trigger button on your Dashboard</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Zap className={`h-3.5 w-3.5 ${liveRemoteEnabled ? "text-primary" : "text-muted-foreground"}`} />
+            <Switch id="live-remote" checked={liveRemoteEnabled} onCheckedChange={setLiveRemoteEnabled} />
+          </div>
         </SettingRow>
       </div>
 

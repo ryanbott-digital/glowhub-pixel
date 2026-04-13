@@ -519,7 +519,7 @@ export default function Dashboard() {
           </TabsContent>
         )}
       </Tabs>
-      <LiveRemoteDock />
+      {localStorage.getItem("glowhub_live_remote") !== "false" && <LiveRemoteDock />}
     </div>
   );
 }
