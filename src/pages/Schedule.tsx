@@ -1325,7 +1325,7 @@ export default function Schedule() {
             const hh = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
             const mm = (totalMinutes % 60).toString().padStart(2, "0");
             return (
-              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-[#0F1A2E] border border-[#00A3A3]/40 shadow-[0_0_10px_rgba(0,229,204,0.3)]">
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-[#0F1A2E] border border-[#00A3A3]/40 shadow-[0_0_10px_rgba(0,229,204,0.3)] animate-scale-in origin-top">
                 <span className="text-[11px] font-mono font-semibold text-[#00E5CC]">{hh}:{mm}</span>
               </div>
             );
