@@ -858,16 +858,29 @@ export default function Schedule() {
         </div>
       ) : (
         <div className="flex-1 overflow-hidden flex">
-          {/* ── Media Library Sidebar ── */}
+          {/* ── Media & Playlists Sidebar ── */}
           {mediaSidebarOpen && (
             <div className="fixed inset-0 z-40 sm:relative sm:inset-auto sm:z-auto w-full sm:w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
               <div className="px-3 py-2 border-b border-[#1E293B]/40 shrink-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
-                  <span className="text-xs font-semibold text-[#E2E8F0]">Media Library</span>
-                  <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-[#1E293B] text-[#64748B]">{media.length}</Badge>
+                  {sidebarTab === "media" ? <Film className="h-3.5 w-3.5 text-[#00E5CC]" /> : <ListMusic className="h-3.5 w-3.5 text-[#60A5FA]" />}
+                  <span className="text-xs font-semibold text-[#E2E8F0]">{sidebarTab === "media" ? "Media" : "Playlists"}</span>
+                  <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-[#1E293B] text-[#64748B]">
+                    {sidebarTab === "media" ? media.length : playlists.length}
+                  </Badge>
                   <button onClick={() => setMediaSidebarOpen(false)} className="sm:hidden ml-1 text-[#64748B] hover:text-[#E2E8F0] transition-colors">
                     <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {/* Tab switcher */}
+                <div className="flex rounded-lg border border-[#1E293B] bg-[#0F1A2E] overflow-hidden mb-2">
+                  <button onClick={() => setSidebarTab("media")}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium transition-all flex items-center justify-center gap-1 ${sidebarTab === "media" ? "bg-[#00A3A3]/20 text-[#00E5CC]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
+                    <Film className="h-3 w-3" /> Media
+                  </button>
+                  <button onClick={() => setSidebarTab("playlists")}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium transition-all flex items-center justify-center gap-1 ${sidebarTab === "playlists" ? "bg-[#3B82F6]/20 text-[#60A5FA]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
+                    <ListMusic className="h-3 w-3" /> Playlists
                   </button>
                 </div>
                 <div className="relative">
@@ -881,41 +894,76 @@ export default function Schedule() {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-1.5 py-1.5 space-y-1 scrollbar-hide">
-                {media
-                  .filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
-                  .map((item) => (
-                    <div
-                      key={item.id}
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData("application/glow-media-id", item.id);
-                        e.dataTransfer.effectAllowed = "copy";
-                        setMediaDragItem(item);
-                      }}
-                      onDragEnd={() => setMediaDragItem(null)}
-                      onTouchStart={handleTouchDragStart(item)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
-                    >
-                      <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                      <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
-                        {item.type === "video" ? (
-                          <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
-                        ) : (
-                          <img src={getStorageUrl(item.storage_path)} alt="" className="w-full h-full object-cover" loading="lazy" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{item.name}</p>
-                        <p className="text-[9px] text-[#475569] uppercase">{item.type}</p>
-                      </div>
-                    </div>
-                  ))}
-                {media.filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
-                  <p className="text-[11px] text-[#475569] text-center py-4">No media found</p>
+                {sidebarTab === "media" ? (
+                  <>
+                    {media
+                      .filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("application/glow-media-id", item.id);
+                            e.dataTransfer.effectAllowed = "copy";
+                            setMediaDragItem(item);
+                          }}
+                          onDragEnd={() => setMediaDragItem(null)}
+                          onTouchStart={handleTouchDragStart(item)}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
+                        >
+                          <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+                            {item.type === "video" ? (
+                              <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
+                            ) : (
+                              <img src={getStorageUrl(item.storage_path)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{item.name}</p>
+                            <p className="text-[9px] text-[#475569] uppercase">{item.type}</p>
+                          </div>
+                        </div>
+                      ))}
+                    {media.filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
+                      <p className="text-[11px] text-[#475569] text-center py-4">No media found</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {playlists
+                      .filter((p) => !mediaSidebarSearch || p.title.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
+                      .map((pl) => (
+                        <div
+                          key={pl.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("application/glow-playlist-id", pl.id);
+                            e.dataTransfer.effectAllowed = "copy";
+                          }}
+                          onTouchStart={handleTouchPlaylistDragStart(pl)}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
+                        >
+                          <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+                            <ListMusic className="h-3.5 w-3.5 text-[#60A5FA]" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{pl.title}</p>
+                            <p className="text-[9px] text-[#475569] uppercase">playlist</p>
+                          </div>
+                        </div>
+                      ))}
+                    {playlists.filter((p) => !mediaSidebarSearch || p.title.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
+                      <p className="text-[11px] text-[#475569] text-center py-4">No playlists found</p>
+                    )}
+                  </>
                 )}
               </div>
               <div className="px-3 py-2 border-t border-[#1E293B]/40 shrink-0">
-                <p className="text-[10px] text-[#475569] text-center">Drag media onto the timeline</p>
+                <p className="text-[10px] text-[#475569] text-center">
+                  {sidebarTab === "media" ? "Drag media onto the timeline" : "Drag playlists onto the timeline"}
+                </p>
               </div>
             </div>
           )}
