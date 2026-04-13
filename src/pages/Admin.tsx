@@ -179,6 +179,7 @@ export default function Admin() {
 
   // Admin: unpair confirmation state
   const [unpairTarget, setUnpairTarget] = useState<{ id: string; name: string } | null>(null);
+  const [restartTarget, setRestartTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Admin: unpair a screen via edge function
   const handleAdminUnpair = async (screenId: string, screenName: string) => {
@@ -729,7 +730,7 @@ export default function Admin() {
                                         size="icon"
                                         className="h-7 w-7"
                                         disabled={isLoading}
-                                        onClick={() => handleAdminRestart(screen.id, screen.name)}
+                                        onClick={() => setRestartTarget({ id: screen.id, name: screen.name })}
                                       >
                                         {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
                                       </Button>
@@ -1191,6 +1192,30 @@ export default function Admin() {
               }}
             >
               Unpair Device
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* Restart confirmation dialog */}
+      <AlertDialog open={!!restartTarget} onOpenChange={(open) => { if (!open) setRestartTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restart Screen</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send a remote restart signal to <span className="font-semibold text-foreground">"{restartTarget?.name}"</span>. The screen will reload its content.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (restartTarget) {
+                  handleAdminRestart(restartTarget.id, restartTarget.name);
+                  setRestartTarget(null);
+                }
+              }}
+            >
+              Restart Screen
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
