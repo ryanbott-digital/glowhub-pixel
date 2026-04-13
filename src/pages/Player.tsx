@@ -116,6 +116,15 @@ export default function Player() {
     total_screens: number; orientation: string;
   } | null>(null);
 
+  // ── BACKGROUND AUDIO ──
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioStationUrl, setAudioStationUrl] = useState<string | null>(null);
+  const [audioStationName, setAudioStationName] = useState<string | null>(null);
+  const [audioVolume, setAudioVolume] = useState(80);
+  const [audioMuteOnHype, setAudioMuteOnHype] = useState(true);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   // ── BREAKING ALERT ──
   const [alertActive, setAlertActive] = useState(false);
   const alertTimerRef = useRef<ReturnType<typeof setTimeout>>();
