@@ -140,6 +140,8 @@ export default function Admin() {
   const [broadcastDuration, setBroadcastDuration] = useState(30);
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [dismissingBroadcasts, setDismissingBroadcasts] = useState(false);
+  const [broadcastHistory, setBroadcastHistory] = useState<{ id: string; message: string; broadcast_type: string; duration_seconds: number; created_at: string }[]>([]);
+  const [broadcastHistoryLoading, setBroadcastHistoryLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
