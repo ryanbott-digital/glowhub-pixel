@@ -229,26 +229,75 @@ export default function MediaLibrary() {
   const uploadFiles = async (files: File[]) => {
     if (!user) {
       toast.error("You must be logged in to upload files");
-      console.error("[Upload] No authenticated user found");
       return;
     }
 
-    console.log(`[Upload] Starting upload for ${files.length} file(s), user: ${user.id}`);
+    const validFiles: File[] = [];
+    const oversized: OversizedFile[] = [];
 
-    const validFiles = files.filter((f) => {
+    for (const f of files) {
       if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) {
         toast.error(`${f.name}: only images and videos are supported`);
-        console.warn(`[Upload] Rejected ${f.name} — unsupported type: ${f.type}`);
-        return false;
+        continue;
       }
-      if (f.size > 50 * 1024 * 1024) {
-        toast.error(`${f.name}: file exceeds 50 MB — consider compressing before upload`);
-        console.warn(`[Upload] Rejected ${f.name} — size ${(f.size / 1024 / 1024).toFixed(1)} MB exceeds limit`);
-        return false;
+      const isImage = f.type.startsWith("image/");
+      const limit = isImage ? MAX_SIZE : VIDEO_MAX_SIZE;
+      if (f.size > limit) {
+        if (isImage) {
+          oversized.push({ file: f, isImage: true });
+        } else {
+          toast.error(`${f.name}: video exceeds 500 MB — please compress with HandBrake or similar`);
+        }
+        continue;
       }
-      return true;
-    });
+      validFiles.push(f);
+    }
+
+    // If there are oversized images, show the compress dialog
+    if (oversized.length > 0) {
+      setOversizedFiles(oversized);
+      setPendingValidFiles(validFiles);
+      setCompressDialogOpen(true);
+      return;
+    }
+
     if (validFiles.length === 0) return;
+    await doUpload(validFiles);
+  };
+
+  const handleCompressAndUpload = async () => {
+    setCompressing(true);
+    const compressed: File[] = [];
+    for (const { file } of oversizedFiles) {
+      try {
+        const result = await compressImage(file);
+        if (result.size > MAX_SIZE) {
+          // Try again with lower quality
+          const result2 = await compressImage(file, 3000, 0.6);
+          if (result2.size > MAX_SIZE) {
+            toast.error(`${file.name}: still too large after compression`);
+            continue;
+          }
+          compressed.push(result2);
+        } else {
+          compressed.push(result);
+        }
+        toast.success(`Compressed ${file.name} → ${formatFileSize(result.size)}`);
+      } catch {
+        toast.error(`Failed to compress ${file.name}`);
+      }
+    }
+    setCompressing(false);
+    setCompressDialogOpen(false);
+    const allFiles = [...pendingValidFiles, ...compressed];
+    setOversizedFiles([]);
+    setPendingValidFiles([]);
+    if (allFiles.length > 0) await doUpload(allFiles);
+  };
+
+  const doUpload = async (validFiles: File[]) => {
+    if (!user) return;
+    console.log(`[Upload] Starting upload for ${validFiles.length} file(s), user: ${user.id}`);
 
     setUploading(true);
     setUploadProgress(0);
