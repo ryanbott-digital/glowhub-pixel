@@ -14,6 +14,7 @@ interface PlaylistItem {
     type: string;
     name: string;
     duration: number | null;
+    audio_muted: boolean;
   };
 }
 
