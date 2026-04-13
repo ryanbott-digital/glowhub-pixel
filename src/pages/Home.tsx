@@ -647,7 +647,8 @@ const Home = () => {
           Side-by-side: see how Glow replaces overpriced legacy systems.
         </p>
 
-        <div data-animate className="reveal-card max-w-3xl mx-auto overflow-x-auto">
+        {/* Desktop table */}
+        <div data-animate className="reveal-card max-w-3xl mx-auto hidden sm:block">
           <table className="w-full border-collapse text-sm" role="table" aria-label="Glow versus legacy signage feature comparison">
             <thead>
               <tr>
@@ -689,6 +690,40 @@ const Home = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile stacked cards */}
+        <div data-animate className="reveal-card max-w-md mx-auto sm:hidden space-y-3">
+          {[
+            { feature: "Pricing", legacy: "$30–$100 /mo per screen", glow: "$9 /mo (Up to 5 Screens)" },
+            { feature: "Hardware", legacy: "Proprietary $300 Players", glow: "Any Firestick / Android TV" },
+            { feature: "Sync Speed", legacy: "1–2 second lag (choppy)", glow: "Millisecond Precision (60fps)" },
+            { feature: "Management", legacy: "Clunky Web Portals", glow: "Native Admin Dashboard" },
+            { feature: "Takeovers", legacy: "Manual / Pre-scheduled", glow: "Instant 'Hype' Remote Triggers" },
+            { feature: "Setup Time", legacy: "Professional Install Required", glow: "5-Minute DIY Setup" },
+          ].map((row, i) => (
+            <div key={i} className="rounded-xl border border-[#1E293B]/60 bg-[#0F1A2E]/60 backdrop-blur-sm overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-[#1E293B]/40">
+                <span className="text-sm font-semibold text-[#E2E8F0]">{row.feature}</span>
+              </div>
+              <div className="grid grid-cols-1 divide-y divide-[#1E293B]/30">
+                <div className="px-4 py-3 flex items-start gap-2">
+                  <span className="text-red-400/60 text-xs mt-0.5 shrink-0">✕</span>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[#64748B] block mb-0.5">Legacy</span>
+                    <span className="text-sm text-[#64748B]">{row.legacy}</span>
+                  </div>
+                </div>
+                <div className="px-4 py-3 flex items-start gap-2 bg-[#00A3A3]/[0.04]">
+                  <Check className="w-3.5 h-3.5 text-[#00A3A3] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[#00A3A3]/70 block mb-0.5">Glow</span>
+                    <span className="text-sm font-medium text-[#E2E8F0]">{row.glow}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* CTA below comparison */}
