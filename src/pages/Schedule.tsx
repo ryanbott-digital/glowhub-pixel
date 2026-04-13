@@ -551,6 +551,101 @@ export default function Schedule() {
     if (indicator) indicator.style.opacity = "0";
   };
 
+  /* ── Touch long-press drag for mobile ── */
+  const handleTouchDragStart = (item: MediaItem) => (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    touchLongPressTimer.current = setTimeout(() => {
+      hapticMedium();
+      touchDragItemRef.current = item;
+      setTouchDragItem(item);
+      setTouchDragPos({ x: startX, y: startY });
+      setMediaSidebarOpen(false);
+    }, 400);
+    const cancelIfMoved = (ev: TouchEvent) => {
+      const dx = ev.touches[0].clientX - startX;
+      const dy = ev.touches[0].clientY - startY;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+        document.removeEventListener("touchmove", cancelIfMoved);
+      }
+    };
+    document.addEventListener("touchmove", cancelIfMoved, { passive: true });
+    const cleanup = () => {
+      if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+      document.removeEventListener("touchmove", cancelIfMoved);
+      document.removeEventListener("touchend", cleanup);
+      document.removeEventListener("touchcancel", cleanup);
+    };
+    document.addEventListener("touchend", cleanup, { once: true });
+    document.addEventListener("touchcancel", cleanup, { once: true });
+  };
+
+  useEffect(() => {
+    if (!touchDragItem) return;
+    const onMove = (e: TouchEvent) => {
+      e.preventDefault();
+      setTouchDragPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    };
+    const onEnd = async (e: TouchEvent) => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const el = document.elementFromPoint(endX, endY) as HTMLElement | null;
+      let target = el;
+      let dayStr: string | null = null;
+      let hourStr: string | null = null;
+      while (target && !dayStr) {
+        dayStr = target.getAttribute("data-drop-day");
+        hourStr = target.getAttribute("data-drop-hour");
+        target = target.parentElement;
+      }
+      if (dayStr && hourStr && user && selectedScreenId && touchDragItemRef.current) {
+        const day = new Date(dayStr);
+        const hour = parseInt(hourStr);
+        const cell = document.querySelector(`[data-drop-day="${dayStr}"][data-drop-hour="${hourStr}"]`) as HTMLElement;
+        let minuteOffset = 0;
+        if (cell) {
+          const rect = cell.getBoundingClientRect();
+          const offsetY = endY - rect.top;
+          minuteOffset = Math.round((offsetY / HOUR_HEIGHT) * 60 / SNAP_MINUTES) * SNAP_MINUTES;
+          minuteOffset = Math.max(0, Math.min(45, minuteOffset));
+        }
+        const startDate = new Date(day);
+        startDate.setHours(hour, minuteOffset, 0, 0);
+        const endDate = new Date(startDate);
+        endDate.setMinutes(endDate.getMinutes() + 60);
+        const item = touchDragItemRef.current;
+        const { error } = await supabase.from("schedule_blocks").insert({
+          screen_id: selectedScreenId, media_id: item.id, playlist_id: null,
+          start_at: startDate.toISOString(), end_at: endDate.toISOString(),
+          block_type: "content", recurrence: "none", color_code: "teal",
+          priority: 0, label: item.name, user_id: user.id,
+        } as any);
+        if (error) toast.error("Failed to create block");
+        else {
+          hapticSuccess();
+          const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
+          toast.success(`"${item.name}" scheduled at ${timeStr}`);
+          fetchBlocks();
+        }
+      } else if (touchDragItemRef.current) {
+        toast.info("Drop on the timeline to schedule");
+      }
+      touchDragItemRef.current = null;
+      setTouchDragItem(null);
+      setTouchDragPos(null);
+    };
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd, { once: true });
+    document.addEventListener("touchcancel", () => {
+      touchDragItemRef.current = null;
+      setTouchDragItem(null);
+      setTouchDragPos(null);
+    }, { once: true });
+    return () => { document.removeEventListener("touchmove", onMove); };
+  }, [touchDragItem, user, selectedScreenId, fetchBlocks]);
+
 
   useEffect(() => {
     const scrollTo8am = () => {
