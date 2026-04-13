@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Key, Copy, RefreshCw, Loader2, Shield, Zap, Check, AlertTriangle, Monitor, Play } from "lucide-react";
+import { Key, Copy, RefreshCw, Loader2, Shield, Zap, Check, AlertTriangle, Monitor, Play, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -311,6 +311,45 @@ export default function Integrations() {
               Generate an API key above first
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Stream Deck Icons */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Download className="h-5 w-5 text-primary" />
+            Stream Deck Icons
+          </CardTitle>
+          <CardDescription>
+            72×72px neon-teal icons on black backgrounds — designed to match the Glow aesthetic on your physical Stream Deck buttons.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-3">
+            {["Play", "Stop", "Next", "Power", "Reload", "Logo"].map((label) => (
+              <div key={label} className="flex flex-col items-center gap-1.5">
+                <div className="w-[72px] h-[72px] rounded-lg bg-black border border-border/30 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={`/glow-streamdeck-icons/${label.toLowerCase()}.png`}
+                    alt={`Glow ${label} icon`}
+                    width={72}
+                    height={72}
+                    loading="lazy"
+                    className="w-full h-full object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+                <span className="text-[10px] text-muted-foreground">{label}</span>
+              </div>
+            ))}
+          </div>
+          <Button asChild variant="outline" className="gap-2">
+            <a href="/glow-streamdeck-icons.zip" download>
+              <Download className="h-4 w-4" />
+              Download Icon Pack (.zip)
+            </a>
+          </Button>
         </CardContent>
       </Card>
 
