@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
-import { Check, ArrowRight, Tv, Utensils, Clock, Wifi, WifiOff, BarChart3, Palette } from "lucide-react";
+import { Check, ArrowRight, Tv, Utensils, Clock, Wifi, WifiOff, BarChart3, Palette, Hotel, Dumbbell, Store } from "lucide-react";
 import { RelatedSolutions } from "@/components/RelatedSolutions";
 
 const USE_CASES = {
