@@ -499,6 +499,8 @@ export default function Admin() {
                     setSelectedUser(user);
                     setActivityLogs([]);
                     setActivityLoading(true);
+                    setActivityScreenFilter("all");
+                    setActivityActionFilter("all");
                     const screenIds = user.screens.map((s) => s.id);
                     if (screenIds.length === 0) { setActivityLoading(false); return; }
                     supabase.from("screen_activity_logs").select("id, action, screen_id, playlist_title, created_at")
