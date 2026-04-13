@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
+import { SwipeToDelete } from "@/components/SwipeToDelete";
 
 /* ──────── Types ──────── */
 interface Screen { id: string; name: string; status: string; }
