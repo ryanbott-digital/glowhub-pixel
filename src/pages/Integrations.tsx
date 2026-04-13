@@ -16,6 +16,8 @@ interface Screen {
   name: string;
   hardware_uuid: string | null;
   last_remote_trigger: string | null;
+  current_playlist_id: string | null;
+  current_media_id: string | null;
 }
 
 interface Playlist {
