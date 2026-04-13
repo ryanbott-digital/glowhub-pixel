@@ -116,7 +116,7 @@ export default function Display() {
     setLoading(false);
   }, [screenId]);
 
-  // When active layer changes, schedule next advancement
+  // When active layer or items change, schedule next advancement
   useEffect(() => {
     const allItems = itemsRef.current;
     if (allItems.length === 0) return;
@@ -127,7 +127,7 @@ export default function Display() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [activeLayer, scheduleNext]);
+  }, [activeLayer, items, scheduleNext]);
 
   // Initial load & realtime subscription
   useEffect(() => {
