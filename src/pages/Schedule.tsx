@@ -1261,6 +1261,34 @@ export default function Schedule() {
                 </SelectContent>
               </Select>
             </div>
+            {newBlock.recurrence !== "none" && (
+              <div>
+                <Label className="text-xs text-[#94A3B8]">Repeat Until (optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1 bg-[#0B1120] border-[#1E293B]", !newBlock.recurrence_end && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {newBlock.recurrence_end ? format(newBlock.recurrence_end, "PPP") : "No end date (repeats forever)"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={newBlock.recurrence_end || undefined}
+                      onSelect={(d) => setNewBlock((p) => ({ ...p, recurrence_end: d || null }))}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {newBlock.recurrence_end && (
+                  <Button variant="ghost" size="sm" className="mt-1 text-xs text-muted-foreground" onClick={() => setNewBlock((p) => ({ ...p, recurrence_end: null }))}>
+                    <X className="h-3 w-3 mr-1" /> Clear end date
+                  </Button>
+                )}
+              </div>
+            )}
             {newBlock.block_type !== "hype_override" && (
               <div><Label className="text-xs text-[#94A3B8]">Priority</Label><Input type="number" value={newBlock.priority} onChange={(e) => setNewBlock((p) => ({ ...p, priority: parseInt(e.target.value) || 0 }))} className="bg-[#0B1120] border-[#1E293B] mt-1 w-24" min={0} max={100} /></div>
             )}
