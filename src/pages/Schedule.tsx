@@ -1389,6 +1389,48 @@ export default function Schedule() {
                 <div><span className="text-[#64748B] text-xs">Type</span><p className="text-[#E2E8F0] capitalize">{editBlock.block_type.replace("_", " ")}</p></div>
                 <div><span className="text-[#64748B] text-xs">Recurrence</span><p className="text-[#E2E8F0] capitalize">{editBlock.recurrence}</p></div>
               </div>
+              {editBlock.recurrence !== "none" && (
+                <div>
+                  <span className="text-[#64748B] text-xs">Repeat Until</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1 bg-[#0B1120] border-[#1E293B]", !editBlock.recurrence_end && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {editBlock.recurrence_end ? format(new Date(editBlock.recurrence_end), "PPP") : "No end date (repeats forever)"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={editBlock.recurrence_end ? new Date(editBlock.recurrence_end) : undefined}
+                        onSelect={async (d) => {
+                          const newEnd = d ? d.toISOString() : null;
+                          const { error } = await supabase.from("schedule_blocks").update({ recurrence_end: newEnd }).eq("id", editBlock.id);
+                          if (error) { toast.error("Failed to update"); return; }
+                          setEditBlock({ ...editBlock, recurrence_end: newEnd });
+                          fetchBlocks();
+                          toast.success(d ? "Repeat end date set" : "Repeat end date cleared");
+                        }}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {editBlock.recurrence_end && (
+                    <Button variant="ghost" size="sm" className="mt-1 text-xs text-muted-foreground"
+                      onClick={async () => {
+                        const { error } = await supabase.from("schedule_blocks").update({ recurrence_end: null }).eq("id", editBlock.id);
+                        if (error) { toast.error("Failed to update"); return; }
+                        setEditBlock({ ...editBlock, recurrence_end: null });
+                        fetchBlocks();
+                        toast.success("Repeat end date cleared");
+                      }}>
+                      <X className="h-3 w-3 mr-1" /> Clear end date
+                    </Button>
+                  )}
+                </div>
+              )}
               {editBlock.media_id && <div><span className="text-[#64748B] text-xs">Media</span><p className="text-[#E2E8F0]">{getMediaName(editBlock.media_id)}</p></div>}
               {editBlock.playlist_id && <div><span className="text-[#64748B] text-xs">Playlist</span><p className="text-[#E2E8F0]">{getPlaylistName(editBlock.playlist_id)}</p></div>}
               {isOverlapping(editBlock.id) && (
