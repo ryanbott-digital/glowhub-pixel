@@ -702,6 +702,7 @@ export default function Player() {
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
       if ((screen as any).sync_layout) setSyncLayout((screen as any).sync_layout);
+      if ((screen as any).user_id) setScreenOwnerId((screen as any).user_id);
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
