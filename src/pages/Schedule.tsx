@@ -134,6 +134,10 @@ export default function Schedule() {
   const [mediaSidebarOpen, setMediaSidebarOpen] = useState(false);
   const [mediaSidebarSearch, setMediaSidebarSearch] = useState("");
   const [mediaDragItem, setMediaDragItem] = useState<MediaItem | null>(null);
+  const [touchDragItem, setTouchDragItem] = useState<MediaItem | null>(null);
+  const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
+  const touchLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchDragItemRef = useRef<MediaItem | null>(null);
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
@@ -547,6 +551,101 @@ export default function Schedule() {
     if (indicator) indicator.style.opacity = "0";
   };
 
+  /* ── Touch long-press drag for mobile ── */
+  const handleTouchDragStart = (item: MediaItem) => (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    touchLongPressTimer.current = setTimeout(() => {
+      hapticMedium();
+      touchDragItemRef.current = item;
+      setTouchDragItem(item);
+      setTouchDragPos({ x: startX, y: startY });
+      setMediaSidebarOpen(false);
+    }, 400);
+    const cancelIfMoved = (ev: TouchEvent) => {
+      const dx = ev.touches[0].clientX - startX;
+      const dy = ev.touches[0].clientY - startY;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+        document.removeEventListener("touchmove", cancelIfMoved);
+      }
+    };
+    document.addEventListener("touchmove", cancelIfMoved, { passive: true });
+    const cleanup = () => {
+      if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+      document.removeEventListener("touchmove", cancelIfMoved);
+      document.removeEventListener("touchend", cleanup);
+      document.removeEventListener("touchcancel", cleanup);
+    };
+    document.addEventListener("touchend", cleanup, { once: true });
+    document.addEventListener("touchcancel", cleanup, { once: true });
+  };
+
+  useEffect(() => {
+    if (!touchDragItem) return;
+    const onMove = (e: TouchEvent) => {
+      e.preventDefault();
+      setTouchDragPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    };
+    const onEnd = async (e: TouchEvent) => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const el = document.elementFromPoint(endX, endY) as HTMLElement | null;
+      let target = el;
+      let dayStr: string | null = null;
+      let hourStr: string | null = null;
+      while (target && !dayStr) {
+        dayStr = target.getAttribute("data-drop-day");
+        hourStr = target.getAttribute("data-drop-hour");
+        target = target.parentElement;
+      }
+      if (dayStr && hourStr && user && selectedScreenId && touchDragItemRef.current) {
+        const day = new Date(dayStr);
+        const hour = parseInt(hourStr);
+        const cell = document.querySelector(`[data-drop-day="${dayStr}"][data-drop-hour="${hourStr}"]`) as HTMLElement;
+        let minuteOffset = 0;
+        if (cell) {
+          const rect = cell.getBoundingClientRect();
+          const offsetY = endY - rect.top;
+          minuteOffset = Math.round((offsetY / HOUR_HEIGHT) * 60 / SNAP_MINUTES) * SNAP_MINUTES;
+          minuteOffset = Math.max(0, Math.min(45, minuteOffset));
+        }
+        const startDate = new Date(day);
+        startDate.setHours(hour, minuteOffset, 0, 0);
+        const endDate = new Date(startDate);
+        endDate.setMinutes(endDate.getMinutes() + 60);
+        const item = touchDragItemRef.current;
+        const { error } = await supabase.from("schedule_blocks").insert({
+          screen_id: selectedScreenId, media_id: item.id, playlist_id: null,
+          start_at: startDate.toISOString(), end_at: endDate.toISOString(),
+          block_type: "content", recurrence: "none", color_code: "teal",
+          priority: 0, label: item.name, user_id: user.id,
+        } as any);
+        if (error) toast.error("Failed to create block");
+        else {
+          hapticSuccess();
+          const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
+          toast.success(`"${item.name}" scheduled at ${timeStr}`);
+          fetchBlocks();
+        }
+      } else if (touchDragItemRef.current) {
+        toast.info("Drop on the timeline to schedule");
+      }
+      touchDragItemRef.current = null;
+      setTouchDragItem(null);
+      setTouchDragPos(null);
+    };
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd, { once: true });
+    document.addEventListener("touchcancel", () => {
+      touchDragItemRef.current = null;
+      setTouchDragItem(null);
+      setTouchDragPos(null);
+    }, { once: true });
+    return () => { document.removeEventListener("touchmove", onMove); };
+  }, [touchDragItem, user, selectedScreenId, fetchBlocks]);
+
 
   useEffect(() => {
     const scrollTo8am = () => {
@@ -738,7 +837,8 @@ export default function Schedule() {
                         setMediaDragItem(item);
                       }}
                       onDragEnd={() => setMediaDragItem(null)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group"
+                      onTouchStart={handleTouchDragStart(item)}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
                     >
                       <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                       <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
@@ -847,6 +947,8 @@ export default function Schedule() {
                       {/* Hour grid lines */}
                       {HOURS.map((h) => (
                         <div key={h} style={{ height: HOUR_HEIGHT }}
+                          data-drop-day={day.toISOString()}
+                          data-drop-hour={h}
                           className={`border-b border-[#1E293B]/15 cursor-pointer hover:bg-[#00A3A3]/[0.03] transition-colors relative`}
                           onClick={(e) => { e.stopPropagation(); handleSlotClick(day, h); }}
                           onDragOver={(e) => handleMediaDragOver(e, h)}
@@ -967,7 +1069,24 @@ export default function Schedule() {
         </div>
       )}
 
-      {/* ══════════ CREATE DIALOG ══════════ */}
+      {/* ══════════ TOUCH DRAG GHOST ══════════ */}
+      {touchDragItem && touchDragPos && (
+        <div
+          className="fixed z-[100] pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl border border-[#00A3A3]/50 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_20px_rgba(0,229,204,0.3)]"
+          style={{ left: touchDragPos.x - 60, top: touchDragPos.y - 24, minWidth: 120 }}
+        >
+          <div className="w-6 h-6 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+            {touchDragItem.type === "video" ? (
+              <Film className="h-3 w-3 text-[#00E5CC]" />
+            ) : (
+              <Image className="h-3 w-3 text-[#60A5FA]" />
+            )}
+          </div>
+          <span className="text-[11px] font-medium text-[#00E5CC] truncate max-w-[100px]">{touchDragItem.name}</span>
+        </div>
+      )}
+
+
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="bg-[#0F1A2E] border-[#1E293B] max-w-lg max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
           <DialogHeader><DialogTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-[#00E5CC]" /> New Schedule Block</DialogTitle></DialogHeader>
