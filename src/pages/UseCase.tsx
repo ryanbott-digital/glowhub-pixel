@@ -68,50 +68,150 @@ export default function UseCase() {
   const slug = window.location.pathname.split("/use-cases/")[1]?.replace(/\/$/, "");
   const data = slug ? USE_CASES[slug as keyof typeof USE_CASES] : null;
 
+  const SOLUTIONS = [
+    {
+      title: "Restaurant Digital Menu Boards",
+      description: "Turn any Firestick into a digital menu board. Update prices remotely, schedule daily specials, and keep your menu fresh — no expensive hardware needed.",
+      href: "/use-cases/restaurant-digital-menu-boards",
+      icon: Utensils,
+      color: "#F97316",
+      tags: ["Menu boards", "Daily specials", "Time-based scheduling"],
+    },
+    {
+      title: "Gym & Fitness Workout Displays",
+      description: "Display workout schedules, class timetables, and motivational content on gym TVs. Cloud-synced digital signage for fitness studios.",
+      href: "/use-cases/gym-workout-displays",
+      icon: Dumbbell,
+      color: "#3B82F6",
+      tags: ["WOD boards", "Class timetables", "Multi-zone"],
+    },
+    {
+      title: "Retail Window Display Sync",
+      description: "Sync multiple retail window screens with cloud-managed digital signage. No video wall controller needed — just Firesticks and Glow.",
+      href: "/use-cases/retail-window-sync",
+      icon: Store,
+      color: "#EC4899",
+      tags: ["Multi-screen sync", "Proof-of-play", "Remote management"],
+    },
+    {
+      title: "Restaurant & Café Solutions",
+      description: "Mood-synced menus, daypart scheduling, and instant price updates. Full-featured digital signage designed for food service.",
+      href: "/solutions/restaurants",
+      icon: Utensils,
+      color: "#F59E0B",
+      tags: ["Mood sync", "Daypart menus", "Brand theming"],
+    },
+    {
+      title: "Retail Storefront Solutions",
+      description: "Synchronise shop window displays, schedule seasonal promotions, and manage multi-store signage from one dashboard.",
+      href: "/solutions/retail",
+      icon: Tv,
+      color: "#A855F7",
+      tags: ["Window sync", "Campaign scheduling", "Analytics"],
+    },
+    {
+      title: "Hotel & Venue Displays",
+      description: "Welcome screens, event boards, wayfinding, and conference room signage for hotels and hospitality venues.",
+      href: "/solutions/hospitality",
+      icon: Hotel,
+      color: "#06B6D4",
+      tags: ["Welcome screens", "Event boards", "Wayfinding"],
+    },
+  ];
+
+  const indexJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Glow Digital Signage Use Cases & Solutions",
+    description: "Browse all industries and use cases powered by Glow digital signage software.",
+    numberOfItems: SOLUTIONS.length,
+    itemListElement: SOLUTIONS.map((s, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: s.title,
+      url: `https://glowhub-pixel.lovable.app${s.href}`,
+    })),
+  };
+
   if (!data) {
     return (
       <div className="min-h-screen bg-[#0B1120] text-[#E2E8F0] flex flex-col">
         <SEOHead
-          title="Use Cases — Pro Digital Signage Software"
-          description="Discover how Glow powers digital signage for restaurants, gyms, retail, and more. Cloud-synced screen manager for Firestick and Android TV."
+          title="Digital Signage Use Cases & Solutions"
+          description="Explore how restaurants, gyms, retailers, and hotels use Glow to power their screens. Browse industry-specific solutions for Firestick and Android TV digital signage."
           canonical="/use-cases"
+          jsonLd={indexJsonLd}
         />
         <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1120]/80 border-b border-[#1E293B]/50">
           <div className="flex items-center justify-between px-6 py-3.5 max-w-6xl mx-auto">
             <Link to="/home"><GlowLogoImage className="h-8" /></Link>
-            <Link to="/auth" className="text-sm font-medium px-5 py-2 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120]">Login</Link>
+            <div className="flex items-center gap-4">
+              <Link to="/home" className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Home</Link>
+              <Link to="/auth" className="text-sm font-medium px-5 py-2 rounded-lg bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120]">Get Started Free</Link>
+            </div>
           </div>
         </nav>
 
         <main className="flex-1 px-6 py-20 max-w-5xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6">Use Cases</h1>
-          <p className="text-[#94A3B8] text-lg mb-12 max-w-2xl">See how businesses use Glow to power their screens.</p>
+          <div className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">Use Cases & Industry Solutions</h1>
+            <p className="text-[#94A3B8] text-lg max-w-2xl mx-auto leading-relaxed">
+              From restaurant menus to retail window walls — see how businesses use Glow to manage their screens with zero complexity.
+            </p>
+          </div>
 
-          <div className="grid sm:grid-cols-3 gap-6">
-            {Object.entries(USE_CASES).map(([slug, uc]) => {
-              const Icon = uc.icon;
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {SOLUTIONS.map((s) => {
+              const Icon = s.icon;
               return (
                 <Link
-                  key={slug}
-                  to={`/use-cases/${slug}`}
-                  className="group rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 p-7 hover:border-[#00A3A3]/40 hover:shadow-[0_0_30px_rgba(0,163,163,0.1)] transition-all duration-300 hover:-translate-y-1"
+                  key={s.href}
+                  to={s.href}
+                  className="group rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 p-7 hover:border-[#00A3A3]/40 hover:shadow-[0_0_30px_rgba(0,163,163,0.1)] transition-all duration-300 hover:-translate-y-1 flex flex-col"
                 >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${uc.heroColor}15`, color: uc.heroColor }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${s.color}15`, color: s.color }}>
                     <Icon className="w-6 h-6" />
                   </div>
-                  <h2 className="text-lg font-semibold mb-2">{uc.h1.replace(/for /, "— ")}</h2>
-                  <p className="text-sm text-[#94A3B8] leading-relaxed line-clamp-3">{uc.description}</p>
-                  <span className="inline-flex items-center gap-1 mt-4 text-sm text-[#00A3A3] font-medium group-hover:gap-2 transition-all">
-                    Read more <ArrowRight className="w-4 h-4" />
+                  <h2 className="text-lg font-semibold mb-2">{s.title}</h2>
+                  <p className="text-sm text-[#94A3B8] leading-relaxed mb-4 flex-1">{s.description}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {s.tags.map((tag) => (
+                      <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-[#1E293B] text-[#94A3B8]">{tag}</span>
+                    ))}
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-sm text-[#00A3A3] font-medium group-hover:gap-2 transition-all">
+                    Learn more <ArrowRight className="w-4 h-4" />
                   </span>
                 </Link>
               );
             })}
           </div>
+
+          {/* CTA */}
+          <div className="mt-20 text-center">
+            <div className="rounded-2xl border border-[#1E293B] bg-[#0F172A]/60 p-10 max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold mb-3">Don't see your industry?</h2>
+              <p className="text-[#94A3B8] mb-6">Glow works for any screen, anywhere. Start free and build your own signage workflow in minutes.</p>
+              <Link to="/auth" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold bg-gradient-to-r from-[#00A3A3] to-[#3B82F6] text-[#0B1120] hover:shadow-[0_0_30px_rgba(0,163,163,0.4)] transition-all">
+                Start Free <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </main>
 
-        <footer className="border-t border-[#1E293B] py-8 px-6 text-center text-xs text-[#475569]">
-          © {new Date().getFullYear()} Glow. All rights reserved.
+        <footer className="border-t border-[#1E293B] py-10 px-6">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <GlowLogoImage className="h-6" />
+            <div className="flex items-center gap-6 text-sm text-[#64748B]">
+              <Link to="/home" className="hover:text-[#E2E8F0] transition-colors">Home</Link>
+              <Link to="/solutions/restaurants" className="hover:text-[#E2E8F0] transition-colors">Restaurants</Link>
+              <Link to="/solutions/retail" className="hover:text-[#E2E8F0] transition-colors">Retail</Link>
+              <Link to="/solutions/hospitality" className="hover:text-[#E2E8F0] transition-colors">Hospitality</Link>
+              <Link to="/auth" className="hover:text-[#E2E8F0] transition-colors">Login</Link>
+              <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
+            </div>
+            <p className="text-xs text-[#475569]">© {new Date().getFullYear()} Glow. All rights reserved.</p>
+          </div>
         </footer>
       </div>
     );
