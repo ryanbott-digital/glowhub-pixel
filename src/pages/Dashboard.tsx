@@ -31,6 +31,9 @@ export default function Dashboard() {
   const [onlineFlash, setOnlineFlash] = useState(false);
   const [mediaCount, setMediaCount] = useState(0);
   const [broadcasts, setBroadcasts] = useState<{ id: string; message: string; broadcast_type: string; duration_seconds: number; created_at: string }[]>([]);
+  const [broadcastsHasMore, setBroadcastsHasMore] = useState(false);
+  const [broadcastsLoading, setBroadcastsLoading] = useState(false);
+  const BROADCAST_PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!user) return;
