@@ -5,7 +5,8 @@ import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -105,6 +106,19 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [crossfadeMs, setCrossfadeMs] = useState(screen.crossfade_ms ?? 500);
   const [loopEnabled, setLoopEnabled] = useState(screen.loop_enabled !== false);
   const [launchOnBoot, setLaunchOnBoot] = useState(screen.launch_on_boot === true);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(screen.name);
+  const [displayName, setDisplayName] = useState(screen.name);
+
+  const handleRename = async () => {
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === displayName) { setRenaming(false); return; }
+    const { error } = await supabase.from("screens").update({ name: trimmed } as any).eq("id", screen.id);
+    if (error) { toast.error("Failed to rename screen"); return; }
+    setDisplayName(trimmed);
+    setRenaming(false);
+    toast.success(`Screen renamed to "${trimmed}"`);
+  };
 
   const updateScreenSetting = useCallback(async (updates: Partial<{ transition_type: string; crossfade_ms: number; loop_enabled: boolean; launch_on_boot: boolean }>) => {
     const { error } = await supabase.from("screens").update(updates as any).eq("id", screen.id);
@@ -268,7 +282,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
         {/* Name + status row */}
         <div className="px-4 pt-2 pb-3 flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{screen.name}</h3>
+            <h3 className="font-semibold text-sm text-foreground truncate min-w-0">{displayName}</h3>
             {launchOnBoot && (
               <span
                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0"
