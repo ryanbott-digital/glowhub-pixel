@@ -268,6 +268,7 @@ export default function Studio() {
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
+  const prevSnapRef = useRef<{ x: number | null; y: number | null }>({ x: null, y: null });
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
   const [mediaSearch, setMediaSearch] = useState("");
@@ -1038,6 +1039,14 @@ export default function Studio() {
                         elements,
                       );
                       setGuides(result.guides);
+                      const prev = prevSnapRef.current;
+                      if (
+                        (result.snapX !== null && result.snapX !== prev.x) ||
+                        (result.snapY !== null && result.snapY !== prev.y)
+                      ) {
+                        hapticLight();
+                      }
+                      prevSnapRef.current = { x: result.snapX, y: result.snapY };
                     }}
                     onDragStop={(e, d) => {
                       hapticSuccess();
@@ -1056,6 +1065,7 @@ export default function Studio() {
                       pushHistory(elements);
                       setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: finalX, y: finalY } : x));
                       setGuides([]);
+                      prevSnapRef.current = { x: null, y: null };
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
                       hapticSuccess();
