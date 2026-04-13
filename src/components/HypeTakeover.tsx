@@ -71,6 +71,7 @@ export function HypeTakeover() {
       setFadeOut(true);
       setTimeout(() => {
         setActive(false);
+        window.dispatchEvent(new Event("glow-hype-end"));
         setPayload(null);
         setProgress(0);
         setFadeOut(false);
