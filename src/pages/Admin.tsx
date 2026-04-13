@@ -155,9 +155,11 @@ export default function Admin() {
     setTimeout(() => setScreenCommandLoading(null), 2000);
   };
 
+  // Admin: unpair confirmation state
+  const [unpairTarget, setUnpairTarget] = useState<{ id: string; name: string } | null>(null);
+
   // Admin: unpair a screen via edge function
   const handleAdminUnpair = async (screenId: string, screenName: string) => {
-    if (!confirm(`Unpair "${screenName}"? This will disconnect the device and clear its data.`)) return;
     setScreenCommandLoading(screenId);
     try {
       const { error } = await supabase.functions.invoke("admin-screen-command", {
@@ -680,7 +682,7 @@ export default function Admin() {
                                         size="icon"
                                         className="h-7 w-7 text-destructive hover:text-destructive"
                                         disabled={isLoading}
-                                        onClick={() => handleAdminUnpair(screen.id, screen.name)}
+                                        onClick={() => setUnpairTarget({ id: screen.id, name: screen.name })}
                                       >
                                         <Unplug className="h-3.5 w-3.5" />
                                       </Button>
@@ -1069,6 +1071,31 @@ export default function Admin() {
           )}
         </CardContent>
       </Card>
+      {/* Unpair confirmation dialog */}
+      <AlertDialog open={!!unpairTarget} onOpenChange={(open) => { if (!open) setUnpairTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unpair Device</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will disconnect <span className="font-semibold text-foreground">"{unpairTarget?.name}"</span> and clear its pairing data, playlist assignment, and screenshots. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (unpairTarget) {
+                  handleAdminUnpair(unpairTarget.id, unpairTarget.name);
+                  setUnpairTarget(null);
+                }
+              }}
+            >
+              Unpair Device
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
