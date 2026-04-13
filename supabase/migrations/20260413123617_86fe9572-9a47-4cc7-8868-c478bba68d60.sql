@@ -1,0 +1,1 @@
+ALTER TABLE public.media ADD COLUMN audio_muted boolean NOT NULL DEFAULT false;

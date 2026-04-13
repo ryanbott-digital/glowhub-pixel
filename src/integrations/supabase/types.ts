@@ -80,6 +80,7 @@ export type Database = {
       media: {
         Row: {
           aspect_ratio: string | null
+          audio_muted: boolean
           created_at: string
           duration: number | null
           id: string
@@ -92,6 +93,7 @@ export type Database = {
         }
         Insert: {
           aspect_ratio?: string | null
+          audio_muted?: boolean
           created_at?: string
           duration?: number | null
           id?: string
@@ -104,6 +106,7 @@ export type Database = {
         }
         Update: {
           aspect_ratio?: string | null
+          audio_muted?: boolean
           created_at?: string
           duration?: number | null
           id?: string
