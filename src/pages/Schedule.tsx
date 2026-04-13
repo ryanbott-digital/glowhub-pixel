@@ -160,6 +160,25 @@ export default function Schedule() {
   const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
   const SNAP_PX = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
 
+  /* Keyboard zoom: Ctrl+Plus / Ctrl+Minus / Ctrl+0 */
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        setHourHeight((v: number) => Math.min(160, v + 10));
+      } else if (e.key === "-") {
+        e.preventDefault();
+        setHourHeight((v: number) => Math.max(40, v - 10));
+      } else if (e.key === "0") {
+        e.preventDefault();
+        setHourHeight(DEFAULT_HOUR_HEIGHT);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [setHourHeight]);
+
   /* Refs for synced scroll */
   const gutterScrollRef = useRef<HTMLDivElement>(null);
   const columnsScrollRef = useRef<HTMLDivElement>(null);
