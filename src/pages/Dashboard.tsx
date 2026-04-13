@@ -340,6 +340,34 @@ export default function Dashboard() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </button>
 
+      {/* Broadcast History */}
+      {broadcasts.length > 0 && (
+        <div className="glass glass-spotlight rounded-2xl p-5 relative overflow-hidden">
+          <div className="flex items-center gap-2 mb-3">
+            <Megaphone className="h-3.5 w-3.5 text-primary" />
+            <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.2em] uppercase">Broadcast History</h3>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-auto">{broadcasts.length}</Badge>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {broadcasts.map((b) => (
+              <div key={b.id} className="rounded-lg border border-border/50 bg-card/50 px-3 py-2 text-xs space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    {b.broadcast_type === "alert" ? "🚨" : b.broadcast_type === "warning" ? "⚠️" : "ℹ️"} {b.broadcast_type}
+                  </Badge>
+                  <span className="text-muted-foreground text-[10px] shrink-0">
+                    {new Date(b.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+                <p className="text-foreground leading-snug">{b.message}</p>
+                <span className="text-muted-foreground/60 text-[10px]">{b.duration_seconds}s display</span>
+              </div>
+            ))}
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        </div>
+      )}
+
       {/* System Boot Sequence (Onboarding) */}
       <OnboardingChecklist screens={screens} playlists={playlists} mediaCount={mediaCount} />
 
