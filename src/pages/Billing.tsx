@@ -367,7 +367,7 @@ export default function Billing() {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Pro</h3>
-              <p className="text-xs text-muted-foreground">For growing businesses</p>
+              <p className="text-xs text-muted-foreground">For growing businesses — expandable screen packs</p>
             </div>
           </div>
           <div>
