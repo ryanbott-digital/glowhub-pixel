@@ -664,6 +664,63 @@ export default function Schedule() {
         </div>
       ) : (
         <div className="flex-1 overflow-hidden flex">
+          {/* ── Media Library Sidebar ── */}
+          {mediaSidebarOpen && (
+            <div className="w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
+              <div className="px-3 py-2 border-b border-[#1E293B]/40 shrink-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
+                  <span className="text-xs font-semibold text-[#E2E8F0]">Media Library</span>
+                  <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-[#1E293B] text-[#64748B]">{media.length}</Badge>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[#475569]" />
+                  <Input
+                    value={mediaSidebarSearch}
+                    onChange={(e) => setMediaSidebarSearch(e.target.value)}
+                    placeholder="Search…"
+                    className="h-7 pl-7 text-xs bg-[#0F1A2E] border-[#1E293B]"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-1.5 py-1.5 space-y-1 scrollbar-hide">
+                {media
+                  .filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("application/glow-media-id", item.id);
+                        e.dataTransfer.effectAllowed = "copy";
+                        setMediaDragItem(item);
+                      }}
+                      onDragEnd={() => setMediaDragItem(null)}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group"
+                    >
+                      <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+                        {item.type === "video" ? (
+                          <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
+                        ) : (
+                          <img src={getStorageUrl(item.storage_path)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{item.name}</p>
+                        <p className="text-[9px] text-[#475569] uppercase">{item.type}</p>
+                      </div>
+                    </div>
+                  ))}
+                {media.filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
+                  <p className="text-[11px] text-[#475569] text-center py-4">No media found</p>
+                )}
+              </div>
+              <div className="px-3 py-2 border-t border-[#1E293B]/40 shrink-0">
+                <p className="text-[10px] text-[#475569] text-center">Drag media onto the timeline</p>
+              </div>
+            </div>
+          )}
           {/* Time gutter — synced scroll */}
           <div className="w-16 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
             {/* Gutter header spacer */}
