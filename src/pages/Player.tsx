@@ -614,6 +614,7 @@ export default function Player() {
     if (data && data.length > 0) {
       const parsed = data as unknown as PlaylistItem[];
       setItems(parsed);
+      currentIndexRef.current = 0;
       setCurrentIndex(0);
       setActiveBuffer("A");
 
