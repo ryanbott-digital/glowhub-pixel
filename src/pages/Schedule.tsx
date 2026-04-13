@@ -154,7 +154,7 @@ export default function Schedule() {
 
   /* Pinch-to-zoom for hour height */
   const { value: HOUR_HEIGHT, containerRef: pinchContainerRef } = usePinchZoom({
-    min: 40, max: 160, initial: DEFAULT_HOUR_HEIGHT, step: 5,
+    min: 40, max: 160, initial: DEFAULT_HOUR_HEIGHT, step: 5, storageKey: "glow-schedule-zoom",
   });
   const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
   const SNAP_PX = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
