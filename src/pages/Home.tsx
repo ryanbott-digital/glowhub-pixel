@@ -996,12 +996,24 @@ const Home = () => {
               a: "Nope! GLOW works on any Amazon Fire TV Stick or Android TV device. Just sideload the app using the free Downloader tool — no developer account required.",
             },
             {
-              q: "Is the free plan really free forever?",
-              a: "Yes. The Starter plan gives you 1 screen with basic scheduling and 500 MB of storage at no cost, with no time limit and no credit card required.",
+              q: "What happens if I want to add a 6th screen?",
+              a: "We love growth. Add a second 'Pro' subscription for 5 more slots, or contact Command for Enterprise rates.",
             },
             {
-              q: "What happens if my internet goes down?",
-              a: "Pro plan screens cache your content locally. If the connection drops, your signage keeps playing the last synced playlist without interruption.",
+              q: "Can I play live radio like Capital or Heart?",
+              a: "Yes! Glow Pro includes a global radio engine to stream live UK and international stations directly in the background of your visuals.",
+            },
+            {
+              q: "Do I need expensive media players?",
+              a: "No. Glow runs on any Firestick or Android TV. Just download the APK and ignite.",
+            },
+            {
+              q: "What if my internet goes down?",
+              a: "Glow is built for the real world. Content is cached locally, and audio streams are buffered to ensure zero silence even if Wi-Fi flickers.",
+            },
+            {
+              q: "Is the free plan really free forever?",
+              a: "Yes. The Starter plan gives you 1 screen with basic scheduling and 500 MB of storage at no cost, with no time limit and no credit card required.",
             },
             {
               q: "Can I cancel Pro anytime?",
