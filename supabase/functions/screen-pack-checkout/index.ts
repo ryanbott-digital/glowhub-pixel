@@ -8,7 +8,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SCREEN_PACK_PRICE_ID = "price_1TLWS8JjPm8usCNRdXsbRfoM"; // +5 Screens $9 one-time
+const FIVE_PACK_PRICE_ID = "price_1TLWS8JjPm8usCNRdXsbRfoM"; // +5 Screens $9 one-time
+const SINGLE_SCREEN_PRICE_ID = "price_1TLgXoJjPm8usCNRNmL9gCc5"; // +1 Screen $3/mo
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -38,6 +39,15 @@ serve(async (req) => {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Parse body for pack_type
+    let packType = "five_pack";
+    try {
+      const body = await req.json();
+      if (body?.pack_type === "single") packType = "single";
+    } catch {
+      // No body or invalid JSON — default to five_pack
     }
 
     // Verify user is Pro
@@ -76,13 +86,18 @@ serve(async (req) => {
         .eq("id", user.id);
     }
 
+    const isSingle = packType === "single";
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      mode: "payment",
-      line_items: [{ price: SCREEN_PACK_PRICE_ID, quantity: 1 }],
+      mode: isSingle ? "subscription" : "payment",
+      line_items: [{ price: isSingle ? SINGLE_SCREEN_PRICE_ID : FIVE_PACK_PRICE_ID, quantity: 1 }],
       success_url: `${req.headers.get("origin")}/screens?pack=success`,
       cancel_url: `${req.headers.get("origin")}/screens`,
-      metadata: { supabase_user_id: user.id, type: "screen_pack" },
+      metadata: {
+        supabase_user_id: user.id,
+        type: isSingle ? "single_screen_sub" : "screen_pack",
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

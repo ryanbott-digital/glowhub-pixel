@@ -25,9 +25,10 @@ export async function checkScreenLimit(userId: string): Promise<{
 
   const tier = profileRes.data?.subscription_tier || "free";
   const screenPacks = (profileRes.data as any)?.screen_packs ?? 0;
+  const singleScreenSubs = (profileRes.data as any)?.single_screen_subs ?? 0;
   const currentCount = screensRes.count || 0;
   const baseLimit = BASE_SCREEN_LIMITS[tier] ?? 1;
-  const limit = baseLimit + (screenPacks * SCREENS_PER_PACK);
+  const limit = baseLimit + (screenPacks * SCREENS_PER_PACK) + singleScreenSubs;
 
   return {
     allowed: currentCount < limit,

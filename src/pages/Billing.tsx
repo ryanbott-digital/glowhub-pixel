@@ -51,7 +51,9 @@ export default function Billing() {
   const [refreshing, setRefreshing] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [screenPackLoading, setScreenPackLoading] = useState(false);
+  const [singleScreenLoading, setSingleScreenLoading] = useState(false);
   const [screenPacks, setScreenPacks] = useState(0);
+  const [singleScreenSubs, setSingleScreenSubs] = useState(0);
   const [screenPacksLoading, setScreenPacksLoading] = useState(true);
 
   const handleScreenPackCheckout = async () => {
@@ -64,6 +66,21 @@ export default function Billing() {
       toast.error(err.message || "Failed to start checkout");
     } finally {
       setScreenPackLoading(false);
+    }
+  };
+
+  const handleSingleScreenCheckout = async () => {
+    setSingleScreenLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("screen-pack-checkout", {
+        body: { pack_type: "single" },
+      });
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setSingleScreenLoading(false);
     }
   };
 
@@ -81,10 +98,11 @@ export default function Billing() {
       setScreenPacksLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("screen_packs")
+        .select("screen_packs, single_screen_subs")
         .eq("id", user.id)
         .single();
       setScreenPacks((data as any)?.screen_packs ?? 0);
+      setSingleScreenSubs((data as any)?.single_screen_subs ?? 0);
       setScreenPacksLoading(false);
     };
     fetchPacks();
@@ -250,28 +268,50 @@ export default function Billing() {
             <p className="text-xs text-muted-foreground">Update card, download invoices, manage subscription</p>
           </div>
 
-          {/* Screen Pack Add-on */}
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 space-y-3">
+          {/* Screen Pack Add-ons */}
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <Monitor className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Need More Screens?</h3>
-                <p className="text-xs text-muted-foreground">Add 5 extra screens to your account</p>
+                <p className="text-xs text-muted-foreground">Expand your screen capacity</p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Running out of screen slots? Purchase an additional <span className="text-primary font-medium">5-screen pack</span> for a one-time payment of <span className="text-primary font-bold">$9</span>. Stacks with any existing packs.
-            </p>
-            <Button
-              onClick={handleScreenPackCheckout}
-              disabled={screenPackLoading}
-              className="bg-gradient-to-r from-primary to-accent text-primary-foreground"
-            >
-              {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
-              Add 5 Screens — $9
-            </Button>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {/* Single Screen – $3/mo */}
+              <div className="rounded-xl border border-border/30 bg-card/50 p-4 space-y-2">
+                <p className="text-sm font-medium text-foreground">+1 Screen</p>
+                <p className="text-xs text-muted-foreground">$3/month subscription. Cancel anytime.</p>
+                <Button
+                  onClick={handleSingleScreenCheckout}
+                  disabled={singleScreenLoading}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  {singleScreenLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
+                  Add 1 Screen — $3/mo
+                </Button>
+              </div>
+
+              {/* 5-Screen Pack – $9 one-time */}
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                <p className="text-sm font-medium text-foreground">+5 Screens</p>
+                <p className="text-xs text-muted-foreground">One-time payment of $9. Permanent.</p>
+                <Button
+                  onClick={handleScreenPackCheckout}
+                  disabled={screenPackLoading}
+                  className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground"
+                  size="sm"
+                >
+                  {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
+                  Add 5 Screens — $9
+                </Button>
+              </div>
+            </div>
           </div>
 
           {/* Screen Pack Purchase History */}
@@ -290,30 +330,48 @@ export default function Billing() {
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Loading…</span>
               </div>
-            ) : screenPacks > 0 ? (
+            ) : (screenPacks > 0 || singleScreenSubs > 0) ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {screenPacks} Screen Pack{screenPacks !== 1 ? "s" : ""} Purchased
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        +{screenPacks * 5} extra screens added to your account
-                      </p>
+                {screenPacks > 0 && (
+                  <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {screenPacks} × 5-Screen Pack{screenPacks !== 1 ? "s" : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          +{screenPacks * 5} screens (one-time)
+                        </p>
+                      </div>
                     </div>
+                    <span className="text-sm font-semibold text-foreground">${screenPacks * 9}</span>
                   </div>
-                  <span className="text-sm font-semibold text-foreground">${screenPacks * 9}</span>
-                </div>
+                )}
+                {singleScreenSubs > 0 && (
+                  <div className="flex items-center justify-between rounded-xl border border-border/30 bg-card/50 p-4">
+                    <div className="flex items-center gap-3">
+                      <Monitor className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {singleScreenSubs} × Single Screen Sub{singleScreenSubs !== 1 ? "s" : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          +{singleScreenSubs} screen{singleScreenSubs !== 1 ? "s" : ""} ($3/mo each)
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-foreground">${singleScreenSubs * 3}/mo</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
                   <span>Base Pro screens: 5</span>
-                  <span className="text-primary font-medium">Total capacity: {5 + screenPacks * 5} screens</span>
+                  <span className="text-primary font-medium">Total capacity: {5 + screenPacks * 5 + singleScreenSubs} screens</span>
                 </div>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-2">
-                No screen packs purchased yet. Each pack adds 5 additional screens for $9.
+                No screen add-ons yet. Add single screens for $3/mo or 5-screen packs for $9.
               </p>
             )}
           </div>
@@ -498,7 +556,7 @@ export default function Billing() {
                 { feature: "Proof-of-play analytics", starter: false, pro: true, enterprise: true },
                 { feature: "Screen sync groups", starter: false, pro: true, enterprise: true },
                 { feature: "Remote trigger API", starter: false, pro: true, enterprise: true },
-                { feature: "Additional screen packs", starter: false, pro: "$9 / 5 screens", enterprise: "Included" },
+                { feature: "Additional screens", starter: false, pro: "$3/mo per screen or $9 / 5 pack", enterprise: "Included" },
                 { feature: "SSO & team management", starter: false, pro: false, enterprise: true },
                 { feature: "White-label branding", starter: false, pro: false, enterprise: true },
                 { feature: "Custom SLA", starter: false, pro: false, enterprise: true },
@@ -538,7 +596,7 @@ export default function Billing() {
             { feature: "Proof-of-play analytics", starter: false, pro: true, enterprise: true },
             { feature: "Screen sync groups", starter: false, pro: true, enterprise: true },
             { feature: "Remote trigger API", starter: false, pro: true, enterprise: true },
-            { feature: "Additional screen packs", starter: false, pro: "$9 / 5 screens", enterprise: "Included" },
+            { feature: "Additional screens", starter: false, pro: "$3/mo per screen or $9 / 5 pack", enterprise: "Included" },
             { feature: "SSO & team management", starter: false, pro: false, enterprise: true },
             { feature: "White-label branding", starter: false, pro: false, enterprise: true },
             { feature: "Custom SLA", starter: false, pro: false, enterprise: true },

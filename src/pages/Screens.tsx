@@ -118,6 +118,7 @@ export default function Screens() {
   const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
   const [screenPackLoading, setScreenPackLoading] = useState(false);
+  const [singleScreenLoading, setSingleScreenLoading] = useState(false);
 
   const handleScreenPackCheckout = async () => {
     setScreenPackLoading(true);
@@ -129,6 +130,21 @@ export default function Screens() {
       toast.error(err.message || "Failed to start checkout");
     } finally {
       setScreenPackLoading(false);
+    }
+  };
+
+  const handleSingleScreenCheckout = async () => {
+    setSingleScreenLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("screen-pack-checkout", {
+        body: { pack_type: "single" },
+      });
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setSingleScreenLoading(false);
     }
   };
 
@@ -675,14 +691,23 @@ export default function Screens() {
             ) : (
               <>
                 <Button
+                  onClick={handleSingleScreenCheckout}
+                  disabled={singleScreenLoading}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {singleScreenLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Monitor className="h-4 w-4 mr-2" />}
+                  Add 1 Screen — $3/mo
+                </Button>
+                <Button
                   onClick={handleScreenPackCheckout}
                   disabled={screenPackLoading}
-                  className="bg-gradient-to-r from-primary to-accent text-primary-foreground"
+                  className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground"
                 >
                   {screenPackLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                  Add 5 Screens — $9
+                  Add 5 Screens — $9 one-time
                 </Button>
-                <Button variant="outline" onClick={() => setUpgradeOpen(false)}>Maybe Later</Button>
+                <Button variant="ghost" onClick={() => setUpgradeOpen(false)}>Maybe Later</Button>
               </>
             )}
           </div>

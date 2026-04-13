@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
 
+const SINGLE_SCREEN_PRICE_ID = "price_1TLgXoJjPm8usCNRNmL9gCc5";
+
 const logStep = (step: string, details?: unknown) => {
   const d = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[STRIPE-WEBHOOK] ${step}${d}`);
@@ -36,8 +38,67 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
+  // Check if a subscription contains the single-screen price
+  const isSingleScreenSub = (subscription: Stripe.Subscription): boolean => {
+    return subscription.items.data.some(
+      (item) => item.price.id === SINGLE_SCREEN_PRICE_ID
+    );
+  };
+
+  // Get user id from subscription metadata or customer id
+  const getUserIdFromSubscription = async (subscription: Stripe.Subscription): Promise<string | null> => {
+    // Try metadata first
+    if (subscription.metadata?.supabase_user_id) {
+      return subscription.metadata.supabase_user_id;
+    }
+    // Fallback: look up by stripe_customer_id
+    const customerId = subscription.customer as string;
+    const { data } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("stripe_customer_id", customerId)
+      .single();
+    return data?.id ?? null;
+  };
+
   const handleSubscriptionChange = async (subscription: Stripe.Subscription) => {
     const customerId = subscription.customer as string;
+
+    // Handle single-screen subscription separately
+    if (isSingleScreenSub(subscription)) {
+      const userId = await getUserIdFromSubscription(subscription);
+      if (!userId) {
+        logStep("No user found for single screen sub", { customerId });
+        return;
+      }
+
+      const isActive = subscription.status === "active" || subscription.status === "trialing";
+
+      // Count all active single-screen subscriptions for this customer
+      const allSubs = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "active",
+        limit: 100,
+      });
+      const activeSingleCount = allSubs.data.filter(isSingleScreenSub).length;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          single_screen_subs: activeSingleCount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (error) {
+        logStep("Error updating single_screen_subs", { error });
+      } else {
+        logStep("Single screen subs updated", { userId, activeSingleCount, subStatus: subscription.status });
+      }
+      return;
+    }
+
+    // Handle main Pro/Enterprise subscription
     const status = subscription.status;
     const tier = subscription.metadata?.tier || "pro";
 
@@ -83,6 +144,12 @@ serve(async (req) => {
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         );
+        // Store user ID in subscription metadata for future webhook events
+        if (session.metadata?.supabase_user_id && !subscription.metadata?.supabase_user_id) {
+          await stripe.subscriptions.update(subscription.id, {
+            metadata: { supabase_user_id: session.metadata.supabase_user_id, type: session.metadata.type || "" },
+          });
+        }
         await handleSubscriptionChange(subscription);
       }
       // Handle one-time screen pack purchase
