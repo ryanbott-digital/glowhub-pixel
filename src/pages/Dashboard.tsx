@@ -390,6 +390,13 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+          {broadcastsHasMore && (
+            <div className="pt-2 text-center">
+              <Button variant="ghost" size="sm" onClick={loadMoreBroadcasts} disabled={broadcastsLoading} className="text-xs text-muted-foreground hover:text-foreground">
+                {broadcastsLoading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Loading...</> : "Load more"}
+              </Button>
+            </div>
+          )}
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         </div>
       )}
