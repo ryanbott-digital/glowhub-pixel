@@ -508,6 +508,11 @@ export default function Player() {
     const channel = supabase
       .channel(`user-broadcast-${screenOwnerId}`)
       .on("broadcast", { event: "screen-message" }, ({ payload }) => {
+        if (payload?.dismiss) {
+          clearTimeout(broadcastTimerRef.current);
+          setBroadcastMsg(null);
+          return;
+        }
         if (!payload?.message) return;
         clearTimeout(broadcastTimerRef.current);
         setBroadcastMsg({ message: payload.message, type: payload.type || "info" });
