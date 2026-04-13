@@ -112,6 +112,8 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
         cancelAnimationFrame(rafId.current);
         rafId.current = null;
       }
+      // Fade out indicator after a delay
+      pinchFadeTimer.current = setTimeout(() => setIsPinching(false), 800);
 
       // Apply inertia if there's meaningful velocity
       const v = velocityRef.current;
