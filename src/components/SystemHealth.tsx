@@ -276,6 +276,10 @@ export function SystemHealth() {
                         alt="Screen snapshot"
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        onError={(e) => {
+                          const container = (e.target as HTMLElement).closest('.ml-7');
+                          if (container) (container as HTMLElement).style.display = 'none';
+                        }}
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                         <ExternalLink className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
