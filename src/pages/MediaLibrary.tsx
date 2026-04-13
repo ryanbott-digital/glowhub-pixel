@@ -392,6 +392,39 @@ export default function MediaLibrary() {
       video.src = URL.createObjectURL(file);
     });
 
+  const getVideoHasAudio = (file: File): Promise<boolean> =>
+    new Promise((resolve) => {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        // Check for audio tracks using mozHasAudio or webkitAudioDecodedByteCount
+        const hasAudio =
+          (video as any).mozHasAudio ||
+          Boolean((video as any).webkitAudioDecodedByteCount) ||
+          Boolean((video as any).audioTracks?.length);
+        URL.revokeObjectURL(video.src);
+        resolve(hasAudio);
+      };
+      video.onerror = () => resolve(false);
+      video.src = URL.createObjectURL(file);
+    });
+
+  const toggleAudioMuted = async (item: MediaWithSize) => {
+    const newMuted = !item.audio_muted;
+    const { error } = await supabase
+      .from("media")
+      .update({ audio_muted: newMuted })
+      .eq("id", item.id);
+    if (error) {
+      toast.error("Failed to update audio setting");
+    } else {
+      setMedia((prev) =>
+        prev.map((m) => (m.id === item.id ? { ...m, audio_muted: newMuted } : m))
+      );
+      toast.success(newMuted ? "Audio muted" : "Audio unmuted");
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
