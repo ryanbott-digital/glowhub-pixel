@@ -1039,6 +1039,14 @@ export default function Studio() {
                         elements,
                       );
                       setGuides(result.guides);
+                      const prev = prevSnapRef.current;
+                      if (
+                        (result.snapX !== null && result.snapX !== prev.x) ||
+                        (result.snapY !== null && result.snapY !== prev.y)
+                      ) {
+                        hapticLight();
+                      }
+                      prevSnapRef.current = { x: result.snapX, y: result.snapY };
                     }}
                     onDragStop={(e, d) => {
                       hapticSuccess();
@@ -1057,6 +1065,7 @@ export default function Studio() {
                       pushHistory(elements);
                       setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, x: finalX, y: finalY } : x));
                       setGuides([]);
+                      prevSnapRef.current = { x: null, y: null };
                     }}
                     onResizeStop={(e, direction, ref, delta, position) => {
                       hapticSuccess();
