@@ -77,6 +77,7 @@ export default function Player() {
   const [showWhiteFlash, setShowWhiteFlash] = useState(false);
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndexRef = useRef(0);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [offlineSeconds, setOfflineSeconds] = useState(0);
@@ -613,6 +614,7 @@ export default function Player() {
     if (data && data.length > 0) {
       const parsed = data as unknown as PlaylistItem[];
       setItems(parsed);
+      currentIndexRef.current = 0;
       setCurrentIndex(0);
       setActiveBuffer("A");
 
@@ -1304,11 +1306,17 @@ export default function Player() {
     }
   }, [currentIndex, items, activeBuffer, getBufferRefs, inactiveBuffer, attachHls]);
 
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
   // ── INSTANT SWAP: Single state update swaps buffers ──
   const advanceToNext = useCallback(() => {
     if (swapLockRef.current) return;
 
-    const nextIndex = (currentIndex + 1) % items.length;
+    const idx = currentIndexRef.current;
+    const nextIndex = (idx + 1) % items.length;
 
     // If loop is off and we've reached the end, stop
     if (!loopEnabled && nextIndex === 0) {
@@ -1329,6 +1337,7 @@ export default function Player() {
       setFadeToBlackActive(true);
       setTimeout(() => {
         // Phase 2: swap buffer while screen is black
+        currentIndexRef.current = nextIndex;
         setCurrentIndex(nextIndex);
         setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
         setBufferLoading(false);
@@ -1342,6 +1351,7 @@ export default function Player() {
       }, crossfadeDuration);
     } else {
       // Normal crossfade or cut
+      currentIndexRef.current = nextIndex;
       setCurrentIndex(nextIndex);
       setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
       setBufferLoading(false);
@@ -1351,7 +1361,7 @@ export default function Player() {
         swapLockRef.current = false;
       }, Math.max(effectiveDuration, 50));
     }
-  }, [items.length, crossfadeDuration, transitionType, loopEnabled, currentIndex]);
+  }, [items.length, crossfadeDuration, transitionType, loopEnabled]);
 
   // Error handler: log to Supabase and skip to next item
   const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
