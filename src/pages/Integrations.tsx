@@ -33,6 +33,7 @@ export default function Integrations() {
   const { user } = useAuth();
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedScreen, setSelectedScreen] = useState("");
   const [selectedAction, setSelectedAction] = useState("play_playlist");
   const [selectedPayload, setSelectedPayload] = useState("");
