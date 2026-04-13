@@ -647,7 +647,9 @@ export default function Schedule() {
         hourStr = target.getAttribute("data-drop-hour");
         target = target.parentElement;
       }
-      if (dayStr && hourStr && user && selectedScreenId && touchDragItemRef.current) {
+      const hasMedia = !!touchDragItemRef.current;
+      const hasPlaylist = !!touchDragPlaylistRef.current;
+      if (dayStr && hourStr && user && selectedScreenId && (hasMedia || hasPlaylist)) {
         const day = new Date(dayStr);
         const hour = parseInt(hourStr);
         const cell = document.querySelector(`[data-drop-day="${dayStr}"][data-drop-hour="${hourStr}"]`) as HTMLElement;
@@ -662,36 +664,43 @@ export default function Schedule() {
         startDate.setHours(hour, minuteOffset, 0, 0);
         const endDate = new Date(startDate);
         endDate.setMinutes(endDate.getMinutes() + 60);
-        const item = touchDragItemRef.current;
+
+        const label = hasMedia ? touchDragItemRef.current!.name : touchDragPlaylistRef.current!.title;
         const { error } = await supabase.from("schedule_blocks").insert({
-          screen_id: selectedScreenId, media_id: item.id, playlist_id: null,
+          screen_id: selectedScreenId,
+          media_id: hasMedia ? touchDragItemRef.current!.id : null,
+          playlist_id: hasPlaylist ? touchDragPlaylistRef.current!.id : null,
           start_at: startDate.toISOString(), end_at: endDate.toISOString(),
-          block_type: "content", recurrence: "none", color_code: "teal",
-          priority: 0, label: item.name, user_id: user.id,
+          block_type: "content", recurrence: "none", color_code: hasPlaylist ? "blue" : "teal",
+          priority: 0, label, user_id: user.id,
         } as any);
         if (error) toast.error("Failed to create block");
         else {
           hapticSuccess();
           const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
-          toast.success(`"${item.name}" scheduled at ${timeStr}`);
+          toast.success(`"${label}" scheduled at ${timeStr}`);
           fetchBlocks();
         }
-      } else if (touchDragItemRef.current) {
+      } else if (hasMedia || hasPlaylist) {
         toast.info("Drop on the timeline to schedule");
       }
       touchDragItemRef.current = null;
+      touchDragPlaylistRef.current = null;
       setTouchDragItem(null);
+      setTouchDragPlaylist(null);
       setTouchDragPos(null);
     };
     document.addEventListener("touchmove", onMove, { passive: false });
     document.addEventListener("touchend", onEnd, { once: true });
     document.addEventListener("touchcancel", () => {
       touchDragItemRef.current = null;
+      touchDragPlaylistRef.current = null;
       setTouchDragItem(null);
+      setTouchDragPlaylist(null);
       setTouchDragPos(null);
     }, { once: true });
     return () => { document.removeEventListener("touchmove", onMove); };
-  }, [touchDragItem, user, selectedScreenId, fetchBlocks]);
+  }, [touchDragItem, touchDragPlaylist, user, selectedScreenId, fetchBlocks]);
 
 
   useEffect(() => {
