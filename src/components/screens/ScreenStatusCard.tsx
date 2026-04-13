@@ -354,7 +354,6 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   onChange={(e) => setRenameValue(e.target.value)}
                   className="h-10 sm:h-8 text-sm flex-1"
                   autoFocus
-                  onFocus={(e) => e.target.select()}
                   onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
                 />
                 <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-8 sm:w-8 shrink-0" onClick={handleRename}>
