@@ -46,20 +46,18 @@ const COLOR_MAP: Record<string, { bg: string; border: string; text: string; glow
 };
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_HEIGHT = 80;
-const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
+const DEFAULT_HOUR_HEIGHT = 80;
 const SNAP_MINUTES = 15;
-const SNAP_PX = (SNAP_MINUTES / 60) * HOUR_HEIGHT;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /* ──────── Helpers ──────── */
-function getBlockStyle(block: ScheduleBlock, dayStart: Date) {
+function getBlockStyle(block: ScheduleBlock, dayStart: Date, hourHeight: number) {
   const start = new Date(block.start_at);
   const end = new Date(block.end_at);
   const dayBegin = new Date(dayStart); dayBegin.setHours(0, 0, 0, 0);
   const startMin = Math.max(0, (start.getTime() - dayBegin.getTime()) / 60000);
   const endMin = Math.min(1440, (end.getTime() - dayBegin.getTime()) / 60000);
-  return { top: (startMin / 60) * HOUR_HEIGHT, height: Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 24) };
+  return { top: (startMin / 60) * hourHeight, height: Math.max(((endMin - startMin) / 60) * hourHeight, 24) };
 }
 
 function blocksOverlap(a: ScheduleBlock, b: ScheduleBlock): boolean {
@@ -94,12 +92,12 @@ function expandRecurrence(block: ScheduleBlock, rangeStart: Date, rangeEnd: Date
   return results;
 }
 
-function snapToGrid(px: number): number {
-  return Math.round(px / SNAP_PX) * SNAP_PX;
+function snapToGrid(px: number, snapPx: number): number {
+  return Math.round(px / snapPx) * snapPx;
 }
 
-function pxToTime(px: number, dayStart: Date): Date {
-  const minutes = (px / HOUR_HEIGHT) * 60;
+function pxToTime(px: number, dayStart: Date, hourHeight: number): Date {
+  const minutes = (px / hourHeight) * 60;
   const d = new Date(dayStart); d.setHours(0, 0, 0, 0);
   d.setMinutes(Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES);
   return d;
