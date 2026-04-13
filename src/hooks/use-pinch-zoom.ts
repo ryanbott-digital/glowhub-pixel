@@ -19,6 +19,8 @@ export function usePinchZoom({ min, max, initial, step = 1, storageKey }: UsePin
     }
     return initial;
   });
+  const [isPinching, setIsPinching] = useState(false);
+  const pinchFadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const initialDistance = useRef<number | null>(null);
   const initialValue = useRef(value);
