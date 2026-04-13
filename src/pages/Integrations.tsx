@@ -52,7 +52,7 @@ export default function Integrations() {
     setLoading(true);
 
     const [screensRes, playlistsRes, mediaRes, keyRes] = await Promise.all([
-      supabase.from("screens").select("id, name, hardware_uuid, last_remote_trigger").eq("user_id", user.id),
+      supabase.from("screens").select("id, name, hardware_uuid, last_remote_trigger, current_playlist_id, current_media_id").eq("user_id", user.id),
       supabase.from("playlists").select("id, title").eq("user_id", user.id),
       supabase.from("media").select("id, name, type").eq("user_id", user.id).order("name"),
       supabase.functions.invoke("manage-api-key", { body: { action: "status" } }),
