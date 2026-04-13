@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { DollarSign, Sun, Moon, Zap, Check, WifiOff, Clock, ArrowRight } from "lucide-react";
+import { DollarSign, Sun, Moon, Zap, Check, WifiOff, Clock, ArrowRight, BarChart3 } from "lucide-react";
 import { RelatedSolutions } from "@/components/RelatedSolutions";
 import restaurantMockup from "@/assets/restaurant-menu-mockup.jpg";
 import menuEditorMockup from "@/assets/glow-menu-editor-mockup.jpg";
@@ -138,7 +138,7 @@ const SolutionsRestaurants = () => {
       {/* ── The Glow Advantage ── */}
       <section className="px-6 py-24 max-w-6xl mx-auto">
         <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 tracking-tight">The Glow Advantage for Food</h2>
-        <p className="text-center text-[#64748B] max-w-2xl mx-auto mb-16">Three features that turn your TV into a revenue machine.</p>
+        <p className="text-center text-[#64748B] max-w-2xl mx-auto mb-16">Four features that turn your TV into a revenue machine.</p>
 
         <div className="space-y-24">
           {/* 1 — Dynamic Pricing */}
@@ -240,6 +240,55 @@ const SolutionsRestaurants = () => {
                 </button>
               </div>
               <p className="text-[#64748B] text-sm mt-6 text-center">One tap. Every screen. Instant takeover.</p>
+            </div>
+          </div>
+
+          {/* 4 — Proof-of-Play Analytics */}
+          <div data-animate className="reveal-card grid lg:grid-cols-2 gap-10 items-center">
+            <div className="rounded-2xl overflow-hidden border border-[#8B5CF6]/20 bg-[#0B1120]/50 backdrop-blur-xl shadow-[0_0_40px_hsla(260,80%,60%,0.1)] p-8 flex flex-col items-center justify-center min-h-[300px]">
+              {/* Mini analytics visualization */}
+              <div className="w-full max-w-xs space-y-4">
+                <div className="flex items-end gap-2 justify-center h-32">
+                  {[40, 65, 55, 80, 72, 90, 85].map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div
+                        className="w-full rounded-t-md bg-gradient-to-t from-[#8B5CF6] to-[#A78BFA]"
+                        style={{ height: `${h}%` }}
+                      />
+                      <span className="text-[9px] text-[#64748B]">{["M","T","W","T","F","S","S"][i]}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-lg bg-white/[0.03] border border-white/5 p-3 text-center">
+                    <p className="text-lg font-bold text-[#A78BFA]">2,847</p>
+                    <p className="text-[10px] text-[#64748B]">Plays this week</p>
+                  </div>
+                  <div className="rounded-lg bg-white/[0.03] border border-white/5 p-3 text-center">
+                    <p className="text-lg font-bold text-[#00E5CC]">99.8%</p>
+                    <p className="text-[10px] text-[#64748B]">Uptime</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#8B5CF6]/15 text-[#A78BFA]">
+                  <BarChart3 className="w-5 h-5" />
+                </span>
+                <h3 className="text-2xl font-bold">Proof-of-Play Analytics</h3>
+              </div>
+              <p className="text-[#94A3B8] leading-relaxed mb-6">
+                Know exactly what played, when, and for how long. Glow's <strong className="text-white">proof-of-play reporting</strong> gives you real data to share with advertisers, franchise owners, or your own team — proving ROI on every screen in your network.
+              </p>
+              <ul className="space-y-3">
+                {["Per-screen playback logs with timestamps", "Uptime monitoring — know if a screen goes dark", "Export-ready reports for advertisers and stakeholders"].map((t) => (
+                  <li key={t} className="flex items-start gap-3 text-sm text-[#94A3B8]">
+                    <Check className="w-4 h-4 text-[#00E5CC] mt-0.5 shrink-0" aria-label="Feature included" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
