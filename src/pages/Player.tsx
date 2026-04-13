@@ -78,6 +78,7 @@ export default function Player() {
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
+  const currentPlaylistIdRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [offlineSeconds, setOfflineSeconds] = useState(0);
@@ -611,6 +612,8 @@ export default function Player() {
       .eq("playlist_id", playlistId)
       .order("position");
 
+    currentPlaylistIdRef.current = playlistId;
+
     if (data && data.length > 0) {
       const parsed = data as unknown as PlaylistItem[];
       setItems(parsed);
@@ -618,7 +621,6 @@ export default function Player() {
       setCurrentIndex(0);
       setActiveBuffer("A");
 
-      // Proactively cache all media files for offline playback
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
       precacheMediaUrls(urls);
       evictStaleMedia(urls);
@@ -1106,7 +1108,9 @@ export default function Player() {
         { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
         (payload) => {
           const updated = payload.new as any;
-          if (updated.current_playlist_id) {
+          const previous = payload.old as any;
+          const playlistChanged = updated.current_playlist_id !== previous?.current_playlist_id;
+          if (playlistChanged && updated.current_playlist_id && updated.current_playlist_id !== currentPlaylistIdRef.current) {
             fetchPlaylist(updated.current_playlist_id);
           }
           // Apply playback settings in real-time
