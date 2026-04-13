@@ -85,7 +85,7 @@ export default function Display() {
     // Videos advance via onEnded
   }, [advanceToNext]);
 
-  const fetchPlaylist = useCallback(async (playlistId: string) => {
+  const fetchPlaylist = useCallback(async (playlistId: string, forceReset = false) => {
     const { data } = await supabase
       .from("playlist_items")
       .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted)")
@@ -94,13 +94,20 @@ export default function Display() {
 
     if (data && data.length > 0) {
       const mapped = data as unknown as PlaylistItem[];
+      // Only reset playback if playlist actually changed or forced
+      const oldIds = itemsRef.current.map(i => i.id).join(",");
+      const newIds = mapped.map(i => i.id).join(",");
+      const changed = forceReset || oldIds !== newIds;
+
       itemsRef.current = mapped;
       setItems(mapped);
-      currentIndexRef.current = 0;
-      // Set first item into layer A
-      setLayerA(mapped[0]);
-      setLayerB(null);
-      setActiveLayer("A");
+
+      if (changed) {
+        currentIndexRef.current = 0;
+        setLayerA(mapped[0]);
+        setLayerB(null);
+        setActiveLayer("A");
+      }
       try {
         localStorage.setItem(CACHE_KEY + "_" + screenId, JSON.stringify(mapped));
       } catch {}
@@ -109,7 +116,7 @@ export default function Display() {
     setLoading(false);
   }, [screenId]);
 
-  // When active layer changes, schedule next advancement
+  // When active layer or items change, schedule next advancement
   useEffect(() => {
     const allItems = itemsRef.current;
     if (allItems.length === 0) return;
@@ -120,7 +127,7 @@ export default function Display() {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [activeLayer, scheduleNext]);
+  }, [activeLayer, items, scheduleNext]);
 
   // Initial load & realtime subscription
   useEffect(() => {
@@ -134,7 +141,7 @@ export default function Display() {
         .single();
 
       if (screen?.current_playlist_id) {
-        fetchPlaylist(screen.current_playlist_id);
+        fetchPlaylist(screen.current_playlist_id, true);
       } else {
         try {
           const cached = localStorage.getItem(CACHE_KEY + "_" + screenId);
@@ -164,31 +171,23 @@ export default function Display() {
         { event: "UPDATE", schema: "public", table: "screens", filter: `id=eq.${screenId}` },
         (payload) => {
           const newPlaylistId = payload.new.current_playlist_id;
-          if (newPlaylistId) {
+          const oldPlaylistId = (payload.old as Record<string, unknown>)?.current_playlist_id;
+          // Only react when the playlist assignment actually changes
+          if (newPlaylistId && newPlaylistId !== oldPlaylistId && newPlaylistId !== currentPlaylistIdRef.current) {
             showSyncIndicator();
-            fetchPlaylist(newPlaylistId);
+            fetchPlaylist(newPlaylistId, true);
           }
         }
       )
       .subscribe();
 
-    const itemsChannel = supabase
-      .channel(`playlist-items-${screenId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "playlist_items" },
-        () => {
-          if (currentPlaylistIdRef.current) {
-            showSyncIndicator();
-            fetchPlaylist(currentPlaylistIdRef.current);
-          }
-        }
-      )
-      .subscribe();
+    // Note: we intentionally do NOT subscribe to all playlist_items changes
+    // because the unfiltered channel fires on every user's edits and causes
+    // constant resets. If a user edits items in the current playlist the
+    // screen will pick up changes on next page load or playlist reassignment.
 
     return () => {
       supabase.removeChannel(screenChannel);
-      supabase.removeChannel(itemsChannel);
     };
   }, [screenId, fetchPlaylist, showSyncIndicator]);
 
