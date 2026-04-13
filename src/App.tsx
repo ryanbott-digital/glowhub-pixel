@@ -42,6 +42,7 @@ const SolutionsRetail = lazy(() => import("./pages/SolutionsRetail"));
 const SolutionsHospitality = lazy(() => import("./pages/SolutionsHospitality"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Integrations = lazy(() => import("./pages/Integrations"));
+const Solutions = lazy(() => import("./pages/Solutions"));
 
 const queryClient = new QueryClient();
 
@@ -139,6 +140,7 @@ const App = () => (
               <Route path="/pwa-diagnostics" element={<PwaDiagnostics />} />
               <Route path="/use-cases" element={<UseCase />} />
               <Route path="/use-cases/:slug" element={<UseCase />} />
+              <Route path="/solutions" element={<Solutions />} />
               <Route path="/solutions/restaurants" element={<SolutionsRestaurants />} />
               <Route path="/solutions/retail" element={<SolutionsRetail />} />
               <Route path="/solutions/hospitality" element={<SolutionsHospitality />} />

@@ -379,10 +379,10 @@ const Home = () => {
             <button onClick={() => scrollTo("comparison")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
             <button onClick={() => scrollTo("pricing")} className="hidden sm:block text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
             <div className="hidden sm:block relative group">
-              <button className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors flex items-center gap-1">
+              <Link to="/solutions" className="text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors flex items-center gap-1">
                 Solutions
                 <svg className="w-3 h-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
+              </Link>
               <div className="absolute top-full right-0 mt-2 w-48 py-2 bg-[#0F1A2E] border border-[#1E293B] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <Link to="/solutions/restaurants" className="block px-4 py-2 text-sm text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1E293B]/50 transition-colors">Restaurants</Link>
                 <Link to="/solutions/retail" className="block px-4 py-2 text-sm text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#1E293B]/50 transition-colors">Retail</Link>
@@ -414,11 +414,10 @@ const Home = () => {
             <button onClick={() => scrollTo("comparison")} className="block w-full text-left py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Compare</button>
             <button onClick={() => scrollTo("pricing")} className="block w-full text-left py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors">Pricing</button>
             <div className="border-t border-[#1E293B]/50 pt-2 mt-2">
-              <p className="text-xs text-[#475569] uppercase tracking-wider mb-1">Solutions</p>
+              <Link to="/solutions" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm font-medium text-[#E2E8F0] hover:text-[#00A3A3] transition-colors">All Solutions</Link>
               <Link to="/solutions/restaurants" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">Restaurants</Link>
               <Link to="/solutions/retail" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">Retail</Link>
               <Link to="/solutions/hospitality" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">Hospitality</Link>
-              <Link to="/use-cases" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 text-sm text-[#94A3B8] hover:text-[#E2E8F0] transition-colors pl-3">All Use Cases</Link>
             </div>
             <div className="pt-3">
               <Link
