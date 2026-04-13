@@ -1071,6 +1071,31 @@ export default function Admin() {
           )}
         </CardContent>
       </Card>
+      {/* Unpair confirmation dialog */}
+      <AlertDialog open={!!unpairTarget} onOpenChange={(open) => { if (!open) setUnpairTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unpair Device</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will disconnect <span className="font-semibold text-foreground">"{unpairTarget?.name}"</span> and clear its pairing data, playlist assignment, and screenshots. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (unpairTarget) {
+                  handleAdminUnpair(unpairTarget.id, unpairTarget.name);
+                  setUnpairTarget(null);
+                }
+              }}
+            >
+              Unpair Device
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
