@@ -293,7 +293,14 @@ export default function Integrations() {
                     ? playlists.map((p) => (
                         <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
                       ))
-                    : null
+                    : mediaItems.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <span className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px] px-1 py-0">{m.type}</Badge>
+                            {m.name}
+                          </span>
+                        </SelectItem>
+                      ))
                   }
                 </SelectContent>
               </Select>
