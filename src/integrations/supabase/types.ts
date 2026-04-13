@@ -645,6 +645,11 @@ export type Database = {
       }
       screens: {
         Row: {
+          audio_enabled: boolean
+          audio_mute_on_hype: boolean
+          audio_station_name: string | null
+          audio_station_url: string | null
+          audio_volume: number
           created_at: string
           crossfade_ms: number
           current_media_id: string | null
@@ -665,6 +670,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          audio_enabled?: boolean
+          audio_mute_on_hype?: boolean
+          audio_station_name?: string | null
+          audio_station_url?: string | null
+          audio_volume?: number
           created_at?: string
           crossfade_ms?: number
           current_media_id?: string | null
@@ -685,6 +695,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          audio_enabled?: boolean
+          audio_mute_on_hype?: boolean
+          audio_station_name?: string | null
+          audio_station_url?: string | null
+          audio_volume?: number
           created_at?: string
           crossfade_ms?: number
           current_media_id?: string | null

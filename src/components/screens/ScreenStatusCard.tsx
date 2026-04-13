@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X } from "lucide-react";
+import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -39,6 +39,11 @@ export interface ScreenStatusCardProps {
     loop_enabled?: boolean;
     launch_on_boot?: boolean;
     last_remote_trigger?: string | null;
+    audio_enabled?: boolean;
+    audio_station_url?: string | null;
+    audio_station_name?: string | null;
+    audio_volume?: number;
+    audio_mute_on_hype?: boolean;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
@@ -106,11 +111,20 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [crossfadeMs, setCrossfadeMs] = useState(screen.crossfade_ms ?? 500);
   const [loopEnabled, setLoopEnabled] = useState(screen.loop_enabled !== false);
   const [launchOnBoot, setLaunchOnBoot] = useState(screen.launch_on_boot === true);
+  const [audioEnabled, setAudioEnabled] = useState(screen.audio_enabled === true);
+  const [audioStationUrl, setAudioStationUrl] = useState(screen.audio_station_url || "");
+  const [audioStationName, setAudioStationName] = useState(screen.audio_station_name || "");
+  const [audioVolume, setAudioVolume] = useState(screen.audio_volume ?? 80);
+  const [audioMuteOnHype, setAudioMuteOnHype] = useState(screen.audio_mute_on_hype !== false);
+  const [radioQuery, setRadioQuery] = useState("");
+  const [radioResults, setRadioResults] = useState<{ id: string; name: string; url: string; favicon: string | null; country: string | null; bitrate: number }[]>([]);
+  const [radioSearching, setRadioSearching] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(screen.name);
   const [displayName, setDisplayName] = useState(screen.name);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+  const radioDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleRename = async () => {
     const trimmed = renameValue.trim();
@@ -122,10 +136,35 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     toast.success(`Screen renamed to "${trimmed}"`);
   };
 
-  const updateScreenSetting = useCallback(async (updates: Partial<{ transition_type: string; crossfade_ms: number; loop_enabled: boolean; launch_on_boot: boolean }>) => {
+  const updateScreenSetting = useCallback(async (updates: Record<string, any>) => {
     const { error } = await supabase.from("screens").update(updates as any).eq("id", screen.id);
     if (error) toast.error("Failed to save setting");
   }, [screen.id]);
+
+  const searchRadioStations = useCallback((q: string) => {
+    setRadioQuery(q);
+    if (radioDebounce.current) clearTimeout(radioDebounce.current);
+    if (q.length < 2) { setRadioResults([]); return; }
+    radioDebounce.current = setTimeout(async () => {
+      setRadioSearching(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("radio-search", {
+          body: null,
+          headers: { "Content-Type": "application/json" },
+        });
+        // Use query params approach
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/radio-search?q=${encodeURIComponent(q)}&limit=15`,
+          { headers: { "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY } }
+        );
+        const json = await res.json();
+        setRadioResults(json.stations || []);
+      } catch {
+        setRadioResults([]);
+      }
+      setRadioSearching(false);
+    }, 400);
+  }, []);
 
   const isAlive = (() => {
     // Freshly paired screens with no heartbeat yet are considered alive
@@ -565,6 +604,125 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
               <p className="text-[10px] text-primary/70 flex items-center gap-1">
                 <ShieldCheck className="h-2.5 w-2.5" /> This screen will auto-launch Glow Player on device boot
               </p>
+            )}
+          </div>
+
+          {/* Background Audio */}
+          <div className="space-y-3 rounded-xl bg-muted/30 p-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <Radio className="h-3 w-3 text-primary" /> Background Audio
+              </h4>
+              <Switch
+                checked={audioEnabled}
+                onCheckedChange={(checked) => {
+                  setAudioEnabled(checked);
+                  updateScreenSetting({ audio_enabled: checked });
+                  toast.success(checked ? "Background audio enabled" : "Background audio disabled");
+                }}
+              />
+            </div>
+
+            {audioEnabled && (
+              <div className="space-y-3">
+                {/* Current station */}
+                {audioStationName && (
+                  <div className="flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
+                    <Radio className="h-3.5 w-3.5 text-primary animate-pulse" />
+                    <span className="text-xs font-medium text-foreground truncate flex-1">{audioStationName}</span>
+                    <button
+                      onClick={() => {
+                        setAudioStationUrl("");
+                        setAudioStationName("");
+                        updateScreenSetting({ audio_station_url: null, audio_station_name: null });
+                        toast("Station removed");
+                      }}
+                      className="p-0.5 rounded hover:bg-muted"
+                    >
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Station search */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                  <Input
+                    placeholder="Search radio stations…"
+                    value={radioQuery}
+                    onChange={(e) => searchRadioStations(e.target.value)}
+                    className="pl-8 h-8 text-xs"
+                  />
+                  {radioSearching && (
+                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Search results */}
+                {radioResults.length > 0 && (
+                  <div className="max-h-36 overflow-y-auto space-y-1 rounded-lg border border-border/50 bg-card/50 p-1">
+                    {radioResults.map((station) => (
+                      <button
+                        key={station.id}
+                        onClick={() => {
+                          setAudioStationUrl(station.url);
+                          setAudioStationName(station.name);
+                          setRadioQuery("");
+                          setRadioResults([]);
+                          updateScreenSetting({
+                            audio_station_url: station.url,
+                            audio_station_name: station.name,
+                          });
+                          toast.success(`Station set: ${station.name}`);
+                        }}
+                        className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/60 transition-colors"
+                      >
+                        {station.favicon ? (
+                          <img src={station.favicon} alt="" className="h-5 w-5 rounded object-cover shrink-0" onError={(e) => (e.target as HTMLImageElement).style.display = 'none'} />
+                        ) : (
+                          <Radio className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{station.name}</p>
+                          {station.country && (
+                            <p className="text-[10px] text-muted-foreground">{station.country}{station.bitrate ? ` · ${station.bitrate}kbps` : ''}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Volume slider */}
+                <div className="flex items-center gap-2">
+                  <Volume2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <Slider
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={[audioVolume]}
+                    onValueChange={([val]) => setAudioVolume(val)}
+                    onValueCommit={([val]) => updateScreenSetting({ audio_volume: val })}
+                    className="flex-1"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono w-8 text-right">{audioVolume}%</span>
+                </div>
+
+                {/* Mute on Hype toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <VolumeX className="h-3 w-3 text-muted-foreground" />
+                    <Label className="text-xs text-muted-foreground">Mute on Hype Takeover</Label>
+                  </div>
+                  <Switch
+                    checked={audioMuteOnHype}
+                    onCheckedChange={(checked) => {
+                      setAudioMuteOnHype(checked);
+                      updateScreenSetting({ audio_mute_on_hype: checked });
+                    }}
+                  />
+                </div>
+              </div>
             )}
           </div>
 

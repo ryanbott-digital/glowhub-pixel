@@ -116,6 +116,15 @@ export default function Player() {
     total_screens: number; orientation: string;
   } | null>(null);
 
+  // ── BACKGROUND AUDIO ──
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioStationUrl, setAudioStationUrl] = useState<string | null>(null);
+  const [audioStationName, setAudioStationName] = useState<string | null>(null);
+  const [audioVolume, setAudioVolume] = useState(80);
+  const [audioMuteOnHype, setAudioMuteOnHype] = useState(true);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   // ── BREAKING ALERT ──
   const [alertActive, setAlertActive] = useState(false);
   const alertTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -677,7 +686,7 @@ export default function Player() {
         // Fetch playlist if assigned
         const { data: screen } = await supabase
           .from("screens")
-          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled")
+          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype")
           .eq("id", pairing.screen_id)
           .maybeSingle();
 
@@ -686,6 +695,11 @@ export default function Player() {
           if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
           if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
           if (screen.current_playlist_id) await fetchPlaylist(screen.current_playlist_id);
+          setAudioEnabled((screen as any).audio_enabled === true);
+          setAudioStationUrl((screen as any).audio_station_url || null);
+          setAudioStationName((screen as any).audio_station_name || null);
+          setAudioVolume((screen as any).audio_volume ?? 80);
+          setAudioMuteOnHype((screen as any).audio_mute_on_hype !== false);
         }
       }
     }, 3000);
@@ -701,7 +715,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -725,6 +739,11 @@ export default function Player() {
       if (screen.transition_type) setTransitionType(screen.transition_type);
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
+      setAudioEnabled((screen as any).audio_enabled === true);
+      setAudioStationUrl((screen as any).audio_station_url || null);
+      setAudioStationName((screen as any).audio_station_name || null);
+      setAudioVolume((screen as any).audio_volume ?? 80);
+      setAudioMuteOnHype((screen as any).audio_mute_on_hype !== false);
       if ((screen as any).sync_layout) setSyncLayout((screen as any).sync_layout);
       if ((screen as any).user_id) setScreenOwnerId((screen as any).user_id);
       setPaired(true);
@@ -1088,6 +1107,12 @@ export default function Player() {
           if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
           if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
           if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
+          // Apply audio settings in real-time
+          if (updated.audio_enabled != null) setAudioEnabled(updated.audio_enabled);
+          if (updated.audio_station_url !== undefined) setAudioStationUrl(updated.audio_station_url);
+          if (updated.audio_station_name !== undefined) setAudioStationName(updated.audio_station_name);
+          if (updated.audio_volume != null) setAudioVolume(updated.audio_volume);
+          if (updated.audio_mute_on_hype != null) setAudioMuteOnHype(updated.audio_mute_on_hype);
         }
       )
       .subscribe();
@@ -1096,6 +1121,37 @@ export default function Player() {
       supabase.removeChannel(channel);
     };
   }, [screenId, paired, fetchPlaylist]);
+
+  // ── BACKGROUND AUDIO ENGINE ──
+  useEffect(() => {
+    if (!audioEnabled || !audioStationUrl) {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setAudioPlaying(false); }
+      return;
+    }
+    const audio = new Audio();
+    audio.src = audioStationUrl;
+    audio.volume = audioVolume / 100;
+    audio.preload = "auto";
+    audio.loop = true;
+    audioRef.current = audio;
+    audio.play().then(() => setAudioPlaying(true)).catch(() => setAudioPlaying(false));
+    return () => { audio.pause(); audio.src = ""; audioRef.current = null; setAudioPlaying(false); };
+  }, [audioEnabled, audioStationUrl]);
+
+  // Update volume in real-time
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = audioVolume / 100;
+  }, [audioVolume]);
+
+  // Mute on Hype Takeover
+  useEffect(() => {
+    if (!audioMuteOnHype || !audioRef.current) return;
+    const onHypeStart = () => { if (audioRef.current) audioRef.current.volume = 0; };
+    const onHypeEnd = () => { if (audioRef.current) audioRef.current.volume = audioVolume / 100; };
+    window.addEventListener("glow-hype-start", onHypeStart);
+    window.addEventListener("glow-hype-end", onHypeEnd);
+    return () => { window.removeEventListener("glow-hype-start", onHypeStart); window.removeEventListener("glow-hype-end", onHypeEnd); };
+  }, [audioMuteOnHype, audioVolume]);
 
   // Heartbeat: ping last_ping + current_media_id every 60s (battery-friendly)
   useEffect(() => {
@@ -1921,6 +1977,18 @@ export default function Player() {
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
       {/* Hype Takeover Overlay */}
       <HypeTakeover />
+
+      {/* Now Playing audio indicator */}
+      {audioPlaying && audioStationName && (
+        <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1 animate-fade-in">
+          <div className="flex items-end gap-[2px] h-3">
+            <span className="w-[2px] bg-primary rounded-full animate-[audioBars_0.8s_ease-in-out_infinite]" style={{ height: '40%' }} />
+            <span className="w-[2px] bg-primary rounded-full animate-[audioBars_0.6s_ease-in-out_infinite_0.2s]" style={{ height: '70%' }} />
+            <span className="w-[2px] bg-primary rounded-full animate-[audioBars_0.7s_ease-in-out_infinite_0.1s]" style={{ height: '50%' }} />
+          </div>
+          <span className="text-[10px] text-white/70 max-w-[120px] truncate">{audioStationName}</span>
+        </div>
+      )}
 
       {/* Calibration Overlay (scanline, flash, bezel, color correction) */}
       {screenId && playerSyncGroupId && (

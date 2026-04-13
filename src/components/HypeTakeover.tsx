@@ -52,6 +52,7 @@ export function HypeTakeover() {
   const startTakeover = useCallback((p: HypePayload) => {
     setPayload(p);
     setActive(true);
+    window.dispatchEvent(new Event("glow-hype-start"));
     setFadeOut(false);
     setProgress(0);
 
@@ -70,6 +71,7 @@ export function HypeTakeover() {
       setFadeOut(true);
       setTimeout(() => {
         setActive(false);
+        window.dispatchEvent(new Event("glow-hype-end"));
         setPayload(null);
         setProgress(0);
         setFadeOut(false);
