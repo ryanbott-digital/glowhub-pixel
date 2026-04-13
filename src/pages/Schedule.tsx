@@ -868,7 +868,7 @@ export default function Schedule() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-hidden flex">
+        <div ref={pinchContainerRef} className="flex-1 overflow-hidden flex touch-manipulation">
           {/* ── Media & Playlists Sidebar ── */}
           {mediaSidebarOpen && (
             <div className="fixed inset-0 z-40 sm:relative sm:inset-auto sm:z-auto w-full sm:w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
