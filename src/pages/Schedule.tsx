@@ -1034,7 +1034,7 @@ export default function Schedule() {
           {/* Day columns — horizontal scroll wrapper for week */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Fixed column headers */}
-            <div className="flex shrink-0 border-b border-[#1E293B]/40 overflow-x-auto" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
+            <div ref={headerScrollRef} className="flex shrink-0 border-b border-[#1E293B]/40 overflow-hidden" style={{ minWidth: viewMode === "day" ? "100%" : undefined }}>
               <div className="flex" style={{ minWidth: viewMode === "week" ? `${days.length * 120}px` : "100%" }}>
                 {days.map((day) => {
                   const isToday = isSameDay(day, new Date());
