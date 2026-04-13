@@ -1305,11 +1305,17 @@ export default function Player() {
     }
   }, [currentIndex, items, activeBuffer, getBufferRefs, inactiveBuffer, attachHls]);
 
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
   // ── INSTANT SWAP: Single state update swaps buffers ──
   const advanceToNext = useCallback(() => {
     if (swapLockRef.current) return;
 
-    const nextIndex = (currentIndex + 1) % items.length;
+    const idx = currentIndexRef.current;
+    const nextIndex = (idx + 1) % items.length;
 
     // If loop is off and we've reached the end, stop
     if (!loopEnabled && nextIndex === 0) {
@@ -1330,6 +1336,7 @@ export default function Player() {
       setFadeToBlackActive(true);
       setTimeout(() => {
         // Phase 2: swap buffer while screen is black
+        currentIndexRef.current = nextIndex;
         setCurrentIndex(nextIndex);
         setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
         setBufferLoading(false);
@@ -1343,6 +1350,7 @@ export default function Player() {
       }, crossfadeDuration);
     } else {
       // Normal crossfade or cut
+      currentIndexRef.current = nextIndex;
       setCurrentIndex(nextIndex);
       setActiveBuffer((prev) => (prev === "A" ? "B" : "A"));
       setBufferLoading(false);
@@ -1352,7 +1360,7 @@ export default function Player() {
         swapLockRef.current = false;
       }, Math.max(effectiveDuration, 50));
     }
-  }, [items.length, crossfadeDuration, transitionType, loopEnabled, currentIndex]);
+  }, [items.length, crossfadeDuration, transitionType, loopEnabled]);
 
   // Error handler: log to Supabase and skip to next item
   const handleMediaError = useCallback((mediaId: string | null, errorMsg: string) => {
