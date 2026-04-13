@@ -5,15 +5,30 @@ interface UsePinchZoomOptions {
   max: number;
   initial: number;
   step?: number;
+  storageKey?: string;
 }
 
-export function usePinchZoom({ min, max, initial, step = 5 }: UsePinchZoomOptions) {
-  const [value, setValue] = useState(initial);
+export function usePinchZoom({ min, max, initial, step = 5, storageKey }: UsePinchZoomOptions) {
+  const [value, setValue] = useState(() => {
+    if (storageKey) {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = Number(stored);
+        if (!isNaN(parsed) && parsed >= min && parsed <= max) return parsed;
+      }
+    }
+    return initial;
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const initialDistance = useRef<number | null>(null);
-  const initialValue = useRef(initial);
+  const initialValue = useRef(value);
 
   const clamp = useCallback((v: number) => Math.min(max, Math.max(min, v)), [min, max]);
+
+  // Persist to localStorage
+  useEffect(() => {
+    if (storageKey) localStorage.setItem(storageKey, String(value));
+  }, [value, storageKey]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -35,7 +50,7 @@ export function usePinchZoom({ min, max, initial, step = 5 }: UsePinchZoomOption
 
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2 && initialDistance.current !== null) {
-        e.preventDefault(); // prevent scroll during pinch
+        e.preventDefault();
         const dist = getDistance(e.touches);
         const scale = dist / initialDistance.current;
         const newVal = clamp(Math.round(initialValue.current * scale / step) * step);
