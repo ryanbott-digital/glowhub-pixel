@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,10 +28,12 @@ interface MediaItem {
   duration: number | null;
   mux_asset_id: string | null;
   mux_status: string | null;
+  audio_muted: boolean;
 }
 
 interface MediaWithSize extends MediaItem {
   fileSize: number | null;
+  hasAudio?: boolean;
 }
 
 const formatFileSize = (bytes: number) => {
