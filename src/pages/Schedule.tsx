@@ -563,7 +563,7 @@ export default function Schedule() {
     if (indicator) indicator.style.opacity = "0";
   };
 
-  /* ── Touch long-press drag for mobile ── */
+  /* ── Touch long-press drag for mobile (media) ── */
   const handleTouchDragStart = (item: MediaItem) => (e: React.TouchEvent) => {
     const touch = e.touches[0];
     const startX = touch.clientX;
@@ -571,7 +571,42 @@ export default function Schedule() {
     touchLongPressTimer.current = setTimeout(() => {
       hapticMedium();
       touchDragItemRef.current = item;
+      touchDragPlaylistRef.current = null;
       setTouchDragItem(item);
+      setTouchDragPlaylist(null);
+      setTouchDragPos({ x: startX, y: startY });
+      setMediaSidebarOpen(false);
+    }, 400);
+    const cancelIfMoved = (ev: TouchEvent) => {
+      const dx = ev.touches[0].clientX - startX;
+      const dy = ev.touches[0].clientY - startY;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+        document.removeEventListener("touchmove", cancelIfMoved);
+      }
+    };
+    document.addEventListener("touchmove", cancelIfMoved, { passive: true });
+    const cleanup = () => {
+      if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+      document.removeEventListener("touchmove", cancelIfMoved);
+      document.removeEventListener("touchend", cleanup);
+      document.removeEventListener("touchcancel", cleanup);
+    };
+    document.addEventListener("touchend", cleanup, { once: true });
+    document.addEventListener("touchcancel", cleanup, { once: true });
+  };
+
+  /* ── Touch long-press drag for mobile (playlist) ── */
+  const handleTouchPlaylistDragStart = (pl: PlaylistItem) => (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    touchLongPressTimer.current = setTimeout(() => {
+      hapticMedium();
+      touchDragPlaylistRef.current = pl;
+      touchDragItemRef.current = null;
+      setTouchDragPlaylist(pl);
+      setTouchDragItem(null);
       setTouchDragPos({ x: startX, y: startY });
       setMediaSidebarOpen(false);
     }, 400);
@@ -595,7 +630,7 @@ export default function Schedule() {
   };
 
   useEffect(() => {
-    if (!touchDragItem) return;
+    if (!touchDragItem && !touchDragPlaylist) return;
     const onMove = (e: TouchEvent) => {
       e.preventDefault();
       setTouchDragPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
