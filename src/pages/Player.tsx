@@ -77,6 +77,7 @@ export default function Player() {
   const [showWhiteFlash, setShowWhiteFlash] = useState(false);
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndexRef = useRef(0);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [offlineSeconds, setOfflineSeconds] = useState(0);
