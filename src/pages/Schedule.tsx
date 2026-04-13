@@ -552,77 +552,87 @@ export default function Schedule() {
       <SEOHead title="Schedule — Glow" description="Advanced multi-day scheduling engine" />
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-b border-[#1E293B]/60 bg-[#0B1120]/80 backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <CalendarClock className="h-5 w-5 text-[#00E5CC]" />
-          <h1 className="text-lg font-bold text-[#E2E8F0]">Schedule Engine</h1>
-        </div>
+      <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-b border-[#1E293B]/60 bg-[#0B1120]/80 backdrop-blur-xl">
+        {/* Back / Close button */}
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-[#94A3B8] hover:text-[#E2E8F0]" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <CalendarClock className="h-5 w-5 text-[#00E5CC] shrink-0 hidden sm:block" />
+        <h1 className="text-sm sm:text-lg font-bold text-[#E2E8F0] truncate">Schedule</h1>
+
+        <div className="flex-1" />
+
+        {/* Controls row — scrollable on mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
           <Select value={selectedScreenId} onValueChange={setSelectedScreenId}>
-            <SelectTrigger className="w-[180px] bg-[#0F1A2E] border-[#1E293B]">
-              <Monitor className="h-3.5 w-3.5 mr-1.5 text-[#00E5CC]" /><SelectValue placeholder="Select screen" />
+            <SelectTrigger className="w-[130px] sm:w-[180px] bg-[#0F1A2E] border-[#1E293B] h-8 text-xs">
+              <Monitor className="h-3 w-3 mr-1 text-[#00E5CC]" /><SelectValue placeholder="Screen" />
             </SelectTrigger>
             <SelectContent>{screens.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
           </Select>
 
-          <div className="flex rounded-lg border border-[#1E293B] bg-[#0F1A2E] overflow-hidden">
+          <div className="flex rounded-lg border border-[#1E293B] bg-[#0F1A2E] overflow-hidden shrink-0">
             {(["day", "week", "month"] as ViewMode[]).map((mode) => (
               <button key={mode} onClick={() => setViewMode(mode)}
-                className={`px-3 py-1.5 text-xs font-medium capitalize transition-all ${viewMode === mode ? "bg-[#00A3A3]/20 text-[#00E5CC] shadow-[inset_0_0_10px_rgba(0,163,163,0.15)]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
+                className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-medium capitalize transition-all ${viewMode === mode ? "bg-[#00A3A3]/20 text-[#00E5CC] shadow-[inset_0_0_10px_rgba(0,163,163,0.15)]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
                 {mode}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => nav(-1)}><ChevronLeft className="h-4 w-4" /></Button>
-            <button onClick={() => setFocusDate(new Date())} className="text-xs font-medium px-2 py-1 rounded hover:bg-[#1E293B]/50 text-[#94A3B8] transition-colors">Today</button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => nav(1)}><ChevronRight className="h-4 w-4" /></Button>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => nav(-1)}><ChevronLeft className="h-3.5 w-3.5" /></Button>
+            <button onClick={() => setFocusDate(new Date())} className="text-[10px] sm:text-xs font-medium px-1.5 py-1 rounded hover:bg-[#1E293B]/50 text-[#94A3B8] transition-colors">Today</button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => nav(1)}><ChevronRight className="h-3.5 w-3.5" /></Button>
           </div>
-
-          <span className="text-sm font-medium text-[#94A3B8]">
-            {viewMode === "day" && format(focusDate, "EEEE, MMM d, yyyy")}
-            {viewMode === "week" && `${format(rangeStart, "MMM d")} — ${format(rangeEnd, "MMM d, yyyy")}`}
-            {viewMode === "month" && format(focusDate, "MMMM yyyy")}
-          </span>
         </div>
       </div>
 
-      {/* ── Action bar ── */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-[#1E293B]/40 text-xs bg-[#0B1120]/60">
+      {/* ── Date label (separate row on mobile for space) ── */}
+      <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 border-b border-[#1E293B]/30 bg-[#0B1120]/40">
+        <span className="text-xs sm:text-sm font-medium text-[#94A3B8] truncate">
+          {viewMode === "day" && format(focusDate, "EEE, MMM d, yyyy")}
+          {viewMode === "week" && `${format(rangeStart, "MMM d")} — ${format(rangeEnd, "MMM d, yyyy")}`}
+          {viewMode === "month" && format(focusDate, "MMMM yyyy")}
+        </span>
+        <div className="flex-1" />
+        {/* Quick action buttons — visible on mobile too */}
+        {viewMode === "day" && (
+          <>
+            <Button variant="outline" size="sm" className="h-6 sm:h-7 text-[10px] sm:text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B] px-2" onClick={handleCopyToTomorrow} disabled={copyingTomorrow}>
+              <Copy className="h-3 w-3 mr-1" /><span className="hidden sm:inline">{copyingTomorrow ? "Copying…" : "Copy to Tomorrow"}</span><span className="sm:hidden">Copy</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-6 sm:h-7 text-[10px] sm:text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B] px-2" onClick={() => setShowPreview(true)}>
+              <Eye className="h-3 w-3 mr-1" /><span className="hidden sm:inline">Preview Now</span><span className="sm:hidden">Preview</span>
+            </Button>
+          </>
+        )}
+      </div>
+
+      {/* ── Action bar (legend + media toggle) ── */}
+      <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 border-b border-[#1E293B]/40 text-[10px] sm:text-xs bg-[#0B1120]/60 overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setMediaSidebarOpen((v) => !v)}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all ${mediaSidebarOpen ? "border-[#00A3A3]/40 bg-[#00A3A3]/10 text-[#00E5CC]" : "border-[#1E293B] text-[#64748B] hover:text-[#94A3B8] hover:border-[#475569]"}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-all shrink-0 ${mediaSidebarOpen ? "border-[#00A3A3]/40 bg-[#00A3A3]/10 text-[#00E5CC]" : "border-[#1E293B] text-[#64748B] hover:text-[#94A3B8] hover:border-[#475569]"}`}
         >
           {mediaSidebarOpen ? <PanelLeftClose className="h-3 w-3" /> : <PanelLeftOpen className="h-3 w-3" />}
-          Media
+          <span className="hidden sm:inline">Media</span>
         </button>
-        <span className="flex items-center gap-1.5"><Film className="h-3 w-3 text-[#00E5CC]" /> Video</span>
-        <span className="flex items-center gap-1.5"><Image className="h-3 w-3 text-[#60A5FA]" /> Image</span>
-        <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-[#FF66FF]" /> Hype</span>
-        <span className="flex items-center gap-1.5"><Moon className="h-3 w-3 text-[#94A3B8]" /> Blackout</span>
-        {overlappingPairs.length > 0 && <span className="flex items-center gap-1.5 text-[#FF4466]"><AlertTriangle className="h-3 w-3" /> {overlappingPairs.length} conflict{overlappingPairs.length > 1 ? "s" : ""}</span>}
+        <span className="flex items-center gap-1 shrink-0"><Film className="h-3 w-3 text-[#00E5CC]" /><span className="hidden sm:inline">Video</span></span>
+        <span className="flex items-center gap-1 shrink-0"><Image className="h-3 w-3 text-[#60A5FA]" /><span className="hidden sm:inline">Image</span></span>
+        <span className="flex items-center gap-1 shrink-0"><Zap className="h-3 w-3 text-[#FF66FF]" /><span className="hidden sm:inline">Hype</span></span>
+        <span className="flex items-center gap-1 shrink-0"><Moon className="h-3 w-3 text-[#94A3B8]" /><span className="hidden sm:inline">Blackout</span></span>
+        {overlappingPairs.length > 0 && <span className="flex items-center gap-1 text-[#FF4466] shrink-0"><AlertTriangle className="h-3 w-3" /> {overlappingPairs.length}</span>}
         <div className="flex-1" />
 
         {/* Clipboard indicator */}
         {clipboard && (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-[#00A3A3]/30 bg-[#00A3A3]/10">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg border border-[#00A3A3]/30 bg-[#00A3A3]/10 shrink-0">
             <Clipboard className="h-3 w-3 text-[#00E5CC]" />
-            <span className="text-[#00E5CC] text-[11px] font-medium truncate max-w-[100px]">{clipboard.label || "Block"}</span>
-            <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] text-[11px]">✕</button>
+            <span className="text-[#00E5CC] text-[10px] font-medium truncate max-w-[60px] sm:max-w-[100px]">{clipboard.label || "Block"}</span>
+            <button onClick={() => setClipboard(null)} className="text-[#64748B] hover:text-[#FF4466] text-[10px]">✕</button>
           </div>
-        )}
-
-        {viewMode === "day" && (
-          <>
-            <Button variant="outline" size="sm" className="h-7 text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B]" onClick={handleCopyToTomorrow} disabled={copyingTomorrow}>
-              <Copy className="h-3 w-3 mr-1" />{copyingTomorrow ? "Copying…" : "Copy to Tomorrow"}
-            </Button>
-            <Button variant="outline" size="sm" className="h-7 text-xs border-[#1E293B] bg-[#0F1A2E] hover:bg-[#1E293B]" onClick={() => setShowPreview(true)}>
-              <Eye className="h-3 w-3 mr-1" />Preview Now
-            </Button>
-          </>
         )}
       </div>
 
