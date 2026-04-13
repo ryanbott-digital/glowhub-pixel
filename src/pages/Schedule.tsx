@@ -135,9 +135,12 @@ export default function Schedule() {
   const [mediaSidebarSearch, setMediaSidebarSearch] = useState("");
   const [mediaDragItem, setMediaDragItem] = useState<MediaItem | null>(null);
   const [touchDragItem, setTouchDragItem] = useState<MediaItem | null>(null);
+  const [touchDragPlaylist, setTouchDragPlaylist] = useState<PlaylistItem | null>(null);
   const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
   const touchLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchDragItemRef = useRef<MediaItem | null>(null);
+  const touchDragPlaylistRef = useRef<PlaylistItem | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<"media" | "playlists">("media");
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
