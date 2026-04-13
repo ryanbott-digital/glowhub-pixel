@@ -502,15 +502,13 @@ export default function Schedule() {
     setShowCreateDialog(true);
   };
 
-  /* ── Drop media onto timeline slot ── */
+  /* ── Drop media/playlist onto timeline slot ── */
   const handleMediaDrop = async (day: Date, hour: number, e: React.DragEvent) => {
     e.preventDefault();
     const mediaId = e.dataTransfer.getData("application/glow-media-id");
-    if (!mediaId || !user || !selectedScreenId) return;
-    const item = media.find((m) => m.id === mediaId);
-    if (!item) return;
+    const playlistId = e.dataTransfer.getData("application/glow-playlist-id");
+    if ((!mediaId && !playlistId) || !user || !selectedScreenId) return;
 
-    // Calculate precise 15-min snap from Y offset within the hour cell
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetY = e.clientY - rect.top;
     const minuteOffset = Math.round((offsetY / HOUR_HEIGHT) * 60 / SNAP_MINUTES) * SNAP_MINUTES;
@@ -518,18 +516,29 @@ export default function Schedule() {
     const startDate = new Date(day);
     startDate.setHours(hour, Math.min(minuteOffset, 45), 0, 0);
     const endDate = new Date(startDate);
-    endDate.setMinutes(endDate.getMinutes() + 60); // 1-hour default duration
+    endDate.setMinutes(endDate.getMinutes() + 60);
+
+    let label = "";
+    let colorCode = "teal";
+    if (mediaId) {
+      const item = media.find((m) => m.id === mediaId);
+      label = item?.name || "";
+    } else if (playlistId) {
+      const pl = playlists.find((p) => p.id === playlistId);
+      label = pl?.title || "";
+      colorCode = "blue";
+    }
 
     const { error } = await supabase.from("schedule_blocks").insert({
-      screen_id: selectedScreenId, media_id: mediaId, playlist_id: null,
+      screen_id: selectedScreenId, media_id: mediaId || null, playlist_id: playlistId || null,
       start_at: startDate.toISOString(), end_at: endDate.toISOString(),
-      block_type: "content", recurrence: "none", color_code: "teal",
-      priority: 0, label: item.name, user_id: user.id,
+      block_type: "content", recurrence: "none", color_code: colorCode,
+      priority: 0, label, user_id: user.id,
     } as any);
     if (error) { toast.error("Failed to create block"); return; }
     hapticSuccess();
     const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
-    toast.success(`"${item.name}" scheduled at ${timeStr}`);
+    toast.success(`"${label}" scheduled at ${timeStr}`);
     setMediaDragItem(null);
     fetchBlocks();
   };
