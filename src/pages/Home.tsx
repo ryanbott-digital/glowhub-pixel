@@ -1153,6 +1153,8 @@ const Home = () => {
             <Link to="/solutions/retail" className="hover:text-[#E2E8F0] transition-colors">Retail</Link>
             <Link to="/solutions/hospitality" className="hover:text-[#E2E8F0] transition-colors">Hospitality</Link>
             <Link to="/compare/optisigns-alternative" className="hover:text-[#E2E8F0] transition-colors">Glow vs OptiSigns</Link>
+            <Link to="/compare/screencloud-alternative" className="hover:text-[#E2E8F0] transition-colors">Glow vs ScreenCloud</Link>
+            <Link to="/compare/yodeck-alternative" className="hover:text-[#E2E8F0] transition-colors">Glow vs Yodeck</Link>
             <a href="mailto:hello@glowsignage.com" className="hover:text-[#E2E8F0] transition-colors">Contact</a>
             <Link to="/terms" className="hover:text-[#E2E8F0] transition-colors">Terms</Link>
             <Link to="/terms?tab=privacy" className="hover:text-[#E2E8F0] transition-colors">Privacy</Link>
