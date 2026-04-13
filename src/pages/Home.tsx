@@ -807,7 +807,42 @@ const Home = () => {
           )}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto items-start">
+
+          {/* Starter — Free tier */}
+          <div
+            data-animate
+            className="reveal-card glass-card light-catch-border rounded-2xl p-8 flex flex-col transition-all duration-300 glass-spotlight hover:-translate-y-2 hover:shadow-[0_0_40px_hsla(180,100%,45%,0.1),0_20px_40px_-10px_hsla(220,60%,7%,0.5)]"
+          >
+            <h3 className="text-xl font-semibold mb-1">Starter</h3>
+            <p className="text-sm text-[#94A3B8] mb-6">Free forever — no card required</p>
+            <div className="text-5xl font-extrabold mb-2">
+              $0<span className="text-lg font-normal text-[#94A3B8]">/mo</span>
+            </div>
+            <p className="text-base font-bold text-[#00E5CC] mb-2">1 Screen Included</p>
+            <p className="text-xs text-[#64748B] mb-8">Perfect for testing or a single-screen setup.</p>
+            <ul className="space-y-3.5 mb-8 flex-1">
+              {[
+                "1 Screen",
+                "Basic Scheduling",
+                "500MB Cloud Storage",
+                "Community Support",
+                "Offline Playback",
+                "Glow Watermark",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-[#CBD5E1]">
+                  <Check className="w-4 h-4 mt-0.5 text-[#94A3B8] shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/auth"
+              className="block text-center py-3.5 rounded-xl font-semibold border border-[#1E293B] text-[#94A3B8] hover:border-[#00A3A3]/40 hover:text-[#E2E8F0] hover:bg-[#00A3A3]/5 transition-all duration-300 tracking-wide"
+            >
+              GET STARTED FREE
+            </Link>
+          </div>
 
           {/* Pro Ecosystem — 5-screen bundle */}
           <div
