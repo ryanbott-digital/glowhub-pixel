@@ -135,6 +135,10 @@ export default function Admin() {
   const [addingPack, setAddingPack] = useState(false);
   const [screenCommandLoading, setScreenCommandLoading] = useState<string | null>(null);
   const [bulkRestarting, setBulkRestarting] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [broadcastType, setBroadcastType] = useState<"info" | "warning" | "alert">("info");
+  const [broadcastDuration, setBroadcastDuration] = useState(30);
+  const [broadcastSending, setBroadcastSending] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
