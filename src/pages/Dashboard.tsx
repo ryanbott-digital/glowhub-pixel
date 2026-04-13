@@ -35,14 +35,17 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [s, p, m] = await Promise.all([
+      const [s, p, m, b] = await Promise.all([
         supabase.from("screens").select("*").eq("user_id", user.id),
         supabase.from("playlists").select("*").eq("user_id", user.id),
         supabase.from("media").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("screen_broadcasts").select("id, message, broadcast_type, duration_seconds, created_at")
+          .eq("target_user_id", user.id).order("created_at", { ascending: false }).limit(10),
       ]);
       if (s.data) setScreens(s.data);
       if (p.data) setPlaylists(p.data);
       setMediaCount(m.count ?? 0);
+      if (b.data) setBroadcasts(b.data as any);
     };
     fetchData();
   }, [user]);
