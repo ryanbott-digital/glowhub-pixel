@@ -191,65 +191,33 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
         </div>
       </div>
       <div className="p-3 sm:p-6 pt-0 space-y-4">
-        {/* Timeline track */}
-        <div className="relative">
-          {/* Track background */}
-          <div className="absolute inset-0 rounded-lg bg-white/[0.03] border border-white/[0.06]" />
+        {/* Item list */}
+        <div className="space-y-1.5">
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+              {items.map((item, i) => (
+                <TimelineBlock
+                  key={item.id}
+                  id={item.id}
+                  index={i}
+                  mediaName={item.media?.name || "Unknown"}
+                  mediaType={item.media?.type}
+                  storagePath={item.media?.storage_path}
+                  overrideDuration={item.override_duration}
+                  defaultDuration={item.media?.duration ?? DEFAULT_IMAGE_DURATION}
+                  onRemove={removeItem}
+                  onUpdateDuration={updateDuration}
+                  onPreview={(url, type, name) => setLightbox({ url, type, name })}
+                />
+              ))}
 
-          {/* Scrollable timeline */}
-          <div
-            ref={timelineRef}
-            className="relative overflow-x-auto py-3 px-2"
-            style={{ scrollbarWidth: "thin" }}
-          >
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={items.map((i) => i.id)} strategy={horizontalListSortingStrategy}>
-                <div className="flex gap-1.5 min-h-[80px] items-stretch">
-                  {items.map((item, i) => (
-                    <TimelineBlock
-                      key={item.id}
-                      id={item.id}
-                      index={i}
-                      mediaName={item.media?.name || "Unknown"}
-                      mediaType={item.media?.type}
-                      storagePath={item.media?.storage_path}
-                      overrideDuration={item.override_duration}
-                      defaultDuration={item.media?.duration ?? DEFAULT_IMAGE_DURATION}
-                      onRemove={removeItem}
-                      onUpdateDuration={updateDuration}
-                      onPreview={(url, type, name) => setLightbox({ url, type, name })}
-                    />
-                  ))}
-
-                  {items.length === 0 && (
-                    <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground min-w-[200px]">
-                      Drag media here to build your timeline
-                    </div>
-                  )}
+              {items.length === 0 && (
+                <div className="flex items-center justify-center text-sm text-muted-foreground py-8 rounded-lg border border-dashed border-border">
+                  Add media below to build your playlist
                 </div>
-              </SortableContext>
-            </DndContext>
-          </div>
-
-          {/* Timecode ruler */}
-          {items.length > 0 && (
-            <div className="px-2 pb-1.5 flex items-center">
-              <div className="flex-1 h-px bg-border relative">
-                {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
-                  <div
-                    key={pct}
-                    className="absolute top-0 flex flex-col items-center"
-                    style={{ left: `${pct * 100}%`, transform: "translateX(-50%)" }}
-                  >
-                    <div className="w-px h-2 bg-muted-foreground/30" />
-                    <span className="text-[8px] text-muted-foreground/50 mt-0.5 font-mono">
-                      {formatTime(Math.round(totalSeconds * pct))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+              )}
+            </SortableContext>
+          </DndContext>
         </div>
 
         {/* Add media buttons */}
