@@ -15,6 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Playlist {
   id: string;
@@ -233,6 +234,13 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     : signalStrength === "weak" ? "hsl(25, 90%, 55%)"
     : `hsl(${crimson})`;
 
+  const signalLabel = (() => {
+    if (!screen.last_ping) return isAlive ? "Just paired — awaiting first heartbeat" : "No heartbeat received";
+    const ago = formatDistanceToNow(new Date(screen.last_ping), { addSuffix: true });
+    const strength = signalStrength === "strong" ? "Strong" : signalStrength === "medium" ? "Fair" : signalStrength === "weak" ? "Weak" : "Lost";
+    return `${strength} · Last ping ${ago}`;
+  })();
+
   return (
     <div
       className={`group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
@@ -319,7 +327,18 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             {/* Glowing status pulse */}
             <div className="absolute top-1.5 right-1.5 z-10">
               <div className="flex items-center gap-1">
-                <SignalIcon className="h-3 w-3" style={{ color: signalColor, filter: `drop-shadow(0 0 4px ${signalColor})` }} />
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-default">
+                        <SignalIcon className="h-3 w-3" style={{ color: signalColor, filter: `drop-shadow(0 0 4px ${signalColor})` }} />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="text-xs">
+                      {signalLabel}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               <span className="relative flex h-3.5 w-3.5">
                 <span
                   className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
