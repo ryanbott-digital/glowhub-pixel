@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Key, Copy, RefreshCw, Loader2, Shield, Zap, Check, AlertTriangle, Monitor, Play, Download } from "lucide-react";
+import { Key, Copy, RefreshCw, Loader2, Shield, Zap, Check, AlertTriangle, Monitor, Play, Download, Radio, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ interface Screen {
   name: string;
   hardware_uuid: string | null;
   last_remote_trigger: string | null;
+  current_playlist_id: string | null;
+  current_media_id: string | null;
 }
 
 interface Playlist {
@@ -50,7 +52,7 @@ export default function Integrations() {
     setLoading(true);
 
     const [screensRes, playlistsRes, mediaRes, keyRes] = await Promise.all([
-      supabase.from("screens").select("id, name, hardware_uuid, last_remote_trigger").eq("user_id", user.id),
+      supabase.from("screens").select("id, name, hardware_uuid, last_remote_trigger, current_playlist_id, current_media_id").eq("user_id", user.id),
       supabase.from("playlists").select("id, title").eq("user_id", user.id),
       supabase.from("media").select("id, name, type").eq("user_id", user.id).order("name"),
       supabase.functions.invoke("manage-api-key", { body: { action: "status" } }),
@@ -393,7 +395,18 @@ export default function Integrations() {
                       <p className="text-xs font-mono text-muted-foreground">{s.hardware_uuid ? `${s.hardware_uuid.substring(0, 8)}...` : "—"}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    {(s.current_playlist_id || s.current_media_id) ? (
+                      <Badge variant="default" className="text-xs bg-primary/20 text-primary border-primary/30">
+                        <Radio className="h-3 w-3 mr-1" />
+                        Override
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Schedule
+                      </Badge>
+                    )}
                     {s.last_remote_trigger ? (
                       <Badge variant="secondary" className="text-xs">
                         <Play className="h-3 w-3 mr-1" />
