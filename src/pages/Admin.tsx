@@ -182,6 +182,31 @@ export default function Admin() {
     setBulkRestarting(false);
   };
 
+  // Admin: unpair all screens for a user
+  const [bulkUnpairing, setBulkUnpairing] = useState(false);
+  const handleUnpairAllScreens = async (screens: AdminScreen[]) => {
+    if (screens.length === 0) return;
+    setBulkUnpairing(true);
+    let done = 0;
+    for (const screen of screens) {
+      try {
+        const { error } = await supabase.functions.invoke("admin-screen-command", {
+          body: { action: "unpair", screen_id: screen.id },
+        });
+        if (!error) done++;
+      } catch { /* continue */ }
+    }
+    toast.success(`Unpaired ${done} screen${done !== 1 ? "s" : ""}`);
+    // Update local state
+    if (selectedUser) {
+      setSelectedUser({
+        ...selectedUser,
+        screens: [],
+      });
+    }
+    setBulkUnpairing(false);
+  };
+
   // Admin: unpair confirmation state
   const [unpairTarget, setUnpairTarget] = useState<{ id: string; name: string } | null>(null);
   const [restartTarget, setRestartTarget] = useState<{ id: string; name: string } | null>(null);
@@ -714,6 +739,31 @@ export default function Admin() {
                         </AlertDialogContent>
                       </AlertDialog>
                     )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 text-destructive hover:text-destructive" disabled={bulkUnpairing || selectedUser.screens.length === 0}>
+                            {bulkUnpairing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Unplug className="h-3 w-3" />}
+                            Unpair All
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Unpair All Screens</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will disconnect and unpair all <span className="font-semibold text-foreground">{selectedUser.screens.length}</span> screen{selectedUser.screens.length !== 1 ? "s" : ""} for {selectedUser.email}. All pairing data, playlist assignments, and screenshots will be cleared. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => handleUnpairAllScreens(selectedUser.screens)}
+                            >
+                              Unpair {selectedUser.screens.length} Screen{selectedUser.screens.length !== 1 ? "s" : ""}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     <span className="text-xs text-muted-foreground">
                       {selectedUser.screens.length} of {getUserScreenLimit(selectedUser)} used
                       {selectedUser.screen_packs > 0 && ` (${selectedUser.screen_packs} pack${selectedUser.screen_packs !== 1 ? "s" : ""})`}
