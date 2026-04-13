@@ -268,6 +268,7 @@ export default function Studio() {
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [layerDragIdx, setLayerDragIdx] = useState<number | null>(null);
   const [guides, setGuides] = useState<GuideLine[]>([]);
+  const prevSnapRef = useRef<{ x: number | null; y: number | null }>({ x: null, y: null });
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
   const [mediaSearch, setMediaSearch] = useState("");
