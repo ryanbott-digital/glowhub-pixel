@@ -143,6 +143,7 @@ export default function Schedule() {
   const touchLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchDragItemRef = useRef<MediaItem | null>(null);
   const touchDragPlaylistRef = useRef<PlaylistItem | null>(null);
+  const [touchDropHighlight, setTouchDropHighlight] = useState<{ day: string; hour: number; offsetY: number } | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"media" | "playlists">("media");
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
