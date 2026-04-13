@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -51,7 +51,7 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [lightbox, setLightbox] = useState<{ url: string; type: string; name: string } | null>(null);
   const [defaultDuration, setDefaultDuration] = useState(DEFAULT_IMAGE_DURATION);
-  const timelineRef = useRef<HTMLDivElement>(null);
+  
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
