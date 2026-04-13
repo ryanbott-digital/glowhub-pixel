@@ -589,6 +589,13 @@ export default function Schedule() {
 
       {/* ── Action bar ── */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-[#1E293B]/40 text-xs bg-[#0B1120]/60">
+        <button
+          onClick={() => setMediaSidebarOpen((v) => !v)}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all ${mediaSidebarOpen ? "border-[#00A3A3]/40 bg-[#00A3A3]/10 text-[#00E5CC]" : "border-[#1E293B] text-[#64748B] hover:text-[#94A3B8] hover:border-[#475569]"}`}
+        >
+          {mediaSidebarOpen ? <PanelLeftClose className="h-3 w-3" /> : <PanelLeftOpen className="h-3 w-3" />}
+          Media
+        </button>
         <span className="flex items-center gap-1.5"><Film className="h-3 w-3 text-[#00E5CC]" /> Video</span>
         <span className="flex items-center gap-1.5"><Image className="h-3 w-3 text-[#60A5FA]" /> Image</span>
         <span className="flex items-center gap-1.5"><Zap className="h-3 w-3 text-[#FF66FF]" /> Hype</span>
