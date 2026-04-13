@@ -544,7 +544,7 @@ export default function Schedule() {
 
   if (loading) return <div className="flex items-center justify-center h-full"><RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
-  const timelineHeight = "calc(100vh - 220px)";
+  const timelineHeight = "calc(100vh - 280px)";
 
   /* ══════════════════ RENDER ══════════════════ */
   return (
