@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   CalendarClock, Plus, Trash2, ChevronLeft, ChevronRight, Monitor, Image, Film, Moon, Zap,
   Copy, AlertTriangle, RefreshCw, Eye, GripHorizontal, Clipboard, CalendarRange, Sparkles,
-  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X
+  PanelLeftOpen, PanelLeftClose, Search, GripVertical, ArrowLeft, X, ListMusic
 } from "lucide-react";
 import { format, addDays, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { hapticLight, hapticMedium, hapticSuccess, hapticWarning } from "@/lib/haptics";
@@ -135,9 +135,12 @@ export default function Schedule() {
   const [mediaSidebarSearch, setMediaSidebarSearch] = useState("");
   const [mediaDragItem, setMediaDragItem] = useState<MediaItem | null>(null);
   const [touchDragItem, setTouchDragItem] = useState<MediaItem | null>(null);
+  const [touchDragPlaylist, setTouchDragPlaylist] = useState<PlaylistItem | null>(null);
   const [touchDragPos, setTouchDragPos] = useState<{ x: number; y: number } | null>(null);
   const touchLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchDragItemRef = useRef<MediaItem | null>(null);
+  const touchDragPlaylistRef = useRef<PlaylistItem | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<"media" | "playlists">("media");
   const [newBlock, setNewBlock] = useState({
     block_type: "content" as "content" | "blackout" | "hype_override",
     start_time: "09:00", end_time: "17:00", recurrence: "none" as string,
@@ -499,15 +502,13 @@ export default function Schedule() {
     setShowCreateDialog(true);
   };
 
-  /* ── Drop media onto timeline slot ── */
+  /* ── Drop media/playlist onto timeline slot ── */
   const handleMediaDrop = async (day: Date, hour: number, e: React.DragEvent) => {
     e.preventDefault();
     const mediaId = e.dataTransfer.getData("application/glow-media-id");
-    if (!mediaId || !user || !selectedScreenId) return;
-    const item = media.find((m) => m.id === mediaId);
-    if (!item) return;
+    const playlistId = e.dataTransfer.getData("application/glow-playlist-id");
+    if ((!mediaId && !playlistId) || !user || !selectedScreenId) return;
 
-    // Calculate precise 15-min snap from Y offset within the hour cell
     const rect = e.currentTarget.getBoundingClientRect();
     const offsetY = e.clientY - rect.top;
     const minuteOffset = Math.round((offsetY / HOUR_HEIGHT) * 60 / SNAP_MINUTES) * SNAP_MINUTES;
@@ -515,18 +516,29 @@ export default function Schedule() {
     const startDate = new Date(day);
     startDate.setHours(hour, Math.min(minuteOffset, 45), 0, 0);
     const endDate = new Date(startDate);
-    endDate.setMinutes(endDate.getMinutes() + 60); // 1-hour default duration
+    endDate.setMinutes(endDate.getMinutes() + 60);
+
+    let label = "";
+    let colorCode = "teal";
+    if (mediaId) {
+      const item = media.find((m) => m.id === mediaId);
+      label = item?.name || "";
+    } else if (playlistId) {
+      const pl = playlists.find((p) => p.id === playlistId);
+      label = pl?.title || "";
+      colorCode = "blue";
+    }
 
     const { error } = await supabase.from("schedule_blocks").insert({
-      screen_id: selectedScreenId, media_id: mediaId, playlist_id: null,
+      screen_id: selectedScreenId, media_id: mediaId || null, playlist_id: playlistId || null,
       start_at: startDate.toISOString(), end_at: endDate.toISOString(),
-      block_type: "content", recurrence: "none", color_code: "teal",
-      priority: 0, label: item.name, user_id: user.id,
+      block_type: "content", recurrence: "none", color_code: colorCode,
+      priority: 0, label, user_id: user.id,
     } as any);
     if (error) { toast.error("Failed to create block"); return; }
     hapticSuccess();
     const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
-    toast.success(`"${item.name}" scheduled at ${timeStr}`);
+    toast.success(`"${label}" scheduled at ${timeStr}`);
     setMediaDragItem(null);
     fetchBlocks();
   };
@@ -551,7 +563,7 @@ export default function Schedule() {
     if (indicator) indicator.style.opacity = "0";
   };
 
-  /* ── Touch long-press drag for mobile ── */
+  /* ── Touch long-press drag for mobile (media) ── */
   const handleTouchDragStart = (item: MediaItem) => (e: React.TouchEvent) => {
     const touch = e.touches[0];
     const startX = touch.clientX;
@@ -559,7 +571,42 @@ export default function Schedule() {
     touchLongPressTimer.current = setTimeout(() => {
       hapticMedium();
       touchDragItemRef.current = item;
+      touchDragPlaylistRef.current = null;
       setTouchDragItem(item);
+      setTouchDragPlaylist(null);
+      setTouchDragPos({ x: startX, y: startY });
+      setMediaSidebarOpen(false);
+    }, 400);
+    const cancelIfMoved = (ev: TouchEvent) => {
+      const dx = ev.touches[0].clientX - startX;
+      const dy = ev.touches[0].clientY - startY;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+        document.removeEventListener("touchmove", cancelIfMoved);
+      }
+    };
+    document.addEventListener("touchmove", cancelIfMoved, { passive: true });
+    const cleanup = () => {
+      if (touchLongPressTimer.current) clearTimeout(touchLongPressTimer.current);
+      document.removeEventListener("touchmove", cancelIfMoved);
+      document.removeEventListener("touchend", cleanup);
+      document.removeEventListener("touchcancel", cleanup);
+    };
+    document.addEventListener("touchend", cleanup, { once: true });
+    document.addEventListener("touchcancel", cleanup, { once: true });
+  };
+
+  /* ── Touch long-press drag for mobile (playlist) ── */
+  const handleTouchPlaylistDragStart = (pl: PlaylistItem) => (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    touchLongPressTimer.current = setTimeout(() => {
+      hapticMedium();
+      touchDragPlaylistRef.current = pl;
+      touchDragItemRef.current = null;
+      setTouchDragPlaylist(pl);
+      setTouchDragItem(null);
       setTouchDragPos({ x: startX, y: startY });
       setMediaSidebarOpen(false);
     }, 400);
@@ -583,7 +630,7 @@ export default function Schedule() {
   };
 
   useEffect(() => {
-    if (!touchDragItem) return;
+    if (!touchDragItem && !touchDragPlaylist) return;
     const onMove = (e: TouchEvent) => {
       e.preventDefault();
       setTouchDragPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
@@ -600,7 +647,9 @@ export default function Schedule() {
         hourStr = target.getAttribute("data-drop-hour");
         target = target.parentElement;
       }
-      if (dayStr && hourStr && user && selectedScreenId && touchDragItemRef.current) {
+      const hasMedia = !!touchDragItemRef.current;
+      const hasPlaylist = !!touchDragPlaylistRef.current;
+      if (dayStr && hourStr && user && selectedScreenId && (hasMedia || hasPlaylist)) {
         const day = new Date(dayStr);
         const hour = parseInt(hourStr);
         const cell = document.querySelector(`[data-drop-day="${dayStr}"][data-drop-hour="${hourStr}"]`) as HTMLElement;
@@ -615,36 +664,43 @@ export default function Schedule() {
         startDate.setHours(hour, minuteOffset, 0, 0);
         const endDate = new Date(startDate);
         endDate.setMinutes(endDate.getMinutes() + 60);
-        const item = touchDragItemRef.current;
+
+        const label = hasMedia ? touchDragItemRef.current!.name : touchDragPlaylistRef.current!.title;
         const { error } = await supabase.from("schedule_blocks").insert({
-          screen_id: selectedScreenId, media_id: item.id, playlist_id: null,
+          screen_id: selectedScreenId,
+          media_id: hasMedia ? touchDragItemRef.current!.id : null,
+          playlist_id: hasPlaylist ? touchDragPlaylistRef.current!.id : null,
           start_at: startDate.toISOString(), end_at: endDate.toISOString(),
-          block_type: "content", recurrence: "none", color_code: "teal",
-          priority: 0, label: item.name, user_id: user.id,
+          block_type: "content", recurrence: "none", color_code: hasPlaylist ? "blue" : "teal",
+          priority: 0, label, user_id: user.id,
         } as any);
         if (error) toast.error("Failed to create block");
         else {
           hapticSuccess();
           const timeStr = `${startDate.getHours().toString().padStart(2, "0")}:${startDate.getMinutes().toString().padStart(2, "0")}`;
-          toast.success(`"${item.name}" scheduled at ${timeStr}`);
+          toast.success(`"${label}" scheduled at ${timeStr}`);
           fetchBlocks();
         }
-      } else if (touchDragItemRef.current) {
+      } else if (hasMedia || hasPlaylist) {
         toast.info("Drop on the timeline to schedule");
       }
       touchDragItemRef.current = null;
+      touchDragPlaylistRef.current = null;
       setTouchDragItem(null);
+      setTouchDragPlaylist(null);
       setTouchDragPos(null);
     };
     document.addEventListener("touchmove", onMove, { passive: false });
     document.addEventListener("touchend", onEnd, { once: true });
     document.addEventListener("touchcancel", () => {
       touchDragItemRef.current = null;
+      touchDragPlaylistRef.current = null;
       setTouchDragItem(null);
+      setTouchDragPlaylist(null);
       setTouchDragPos(null);
     }, { once: true });
     return () => { document.removeEventListener("touchmove", onMove); };
-  }, [touchDragItem, user, selectedScreenId, fetchBlocks]);
+  }, [touchDragItem, touchDragPlaylist, user, selectedScreenId, fetchBlocks]);
 
 
   useEffect(() => {
@@ -802,16 +858,29 @@ export default function Schedule() {
         </div>
       ) : (
         <div className="flex-1 overflow-hidden flex">
-          {/* ── Media Library Sidebar ── */}
+          {/* ── Media & Playlists Sidebar ── */}
           {mediaSidebarOpen && (
             <div className="fixed inset-0 z-40 sm:relative sm:inset-auto sm:z-auto w-full sm:w-56 shrink-0 border-r border-[#1E293B]/40 bg-[#0B1120] flex flex-col">
               <div className="px-3 py-2 border-b border-[#1E293B]/40 shrink-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
-                  <span className="text-xs font-semibold text-[#E2E8F0]">Media Library</span>
-                  <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-[#1E293B] text-[#64748B]">{media.length}</Badge>
+                  {sidebarTab === "media" ? <Film className="h-3.5 w-3.5 text-[#00E5CC]" /> : <ListMusic className="h-3.5 w-3.5 text-[#60A5FA]" />}
+                  <span className="text-xs font-semibold text-[#E2E8F0]">{sidebarTab === "media" ? "Media" : "Playlists"}</span>
+                  <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-[#1E293B] text-[#64748B]">
+                    {sidebarTab === "media" ? media.length : playlists.length}
+                  </Badge>
                   <button onClick={() => setMediaSidebarOpen(false)} className="sm:hidden ml-1 text-[#64748B] hover:text-[#E2E8F0] transition-colors">
                     <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {/* Tab switcher */}
+                <div className="flex rounded-lg border border-[#1E293B] bg-[#0F1A2E] overflow-hidden mb-2">
+                  <button onClick={() => setSidebarTab("media")}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium transition-all flex items-center justify-center gap-1 ${sidebarTab === "media" ? "bg-[#00A3A3]/20 text-[#00E5CC]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
+                    <Film className="h-3 w-3" /> Media
+                  </button>
+                  <button onClick={() => setSidebarTab("playlists")}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium transition-all flex items-center justify-center gap-1 ${sidebarTab === "playlists" ? "bg-[#3B82F6]/20 text-[#60A5FA]" : "text-[#64748B] hover:text-[#94A3B8]"}`}>
+                    <ListMusic className="h-3 w-3" /> Playlists
                   </button>
                 </div>
                 <div className="relative">
@@ -825,41 +894,76 @@ export default function Schedule() {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-1.5 py-1.5 space-y-1 scrollbar-hide">
-                {media
-                  .filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
-                  .map((item) => (
-                    <div
-                      key={item.id}
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData("application/glow-media-id", item.id);
-                        e.dataTransfer.effectAllowed = "copy";
-                        setMediaDragItem(item);
-                      }}
-                      onDragEnd={() => setMediaDragItem(null)}
-                      onTouchStart={handleTouchDragStart(item)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
-                    >
-                      <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                      <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
-                        {item.type === "video" ? (
-                          <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
-                        ) : (
-                          <img src={getStorageUrl(item.storage_path)} alt="" className="w-full h-full object-cover" loading="lazy" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{item.name}</p>
-                        <p className="text-[9px] text-[#475569] uppercase">{item.type}</p>
-                      </div>
-                    </div>
-                  ))}
-                {media.filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
-                  <p className="text-[11px] text-[#475569] text-center py-4">No media found</p>
+                {sidebarTab === "media" ? (
+                  <>
+                    {media
+                      .filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("application/glow-media-id", item.id);
+                            e.dataTransfer.effectAllowed = "copy";
+                            setMediaDragItem(item);
+                          }}
+                          onDragEnd={() => setMediaDragItem(null)}
+                          onTouchStart={handleTouchDragStart(item)}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
+                        >
+                          <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+                            {item.type === "video" ? (
+                              <Film className="h-3.5 w-3.5 text-[#00E5CC]" />
+                            ) : (
+                              <img src={getStorageUrl(item.storage_path)} alt="" className="w-full h-full object-cover" loading="lazy" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{item.name}</p>
+                            <p className="text-[9px] text-[#475569] uppercase">{item.type}</p>
+                          </div>
+                        </div>
+                      ))}
+                    {media.filter((m) => !mediaSidebarSearch || m.name.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
+                      <p className="text-[11px] text-[#475569] text-center py-4">No media found</p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {playlists
+                      .filter((p) => !mediaSidebarSearch || p.title.toLowerCase().includes(mediaSidebarSearch.toLowerCase()))
+                      .map((pl) => (
+                        <div
+                          key={pl.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("application/glow-playlist-id", pl.id);
+                            e.dataTransfer.effectAllowed = "copy";
+                          }}
+                          onTouchStart={handleTouchPlaylistDragStart(pl)}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-transparent hover:border-[#1E293B] hover:bg-[#0F1A2E] cursor-grab active:cursor-grabbing transition-all group select-none"
+                        >
+                          <GripVertical className="h-3 w-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          <div className="w-7 h-7 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
+                            <ListMusic className="h-3.5 w-3.5 text-[#60A5FA]" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-medium text-[#E2E8F0] truncate">{pl.title}</p>
+                            <p className="text-[9px] text-[#475569] uppercase">playlist</p>
+                          </div>
+                        </div>
+                      ))}
+                    {playlists.filter((p) => !mediaSidebarSearch || p.title.toLowerCase().includes(mediaSidebarSearch.toLowerCase())).length === 0 && (
+                      <p className="text-[11px] text-[#475569] text-center py-4">No playlists found</p>
+                    )}
+                  </>
                 )}
               </div>
               <div className="px-3 py-2 border-t border-[#1E293B]/40 shrink-0">
-                <p className="text-[10px] text-[#475569] text-center">Drag media onto the timeline</p>
+                <p className="text-[10px] text-[#475569] text-center">
+                  {sidebarTab === "media" ? "Drag media onto the timeline" : "Drag playlists onto the timeline"}
+                </p>
               </div>
             </div>
           )}
@@ -1070,19 +1174,25 @@ export default function Schedule() {
       )}
 
       {/* ══════════ TOUCH DRAG GHOST ══════════ */}
-      {touchDragItem && touchDragPos && (
+      {(touchDragItem || touchDragPlaylist) && touchDragPos && (
         <div
-          className="fixed z-[100] pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl border border-[#00A3A3]/50 bg-[#0F1A2E]/95 backdrop-blur-xl shadow-[0_0_20px_rgba(0,229,204,0.3)]"
+          className={`fixed z-[100] pointer-events-none flex items-center gap-2 px-3 py-2 rounded-xl border backdrop-blur-xl ${
+            touchDragPlaylist ? "border-[#3B82F6]/50 bg-[#0F1A2E]/95 shadow-[0_0_20px_rgba(59,130,246,0.3)]" : "border-[#00A3A3]/50 bg-[#0F1A2E]/95 shadow-[0_0_20px_rgba(0,229,204,0.3)]"
+          }`}
           style={{ left: touchDragPos.x - 60, top: touchDragPos.y - 24, minWidth: 120 }}
         >
           <div className="w-6 h-6 rounded-md overflow-hidden bg-[#1E293B] shrink-0 flex items-center justify-center">
-            {touchDragItem.type === "video" ? (
+            {touchDragPlaylist ? (
+              <ListMusic className="h-3 w-3 text-[#60A5FA]" />
+            ) : touchDragItem?.type === "video" ? (
               <Film className="h-3 w-3 text-[#00E5CC]" />
             ) : (
               <Image className="h-3 w-3 text-[#60A5FA]" />
             )}
           </div>
-          <span className="text-[11px] font-medium text-[#00E5CC] truncate max-w-[100px]">{touchDragItem.name}</span>
+          <span className={`text-[11px] font-medium truncate max-w-[100px] ${touchDragPlaylist ? "text-[#60A5FA]" : "text-[#00E5CC]"}`}>
+            {touchDragPlaylist?.title || touchDragItem?.name}
+          </span>
         </div>
       )}
 
