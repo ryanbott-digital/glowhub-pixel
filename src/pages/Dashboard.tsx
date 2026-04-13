@@ -162,6 +162,22 @@ export default function Dashboard() {
     return { lastCheck, monitored, allHealthy, offlineCount };
   }, [screens, offlineCount]);
 
+  const loadMoreBroadcasts = async () => {
+    if (!user || broadcastsLoading) return;
+    setBroadcastsLoading(true);
+    const { data } = await supabase
+      .from("screen_broadcasts")
+      .select("id, message, broadcast_type, duration_seconds, created_at")
+      .eq("target_user_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(broadcasts.length, broadcasts.length + BROADCAST_PAGE_SIZE);
+    if (data) {
+      setBroadcastsHasMore(data.length === BROADCAST_PAGE_SIZE + 1);
+      setBroadcasts((prev) => [...prev, ...(data as any).slice(0, BROADCAST_PAGE_SIZE)]);
+    }
+    setBroadcastsLoading(false);
+  };
+
   const handleManageSubscription = async () => {
     setPortalLoading(true);
     try {
