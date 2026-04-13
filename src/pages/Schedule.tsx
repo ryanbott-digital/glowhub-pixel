@@ -319,7 +319,7 @@ export default function Schedule() {
     hapticSuccess();
     toast.success("Schedule block created");
     setShowCreateDialog(false); setPendingSlot(null);
-    setNewBlock({ block_type: "content", start_time: "09:00", end_time: "17:00", recurrence: "none", label: "", color_code: "teal", priority: 0, media_id: "", playlist_id: "" });
+    setNewBlock({ block_type: "content", start_time: "09:00", end_time: "17:00", recurrence: "none", recurrence_end: null, label: "", color_code: "teal", priority: 0, media_id: "", playlist_id: "" });
     fetchBlocks();
   };
 
