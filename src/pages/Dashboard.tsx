@@ -199,6 +199,11 @@ export default function Dashboard() {
     setBroadcastsLoading(false);
   };
 
+  const dismissBroadcast = async (id: string) => {
+    await supabase.from("screen_broadcasts").delete().eq("id", id);
+    setBroadcasts((prev) => prev.filter((b) => b.id !== id));
+  };
+
   const handleManageSubscription = async () => {
     setPortalLoading(true);
     try {
