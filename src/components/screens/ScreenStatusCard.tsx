@@ -188,11 +188,6 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     : signalStrength === "weak" ? SignalLow
     : SignalZero;
 
-  const signalColor = signalStrength === "strong" ? "hsl(150, 70%, 50%)"
-    : signalStrength === "medium" ? "hsl(45, 90%, 55%)"
-    : signalStrength === "weak" ? "hsl(25, 90%, 55%)"
-    : `hsl(${crimson})`;
-
   const fetchThumbnail = useCallback(async () => {
     if (!screen.current_playlist_id) { setMedia(null); return; }
     const { data } = await supabase
@@ -232,6 +227,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
   // Neon Crimson palette for offline state
   const crimson = "348, 100%, 50%"; // #FF003C
+
+  const signalColor = signalStrength === "strong" ? "hsl(150, 70%, 50%)"
+    : signalStrength === "medium" ? "hsl(45, 90%, 55%)"
+    : signalStrength === "weak" ? "hsl(25, 90%, 55%)"
+    : `hsl(${crimson})`;
 
   return (
     <div
