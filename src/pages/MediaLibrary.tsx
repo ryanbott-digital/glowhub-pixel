@@ -720,10 +720,28 @@ export default function MediaLibrary() {
                     </Badge>
                   )}
 
+                  {/* Audio mute toggle for videos */}
+                  {item.type === "video" && !isSelecting && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleAudioMuted(item);
+                      }}
+                      className="absolute bottom-2 left-2 p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-background/90 transition-colors z-10"
+                      title={item.audio_muted ? "Unmute audio" : "Mute audio"}
+                    >
+                      {item.audio_muted ? (
+                        <VolumeX className="h-3.5 w-3.5 text-destructive" />
+                      ) : (
+                        <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </button>
+                  )}
+
                   {/* Mux processing badge */}
                   {item.type === "video" && item.mux_asset_id && item.mux_status === "preparing" && (
                     <Badge
-                      className="absolute bottom-2 left-2 text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-white backdrop-blur-sm animate-pulse border-0"
+                      className="absolute bottom-2 left-10 text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-white backdrop-blur-sm animate-pulse border-0"
                     >
                       <Loader2 className="h-2.5 w-2.5 mr-1 animate-spin" />
                       Processing
