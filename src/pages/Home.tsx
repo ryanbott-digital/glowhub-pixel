@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GlowLogoImage } from "@/components/GlowHubLogo";
 import { SEOHead, GLOW_JSON_LD, FAQ_JSON_LD } from "@/components/SEOHead";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope, ArrowRight } from "lucide-react";
+import { Check, WifiOff, Activity, CalendarClock, UserPlus, Download, Tv, Coffee, Dumbbell, ShoppingBag, Send, Loader2, Building2, Hotel, Stethoscope, ArrowRight, Menu, X } from "lucide-react";
 import firestickIcon from "@/assets/firestick-icon.png";
 import googletvIcon from "@/assets/googletv-remote-icon.png";
 import StarField from "@/components/StarField";
@@ -291,6 +291,7 @@ const Home = () => {
   const location = useLocation();
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [isAnnual, setIsAnnual] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Smooth scroll to hash anchor (e.g. /home#contact)
   useEffect(() => {
@@ -344,6 +345,7 @@ const Home = () => {
   }, []);
 
   const scrollTo = (id: string) => {
+    setMobileMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
