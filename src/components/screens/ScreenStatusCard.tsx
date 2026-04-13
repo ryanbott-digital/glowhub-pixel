@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Trash2, Copy, ChevronDown, Clock, Calendar, History, HardDrive, FolderOpen, Repeat, Shuffle, ShieldCheck, Power, Zap, Pencil, Check, X, Radio, Volume2, VolumeX, Search, Loader2, Lock, Crown } from "lucide-react";
+import { Signal, SignalLow, SignalMedium, SignalZero } from "lucide-react";
 import { toast } from "sonner";
 import { WeeklyScheduleGrid } from "@/components/screens/WeeklyScheduleGrid";
 import { Progress } from "@/components/ui/progress";
@@ -173,6 +174,20 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
     return diff < 2 * 60 * 1000;
   })();
 
+  const signalStrength = (() => {
+    if (!screen.last_ping) return isAlive ? "strong" : "dead";
+    const diff = Date.now() - new Date(screen.last_ping).getTime();
+    if (diff < 30_000) return "strong";
+    if (diff < 90_000) return "medium";
+    if (diff < 2 * 60_000) return "weak";
+    return "dead";
+  })();
+
+  const SignalIcon = signalStrength === "strong" ? Signal
+    : signalStrength === "medium" ? SignalMedium
+    : signalStrength === "weak" ? SignalLow
+    : SignalZero;
+
   const fetchThumbnail = useCallback(async () => {
     if (!screen.current_playlist_id) { setMedia(null); return; }
     const { data } = await supabase
@@ -212,6 +227,11 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
   // Neon Crimson palette for offline state
   const crimson = "348, 100%, 50%"; // #FF003C
+
+  const signalColor = signalStrength === "strong" ? "hsl(150, 70%, 50%)"
+    : signalStrength === "medium" ? "hsl(45, 90%, 55%)"
+    : signalStrength === "weak" ? "hsl(25, 90%, 55%)"
+    : `hsl(${crimson})`;
 
   return (
     <div
@@ -298,6 +318,8 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
             {/* Glowing status pulse */}
             <div className="absolute top-1.5 right-1.5 z-10">
+              <div className="flex items-center gap-1">
+                <SignalIcon className="h-3 w-3" style={{ color: signalColor, filter: `drop-shadow(0 0 4px ${signalColor})` }} />
               <span className="relative flex h-3.5 w-3.5">
                 <span
                   className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
@@ -317,6 +339,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   }}
                 />
               </span>
+              </div>
             </div>
           </div>
         </div>
