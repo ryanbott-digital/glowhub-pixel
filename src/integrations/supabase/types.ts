@@ -666,6 +666,7 @@ export type Database = {
           launch_on_boot: boolean
           loop_enabled: boolean
           name: string
+          orientation: string
           pairing_code: string | null
           status: string
           sync_layout: Json | null
@@ -691,6 +692,7 @@ export type Database = {
           launch_on_boot?: boolean
           loop_enabled?: boolean
           name?: string
+          orientation?: string
           pairing_code?: string | null
           status?: string
           sync_layout?: Json | null
@@ -716,6 +718,7 @@ export type Database = {
           launch_on_boot?: boolean
           loop_enabled?: boolean
           name?: string
+          orientation?: string
           pairing_code?: string | null
           status?: string
           sync_layout?: Json | null
