@@ -541,6 +541,36 @@ export type Database = {
           },
         ]
       }
+      screen_broadcasts: {
+        Row: {
+          broadcast_type: string
+          created_at: string
+          duration_seconds: number
+          id: string
+          message: string
+          sent_by: string
+          target_user_id: string
+        }
+        Insert: {
+          broadcast_type?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          message: string
+          sent_by: string
+          target_user_id: string
+        }
+        Update: {
+          broadcast_type?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          message?: string
+          sent_by?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       screen_groups: {
         Row: {
           color: string
