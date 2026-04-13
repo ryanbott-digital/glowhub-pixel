@@ -352,23 +352,24 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                 <Input
                   value={renameValue}
                   onChange={(e) => setRenameValue(e.target.value)}
-                  className="h-8 text-sm flex-1"
+                  className="h-10 sm:h-8 text-sm flex-1"
                   autoFocus
+                  onFocus={(e) => e.target.select()}
                   onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
                 />
-                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={handleRename}>
-                  <Check className="h-3.5 w-3.5 text-primary" />
+                <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-8 sm:w-8 shrink-0" onClick={handleRename}>
+                  <Check className="h-4 w-4 text-primary" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => { setRenaming(false); setRenameValue(displayName); }}>
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-8 sm:w-8 shrink-0" onClick={() => { setRenaming(false); setRenameValue(displayName); }}>
+                  <X className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </>
             ) : (
               <button
-                onClick={() => { setRenameValue(displayName); setRenaming(true); }}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={(e) => { e.stopPropagation(); setRenameValue(displayName); setRenaming(true); }}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-1 -ml-1 min-h-[44px]"
               >
-                <Pencil className="h-3 w-3" /> Rename screen
+                <Pencil className="h-4 w-4" /> Rename screen
               </button>
             )}
           </div>
