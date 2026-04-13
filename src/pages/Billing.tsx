@@ -51,7 +51,9 @@ export default function Billing() {
   const [refreshing, setRefreshing] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [screenPackLoading, setScreenPackLoading] = useState(false);
+  const [singleScreenLoading, setSingleScreenLoading] = useState(false);
   const [screenPacks, setScreenPacks] = useState(0);
+  const [singleScreenSubs, setSingleScreenSubs] = useState(0);
   const [screenPacksLoading, setScreenPacksLoading] = useState(true);
 
   const handleScreenPackCheckout = async () => {
@@ -64,6 +66,21 @@ export default function Billing() {
       toast.error(err.message || "Failed to start checkout");
     } finally {
       setScreenPackLoading(false);
+    }
+  };
+
+  const handleSingleScreenCheckout = async () => {
+    setSingleScreenLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("screen-pack-checkout", {
+        body: { pack_type: "single" },
+      });
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start checkout");
+    } finally {
+      setSingleScreenLoading(false);
     }
   };
 
@@ -81,10 +98,11 @@ export default function Billing() {
       setScreenPacksLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("screen_packs")
+        .select("screen_packs, single_screen_subs")
         .eq("id", user.id)
         .single();
       setScreenPacks((data as any)?.screen_packs ?? 0);
+      setSingleScreenSubs((data as any)?.single_screen_subs ?? 0);
       setScreenPacksLoading(false);
     };
     fetchPacks();
