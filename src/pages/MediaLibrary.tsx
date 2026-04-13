@@ -797,6 +797,69 @@ export default function MediaLibrary() {
           )}
         </DialogContent>
       </Dialog>
+      {/* Compress oversized images dialog */}
+      <Dialog open={compressDialogOpen} onOpenChange={(open) => {
+        if (!open && !compressing) {
+          setCompressDialogOpen(false);
+          // Upload valid files even if user cancels compression
+          if (pendingValidFiles.length > 0) {
+            doUpload(pendingValidFiles);
+            setPendingValidFiles([]);
+          }
+          setOversizedFiles([]);
+        }
+      }}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Shrink className="h-5 w-5 text-primary" />
+              Compress & Upload
+            </DialogTitle>
+            <DialogDescription>
+              {oversizedFiles.length} image{oversizedFiles.length !== 1 ? "s" : ""} exceed{oversizedFiles.length === 1 ? "s" : ""} 50 MB. Compress to fit?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {oversizedFiles.map(({ file }, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                <span className="text-sm truncate flex-1 min-w-0 text-foreground">{file.name}</span>
+                <Badge variant="secondary" className="ml-2 shrink-0 text-xs">
+                  {formatFileSize(file.size)}
+                </Badge>
+              </div>
+            ))}
+          </div>
+          {pendingValidFiles.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {pendingValidFiles.length} other file{pendingValidFiles.length !== 1 ? "s" : ""} will upload normally.
+            </p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCompressDialogOpen(false);
+                if (pendingValidFiles.length > 0) {
+                  doUpload(pendingValidFiles);
+                  setPendingValidFiles([]);
+                }
+                setOversizedFiles([]);
+              }}
+              disabled={compressing}
+            >
+              Skip
+            </Button>
+            <Button onClick={handleCompressAndUpload} disabled={compressing}>
+              {compressing ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <Shrink className="h-4 w-4 mr-1.5" />
+              )}
+              {compressing ? "Compressing…" : "Compress & Upload"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
