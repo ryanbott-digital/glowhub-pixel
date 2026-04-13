@@ -44,6 +44,8 @@ const Schedule = lazy(() => import("./pages/Schedule"));
 const Integrations = lazy(() => import("./pages/Integrations"));
 const Solutions = lazy(() => import("./pages/Solutions"));
 const CompareOptiSigns = lazy(() => import("./pages/CompareOptiSigns"));
+const CompareScreenCloud = lazy(() => import("./pages/CompareScreenCloud"));
+const CompareYodeck = lazy(() => import("./pages/CompareYodeck"));
 
 const queryClient = new QueryClient();
 
@@ -146,6 +148,8 @@ const App = () => (
               <Route path="/solutions/retail" element={<SolutionsRetail />} />
               <Route path="/solutions/hospitality" element={<SolutionsHospitality />} />
               <Route path="/compare/optisigns-alternative" element={<CompareOptiSigns />} />
+              <Route path="/compare/screencloud-alternative" element={<CompareScreenCloud />} />
+              <Route path="/compare/yodeck-alternative" element={<CompareYodeck />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
