@@ -1,0 +1,1 @@
+ALTER TABLE public.screens ADD COLUMN fit_bg_color text NOT NULL DEFAULT '#000000';
