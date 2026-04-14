@@ -99,6 +99,7 @@ export default function Player() {
   const [fadeToBlackActive, setFadeToBlackActive] = useState(false);
   const [loopEnabled, setLoopEnabled] = useState(true);
   const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
+  const [fitBgColor, setFitBgColor] = useState("#000000");
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
