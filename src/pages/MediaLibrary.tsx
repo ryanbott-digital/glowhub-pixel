@@ -152,7 +152,7 @@ export default function MediaLibrary() {
   const [playlists, setPlaylists] = useState<PlaylistOption[]>([]);
   const [addingToPlaylist, setAddingToPlaylist] = useState(false);
   const [playlistMediaIds, setPlaylistMediaIds] = useState<string[]>([]);
-
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   // Fetch folders
   const fetchFolders = useCallback(async () => {
     if (!user) return;
@@ -880,8 +880,43 @@ export default function MediaLibrary() {
               return (
                 <div
                   key={folder.id}
-                  className={`group glass rounded-xl border ${colorStyle.accent} hover:border-primary/40 transition-all cursor-pointer active:scale-[0.98]`}
+                  className={`group glass rounded-xl border transition-all cursor-pointer active:scale-[0.98] ${
+                    dragOverFolderId === folder.id
+                      ? "border-primary ring-2 ring-primary/50 scale-[1.02] shadow-[0_0_20px_rgba(0,163,163,0.3)]"
+                      : `${colorStyle.accent} hover:border-primary/40`
+                  }`}
                   onClick={() => navigateToFolder(folder.id)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOverFolderId(folder.id);
+                  }}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOverFolderId(folder.id);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    if (dragOverFolderId === folder.id) setDragOverFolderId(null);
+                  }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOverFolderId(null);
+                    const mediaId = e.dataTransfer.getData("text/media-id");
+                    if (!mediaId) return;
+                    // Move the dragged item (and any selected items if the dragged one is selected)
+                    const idsToMove = selected.has(mediaId) ? Array.from(selected) : [mediaId];
+                    for (const id of idsToMove) {
+                      await (supabase.from("media") as any).update({ folder_id: folder.id }).eq("id", id);
+                    }
+                    setMedia((prev) =>
+                      prev.map((m) => (idsToMove.includes(m.id) ? { ...m, folder_id: folder.id } : m))
+                    );
+                    toast.success(`Moved ${idsToMove.length} item${idsToMove.length > 1 ? "s" : ""} to ${folder.name}`);
+                    setSelected(new Set());
+                  }}
                 >
                   <div className={`p-4 flex flex-col gap-2 ${colorStyle.bg} rounded-xl`}>
                     <div className="flex items-center justify-between">
@@ -965,7 +1000,12 @@ export default function MediaLibrary() {
             return (
               <div
                 key={item.id}
-                className={`glass glass-spotlight rounded-xl sm:rounded-2xl group overflow-hidden transition-all cursor-pointer border active:scale-[0.98] ${
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/media-id", item.id);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                className={`glass glass-spotlight rounded-xl sm:rounded-2xl group overflow-hidden transition-all cursor-grab border active:scale-[0.98] ${
                   isSelected
                     ? "ring-2 ring-primary border-primary"
                     : "border-white/[0.06] hover:border-primary/30"
