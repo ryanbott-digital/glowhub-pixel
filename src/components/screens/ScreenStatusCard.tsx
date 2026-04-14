@@ -824,8 +824,9 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                         </div>
                       </button>
                     ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Volume slider */}
                 <div className="flex items-center gap-2">
