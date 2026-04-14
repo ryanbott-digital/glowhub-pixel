@@ -1,0 +1,1 @@
+ALTER TABLE public.screens ADD COLUMN display_mode text NOT NULL DEFAULT 'fill';

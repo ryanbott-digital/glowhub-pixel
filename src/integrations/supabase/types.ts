@@ -706,6 +706,7 @@ export type Database = {
           crossfade_ms: number
           current_media_id: string | null
           current_playlist_id: string | null
+          display_mode: string
           group_id: string | null
           hardware_uuid: string | null
           id: string
@@ -732,6 +733,7 @@ export type Database = {
           crossfade_ms?: number
           current_media_id?: string | null
           current_playlist_id?: string | null
+          display_mode?: string
           group_id?: string | null
           hardware_uuid?: string | null
           id?: string
@@ -758,6 +760,7 @@ export type Database = {
           crossfade_ms?: number
           current_media_id?: string | null
           current_playlist_id?: string | null
+          display_mode?: string
           group_id?: string | null
           hardware_uuid?: string | null
           id?: string

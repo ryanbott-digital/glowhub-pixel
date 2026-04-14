@@ -30,6 +30,7 @@ interface Screen {
   current_playlist_id: string | null;
   last_ping: string | null;
   group_id: string | null;
+  display_mode?: string;
 }
 
 interface Playlist {

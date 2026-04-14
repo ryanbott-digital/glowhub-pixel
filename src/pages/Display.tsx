@@ -27,6 +27,7 @@ export default function Display() {
   const [loading, setLoading] = useState(true);
   const [showWatermark, setShowWatermark] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
 
   // Double-buffer crossfade state
   const [layerA, setLayerA] = useState<PlaylistItem | null>(null);
@@ -136,9 +137,13 @@ export default function Display() {
     const loadScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("current_playlist_id")
+        .select("current_playlist_id, display_mode")
         .eq("id", screenId)
         .single();
+
+      if (screen?.display_mode === "fit" || screen?.display_mode === "fill") {
+        setDisplayMode(screen.display_mode);
+      }
 
       if (screen?.current_playlist_id) {
         fetchPlaylist(screen.current_playlist_id, true);
@@ -197,6 +202,8 @@ export default function Display() {
     }
   }, [advanceToNext]);
 
+  const objectClass = displayMode === "fit" ? "object-contain" : "object-cover";
+
   const renderMedia = (item: PlaylistItem | null, ref: React.RefObject<HTMLVideoElement>, isActive: boolean) => {
     if (!item) return null;
     const url = getPublicUrl(item.media.storage_path);
@@ -207,7 +214,7 @@ export default function Display() {
           key={item.id}
           src={url}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${objectClass}`}
         />
       );
     }
@@ -220,7 +227,7 @@ export default function Display() {
         muted
         playsInline
         loop={itemsRef.current.length === 1}
-        className="absolute inset-0 w-full h-full object-cover"
+        className={`absolute inset-0 w-full h-full ${objectClass}`}
         onEnded={handleVideoEnded}
       />
     );
