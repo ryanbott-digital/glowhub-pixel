@@ -48,6 +48,7 @@ export interface ScreenStatusCardProps {
     audio_mute_on_hype?: boolean;
     orientation?: string;
     display_mode?: string;
+    fit_bg_color?: string;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
@@ -120,6 +121,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [audioStationName, setAudioStationName] = useState(screen.audio_station_name || "");
   const [audioVolume, setAudioVolume] = useState(screen.audio_volume ?? 80);
   const [displayMode, setDisplayMode] = useState(screen.display_mode || "fill");
+  const [fitBgColor, setFitBgColor] = useState(screen.fit_bg_color || "#000000");
   const [audioMuteOnHype, setAudioMuteOnHype] = useState(screen.audio_mute_on_hype !== false);
   const [orientation, setOrientation] = useState(screen.orientation || "landscape");
   const [radioQuery, setRadioQuery] = useState("");
@@ -630,6 +632,23 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Fit background color — only show in Fit mode */}
+            {displayMode === "fit" && (
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground w-20 shrink-0">Bg Color</Label>
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="color"
+                    value={fitBgColor}
+                    onChange={(e) => setFitBgColor(e.target.value)}
+                    onBlur={() => updateScreenSetting({ fit_bg_color: fitBgColor })}
+                    className="w-7 h-7 rounded border border-border cursor-pointer bg-transparent p-0"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono">{fitBgColor}</span>
+                </div>
+              </div>
+            )}
 
             {/* Loop toggle */}
             <div className="flex items-center justify-between">

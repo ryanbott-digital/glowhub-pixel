@@ -28,6 +28,7 @@ export default function Display() {
   const [showWatermark, setShowWatermark] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
+  const [fitBgColor, setFitBgColor] = useState("#000000");
 
   // Double-buffer crossfade state
   const [layerA, setLayerA] = useState<PlaylistItem | null>(null);
@@ -137,13 +138,14 @@ export default function Display() {
     const loadScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("current_playlist_id, display_mode")
+        .select("current_playlist_id, display_mode, fit_bg_color")
         .eq("id", screenId)
         .single();
 
       if (screen?.display_mode === "fit" || screen?.display_mode === "fill") {
         setDisplayMode(screen.display_mode);
       }
+      if (screen?.fit_bg_color) setFitBgColor(screen.fit_bg_color);
 
       if (screen?.current_playlist_id) {
         fetchPlaylist(screen.current_playlist_id, true);
