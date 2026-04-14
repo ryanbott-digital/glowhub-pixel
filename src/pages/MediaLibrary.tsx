@@ -1103,6 +1103,8 @@ export default function MediaLibrary() {
                   e.dataTransfer.effectAllowed = "move";
                 }}
                 className={`glass glass-spotlight rounded-xl sm:rounded-2xl group overflow-hidden transition-all cursor-grab border active:scale-[0.98] ${
+                  isRestored ? "animate-fade-in ring-2 ring-primary/50" : ""
+                } ${
                   isSelected
                     ? "ring-2 ring-primary border-primary"
                     : "border-white/[0.06] hover:border-primary/30"
