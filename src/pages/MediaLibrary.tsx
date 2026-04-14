@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft, ListMusic, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -621,30 +622,82 @@ export default function MediaLibrary() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Delete confirmation state
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<MediaWithSize | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
   const deleteMedia = async (item: MediaWithSize) => {
-    await supabase.storage.from(BUCKET).remove([item.storage_path]);
-    await supabase.from("media").delete().eq("id", item.id);
-    toast.success("Deleted " + item.name);
+    // Optimistically remove from UI
     setMedia((prev) => prev.filter((m) => m.id !== item.id));
+    setDeleteConfirmItem(null);
+
+    // Show undo toast
+    const undoRef = { undone: false };
+    toast("Deleted " + item.name, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoRef.undone = true;
+          setMedia((prev) => [...prev, item].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          toast.success("Restored " + item.name);
+        },
+      },
+      duration: 5000,
+      onAutoClose: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove([item.storage_path]);
+          supabase.from("media").delete().eq("id", item.id);
+        }
+      },
+      onDismiss: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove([item.storage_path]);
+          supabase.from("media").delete().eq("id", item.id);
+        }
+      },
+    });
   };
 
   const bulkDelete = async () => {
     if (selected.size === 0) return;
-    setDeleting(true);
+    setBulkDeleteConfirm(false);
 
     const toDelete = media.filter((m) => selected.has(m.id));
-    const paths = toDelete.map((m) => m.storage_path);
+    const deletedIds = new Set(toDelete.map((m) => m.id));
 
-    await supabase.storage.from(BUCKET).remove(paths);
-
-    for (const item of toDelete) {
-      await supabase.from("media").delete().eq("id", item.id);
-    }
-
-    toast.success(`Deleted ${toDelete.length} file(s)`);
-    setMedia((prev) => prev.filter((m) => !selected.has(m.id)));
+    // Optimistically remove from UI
+    setMedia((prev) => prev.filter((m) => !deletedIds.has(m.id)));
     setSelected(new Set());
     setDeleting(false);
+
+    const undoRef = { undone: false };
+    toast(`Deleted ${toDelete.length} file(s)`, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoRef.undone = true;
+          setMedia((prev) => [...prev, ...toDelete].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          toast.success(`Restored ${toDelete.length} file(s)`);
+        },
+      },
+      duration: 5000,
+      onAutoClose: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove(toDelete.map((m) => m.storage_path));
+          for (const item of toDelete) {
+            supabase.from("media").delete().eq("id", item.id);
+          }
+        }
+      },
+      onDismiss: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove(toDelete.map((m) => m.storage_path));
+          for (const item of toDelete) {
+            supabase.from("media").delete().eq("id", item.id);
+          }
+        }
+      },
+    });
   };
 
   const toggleSelect = (id: string) => {
@@ -827,7 +880,7 @@ export default function MediaLibrary() {
                 variant="destructive"
                 size="sm"
                 className="h-10 sm:h-8 text-xs"
-                onClick={bulkDelete}
+                onClick={() => setBulkDeleteConfirm(true)}
                 disabled={deleting}
               >
                 {deleting ? (
@@ -1136,7 +1189,7 @@ export default function MediaLibrary() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteMedia(item);
+                          setDeleteConfirmItem(item);
                         }}
                         className="p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md hover:bg-destructive transition-colors"
                       >
@@ -1433,6 +1486,48 @@ export default function MediaLibrary() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Single delete confirmation */}
+      <AlertDialog open={!!deleteConfirmItem} onOpenChange={(open) => !open && setDeleteConfirmItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete media?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteConfirmItem?.name}"? You'll have a few seconds to undo this action.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirmItem && deleteMedia(deleteConfirmItem)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk delete confirmation */}
+      <AlertDialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selected.size} file{selected.size !== 1 ? "s" : ""}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the selected files? You'll have a few seconds to undo this action.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={bulkDelete}
+            >
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
