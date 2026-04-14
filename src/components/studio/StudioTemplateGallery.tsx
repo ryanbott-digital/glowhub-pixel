@@ -5,7 +5,7 @@ import { CanvasElement, DEFAULT_FILTERS } from "@/components/studio/types";
 import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap, Search, Church, Building2 } from "lucide-react";
 
 /* ── Template category type ── */
-type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education";
+type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education" | "church" | "corporate";
 
 interface StudioTemplate {
   id: string;
