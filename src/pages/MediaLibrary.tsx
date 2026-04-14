@@ -1082,15 +1082,27 @@ export default function MediaLibrary() {
                   )}
 
                   {!isSelecting && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteMedia(item);
-                      }}
-                      className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md sm:opacity-0 sm:group-hover:opacity-100 opacity-70 transition-opacity hover:bg-destructive"
-                    >
-                      <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-destructive-foreground" />
-                    </button>
+                    <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 opacity-70 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPlaylistDialog([item.id]);
+                        }}
+                        className="p-2 sm:p-1.5 bg-primary/90 rounded-lg sm:rounded-md hover:bg-primary transition-colors"
+                        title="Add to playlist"
+                      >
+                        <ListMusic className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-primary-foreground" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteMedia(item);
+                        }}
+                        className="p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md hover:bg-destructive transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-destructive-foreground" />
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="p-2 sm:p-3">
