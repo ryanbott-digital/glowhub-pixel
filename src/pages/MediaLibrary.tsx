@@ -350,7 +350,7 @@ export default function MediaLibrary() {
     if (selected.size === 0) return;
     const ids = Array.from(selected);
     for (const id of ids) {
-      await supabase.from("media").update({ folder_id: targetFolderId } as any).eq("id", id);
+      await (supabase.from("media") as any).update({ folder_id: targetFolderId }).eq("id", id);
     }
     setMedia((prev) =>
       prev.map((m) => (selected.has(m.id) ? { ...m, folder_id: targetFolderId } : m))
