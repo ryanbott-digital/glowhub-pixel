@@ -1353,6 +1353,46 @@ export default function MediaLibrary() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add to Playlist dialog */}
+      <Dialog open={playlistDialogOpen} onOpenChange={setPlaylistDialogOpen}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <ListMusic className="h-5 w-5 text-primary" />
+              Add to Playlist
+            </DialogTitle>
+            <DialogDescription>
+              Add {playlistMediaIds.length} item{playlistMediaIds.length !== 1 ? "s" : ""} to an existing playlist
+            </DialogDescription>
+          </DialogHeader>
+          {playlists.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <ListMusic className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No playlists found</p>
+              <p className="text-xs mt-1">Create a playlist first from the Playlists page</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {playlists.map((playlist) => (
+                <button
+                  key={playlist.id}
+                  onClick={() => addToPlaylist(playlist.id)}
+                  disabled={addingToPlaylist}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/5 hover:bg-white/10 hover:border-primary/30 transition-all text-left"
+                >
+                  <ListMusic className="h-5 w-5 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{playlist.title}</p>
+                    <p className="text-xs text-muted-foreground">{playlist.item_count} item{playlist.item_count !== 1 ? "s" : ""}</p>
+                  </div>
+                  <Plus className="h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
