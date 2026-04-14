@@ -47,6 +47,7 @@ export interface ScreenStatusCardProps {
     audio_volume?: number;
     audio_mute_on_hype?: boolean;
     orientation?: string;
+    display_mode?: string;
   };
   playlists: Playlist[];
   onPublish: (screenId: string, playlistId: string) => void;
@@ -118,6 +119,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [audioStationUrl, setAudioStationUrl] = useState(screen.audio_station_url || "");
   const [audioStationName, setAudioStationName] = useState(screen.audio_station_name || "");
   const [audioVolume, setAudioVolume] = useState(screen.audio_volume ?? 80);
+  const [displayMode, setDisplayMode] = useState(screen.display_mode || "fill");
   const [audioMuteOnHype, setAudioMuteOnHype] = useState(screen.audio_mute_on_hype !== false);
   const [orientation, setOrientation] = useState(screen.orientation || "landscape");
   const [radioQuery, setRadioQuery] = useState("");
@@ -608,6 +610,26 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                 </span>
               </div>
             )}
+
+            {/* Display mode */}
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground w-20 shrink-0">Scaling</Label>
+              <Select
+                value={displayMode}
+                onValueChange={(val) => {
+                  setDisplayMode(val);
+                  updateScreenSetting({ display_mode: val });
+                }}
+              >
+                <SelectTrigger className="flex-1 h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fill">Fill (crop edges)</SelectItem>
+                  <SelectItem value="fit">Fit (show all)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Loop toggle */}
             <div className="flex items-center justify-between">
