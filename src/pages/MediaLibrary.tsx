@@ -459,14 +459,15 @@ export default function MediaLibrary() {
         console.log(`[Upload] Video duration for "${file.name}": ${duration}s`);
       }
 
-      const { data: mediaRow, error: insertError } = await supabase.from("media").insert({
+      const insertPayload: Record<string, any> = {
         user_id: user.id,
         name: file.name,
         storage_path: path,
         type: isImage ? "image" : "video",
         duration,
         folder_id: currentFolderId,
-      } as any).select("id").single();
+      };
+      const { data: mediaRow, error: insertError } = await supabase.from("media").insert(insertPayload as any).select("id").single();
 
       if (insertError) {
         toast.error(`Failed to save ${file.name} to library: ${insertError.message}`);
