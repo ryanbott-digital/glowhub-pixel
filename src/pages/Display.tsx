@@ -256,7 +256,7 @@ export default function Display() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-foreground flex items-center justify-center overflow-hidden relative">
+    <div className="min-h-screen w-full flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor }}>
       {/* Layer A */}
       <div
         className="absolute inset-0 flex items-center justify-center"
