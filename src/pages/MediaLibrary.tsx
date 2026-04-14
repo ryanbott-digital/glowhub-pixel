@@ -622,30 +622,82 @@ export default function MediaLibrary() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // Delete confirmation state
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<MediaWithSize | null>(null);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
   const deleteMedia = async (item: MediaWithSize) => {
-    await supabase.storage.from(BUCKET).remove([item.storage_path]);
-    await supabase.from("media").delete().eq("id", item.id);
-    toast.success("Deleted " + item.name);
+    // Optimistically remove from UI
     setMedia((prev) => prev.filter((m) => m.id !== item.id));
+    setDeleteConfirmItem(null);
+
+    // Show undo toast
+    const undoRef = { undone: false };
+    toast("Deleted " + item.name, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoRef.undone = true;
+          setMedia((prev) => [...prev, item].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          toast.success("Restored " + item.name);
+        },
+      },
+      duration: 5000,
+      onAutoClose: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove([item.storage_path]);
+          supabase.from("media").delete().eq("id", item.id);
+        }
+      },
+      onDismiss: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove([item.storage_path]);
+          supabase.from("media").delete().eq("id", item.id);
+        }
+      },
+    });
   };
 
   const bulkDelete = async () => {
     if (selected.size === 0) return;
-    setDeleting(true);
+    setBulkDeleteConfirm(false);
 
     const toDelete = media.filter((m) => selected.has(m.id));
-    const paths = toDelete.map((m) => m.storage_path);
+    const deletedIds = new Set(toDelete.map((m) => m.id));
 
-    await supabase.storage.from(BUCKET).remove(paths);
-
-    for (const item of toDelete) {
-      await supabase.from("media").delete().eq("id", item.id);
-    }
-
-    toast.success(`Deleted ${toDelete.length} file(s)`);
-    setMedia((prev) => prev.filter((m) => !selected.has(m.id)));
+    // Optimistically remove from UI
+    setMedia((prev) => prev.filter((m) => !deletedIds.has(m.id)));
     setSelected(new Set());
     setDeleting(false);
+
+    const undoRef = { undone: false };
+    toast(`Deleted ${toDelete.length} file(s)`, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoRef.undone = true;
+          setMedia((prev) => [...prev, ...toDelete].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          toast.success(`Restored ${toDelete.length} file(s)`);
+        },
+      },
+      duration: 5000,
+      onAutoClose: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove(toDelete.map((m) => m.storage_path));
+          for (const item of toDelete) {
+            supabase.from("media").delete().eq("id", item.id);
+          }
+        }
+      },
+      onDismiss: () => {
+        if (!undoRef.undone) {
+          supabase.storage.from(BUCKET).remove(toDelete.map((m) => m.storage_path));
+          for (const item of toDelete) {
+            supabase.from("media").delete().eq("id", item.id);
+          }
+        }
+      },
+    });
   };
 
   const toggleSelect = (id: string) => {
