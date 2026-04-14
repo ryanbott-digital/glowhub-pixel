@@ -1022,7 +1022,7 @@ export default function MediaLibrary() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteFolder(folder.id);
+                            setDeleteFolderConfirm({ id: folder.id, name: folder.name });
                           }}
                           className="p-1 rounded hover:bg-destructive/20 transition-colors"
                         >
