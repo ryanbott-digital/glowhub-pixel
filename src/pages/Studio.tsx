@@ -17,7 +17,7 @@ import {
   Clock, MousePointer, Eye, EyeOff, Timer, ExternalLink, Atom,
   Zap, Sun, CloudRain, Snowflake, CloudLightning, Cloud as CloudIcon, Newspaper, Radio, Siren, MapPin,
   ZoomIn, ZoomOut, Keyboard, Loader2, LockIcon, Unlock,
-  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3, Search,
+  Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3, Search, LayoutTemplate,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -29,6 +29,7 @@ import { StudioStyles } from "@/components/studio/StudioStyles";
 import { GlowFieldCanvas, DEFAULT_GLOW_FIELD } from "@/components/studio/GlowFieldCanvas";
 import { SmartGuides, computeSnapGuides, type GuideLine } from "@/components/studio/SmartGuides";
 import { StudioTimeline } from "@/components/studio/StudioTimeline";
+import { StudioTemplateGallery } from "@/components/studio/StudioTemplateGallery";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
@@ -275,6 +276,7 @@ export default function Studio() {
   const [mediaTypeFilter, setMediaTypeFilter] = useState<"all" | "image" | "video">("all");
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
+  const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
@@ -871,10 +873,16 @@ export default function Studio() {
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
         <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
-          <div className="p-3 border-b border-border/20">
+          <div className="p-3 border-b border-border/20 flex items-center justify-between">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
             </h3>
+            <button
+              onClick={() => setTemplateGalleryOpen(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+            >
+              <LayoutTemplate className="h-3 w-3" /> Templates
+            </button>
           </div>
 
           <div className="p-2.5 space-y-4 flex-1">
@@ -1877,6 +1885,17 @@ export default function Studio() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <StudioTemplateGallery
+        open={templateGalleryOpen}
+        onClose={() => setTemplateGalleryOpen(false)}
+        onApply={(newElements, bg) => {
+          pushHistory(elements);
+          setElements(newElements);
+          if (bg) setCanvasBg(bg as any);
+          toast.success("Template applied!");
+        }}
+      />
 
       <StudioStyles />
     </div>
