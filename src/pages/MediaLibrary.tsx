@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft, ListMusic, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,12 @@ interface PairedScreen {
   id: string;
   name: string;
   status: string;
+}
+
+interface PlaylistOption {
+  id: string;
+  title: string;
+  item_count: number;
 }
 
 interface MediaFolder {
@@ -140,6 +146,12 @@ export default function MediaLibrary() {
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameFolderValue, setRenameFolderValue] = useState("");
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+
+  // Add to playlist state
+  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
+  const [playlists, setPlaylists] = useState<PlaylistOption[]>([]);
+  const [addingToPlaylist, setAddingToPlaylist] = useState(false);
+  const [playlistMediaIds, setPlaylistMediaIds] = useState<string[]>([]);
 
   // Fetch folders
   const fetchFolders = useCallback(async () => {
