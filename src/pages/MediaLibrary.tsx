@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft, ListMusic, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,12 @@ interface PairedScreen {
   id: string;
   name: string;
   status: string;
+}
+
+interface PlaylistOption {
+  id: string;
+  title: string;
+  item_count: number;
 }
 
 interface MediaFolder {
@@ -140,6 +146,12 @@ export default function MediaLibrary() {
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameFolderValue, setRenameFolderValue] = useState("");
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+
+  // Add to playlist state
+  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
+  const [playlists, setPlaylists] = useState<PlaylistOption[]>([]);
+  const [addingToPlaylist, setAddingToPlaylist] = useState(false);
+  const [playlistMediaIds, setPlaylistMediaIds] = useState<string[]>([]);
 
   // Fetch folders
   const fetchFolders = useCallback(async () => {
@@ -359,6 +371,66 @@ export default function MediaLibrary() {
     toast.success(`Moved ${ids.length} item${ids.length > 1 ? "s" : ""} to ${targetName}`);
     setSelected(new Set());
     setMoveDialogOpen(false);
+  };
+
+  // ── Playlist operations ──
+  const fetchPlaylists = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("playlists")
+      .select("id, title")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) {
+      // Get item counts
+      const { data: items } = await supabase
+        .from("playlist_items")
+        .select("playlist_id");
+      const countMap = new Map<string, number>();
+      if (items) {
+        for (const item of items) {
+          countMap.set(item.playlist_id, (countMap.get(item.playlist_id) || 0) + 1);
+        }
+      }
+      setPlaylists(data.map(p => ({ ...p, item_count: countMap.get(p.id) || 0 })));
+    }
+  }, [user]);
+
+  const openPlaylistDialog = (mediaIds: string[]) => {
+    setPlaylistMediaIds(mediaIds);
+    fetchPlaylists();
+    setPlaylistDialogOpen(true);
+  };
+
+  const addToPlaylist = async (playlistId: string) => {
+    if (playlistMediaIds.length === 0) return;
+    setAddingToPlaylist(true);
+    try {
+      // Get current max position
+      const { data: existing } = await supabase
+        .from("playlist_items")
+        .select("position")
+        .eq("playlist_id", playlistId)
+        .order("position", { ascending: false })
+        .limit(1);
+      const startPos = existing && existing.length > 0 ? existing[0].position + 1 : 0;
+
+      const items = playlistMediaIds.map((mediaId, i) => ({
+        playlist_id: playlistId,
+        media_id: mediaId,
+        position: startPos + i,
+      }));
+      const { error } = await supabase.from("playlist_items").insert(items);
+      if (error) throw error;
+
+      const playlist = playlists.find(p => p.id === playlistId);
+      toast.success(`Added ${playlistMediaIds.length} item${playlistMediaIds.length > 1 ? "s" : ""} to "${playlist?.title ?? "playlist"}"`);
+      setPlaylistDialogOpen(false);
+      setSelected(new Set());
+    } catch {
+      toast.error("Failed to add to playlist");
+    }
+    setAddingToPlaylist(false);
   };
 
   // ── Existing operations ──
@@ -737,6 +809,15 @@ export default function MediaLibrary() {
                 variant="outline"
                 size="sm"
                 className="h-10 sm:h-8 text-xs flex-1 min-w-[100px]"
+                onClick={() => openPlaylistDialog(Array.from(selected))}
+              >
+                <ListMusic className="h-3.5 w-3.5 mr-1.5" />
+                Add to Playlist
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 sm:h-8 text-xs flex-1 min-w-[100px]"
                 onClick={() => setMoveDialogOpen(true)}
               >
                 <MoveRight className="h-3.5 w-3.5 mr-1.5" />
@@ -1001,15 +1082,27 @@ export default function MediaLibrary() {
                   )}
 
                   {!isSelecting && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteMedia(item);
-                      }}
-                      className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md sm:opacity-0 sm:group-hover:opacity-100 opacity-70 transition-opacity hover:bg-destructive"
-                    >
-                      <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-destructive-foreground" />
-                    </button>
+                    <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 opacity-70 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPlaylistDialog([item.id]);
+                        }}
+                        className="p-2 sm:p-1.5 bg-primary/90 rounded-lg sm:rounded-md hover:bg-primary transition-colors"
+                        title="Add to playlist"
+                      >
+                        <ListMusic className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-primary-foreground" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteMedia(item);
+                        }}
+                        className="p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md hover:bg-destructive transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-destructive-foreground" />
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="p-2 sm:p-3">
@@ -1258,6 +1351,46 @@ export default function MediaLibrary() {
               {compressing ? "Compressing…" : "Compress & Upload"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Playlist dialog */}
+      <Dialog open={playlistDialogOpen} onOpenChange={setPlaylistDialogOpen}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <ListMusic className="h-5 w-5 text-primary" />
+              Add to Playlist
+            </DialogTitle>
+            <DialogDescription>
+              Add {playlistMediaIds.length} item{playlistMediaIds.length !== 1 ? "s" : ""} to an existing playlist
+            </DialogDescription>
+          </DialogHeader>
+          {playlists.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <ListMusic className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No playlists found</p>
+              <p className="text-xs mt-1">Create a playlist first from the Playlists page</p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {playlists.map((playlist) => (
+                <button
+                  key={playlist.id}
+                  onClick={() => addToPlaylist(playlist.id)}
+                  disabled={addingToPlaylist}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/5 hover:bg-white/10 hover:border-primary/30 transition-all text-left"
+                >
+                  <ListMusic className="h-5 w-5 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{playlist.title}</p>
+                    <p className="text-xs text-muted-foreground">{playlist.item_count} item{playlist.item_count !== 1 ? "s" : ""}</p>
+                  </div>
+                  <Plus className="h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
