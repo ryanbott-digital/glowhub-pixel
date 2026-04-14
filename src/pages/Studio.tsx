@@ -29,6 +29,7 @@ import { StudioStyles } from "@/components/studio/StudioStyles";
 import { GlowFieldCanvas, DEFAULT_GLOW_FIELD } from "@/components/studio/GlowFieldCanvas";
 import { SmartGuides, computeSnapGuides, type GuideLine } from "@/components/studio/SmartGuides";
 import { StudioTimeline } from "@/components/studio/StudioTimeline";
+import { StudioTemplateGallery } from "@/components/studio/StudioTemplateGallery";
 
 /* ───── weather helpers ───── */
 const getWeatherNeonIcon = (icon: string, isNight: boolean) => {
