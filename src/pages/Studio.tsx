@@ -873,10 +873,16 @@ export default function Studio() {
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
         <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
-          <div className="p-3 border-b border-border/20">
+          <div className="p-3 border-b border-border/20 flex items-center justify-between">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
             </h3>
+            <button
+              onClick={() => setTemplateGalleryOpen(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+            >
+              <LayoutTemplate className="h-3 w-3" /> Templates
+            </button>
           </div>
 
           <div className="p-2.5 space-y-4 flex-1">
