@@ -291,7 +291,7 @@ export default function MediaLibrary() {
 
   const deleteFolder = async (folderId: string) => {
     // Move all media in this folder back to root first
-    await supabase.from("media").update({ folder_id: null } as any).eq("folder_id" as any, folderId);
+    await (supabase.from("media") as any).update({ folder_id: null }).eq("folder_id", folderId);
     const { error } = await supabase.from("media_folders").delete().eq("id", folderId);
     if (error) {
       toast.error("Failed to delete folder");
