@@ -813,6 +813,7 @@ export default function MediaLibrary() {
               >
                 <ListMusic className="h-3.5 w-3.5 mr-1.5" />
                 Add to Playlist
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
