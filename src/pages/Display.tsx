@@ -207,7 +207,7 @@ export default function Display() {
           key={item.id}
           src={url}
           alt=""
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       );
     }
@@ -220,7 +220,7 @@ export default function Display() {
         muted
         playsInline
         loop={itemsRef.current.length === 1}
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 w-full h-full object-cover"
         onEnded={handleVideoEnded}
       />
     );
