@@ -1177,7 +1177,8 @@ export default function Player() {
     if (!audioEnabled || !audioRef.current) return;
     const currentItem = items[currentIndex];
     const isVideo = currentItem?.media?.type?.startsWith("video");
-    if (isVideo) {
+    const isVideoMuted = currentItem?.media?.audio_muted === true;
+    if (isVideo && !isVideoMuted) {
       audioRef.current.volume = (audioVolume / 100) * 0.1;
     } else {
       audioRef.current.volume = audioVolume / 100;
