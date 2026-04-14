@@ -791,11 +791,10 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   {radioSearching && (
                     <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin text-muted-foreground" />
                   )}
-                </div>
 
-                {/* Search results */}
-                {radioResults.length > 0 && (
-                  <div className="max-h-36 overflow-y-auto space-y-1 rounded-lg border border-border/50 bg-card/50 p-1">
+                  {/* Search results — absolute overlay */}
+                  {radioResults.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-56 overflow-y-auto space-y-1 rounded-lg border border-border bg-card shadow-lg p-1">
                     {radioResults.map((station) => (
                       <button
                         key={station.id}
