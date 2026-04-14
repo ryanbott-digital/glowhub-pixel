@@ -83,6 +83,7 @@ export type Database = {
           audio_muted: boolean
           created_at: string
           duration: number | null
+          folder_id: string | null
           id: string
           mux_asset_id: string | null
           mux_status: string | null
@@ -96,6 +97,7 @@ export type Database = {
           audio_muted?: boolean
           created_at?: string
           duration?: number | null
+          folder_id?: string | null
           id?: string
           mux_asset_id?: string | null
           mux_status?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           audio_muted?: boolean
           created_at?: string
           duration?: number | null
+          folder_id?: string | null
           id?: string
           mux_asset_id?: string | null
           mux_status?: string | null
@@ -117,7 +120,53 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "media_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "media_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_folders: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "media_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pairings: {
         Row: {
