@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,14 @@ interface PairedScreen {
   id: string;
   name: string;
   status: string;
+}
+
+interface MediaFolder {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  color: string;
+  created_at: string;
 }
 
 const BUCKET = "signage-content";
@@ -29,6 +37,7 @@ interface MediaItem {
   mux_asset_id: string | null;
   mux_status: string | null;
   audio_muted: boolean;
+  folder_id: string | null;
 }
 
 interface MediaWithSize extends MediaItem {
@@ -50,6 +59,17 @@ const formatDuration = (seconds: number) => {
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 const VIDEO_MAX_SIZE = 500 * 1024 * 1024; // 500MB for videos (Mux transcodes)
+
+const FOLDER_COLORS = [
+  { id: "gray", bg: "bg-muted/60", text: "text-muted-foreground", accent: "border-muted-foreground/20" },
+  { id: "teal", bg: "bg-primary/10", text: "text-primary", accent: "border-primary/30" },
+  { id: "blue", bg: "bg-blue-500/10", text: "text-blue-400", accent: "border-blue-500/30" },
+  { id: "purple", bg: "bg-purple-500/10", text: "text-purple-400", accent: "border-purple-500/30" },
+  { id: "amber", bg: "bg-amber-500/10", text: "text-amber-400", accent: "border-amber-500/30" },
+  { id: "rose", bg: "bg-rose-500/10", text: "text-rose-400", accent: "border-rose-500/30" },
+];
+
+const getFolderColor = (colorId: string) => FOLDER_COLORS.find(c => c.id === colorId) || FOLDER_COLORS[0];
 
 const compressImage = (file: File, maxDim = 4000, quality = 0.8): Promise<File> =>
   new Promise((resolve, reject) => {
@@ -111,6 +131,27 @@ export default function MediaLibrary() {
   const [pendingValidFiles, setPendingValidFiles] = useState<File[]>([]);
   const [compressing, setCompressing] = useState(false);
 
+  // Folder state
+  const [folders, setFolders] = useState<MediaFolder[]>([]);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [folderPath, setFolderPath] = useState<MediaFolder[]>([]); // breadcrumb path
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("New Folder");
+  const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
+  const [renameFolderValue, setRenameFolderValue] = useState("");
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+
+  // Fetch folders
+  const fetchFolders = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("media_folders")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("name");
+    if (data) setFolders(data as MediaFolder[]);
+  }, [user]);
+
   // Fetch user's screens
   const fetchScreens = useCallback(async () => {
     if (!user) return;
@@ -133,7 +174,6 @@ export default function MediaLibrary() {
       const selectedIds = Array.from(selected);
       const timestamp = new Date().toLocaleString("en-GB", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
-      // 1. Create a quick playlist
       const { data: playlist, error: plErr } = await supabase
         .from("playlists")
         .insert({ title: `Quick Send · ${timestamp}`, user_id: user.id })
@@ -141,7 +181,6 @@ export default function MediaLibrary() {
         .single();
       if (plErr || !playlist) throw plErr;
 
-      // 2. Batch-insert playlist items with sequential positions
       const items = selectedIds.map((mediaId, i) => ({
         playlist_id: playlist.id,
         media_id: mediaId,
@@ -150,7 +189,6 @@ export default function MediaLibrary() {
       const { error: itemErr } = await supabase.from("playlist_items").insert(items);
       if (itemErr) throw itemErr;
 
-      // 3. Assign playlist to screen
       const { error: scrErr } = await supabase
         .from("screens")
         .update({ current_playlist_id: playlist.id })
@@ -176,7 +214,6 @@ export default function MediaLibrary() {
       .order("created_at", { ascending: false });
     if (!data) return;
 
-    // Fetch file sizes from storage
     const { data: storageFiles } = await supabase.storage
       .from(BUCKET)
       .list(user.id, { limit: 1000 });
@@ -191,6 +228,7 @@ export default function MediaLibrary() {
     setMedia(
       data.map((item) => ({
         ...item,
+        folder_id: (item as any).folder_id ?? null,
         fileSize: sizeMap.get(item.storage_path) ?? null,
       }))
     );
@@ -198,7 +236,8 @@ export default function MediaLibrary() {
 
   useEffect(() => {
     fetchMedia();
-  }, [fetchMedia]);
+    fetchFolders();
+  }, [fetchMedia, fetchFolders]);
 
   // Poll Mux status for videos still processing
   useEffect(() => {
@@ -228,6 +267,101 @@ export default function MediaLibrary() {
     return () => clearInterval(interval);
   }, [media.filter((m) => m.mux_status === "preparing").length]);
 
+  // ── Folder operations ──
+  const createFolder = async () => {
+    if (!user || !newFolderName.trim()) return;
+    const { data, error } = await supabase
+      .from("media_folders")
+      .insert({
+        user_id: user.id,
+        name: newFolderName.trim(),
+        parent_id: currentFolderId,
+      })
+      .select()
+      .single();
+    if (error) {
+      toast.error("Failed to create folder");
+    } else {
+      setFolders((prev) => [...prev, data as MediaFolder]);
+      toast.success(`Folder "${newFolderName.trim()}" created`);
+    }
+    setCreatingFolder(false);
+    setNewFolderName("New Folder");
+  };
+
+  const deleteFolder = async (folderId: string) => {
+    // Move all media in this folder back to root first
+    await (supabase.from("media") as any).update({ folder_id: null }).eq("folder_id", folderId);
+    const { error } = await supabase.from("media_folders").delete().eq("id", folderId);
+    if (error) {
+      toast.error("Failed to delete folder");
+    } else {
+      setFolders((prev) => prev.filter((f) => f.id !== folderId));
+      toast.success("Folder deleted");
+      if (currentFolderId === folderId) navigateToFolder(null);
+    }
+  };
+
+  const commitFolderRename = async () => {
+    if (!renamingFolderId || !renameFolderValue.trim()) {
+      setRenamingFolderId(null);
+      return;
+    }
+    const { error } = await supabase
+      .from("media_folders")
+      .update({ name: renameFolderValue.trim() })
+      .eq("id", renamingFolderId);
+    if (error) {
+      toast.error("Rename failed");
+    } else {
+      setFolders((prev) =>
+        prev.map((f) => (f.id === renamingFolderId ? { ...f, name: renameFolderValue.trim() } : f))
+      );
+      // Update breadcrumb too
+      setFolderPath((prev) =>
+        prev.map((f) => (f.id === renamingFolderId ? { ...f, name: renameFolderValue.trim() } : f))
+      );
+      toast.success("Renamed");
+    }
+    setRenamingFolderId(null);
+  };
+
+  const navigateToFolder = (folderId: string | null) => {
+    setSelected(new Set());
+    setCurrentFolderId(folderId);
+    if (folderId === null) {
+      setFolderPath([]);
+    } else {
+      const folder = folders.find((f) => f.id === folderId);
+      if (folder) {
+        // Build path by walking up parent_ids
+        const path: MediaFolder[] = [];
+        let current: MediaFolder | undefined = folder;
+        while (current) {
+          path.unshift(current);
+          current = current.parent_id ? folders.find((f) => f.id === current!.parent_id) : undefined;
+        }
+        setFolderPath(path);
+      }
+    }
+  };
+
+  const moveSelectedToFolder = async (targetFolderId: string | null) => {
+    if (selected.size === 0) return;
+    const ids = Array.from(selected);
+    for (const id of ids) {
+      await (supabase.from("media") as any).update({ folder_id: targetFolderId }).eq("id", id);
+    }
+    setMedia((prev) =>
+      prev.map((m) => (selected.has(m.id) ? { ...m, folder_id: targetFolderId } : m))
+    );
+    const targetName = targetFolderId ? folders.find(f => f.id === targetFolderId)?.name ?? "folder" : "root";
+    toast.success(`Moved ${ids.length} item${ids.length > 1 ? "s" : ""} to ${targetName}`);
+    setSelected(new Set());
+    setMoveDialogOpen(false);
+  };
+
+  // ── Existing operations ──
   const uploadFiles = async (files: File[]) => {
     if (!user) {
       toast.error("You must be logged in to upload files");
@@ -255,7 +389,6 @@ export default function MediaLibrary() {
       validFiles.push(f);
     }
 
-    // If there are oversized images, show the compress dialog
     if (oversized.length > 0) {
       setOversizedFiles(oversized);
       setPendingValidFiles(validFiles);
@@ -274,7 +407,6 @@ export default function MediaLibrary() {
       try {
         const result = await compressImage(file);
         if (result.size > MAX_SIZE) {
-          // Try again with lower quality
           const result2 = await compressImage(file, 3000, 0.6);
           if (result2.size > MAX_SIZE) {
             toast.error(`${file.name}: still too large after compression`);
@@ -313,7 +445,6 @@ export default function MediaLibrary() {
 
       console.log(`[Upload] [${i + 1}/${validFiles.length}] Uploading "${file.name}" (${(file.size / 1024).toFixed(0)} KB, ${file.type}) → ${path}`);
 
-      // Step 1: Upload to storage
       const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file);
       if (uploadError) {
         toast.error(`Failed to upload ${file.name}: ${uploadError.message}`);
@@ -322,21 +453,21 @@ export default function MediaLibrary() {
       }
       console.log(`[Upload] Storage upload OK for "${file.name}"`);
 
-      // Step 2: Get video duration
       let duration: number | null = null;
       if (!isImage) {
         duration = await getVideoDuration(file);
         console.log(`[Upload] Video duration for "${file.name}": ${duration}s`);
       }
 
-      // Step 3: Insert media record
-      const { data: mediaRow, error: insertError } = await supabase.from("media").insert({
+      const insertPayload: Record<string, any> = {
         user_id: user.id,
         name: file.name,
         storage_path: path,
         type: isImage ? "image" : "video",
         duration,
-      }).select("id").single();
+        folder_id: currentFolderId,
+      };
+      const { data: mediaRow, error: insertError } = await supabase.from("media").insert(insertPayload as any).select("id").single();
 
       if (insertError) {
         toast.error(`Failed to save ${file.name} to library: ${insertError.message}`);
@@ -345,7 +476,6 @@ export default function MediaLibrary() {
       }
       console.log(`[Upload] DB insert OK for "${file.name}", media_id: ${mediaRow.id}`);
 
-      // Step 4: Send videos to Mux for transcoding
       if (!isImage && mediaRow) {
         toast.info(`Transcoding ${file.name} via Mux…`);
         console.log(`[Upload] Invoking mux-upload for "${file.name}", media_id: ${mediaRow.id}`);
@@ -389,23 +519,6 @@ export default function MediaLibrary() {
         resolve(Math.round(video.duration));
       };
       video.onerror = () => resolve(null);
-      video.src = URL.createObjectURL(file);
-    });
-
-  const getVideoHasAudio = (file: File): Promise<boolean> =>
-    new Promise((resolve) => {
-      const video = document.createElement("video");
-      video.preload = "metadata";
-      video.onloadedmetadata = () => {
-        // Check for audio tracks using mozHasAudio or webkitAudioDecodedByteCount
-        const hasAudio =
-          (video as any).mozHasAudio ||
-          Boolean((video as any).webkitAudioDecodedByteCount) ||
-          Boolean((video as any).audioTracks?.length);
-        URL.revokeObjectURL(video.src);
-        resolve(hasAudio);
-      };
-      video.onerror = () => resolve(false);
       video.src = URL.createObjectURL(file);
     });
 
@@ -463,7 +576,7 @@ export default function MediaLibrary() {
   };
 
   const toggleSelect = (id: string) => {
-    if (renamingId) return; // don't toggle while renaming
+    if (renamingId) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -499,10 +612,11 @@ export default function MediaLibrary() {
   };
 
   const selectAll = () => {
-    if (selected.size === media.length) {
+    const currentMedia = filteredMedia;
+    if (selected.size === currentMedia.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(media.map((m) => m.id)));
+      setSelected(new Set(currentMedia.map((m) => m.id)));
     }
   };
 
@@ -512,7 +626,13 @@ export default function MediaLibrary() {
     return data.publicUrl;
   };
 
+  // ── Derived data ──
+  const currentFolders = folders.filter((f) => f.parent_id === currentFolderId);
+  const filteredMedia = media.filter((m) => m.folder_id === currentFolderId);
   const totalSize = media.reduce((sum, m) => sum + (m.fileSize ?? 0), 0);
+
+  // Folders available as move targets (exclude current folder)
+  const moveTargetFolders = folders.filter((f) => f.id !== currentFolderId);
 
   return (
     <div className="space-y-5 animate-fade-in min-w-0">
@@ -524,29 +644,69 @@ export default function MediaLibrary() {
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
               {media.length} file{media.length !== 1 ? "s" : ""}
               {totalSize > 0 && ` · ${formatFileSize(totalSize)}`}
+              {folders.length > 0 && ` · ${folders.length} folder${folders.length !== 1 ? "s" : ""}`}
             </p>
           </div>
-          <label className="shrink-0">
-            <Button disabled={uploading} asChild className="h-10 sm:h-9">
-              <span className="cursor-pointer">
-                {uploading ? (
-                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4 mr-1.5" />
-                )}
-                {uploading ? `${uploadProgress}%` : "Upload"}
-              </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 sm:h-9"
+              onClick={() => setCreatingFolder(true)}
+            >
+              <FolderPlus className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Folder</span>
             </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept="image/*,video/*"
-              multiple
-              onChange={handleFileInput}
-            />
-          </label>
+            <label>
+              <Button disabled={uploading} asChild className="h-10 sm:h-9">
+                <span className="cursor-pointer">
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-1.5" />
+                  )}
+                  {uploading ? `${uploadProgress}%` : "Upload"}
+                </span>
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*,video/*"
+                multiple
+                onChange={handleFileInput}
+              />
+            </label>
+          </div>
         </div>
+
+        {/* Breadcrumb navigation */}
+        {(currentFolderId !== null || folderPath.length > 0) && (
+          <div className="flex items-center gap-1 text-sm flex-wrap">
+            <button
+              onClick={() => navigateToFolder(null)}
+              className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Home className="h-3.5 w-3.5" />
+              <span>Library</span>
+            </button>
+            {folderPath.map((folder) => (
+              <div key={folder.id} className="flex items-center gap-1">
+                <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+                <button
+                  onClick={() => navigateToFolder(folder.id)}
+                  className={`px-2 py-1 rounded-md transition-colors ${
+                    folder.id === currentFolderId
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "hover:bg-muted/40 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {folder.name}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Bulk action toolbar — only visible when items selected */}
         {isSelecting && (
@@ -556,7 +716,7 @@ export default function MediaLibrary() {
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={selectAll}>
                   <CheckSquare className="h-3.5 w-3.5 mr-1" />
-                  {selected.size === media.length ? "None" : "All"}
+                  {selected.size === filteredMedia.length ? "None" : "All"}
                 </Button>
                 <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setSelected(new Set())}>
                   <X className="h-3.5 w-3.5 mr-1" /> Cancel
@@ -567,11 +727,20 @@ export default function MediaLibrary() {
               <Button
                 variant="default"
                 size="sm"
-                className="h-10 sm:h-8 text-xs flex-1 min-w-[120px]"
+                className="h-10 sm:h-8 text-xs flex-1 min-w-[100px]"
                 onClick={openSendDialog}
               >
                 <Send className="h-3.5 w-3.5 mr-1.5" />
                 Send to Screen
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 sm:h-8 text-xs flex-1 min-w-[100px]"
+                onClick={() => setMoveDialogOpen(true)}
+              >
+                <MoveRight className="h-3.5 w-3.5 mr-1.5" />
+                Move to Folder
               </Button>
               <Button
                 variant="destructive"
@@ -611,13 +780,96 @@ export default function MediaLibrary() {
           <div className="p-2.5 sm:p-3 rounded-full bg-primary/10">
             <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
-          <p className="font-medium text-foreground text-sm sm:text-base">Tap to upload or drag & drop</p>
+          <p className="font-medium text-foreground text-sm sm:text-base">
+            Tap to upload or drag & drop
+            {currentFolderId && <span className="text-primary"> into this folder</span>}
+          </p>
           <p className="text-xs sm:text-sm text-muted-foreground">Images auto-compressed if needed · Videos up to 500 MB</p>
         </div>
       </div>
 
+      {/* Folders grid */}
+      {currentFolders.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-semibold">Folders</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {currentFolders.map((folder) => {
+              const colorStyle = getFolderColor(folder.color);
+              const itemCount = media.filter((m) => m.folder_id === folder.id).length;
+              return (
+                <div
+                  key={folder.id}
+                  className={`group glass rounded-xl border ${colorStyle.accent} hover:border-primary/40 transition-all cursor-pointer active:scale-[0.98]`}
+                  onClick={() => navigateToFolder(folder.id)}
+                >
+                  <div className={`p-4 flex flex-col gap-2 ${colorStyle.bg} rounded-xl`}>
+                    <div className="flex items-center justify-between">
+                      <FolderOpen className={`h-6 w-6 ${colorStyle.text}`} />
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingFolderId(folder.id);
+                            setRenameFolderValue(folder.name);
+                          }}
+                          className="p-1 rounded hover:bg-background/30 transition-colors"
+                        >
+                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFolder(folder.id);
+                          }}
+                          className="p-1 rounded hover:bg-destructive/20 transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </button>
+                      </div>
+                    </div>
+                    {renamingFolderId === folder.id ? (
+                      <Input
+                        autoFocus
+                        value={renameFolderValue}
+                        onChange={(e) => setRenameFolderValue(e.target.value)}
+                        onBlur={commitFolderRename}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitFolderRename();
+                          if (e.key === "Escape") setRenamingFolderId(null);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-6 text-xs py-0 px-1.5 bg-background/50 border-primary/30"
+                      />
+                    ) : (
+                      <p className="text-sm font-semibold text-foreground truncate">{folder.name}</p>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">
+                      {itemCount} item{itemCount !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Back button when in a folder */}
+      {currentFolderId && (
+        <button
+          onClick={() => {
+            const parentFolder = folders.find(f => f.id === currentFolderId);
+            navigateToFolder(parentFolder?.parent_id ?? null);
+          }}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
+        </button>
+      )}
+
       {/* Media grid */}
-      {media.length > 0 && (
+      {filteredMedia.length > 0 && (
         <div className={`grid gap-3 sm:gap-4 stagger-in ${
           (() => {
             const size = localStorage.getItem("glowhub_media_grid") || "medium";
@@ -626,7 +878,7 @@ export default function MediaLibrary() {
             return "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
           })()
         }`}>
-          {media.map((item) => {
+          {filteredMedia.map((item) => {
             const url = getPublicUrl(item.storage_path);
             const isSelected = selected.has(item.id);
             return (
@@ -683,7 +935,7 @@ export default function MediaLibrary() {
                     />
                   )}
 
-                  {/* Selection checkbox — always visible on mobile */}
+                  {/* Selection checkbox */}
                   <div
                     className={`absolute top-1.5 left-1.5 sm:top-2 sm:left-2 transition-opacity ${
                       isSelecting || isSelected ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100 opacity-70"
@@ -806,13 +1058,108 @@ export default function MediaLibrary() {
         </div>
       )}
 
-      {media.length === 0 && !uploading && (
+      {filteredMedia.length === 0 && currentFolders.length === 0 && !uploading && (
         <div className="glass glass-spotlight rounded-2xl text-center py-16 text-muted-foreground border border-white/[0.06]">
-          <FileWarning className="h-12 w-12 mx-auto mb-3 opacity-40" />
-          <p className="font-medium text-foreground">No media uploaded yet</p>
-          <p className="text-sm mt-1">Upload images and videos to build your content library</p>
+          {currentFolderId ? (
+            <>
+              <Folder className="h-12 w-12 mx-auto mb-3 opacity-40" />
+              <p className="font-medium text-foreground">This folder is empty</p>
+              <p className="text-sm mt-1">Upload files or move existing media here</p>
+            </>
+          ) : (
+            <>
+              <FileWarning className="h-12 w-12 mx-auto mb-3 opacity-40" />
+              <p className="font-medium text-foreground">No media uploaded yet</p>
+              <p className="text-sm mt-1">Upload images and videos to build your content library</p>
+            </>
+          )}
         </div>
       )}
+
+      {/* Create folder dialog */}
+      <Dialog open={creatingFolder} onOpenChange={setCreatingFolder}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <FolderPlus className="h-5 w-5 text-primary" />
+              New Folder
+            </DialogTitle>
+            <DialogDescription>
+              Create a folder to organize your media
+              {currentFolderId && " (inside current folder)"}
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") createFolder(); }}
+            placeholder="Folder name"
+            className="bg-background/50"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreatingFolder(false)}>Cancel</Button>
+            <Button onClick={createFolder} disabled={!newFolderName.trim()}>
+              <FolderPlus className="h-4 w-4 mr-1.5" />
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Move to folder dialog */}
+      <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
+        <DialogContent className="glass border-white/[0.06]">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <MoveRight className="h-5 w-5 text-primary" />
+              Move to Folder
+            </DialogTitle>
+            <DialogDescription>
+              Move {selected.size} item{selected.size !== 1 ? "s" : ""} to a folder
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {currentFolderId !== null && (
+              <button
+                onClick={() => moveSelectedToFolder(null)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/5 hover:bg-white/10 hover:border-primary/30 transition-all text-left"
+              >
+                <Home className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">Root (no folder)</p>
+                  <p className="text-xs text-muted-foreground">Move back to library root</p>
+                </div>
+              </button>
+            )}
+            {moveTargetFolders.map((folder) => {
+              const itemCount = media.filter((m) => m.folder_id === folder.id).length;
+              const colorStyle = getFolderColor(folder.color);
+              return (
+                <button
+                  key={folder.id}
+                  onClick={() => moveSelectedToFolder(folder.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/5 hover:bg-white/10 hover:border-primary/30 transition-all text-left"
+                >
+                  <FolderOpen className={`h-5 w-5 shrink-0 ${colorStyle.text}`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground truncate">{folder.name}</p>
+                    <p className="text-xs text-muted-foreground">{itemCount} item{itemCount !== 1 ? "s" : ""}</p>
+                  </div>
+                  <MoveRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+              );
+            })}
+            {moveTargetFolders.length === 0 && currentFolderId === null && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Folder className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No folders yet</p>
+                <p className="text-xs mt-1">Create a folder first</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Send to Screen dialog */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
@@ -850,11 +1197,11 @@ export default function MediaLibrary() {
           )}
         </DialogContent>
       </Dialog>
+
       {/* Compress oversized images dialog */}
       <Dialog open={compressDialogOpen} onOpenChange={(open) => {
         if (!open && !compressing) {
           setCompressDialogOpen(false);
-          // Upload valid files even if user cancels compression
           if (pendingValidFiles.length > 0) {
             doUpload(pendingValidFiles);
             setPendingValidFiles([]);
