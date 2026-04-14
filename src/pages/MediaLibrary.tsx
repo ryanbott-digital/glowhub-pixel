@@ -679,6 +679,7 @@ export default function MediaLibrary() {
         onClick: () => {
           undoRef.undone = true;
           setMedia((prev) => [...prev, item].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          markRestored([item.id]);
           toast.success("Restored " + item.name);
         },
       },
@@ -717,6 +718,7 @@ export default function MediaLibrary() {
         onClick: () => {
           undoRef.undone = true;
           setMedia((prev) => [...prev, ...toDelete].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          markRestored(toDelete.map((m) => m.id));
           toast.success(`Restored ${toDelete.length} file(s)`);
         },
       },
