@@ -1159,7 +1159,11 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
         {/* Grid */}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {filtered.map((tpl) => (
+            {filtered.map((tpl) => {
+              const q = search.trim().toLowerCase();
+              const tags = tpl.tags || TEMPLATE_TAGS[tpl.id] || [];
+              const matchingTags = q ? tags.filter(tag => tag.toLowerCase().includes(q)) : [];
+              return (
               <button
                 key={tpl.id}
                 onClick={() => handleApply(tpl)}
@@ -1187,9 +1191,27 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
                 <div className="p-3">
                   <p className="text-sm font-semibold text-foreground">{tpl.name}</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{tpl.description}</p>
+                  {matchingTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {matchingTags.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/15 text-primary border border-primary/20"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {matchingTags.length > 4 && (
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium text-muted-foreground">
+                          +{matchingTags.length - 4}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </DialogContent>
