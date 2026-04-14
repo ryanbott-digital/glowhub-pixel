@@ -249,7 +249,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
   return (
     <div
-      className={`group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
+      className={`group relative flex flex-col rounded-2xl glass transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
       style={{
         boxShadow: isAlive
           ? "0 0 20px hsla(180, 100%, 45%, 0.08), 0 4px 20px rgba(0,0,0,0.1)"
@@ -469,8 +469,8 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
       {/* Expandable detail section */}
       <div
-        className="overflow-hidden transition-all duration-300 ease-in-out"
-        style={{ maxHeight: expanded ? "800px" : "0", opacity: expanded ? 1 : 0 }}
+        className="transition-all duration-300 ease-in-out"
+        style={{ maxHeight: expanded ? "2000px" : "0", opacity: expanded ? 1 : 0, overflow: expanded ? "visible" : "hidden" }}
       >
         <div className="px-4 pb-4 space-y-4 border-t border-border/50 pt-3">
           {/* Rename */}
