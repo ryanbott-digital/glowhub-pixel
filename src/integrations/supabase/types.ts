@@ -707,6 +707,7 @@ export type Database = {
           current_media_id: string | null
           current_playlist_id: string | null
           display_mode: string
+          fit_bg_color: string
           group_id: string | null
           hardware_uuid: string | null
           id: string
@@ -734,6 +735,7 @@ export type Database = {
           current_media_id?: string | null
           current_playlist_id?: string | null
           display_mode?: string
+          fit_bg_color?: string
           group_id?: string | null
           hardware_uuid?: string | null
           id?: string
@@ -761,6 +763,7 @@ export type Database = {
           current_media_id?: string | null
           current_playlist_id?: string | null
           display_mode?: string
+          fit_bg_color?: string
           group_id?: string | null
           hardware_uuid?: string | null
           id?: string
