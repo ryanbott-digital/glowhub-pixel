@@ -388,14 +388,14 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
                 onMouseLeave={() => setHoveredId(null)}
                 className="group relative rounded-xl border border-border/20 bg-muted/20 overflow-hidden text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)] focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
-                {/* Preview area */}
+                {/* Mini canvas preview */}
                 <div
-                  className="aspect-video flex items-center justify-center text-5xl relative"
+                  className="aspect-video relative overflow-hidden"
                   style={{
                     background: tpl.bg?.gradient || tpl.bg?.color || "#0B1120",
                   }}
                 >
-                  <span className="relative z-10">{tpl.preview}</span>
+                  <MiniCanvasPreview elements={tpl.elements} />
                   {/* Hover overlay */}
                   <div className={`absolute inset-0 bg-primary/10 flex items-center justify-center transition-opacity ${hoveredId === tpl.id ? "opacity-100" : "opacity-0"}`}>
                     <span className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold">
