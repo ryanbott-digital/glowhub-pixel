@@ -809,6 +809,14 @@ export default function MediaLibrary() {
                 variant="outline"
                 size="sm"
                 className="h-10 sm:h-8 text-xs flex-1 min-w-[100px]"
+                onClick={() => openPlaylistDialog(Array.from(selected))}
+              >
+                <ListMusic className="h-3.5 w-3.5 mr-1.5" />
+                Add to Playlist
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 sm:h-8 text-xs flex-1 min-w-[100px]"
                 onClick={() => setMoveDialogOpen(true)}
               >
                 <MoveRight className="h-3.5 w-3.5 mr-1.5" />
