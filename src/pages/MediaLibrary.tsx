@@ -345,6 +345,7 @@ export default function MediaLibrary() {
 
     const undoRef = { undone: false };
     toast(`Deleted folder "${folderName}"`, {
+      description: createElement(UndoCountdown, { seconds: UNDO_DURATION / 1000 }),
       action: {
         label: "Undo",
         onClick: () => {
@@ -358,7 +359,7 @@ export default function MediaLibrary() {
           toast.success(`Restored folder "${folderName}"`);
         },
       },
-      duration: 5000,
+      duration: UNDO_DURATION,
       onAutoClose: () => {
         if (!undoRef.undone) {
           (supabase.from("media") as any).update({ folder_id: null }).eq("folder_id", folderId).then(() => {
@@ -701,6 +702,7 @@ export default function MediaLibrary() {
     // Show undo toast
     const undoRef = { undone: false };
     toast("Deleted " + item.name, {
+      description: createElement(UndoCountdown, { seconds: UNDO_DURATION / 1000 }),
       action: {
         label: "Undo",
         onClick: () => {
@@ -710,7 +712,7 @@ export default function MediaLibrary() {
           toast.success("Restored " + item.name);
         },
       },
-      duration: 5000,
+      duration: UNDO_DURATION,
       onAutoClose: () => {
         if (!undoRef.undone) {
           supabase.storage.from(BUCKET).remove([item.storage_path]);
@@ -740,6 +742,7 @@ export default function MediaLibrary() {
 
     const undoRef = { undone: false };
     toast(`Deleted ${toDelete.length} file(s)`, {
+      description: createElement(UndoCountdown, { seconds: UNDO_DURATION / 1000 }),
       action: {
         label: "Undo",
         onClick: () => {
@@ -749,7 +752,7 @@ export default function MediaLibrary() {
           toast.success(`Restored ${toDelete.length} file(s)`);
         },
       },
-      duration: 5000,
+      duration: UNDO_DURATION,
       onAutoClose: () => {
         if (!undoRef.undone) {
           supabase.storage.from(BUCKET).remove(toDelete.map((m) => m.storage_path));
