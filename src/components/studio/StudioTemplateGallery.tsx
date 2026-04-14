@@ -11,8 +11,9 @@ interface StudioTemplate {
   id: string;
   name: string;
   category: TemplateCategory;
-  preview: string; // emoji/icon representation
+  preview: string;
   description: string;
+  tags: string[];
   elements: CanvasElement[];
   bg?: { type: "solid" | "gradient" | "image"; color: string; gradient?: string };
 }
