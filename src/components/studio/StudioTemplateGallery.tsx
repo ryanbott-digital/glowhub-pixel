@@ -539,8 +539,19 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
             </div>
           </div>
 
+          {/* Search */}
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search templates…"
+              className="pl-9 h-9 text-sm bg-muted/30 border-border/20"
+            />
+          </div>
+
           {/* Category tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
