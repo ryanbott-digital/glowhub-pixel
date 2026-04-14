@@ -37,6 +37,7 @@ interface MediaItem {
   id: string;
   name: string;
   type: string;
+  storage_path?: string;
 }
 
 interface PlaylistBuilderProps {
@@ -223,14 +224,34 @@ export function PlaylistBuilder({ playlistId, playlistTitle, media }: PlaylistBu
         {/* Add media buttons */}
         <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
           <p className="text-sm font-medium text-muted-foreground mb-2">Add media:</p>
-          <div className="flex flex-wrap gap-2">
-            {media.map((m) => (
-              <Button key={m.id} variant="outline" size="sm" onClick={() => addMediaToPlaylist(m.id)}>
-                <Plus className="h-3 w-3 mr-1" /> {m.name}
-              </Button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {media.map((m) => {
+              const thumbUrl = m.storage_path
+                ? supabase.storage.from("signage-content").getPublicUrl(m.storage_path).data.publicUrl
+                : undefined;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => addMediaToPlaylist(m.id)}
+                  className="group flex flex-col items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-primary/10 hover:border-primary/30 p-2 transition-colors text-left"
+                >
+                  <div className="w-full aspect-video rounded-md overflow-hidden bg-muted/30 flex items-center justify-center">
+                    {m.type === "image" && thumbUrl ? (
+                      <img src={thumbUrl} alt={m.name} className="w-full h-full object-cover" />
+                    ) : m.type === "video" && thumbUrl ? (
+                      <video src={thumbUrl} muted className="w-full h-full object-cover" />
+                    ) : (
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground group-hover:text-foreground truncate w-full text-center leading-tight">
+                    {m.name}
+                  </span>
+                </button>
+              );
+            })}
             {media.length === 0 && (
-              <p className="text-sm text-muted-foreground">Upload media first</p>
+              <p className="text-sm text-muted-foreground col-span-full">Upload media first</p>
             )}
           </div>
         </div>
