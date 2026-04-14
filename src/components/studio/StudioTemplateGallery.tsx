@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CanvasElement, DEFAULT_FILTERS } from "@/components/studio/types";
-import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap, Search, Church, Building2 } from "lucide-react";
+import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap, Search, Church, Building2, Share2 } from "lucide-react";
 
 /* ── Template category type ── */
-type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education" | "church" | "corporate";
+type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education" | "church" | "corporate" | "social";
 
 interface StudioTemplate {
   id: string;
@@ -559,6 +559,127 @@ const TEMPLATES: StudioTemplate[] = [
       { id: tid(), type: "text", x: 100, y: 400, width: 700, height: 160, content: "1. Launch v3.0 platform — On Track ✅\n2. Expand EMEA sales team — In Progress 🔄\n3. Achieve SOC2 compliance — 85% Complete\n4. Customer retention > 95% — Currently 96.2% ✅", style: { fontSize: "20px", fontWeight: "400", color: "#C0CDE0", lineHeight: "2.0" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
     ],
   },
+  /* ─── SOCIAL / INTERACTIVE ─── */
+  {
+    id: "social-followers",
+    name: "Social Media Counts",
+    category: "social",
+    preview: "📱",
+    description: "Live follower counts across social platforms",
+    bg: { type: "gradient", color: "#0a0a1a", gradient: "linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a0a1a 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 50, width: 780, height: 70, content: "FOLLOW US", style: { fontSize: "52px", fontWeight: "900", color: "#FFFFFF", textAlign: "center", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 130, width: 780, height: 35, content: "JOIN OUR GROWING COMMUNITY", style: { fontSize: "15px", fontWeight: "600", color: "#A78BFA", letterSpacing: "5px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 200, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#E1306C", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 220, width: 230, height: 30, content: "📸 INSTAGRAM", style: { fontSize: "16px", fontWeight: "700", color: "#E1306C", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 260, width: 230, height: 55, content: "24.8K", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 325, width: 230, height: 25, content: "↑ 1,200 this week", style: { fontSize: "14px", fontWeight: "500", color: "#E1306C" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 375, y: 200, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#1DA1F2", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 395, y: 220, width: 230, height: 30, content: "🐦 TWITTER / X", style: { fontSize: "16px", fontWeight: "700", color: "#1DA1F2", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 395, y: 260, width: 230, height: 55, content: "18.3K", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 395, y: 325, width: 230, height: 25, content: "↑ 890 this week", style: { fontSize: "14px", fontWeight: "500", color: "#1DA1F2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 670, y: 200, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#FF0000", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 690, y: 220, width: 230, height: 30, content: "▶️ YOUTUBE", style: { fontSize: "16px", fontWeight: "700", color: "#FF0000", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 690, y: 260, width: 230, height: 55, content: "52.1K", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 690, y: 325, width: 230, height: 25, content: "↑ 3,400 this week", style: { fontSize: "14px", fontWeight: "500", color: "#FF0000" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 420, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#0077B5", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 440, width: 230, height: 30, content: "💼 LINKEDIN", style: { fontSize: "16px", fontWeight: "700", color: "#0077B5", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 480, width: 230, height: 55, content: "8.9K", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 545, width: 230, height: 25, content: "↑ 450 this week", style: { fontSize: "14px", fontWeight: "500", color: "#0077B5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 375, y: 420, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#25D366", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 395, y: 440, width: 230, height: 30, content: "🎵 TIKTOK", style: { fontSize: "16px", fontWeight: "700", color: "#25D366", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 395, y: 480, width: 230, height: 55, content: "96.5K", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 395, y: 545, width: 230, height: 25, content: "↑ 5,200 this week", style: { fontSize: "14px", fontWeight: "500", color: "#25D366" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 670, y: 420, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#4267B2", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 690, y: 440, width: 230, height: 30, content: "👍 FACEBOOK", style: { fontSize: "16px", fontWeight: "700", color: "#4267B2", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 690, y: 480, width: 230, height: 55, content: "31.2K", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 690, y: 545, width: 230, height: 25, content: "↑ 780 this week", style: { fontSize: "14px", fontWeight: "500", color: "#4267B2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 650, width: 780, height: 35, content: "@YOURBRAND ON ALL PLATFORMS", style: { fontSize: "18px", fontWeight: "600", color: "#A78BFA", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "social-latest-posts",
+    name: "Latest Posts Feed",
+    category: "social",
+    preview: "📰",
+    description: "Showcase recent social media posts and updates",
+    bg: { type: "gradient", color: "#0f0f1a", gradient: "linear-gradient(180deg, #0f0f1a 0%, #1a1a30 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 100, y: 50, width: 820, height: 60, content: "📱 LATEST FROM OUR FEED", style: { fontSize: "40px", fontWeight: "800", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 380, y: 120, width: 260, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#E1306C", shapeStroke: "#E1306C", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 160, width: 420, height: 200, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#333355", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 175, width: 380, height: 25, content: "📸 @yourbrand · 2 hours ago", style: { fontSize: "13px", fontWeight: "600", color: "#E1306C" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 210, width: 380, height: 120, content: "Excited to announce our new summer collection! 🌴☀️ Fresh styles, vibrant colors, and sustainable materials. Shop now in-store or online.\n\n#NewCollection #Summer2026 #Fashion", style: { fontSize: "16px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 335, width: 380, height: 20, content: "❤️ 2,847   💬 186   🔄 94", style: { fontSize: "13px", fontWeight: "500", color: "#6B7280" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 520, y: 160, width: 420, height: 200, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#333355", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 175, width: 380, height: 25, content: "🐦 @yourbrand · 5 hours ago", style: { fontSize: "13px", fontWeight: "600", color: "#1DA1F2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 210, width: 380, height: 120, content: "We just hit 50K followers! 🎉 Thank you for being part of our journey. To celebrate, enjoy 20% off everything this weekend with code THANKYOU50.\n\n#Milestone #Community", style: { fontSize: "16px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 335, width: 380, height: 20, content: "❤️ 5,102   💬 423   🔄 312", style: { fontSize: "13px", fontWeight: "500", color: "#6B7280" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 390, width: 860, height: 200, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#333355", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 405, width: 380, height: 25, content: "▶️ YouTube · 1 day ago", style: { fontSize: "13px", fontWeight: "600", color: "#FF0000" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 440, width: 820, height: 80, content: "🎬 NEW VIDEO: Behind the Scenes of Our Summer Campaign\nTake a sneak peek at how we created this year's most vibrant collection.\nGo behind the lens with our creative team!", style: { fontSize: "18px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 545, width: 820, height: 20, content: "👁️ 12.4K views   👍 1,892   💬 247", style: { fontSize: "13px", fontWeight: "500", color: "#6B7280" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 630, width: 780, height: 35, content: "FOLLOW @YOURBRAND FOR MORE UPDATES", style: { fontSize: "16px", fontWeight: "600", color: "#A78BFA", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "social-wifi-qr",
+    name: "WiFi QR Code",
+    category: "social",
+    preview: "📶",
+    description: "Scan-to-connect WiFi display with QR code placeholder",
+    bg: { type: "gradient", color: "#0a1628", gradient: "linear-gradient(135deg, #0a1628 0%, #141e35 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 60, width: 780, height: 70, content: "📶 FREE WiFi", style: { fontSize: "56px", fontWeight: "900", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 140, width: 780, height: 35, content: "SCAN TO CONNECT INSTANTLY", style: { fontSize: "16px", fontWeight: "600", color: "#60A5FA", letterSpacing: "6px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 340, y: 210, width: 340, height: 340, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#FFFFFF", shapeStroke: "#60A5FA", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 370, y: 320, width: 280, height: 120, content: "[ QR CODE ]\n\nReplace with your\nWiFi QR image", style: { fontSize: "22px", fontWeight: "600", color: "#1a1a2e", textAlign: "center", lineHeight: "1.4" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 180, y: 590, width: 660, height: 120, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#141e35", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 200, y: 605, width: 620, height: 25, content: "OR CONNECT MANUALLY", style: { fontSize: "13px", fontWeight: "600", color: "#60A5FA", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 200, y: 640, width: 620, height: 55, content: "Network: GuestWiFi-5G\nPassword: Welcome2026!", style: { fontSize: "24px", fontWeight: "500", color: "#FFFFFF", textAlign: "center", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "social-review-wall",
+    name: "Review Wall",
+    category: "social",
+    preview: "⭐",
+    description: "Customer reviews and ratings social proof display",
+    bg: { type: "gradient", color: "#0a0a12", gradient: "linear-gradient(180deg, #0a0a12 0%, #1a1020 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 50, width: 780, height: 60, content: "WHAT OUR CUSTOMERS SAY", style: { fontSize: "38px", fontWeight: "800", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 120, width: 780, height: 35, content: "⭐⭐⭐⭐⭐  4.9 / 5  •  2,847 REVIEWS", style: { fontSize: "18px", fontWeight: "600", color: "#F59E0B", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 190, width: 420, height: 170, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#2a2a4e", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 205, width: 380, height: 20, content: "⭐⭐⭐⭐⭐", style: { fontSize: "16px" }, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 230, width: 380, height: 80, content: "\"Absolutely amazing service! The team went above and beyond. Will definitely be coming back.\"", style: { fontSize: "17px", fontWeight: "400", color: "#E2E8F0", lineHeight: "1.5", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 325, width: 380, height: 20, content: "— Sarah M. · Google Review", style: { fontSize: "13px", fontWeight: "500", color: "#6B7280" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 520, y: 190, width: 420, height: 170, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#2a2a4e", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 205, width: 380, height: 20, content: "⭐⭐⭐⭐⭐", style: { fontSize: "16px" }, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 230, width: 380, height: 80, content: "\"Best in town, hands down! Quality is outstanding and the attention to detail is incredible.\"", style: { fontSize: "17px", fontWeight: "400", color: "#E2E8F0", lineHeight: "1.5", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 325, width: 380, height: 20, content: "— James T. · Yelp Review", style: { fontSize: "13px", fontWeight: "500", color: "#6B7280" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 390, width: 860, height: 170, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#2a2a4e", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 405, width: 380, height: 20, content: "⭐⭐⭐⭐⭐", style: { fontSize: "16px" }, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 430, width: 820, height: 80, content: "\"I've tried many places but nothing compares. The staff are friendly, prices are fair, and the results speak for themselves. Highly recommend to everyone!\"", style: { fontSize: "17px", fontWeight: "400", color: "#E2E8F0", lineHeight: "1.5", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 525, width: 820, height: 20, content: "— Emma R. · TripAdvisor", style: { fontSize: "13px", fontWeight: "500", color: "#6B7280" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 610, width: 780, height: 35, content: "LEAVE A REVIEW • SCAN QR AT THE COUNTER", style: { fontSize: "15px", fontWeight: "600", color: "#F59E0B", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "social-hashtag",
+    name: "Hashtag Wall",
+    category: "social",
+    preview: "#️⃣",
+    description: "Encourage customers to post with your branded hashtag",
+    bg: { type: "gradient", color: "#1a0520", gradient: "linear-gradient(135deg, #1a0520 0%, #0a1a30 50%, #1a0520 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 80, width: 780, height: 100, content: "#YOURBRAND", style: { fontSize: "72px", fontWeight: "900", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS }, glowIntensity: 60 },
+      { id: tid(), type: "text", x: 120, y: 200, width: 780, height: 50, content: "Share your experience with us!", style: { fontSize: "28px", fontWeight: "400", color: "#C4B5FD", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 380, y: 270, width: 260, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#A78BFA", shapeStroke: "#A78BFA", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 310, width: 780, height: 40, content: "HOW IT WORKS", style: { fontSize: "18px", fontWeight: "700", color: "#A78BFA", letterSpacing: "6px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 370, width: 780, height: 180, content: "1️⃣  Take a photo or video of your experience\n\n2️⃣  Post it on Instagram, TikTok, or Twitter\n\n3️⃣  Tag us @YourBrand + use #YourBrand\n\n4️⃣  Your post could appear on our screens! 📺", style: { fontSize: "22px", fontWeight: "400", color: "#E2E8F0", lineHeight: "1.8", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 600, width: 780, height: 50, content: "🏆 BEST POST OF THE WEEK WINS A PRIZE!", style: { fontSize: "24px", fontWeight: "700", color: "#F59E0B", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
 ];
 
 /* ── Tag map for searchability ── */
@@ -596,6 +717,11 @@ const TEMPLATE_TAGS: Record<string, string[]> = {
   "corporate-welcome": ["office", "lobby", "corporate", "company", "reception", "visitor", "professional"],
   "corporate-meeting": ["meeting", "conference room", "boardroom", "schedule", "booking", "available"],
   "corporate-kpi": ["dashboard", "KPI", "metrics", "analytics", "performance", "revenue", "data"],
+  "social-followers": ["social media", "followers", "instagram", "twitter", "youtube", "tiktok", "facebook", "linkedin", "counts", "stats"],
+  "social-latest-posts": ["posts", "feed", "social media", "instagram", "twitter", "youtube", "updates", "timeline"],
+  "social-wifi-qr": ["wifi", "QR code", "scan", "connect", "internet", "password", "network", "guest"],
+  "social-review-wall": ["reviews", "ratings", "testimonials", "google", "yelp", "tripadvisor", "social proof", "stars"],
+  "social-hashtag": ["hashtag", "user generated", "UGC", "instagram", "tiktok", "share", "photo", "contest"],
 };
 
 /* ── Category config ── */
@@ -604,6 +730,7 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
   { id: "menu", label: "Menu Boards", icon: Utensils },
   { id: "promo", label: "Promotions", icon: Tag },
   { id: "info", label: "Info Displays", icon: Info },
+  { id: "social", label: "Social & QR", icon: Share2 },
   { id: "fitness", label: "Gym & Fitness", icon: Dumbbell },
   { id: "retail", label: "Retail", icon: Store },
   { id: "hotel", label: "Hotel Lobby", icon: Hotel },
