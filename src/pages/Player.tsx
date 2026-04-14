@@ -706,6 +706,7 @@ export default function Player() {
           if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
           if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
           if ((screen as any).display_mode === "fit" || (screen as any).display_mode === "fill") setDisplayMode((screen as any).display_mode);
+          if ((screen as any).fit_bg_color) setFitBgColor((screen as any).fit_bg_color);
           if (screen.current_playlist_id) await fetchPlaylist(screen.current_playlist_id);
           setAudioEnabled((screen as any).audio_enabled === true);
           setAudioStationUrl((screen as any).audio_station_url || null);
@@ -727,7 +728,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode, fit_bg_color")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -752,6 +753,7 @@ export default function Player() {
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
       if ((screen as any).display_mode === "fit" || (screen as any).display_mode === "fill") setDisplayMode((screen as any).display_mode);
+      if ((screen as any).fit_bg_color) setFitBgColor((screen as any).fit_bg_color);
       setAudioEnabled((screen as any).audio_enabled === true);
       setAudioStationUrl((screen as any).audio_station_url || null);
       setAudioStationName((screen as any).audio_station_name || null);
@@ -1122,6 +1124,7 @@ export default function Player() {
           if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
           if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
           if (updated.display_mode === "fit" || updated.display_mode === "fill") setDisplayMode(updated.display_mode);
+          if (updated.fit_bg_color) setFitBgColor(updated.fit_bg_color);
           if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
           // Apply audio settings in real-time
           if (updated.audio_enabled != null) setAudioEnabled(updated.audio_enabled);
