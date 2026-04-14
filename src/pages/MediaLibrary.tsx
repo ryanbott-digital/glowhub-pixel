@@ -1189,7 +1189,7 @@ export default function MediaLibrary() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteMedia(item);
+                          setDeleteConfirmItem(item);
                         }}
                         className="p-2 sm:p-1.5 bg-destructive/90 rounded-lg sm:rounded-md hover:bg-destructive transition-colors"
                       >
