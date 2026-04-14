@@ -503,8 +503,16 @@ interface StudioTemplateGalleryProps {
 export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplateGalleryProps) {
   const [category, setCategory] = useState<TemplateCategory>("all");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
-  const filtered = category === "all" ? TEMPLATES : TEMPLATES.filter((t) => t.category === category);
+  const filtered = useMemo(() => {
+    let list = category === "all" ? TEMPLATES : TEMPLATES.filter((t) => t.category === category);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((t) => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+    }
+    return list;
+  }, [category, search]);
 
   const handleApply = (tpl: StudioTemplate) => {
     // Re-generate IDs so each application is unique
