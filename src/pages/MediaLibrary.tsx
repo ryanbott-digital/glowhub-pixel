@@ -880,7 +880,7 @@ export default function MediaLibrary() {
                 variant="destructive"
                 size="sm"
                 className="h-10 sm:h-8 text-xs"
-                onClick={bulkDelete}
+                onClick={() => setBulkDeleteConfirm(true)}
                 disabled={deleting}
               >
                 {deleting ? (
