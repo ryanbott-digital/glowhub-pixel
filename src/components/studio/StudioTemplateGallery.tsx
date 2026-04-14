@@ -167,6 +167,146 @@ const TEMPLATES: StudioTemplate[] = [
       { id: tid(), type: "text", x: 100, y: 620, width: 400, height: 35, content: "— Management Team", style: { fontSize: "18px", fontWeight: "500", color: "#64748B", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
     ],
   },
+  /* ─── GYM / FITNESS ─── */
+  {
+    id: "fitness-class",
+    name: "Class Schedule",
+    category: "fitness",
+    preview: "🏋️",
+    description: "Gym class timetable with bold time slots",
+    bg: { type: "gradient", color: "#0a0a0a", gradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 80, y: 50, width: 700, height: 80, content: "TODAY'S CLASSES", style: { fontSize: "56px", fontWeight: "900", color: "#FF4444", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 140, width: 200, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#FF4444", shapeStroke: "#FF4444", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 180, width: 800, height: 600, content: "06:00    HIIT Burn — Studio A\n              45 min • All levels • Coach Marcus\n\n07:30    Spin Cycle — Cycle Room\n              50 min • Intermediate • Coach Priya\n\n09:00    Yoga Flow — Studio B\n              60 min • Beginner friendly • Sarah\n\n12:00    Boxing Basics — Ring\n              45 min • All levels • Coach Dex\n\n17:30    CrossFit WOD — Main Floor\n              60 min • Advanced • Coach Liam\n\n19:00    Pilates Core — Studio B\n              45 min • All levels • Mia", style: { fontSize: "20px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 840, width: 700, height: 35, content: "Book via app or front desk • Walk-ins welcome", style: { fontSize: "16px", fontWeight: "500", color: "#64748B", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "fitness-promo",
+    name: "Membership Offer",
+    category: "fitness",
+    preview: "💪",
+    description: "Gym membership promotion with pricing",
+    bg: { type: "gradient", color: "#0f0f0f", gradient: "linear-gradient(180deg, #0f0f0f 0%, #1a0505 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 80, width: 600, height: 40, content: "NO JOINING FEE", style: { fontSize: "18px", fontWeight: "700", color: "#FF4444", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 140, width: 800, height: 140, content: "TRANSFORM\nYOUR BODY", style: { fontSize: "72px", fontWeight: "900", color: "#FFFFFF", lineHeight: "1" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 120, y: 300, width: 150, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#FF4444", shapeStroke: "#FF4444", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 340, width: 500, height: 160, content: "£19.99/mo\nUnlimited access", style: { fontSize: "56px", fontWeight: "800", color: "hsl(180, 100%, 45%)", lineHeight: "1.3" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 520, width: 700, height: 180, content: "✓ Full gym floor & free weights\n✓ All group classes included\n✓ Sauna & steam room\n✓ Free fitness assessment\n✓ Cancel anytime", style: { fontSize: "22px", fontWeight: "400", color: "#94A3B8", lineHeight: "1.9" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 750, width: 500, height: 40, content: "Scan QR or ask at reception", style: { fontSize: "18px", fontWeight: "500", color: "#64748B", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "fitness-motivation",
+    name: "Motivation Board",
+    category: "fitness",
+    preview: "🔥",
+    description: "Motivational display with bold quote",
+    bg: { type: "solid", color: "#0a0a0a" },
+    elements: [
+      { id: tid(), type: "text", x: 100, y: 200, width: 800, height: 250, content: "STRONGER\nTHAN\nYESTERDAY", style: { fontSize: "96px", fontWeight: "900", color: "#FFFFFF", lineHeight: "1", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 400, y: 480, width: 200, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#FF4444", shapeStroke: "#FF4444", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 200, y: 520, width: 600, height: 50, content: "PUSH YOUR LIMITS • EVERY REP COUNTS", style: { fontSize: "18px", fontWeight: "600", color: "#FF4444", textAlign: "center", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-clock", x: 380, y: 700, width: 240, height: 80, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+
+  /* ─── RETAIL WINDOW DISPLAY ─── */
+  {
+    id: "retail-new-arrivals",
+    name: "New Arrivals",
+    category: "retail",
+    preview: "🛍️",
+    description: "Shop window display for new collection launch",
+    bg: { type: "gradient", color: "#0f0f0f", gradient: "linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 100, y: 80, width: 400, height: 35, content: "JUST DROPPED", style: { fontSize: "16px", fontWeight: "700", color: "hsl(180, 100%, 45%)", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 130, width: 800, height: 140, content: "NEW\nARRIVALS", style: { fontSize: "88px", fontWeight: "900", color: "#FFFFFF", lineHeight: "1" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 100, y: 290, width: 120, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "hsl(180, 100%, 45%)", shapeStroke: "hsl(180, 100%, 45%)", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 330, width: 600, height: 80, content: "Summer 2026 Collection\nNow in store & online", style: { fontSize: "26px", fontWeight: "300", color: "#94A3B8", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 480, width: 400, height: 80, content: "FROM £29", style: { fontSize: "56px", fontWeight: "800", color: "#FFD700" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 580, width: 500, height: 35, content: "Shop now at yourstore.com", style: { fontSize: "18px", fontWeight: "500", color: "#64748B", letterSpacing: "2px" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "retail-sale-window",
+    name: "Window Sale",
+    category: "retail",
+    preview: "🏷️",
+    description: "Eye-catching sale display for shop windows",
+    bg: { type: "gradient", color: "#1a0000", gradient: "linear-gradient(180deg, #1a0000 0%, #0f0f0f 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 150, y: 60, width: 700, height: 200, content: "SALE", style: { fontSize: "160px", fontWeight: "900", color: "#FF4444", textAlign: "center", lineHeight: "1" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS }, animation: "pulse" },
+      { id: tid(), type: "text", x: 200, y: 280, width: 600, height: 120, content: "UP TO 70% OFF", style: { fontSize: "56px", fontWeight: "800", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 350, y: 420, width: 300, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#FF4444", shapeStroke: "#FF4444", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 200, y: 460, width: 600, height: 120, content: "FINAL REDUCTIONS\nEVERYTHING MUST GO", style: { fontSize: "32px", fontWeight: "700", color: "#FFD700", textAlign: "center", lineHeight: "1.5", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 200, y: 620, width: 600, height: 40, content: "In store only • While stocks last", style: { fontSize: "18px", fontWeight: "400", color: "#64748B", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "retail-loyalty",
+    name: "Loyalty Programme",
+    category: "retail",
+    preview: "⭐",
+    description: "Customer loyalty programme promotion",
+    bg: { type: "gradient", color: "#0a1628", gradient: "linear-gradient(135deg, #0a1628 0%, #1a1a2e 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 80, width: 300, height: 35, content: "REWARDS", style: { fontSize: "16px", fontWeight: "700", color: "#FFD700", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 130, width: 800, height: 100, content: "Join Our VIP Club", style: { fontSize: "64px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 120, y: 250, width: 160, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#FFD700", shapeStroke: "#FFD700", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 290, width: 700, height: 250, content: "⭐ Earn 1 point per £1 spent\n⭐ Birthday surprise every year\n⭐ Exclusive member-only sales\n⭐ Free delivery on all orders\n⭐ Early access to new drops", style: { fontSize: "24px", fontWeight: "400", color: "#CBD5E1", lineHeight: "2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 580, width: 500, height: 40, content: "Scan to sign up — it's free!", style: { fontSize: "20px", fontWeight: "500", color: "hsl(180, 100%, 45%)", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+
+  /* ─── HOTEL LOBBY ─── */
+  {
+    id: "hotel-welcome",
+    name: "Hotel Welcome",
+    category: "hotel",
+    preview: "🏨",
+    description: "Elegant hotel lobby welcome screen",
+    bg: { type: "gradient", color: "#0B1120", gradient: "linear-gradient(180deg, #0B1120 0%, #1a1628 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 160, y: 150, width: 700, height: 40, content: "WELCOME TO", style: { fontSize: "18px", fontWeight: "600", color: "#D4A574", letterSpacing: "10px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 160, y: 200, width: 700, height: 140, content: "THE GRAND\nHOTEL", style: { fontSize: "80px", fontWeight: "300", color: "#FFFFFF", textAlign: "center", lineHeight: "1.1" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 400, y: 370, width: 220, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#D4A574", shapeStroke: "#D4A574", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 160, y: 410, width: 700, height: 50, content: "Est. 1923 • Five Star Luxury", style: { fontSize: "20px", fontWeight: "400", color: "#94A3B8", textAlign: "center", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-clock", x: 380, y: 540, width: 260, height: 100, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-weather", x: 380, y: 680, width: 260, height: 100, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "hotel-amenities",
+    name: "Hotel Amenities",
+    category: "hotel",
+    preview: "🛎️",
+    description: "Guest information display with amenities & hours",
+    bg: { type: "gradient", color: "#0f0f1a", gradient: "linear-gradient(135deg, #0f0f1a 0%, #1a1628 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 80, y: 50, width: 700, height: 70, content: "GUEST SERVICES", style: { fontSize: "48px", fontWeight: "300", color: "#FFFFFF", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 130, width: 120, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#D4A574", shapeStroke: "#D4A574", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 170, width: 800, height: 550, content: "🍽️  RESTAURANT\n     Breakfast  7:00 – 10:30\n     Lunch  12:00 – 14:30\n     Dinner  18:00 – 22:00\n\n🏊  POOL & SPA\n     Pool  06:00 – 21:00\n     Spa bookings at reception\n\n💪  FITNESS CENTRE\n     Open 24 hours • Key card access\n\n☕  LOUNGE BAR\n     Open 11:00 – midnight\n     Afternoon tea 15:00 – 17:00\n\n🅿️  VALET PARKING\n     Available 24 hours • £15/day", style: { fontSize: "20px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.65" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 780, width: 700, height: 35, content: "Dial 0 from your room for assistance", style: { fontSize: "16px", fontWeight: "500", color: "#D4A574", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "hotel-checkout",
+    name: "Checkout Info",
+    category: "hotel",
+    preview: "🔑",
+    description: "Check-out time and departure information",
+    bg: { type: "solid", color: "#0a0a12" },
+    elements: [
+      { id: tid(), type: "text", x: 160, y: 100, width: 700, height: 40, content: "DEPARTURE INFORMATION", style: { fontSize: "18px", fontWeight: "600", color: "#D4A574", letterSpacing: "8px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 160, y: 180, width: 700, height: 140, content: "CHECK-OUT\nBY 11:00", style: { fontSize: "72px", fontWeight: "800", color: "#FFFFFF", textAlign: "center", lineHeight: "1.1" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 400, y: 350, width: 220, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#D4A574", shapeStroke: "#D4A574", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 400, width: 760, height: 250, content: "Late check-out available upon request (subject to availability)\n\nLuggage storage available at the concierge desk\n\nAirport transfers can be arranged — please enquire at reception by 9:00 AM\n\nWe hope you enjoyed your stay!", style: { fontSize: "22px", fontWeight: "400", color: "#94A3B8", textAlign: "center", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-clock", x: 400, y: 700, width: 220, height: 80, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
 ];
 
 /* ── Category config ── */
@@ -175,6 +315,9 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
   { id: "menu", label: "Menu Boards", icon: Utensils },
   { id: "promo", label: "Promotions", icon: Tag },
   { id: "info", label: "Info Displays", icon: Info },
+  { id: "fitness", label: "Gym & Fitness", icon: Dumbbell },
+  { id: "retail", label: "Retail", icon: Store },
+  { id: "hotel", label: "Hotel Lobby", icon: Hotel },
 ];
 
 /* ── Component ── */
