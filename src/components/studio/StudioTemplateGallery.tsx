@@ -1175,7 +1175,7 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
                 <div
                   className="aspect-video relative overflow-hidden"
                   style={{
-                    background: tpl.bg?.gradient || tpl.bg?.color || "#0B1120",
+                    background: tpl.bg?.gradient || tpl.bg?.color || "#0a0a12",
                   }}
                 >
                   <MiniCanvasPreview elements={tpl.elements} />
