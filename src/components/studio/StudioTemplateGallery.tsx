@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { CanvasElement, DEFAULT_FILTERS } from "@/components/studio/types";
-import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap } from "lucide-react";
+import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap, Search } from "lucide-react";
 
 /* ── Template category type ── */
 type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education";
@@ -502,8 +503,16 @@ interface StudioTemplateGalleryProps {
 export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplateGalleryProps) {
   const [category, setCategory] = useState<TemplateCategory>("all");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
-  const filtered = category === "all" ? TEMPLATES : TEMPLATES.filter((t) => t.category === category);
+  const filtered = useMemo(() => {
+    let list = category === "all" ? TEMPLATES : TEMPLATES.filter((t) => t.category === category);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((t) => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+    }
+    return list;
+  }, [category, search]);
 
   const handleApply = (tpl: StudioTemplate) => {
     // Re-generate IDs so each application is unique
@@ -530,8 +539,19 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
             </div>
           </div>
 
+          {/* Search */}
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search templates…"
+              className="pl-9 h-9 text-sm bg-muted/30 border-border/20"
+            />
+          </div>
+
           {/* Category tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
