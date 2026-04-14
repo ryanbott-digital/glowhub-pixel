@@ -328,6 +328,7 @@ export default function MediaLibrary() {
             const was = folderMedia.find((fm) => fm.id === m.id);
             return was ? { ...m, folder_id: folderId } : m;
           }));
+          markRestored(folderMedia.map((fm) => fm.id));
           toast.success(`Restored folder "${folderName}"`);
         },
       },
