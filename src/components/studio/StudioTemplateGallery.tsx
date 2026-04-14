@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CanvasElement, DEFAULT_FILTERS } from "@/components/studio/types";
 import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel } from "lucide-react";
@@ -320,6 +320,85 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
   { id: "hotel", label: "Hotel Lobby", icon: Hotel },
 ];
 
+/* ── Mini canvas thumbnail ── */
+const CANVAS_W = 1024;
+const CANVAS_H = 768;
+
+function MiniCanvasPreview({ elements }: { elements: CanvasElement[] }) {
+  const rendered = useMemo(() => {
+    return elements
+      .filter((el) => el.visible && (el.type === "text" || el.type === "shape"))
+      .map((el) => {
+        const scaleX = 100 / CANVAS_W;
+        const scaleY = 100 / CANVAS_H;
+        const left = `${el.x * scaleX}%`;
+        const top = `${el.y * scaleY}%`;
+        const width = `${el.width * scaleX}%`;
+        const height = `${el.height * scaleY}%`;
+
+        if (el.type === "shape" && el.shapeType === "line") {
+          return (
+            <div
+              key={el.id}
+              className="absolute"
+              style={{
+                left, top, width, height: `${Math.max(el.shapeStrokeWidth || 2, 1) * scaleY}%`,
+                minHeight: "1px",
+                backgroundColor: el.shapeFill || el.shapeStroke || "#fff",
+              }}
+            />
+          );
+        }
+
+        if (el.type === "shape") {
+          return (
+            <div
+              key={el.id}
+              className="absolute"
+              style={{
+                left, top, width, height,
+                backgroundColor: el.shapeFill || "transparent",
+                border: el.shapeStroke ? `1px solid ${el.shapeStroke}` : undefined,
+                borderRadius: el.shapeType === "circle" ? "50%" : el.shapeType === "rounded-rect" ? "4px" : undefined,
+              }}
+            />
+          );
+        }
+
+        // Text — render at tiny scale
+        const fontSize = parseFloat(el.style.fontSize || "16");
+        const scaledFontSize = Math.max(fontSize * scaleX * 0.9, 1.5);
+
+        return (
+          <div
+            key={el.id}
+            className="absolute overflow-hidden"
+            style={{
+              left, top, width, height,
+              fontSize: `${scaledFontSize}px`,
+              fontWeight: el.style.fontWeight || "400",
+              color: el.style.color || "#fff",
+              lineHeight: el.style.lineHeight || "1.4",
+              textAlign: (el.style.textAlign as any) || "left",
+              letterSpacing: el.style.letterSpacing ? `${parseFloat(el.style.letterSpacing) * scaleX}px` : undefined,
+              fontFamily: el.fontFamily || "sans-serif",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {el.content}
+          </div>
+        );
+      });
+  }, [elements]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none select-none" style={{ contain: "layout style" }}>
+      {rendered}
+    </div>
+  );
+}
+
 /* ── Component ── */
 interface StudioTemplateGalleryProps {
   open: boolean;
@@ -388,14 +467,14 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
                 onMouseLeave={() => setHoveredId(null)}
                 className="group relative rounded-xl border border-border/20 bg-muted/20 overflow-hidden text-left transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)] focus:outline-none focus:ring-2 focus:ring-primary/40"
               >
-                {/* Preview area */}
+                {/* Mini canvas preview */}
                 <div
-                  className="aspect-video flex items-center justify-center text-5xl relative"
+                  className="aspect-video relative overflow-hidden"
                   style={{
                     background: tpl.bg?.gradient || tpl.bg?.color || "#0B1120",
                   }}
                 >
-                  <span className="relative z-10">{tpl.preview}</span>
+                  <MiniCanvasPreview elements={tpl.elements} />
                   {/* Hover overlay */}
                   <div className={`absolute inset-0 bg-primary/10 flex items-center justify-center transition-opacity ${hoveredId === tpl.id ? "opacity-100" : "opacity-0"}`}>
                     <span className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold">
