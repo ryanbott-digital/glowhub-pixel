@@ -37,6 +37,7 @@ interface MediaItem {
   id: string;
   name: string;
   type: string;
+  storage_path?: string;
 }
 
 interface PlaylistBuilderProps {

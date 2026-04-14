@@ -168,7 +168,7 @@ export default function Playlists() {
 
   const fetchMedia = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from("media").select("id, name, type").eq("user_id", user.id);
+    const { data } = await supabase.from("media").select("id, name, type, storage_path").eq("user_id", user.id);
     if (data) setMedia(data);
   }, [user]);
 
