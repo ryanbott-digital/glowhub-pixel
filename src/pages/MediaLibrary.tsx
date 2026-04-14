@@ -328,6 +328,7 @@ export default function MediaLibrary() {
             const was = folderMedia.find((fm) => fm.id === m.id);
             return was ? { ...m, folder_id: folderId } : m;
           }));
+          markRestored(folderMedia.map((fm) => fm.id));
           toast.success(`Restored folder "${folderName}"`);
         },
       },
@@ -659,6 +660,12 @@ export default function MediaLibrary() {
   // Delete confirmation state
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<MediaWithSize | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [restoredIds, setRestoredIds] = useState<Set<string>>(new Set());
+
+  const markRestored = (ids: string[]) => {
+    setRestoredIds(new Set(ids));
+    setTimeout(() => setRestoredIds(new Set()), 1200);
+  };
 
   const deleteMedia = async (item: MediaWithSize) => {
     // Optimistically remove from UI
@@ -673,6 +680,7 @@ export default function MediaLibrary() {
         onClick: () => {
           undoRef.undone = true;
           setMedia((prev) => [...prev, item].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          markRestored([item.id]);
           toast.success("Restored " + item.name);
         },
       },
@@ -711,6 +719,7 @@ export default function MediaLibrary() {
         onClick: () => {
           undoRef.undone = true;
           setMedia((prev) => [...prev, ...toDelete].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+          markRestored(toDelete.map((m) => m.id));
           toast.success(`Restored ${toDelete.length} file(s)`);
         },
       },
@@ -1084,6 +1093,7 @@ export default function MediaLibrary() {
           {filteredMedia.map((item) => {
             const url = getPublicUrl(item.storage_path);
             const isSelected = selected.has(item.id);
+            const isRestored = restoredIds.has(item.id);
             return (
               <div
                 key={item.id}
@@ -1093,6 +1103,8 @@ export default function MediaLibrary() {
                   e.dataTransfer.effectAllowed = "move";
                 }}
                 className={`glass glass-spotlight rounded-xl sm:rounded-2xl group overflow-hidden transition-all cursor-grab border active:scale-[0.98] ${
+                  isRestored ? "animate-fade-in ring-2 ring-primary/50" : ""
+                } ${
                   isSelected
                     ? "ring-2 ring-primary border-primary"
                     : "border-white/[0.06] hover:border-primary/30"
