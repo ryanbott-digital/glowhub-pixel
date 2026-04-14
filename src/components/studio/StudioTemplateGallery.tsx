@@ -13,7 +13,7 @@ interface StudioTemplate {
   category: TemplateCategory;
   preview: string;
   description: string;
-  tags: string[];
+  tags?: string[];
   elements: CanvasElement[];
   bg?: { type: "solid" | "gradient" | "image"; color: string; gradient?: string };
 }
