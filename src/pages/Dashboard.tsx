@@ -108,6 +108,44 @@ export default function Dashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [user, triggerCelebration]);
 
+  // Realtime: listen for playlist_items changes on active playlists → show sync toast
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("dashboard-playlist-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "playlist_items" },
+        (payload) => {
+          const changedPlaylistId =
+            (payload.new as any)?.playlist_id ||
+            (payload.old as any)?.playlist_id;
+          if (!changedPlaylistId) return;
+
+          // Check if any of the user's screens are playing this playlist
+          setScreens((prev) => {
+            const affectedScreen = prev.find(
+              (s) => s.current_playlist_id === changedPlaylistId
+            );
+            if (affectedScreen) {
+              toast.success(`"${affectedScreen.name}" synced new content`, {
+                description: "Playlist update pushed to screen",
+                icon: "📡",
+                duration: 4000,
+              });
+            }
+            return prev;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const handlePair = async () => {
     if (pairingCode.length !== 6) {
       toast.error("Please enter a 6-digit pairing code");
