@@ -373,6 +373,66 @@ export default function MediaLibrary() {
     setMoveDialogOpen(false);
   };
 
+  // ── Playlist operations ──
+  const fetchPlaylists = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("playlists")
+      .select("id, title")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) {
+      // Get item counts
+      const { data: items } = await supabase
+        .from("playlist_items")
+        .select("playlist_id");
+      const countMap = new Map<string, number>();
+      if (items) {
+        for (const item of items) {
+          countMap.set(item.playlist_id, (countMap.get(item.playlist_id) || 0) + 1);
+        }
+      }
+      setPlaylists(data.map(p => ({ ...p, item_count: countMap.get(p.id) || 0 })));
+    }
+  }, [user]);
+
+  const openPlaylistDialog = (mediaIds: string[]) => {
+    setPlaylistMediaIds(mediaIds);
+    fetchPlaylists();
+    setPlaylistDialogOpen(true);
+  };
+
+  const addToPlaylist = async (playlistId: string) => {
+    if (playlistMediaIds.length === 0) return;
+    setAddingToPlaylist(true);
+    try {
+      // Get current max position
+      const { data: existing } = await supabase
+        .from("playlist_items")
+        .select("position")
+        .eq("playlist_id", playlistId)
+        .order("position", { ascending: false })
+        .limit(1);
+      const startPos = existing && existing.length > 0 ? existing[0].position + 1 : 0;
+
+      const items = playlistMediaIds.map((mediaId, i) => ({
+        playlist_id: playlistId,
+        media_id: mediaId,
+        position: startPos + i,
+      }));
+      const { error } = await supabase.from("playlist_items").insert(items);
+      if (error) throw error;
+
+      const playlist = playlists.find(p => p.id === playlistId);
+      toast.success(`Added ${playlistMediaIds.length} item${playlistMediaIds.length > 1 ? "s" : ""} to "${playlist?.title ?? "playlist"}"`);
+      setPlaylistDialogOpen(false);
+      setSelected(new Set());
+    } catch {
+      toast.error("Failed to add to playlist");
+    }
+    setAddingToPlaylist(false);
+  };
+
   // ── Existing operations ──
   const uploadFiles = async (files: File[]) => {
     if (!user) {
