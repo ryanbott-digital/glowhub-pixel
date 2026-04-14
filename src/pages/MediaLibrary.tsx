@@ -302,17 +302,51 @@ export default function MediaLibrary() {
     setNewFolderName("New Folder");
   };
 
+  const [deleteFolderConfirm, setDeleteFolderConfirm] = useState<{ id: string; name: string } | null>(null);
+
   const deleteFolder = async (folderId: string) => {
-    // Move all media in this folder back to root first
-    await (supabase.from("media") as any).update({ folder_id: null }).eq("folder_id", folderId);
-    const { error } = await supabase.from("media_folders").delete().eq("id", folderId);
-    if (error) {
-      toast.error("Failed to delete folder");
-    } else {
-      setFolders((prev) => prev.filter((f) => f.id !== folderId));
-      toast.success("Folder deleted");
-      if (currentFolderId === folderId) navigateToFolder(null);
-    }
+    const folder = folders.find((f) => f.id === folderId);
+    const folderName = folder?.name || "Folder";
+    setDeleteFolderConfirm(null);
+
+    // Remember which media was in this folder for undo
+    const folderMedia = media.filter((m) => m.folder_id === folderId);
+
+    // Optimistically remove folder and move its media to root
+    setFolders((prev) => prev.filter((f) => f.id !== folderId));
+    setMedia((prev) => prev.map((m) => m.folder_id === folderId ? { ...m, folder_id: null } : m));
+    if (currentFolderId === folderId) navigateToFolder(null);
+
+    const undoRef = { undone: false };
+    toast(`Deleted folder "${folderName}"`, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          undoRef.undone = true;
+          if (folder) setFolders((prev) => [...prev, folder]);
+          setMedia((prev) => prev.map((m) => {
+            const was = folderMedia.find((fm) => fm.id === m.id);
+            return was ? { ...m, folder_id: folderId } : m;
+          }));
+          toast.success(`Restored folder "${folderName}"`);
+        },
+      },
+      duration: 5000,
+      onAutoClose: () => {
+        if (!undoRef.undone) {
+          (supabase.from("media") as any).update({ folder_id: null }).eq("folder_id", folderId).then(() => {
+            supabase.from("media_folders").delete().eq("id", folderId);
+          });
+        }
+      },
+      onDismiss: () => {
+        if (!undoRef.undone) {
+          (supabase.from("media") as any).update({ folder_id: null }).eq("folder_id", folderId).then(() => {
+            supabase.from("media_folders").delete().eq("id", folderId);
+          });
+        }
+      },
+    });
   };
 
   const commitFolderRename = async () => {
@@ -988,7 +1022,7 @@ export default function MediaLibrary() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteFolder(folder.id);
+                            setDeleteFolderConfirm({ id: folder.id, name: folder.name });
                           }}
                           className="p-1 rounded hover:bg-destructive/20 transition-colors"
                         >
@@ -1524,6 +1558,27 @@ export default function MediaLibrary() {
               onClick={bulkDelete}
             >
               Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Folder delete confirmation */}
+      <AlertDialog open={!!deleteFolderConfirm} onOpenChange={(open) => !open && setDeleteFolderConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete folder?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteFolderConfirm?.name}"? Media inside will be moved to the root library. You'll have a few seconds to undo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteFolderConfirm && deleteFolder(deleteFolderConfirm.id)}
+            >
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
