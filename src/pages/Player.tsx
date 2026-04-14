@@ -2007,7 +2007,7 @@ export default function Player() {
     : `w-full h-full ${objectFit} absolute inset-0`;
 
   return (
-    <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
+    <div className="w-screen h-screen flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor, animation: "contentFadeIn 1.2s ease-out forwards" }}>
       {/* Hype Takeover Overlay */}
       <HypeTakeover />
 
