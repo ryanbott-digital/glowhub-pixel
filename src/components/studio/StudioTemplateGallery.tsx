@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CanvasElement, DEFAULT_FILTERS } from "@/components/studio/types";
-import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel } from "lucide-react";
+import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap } from "lucide-react";
 
 /* ── Template category type ── */
-type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel";
+type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education";
 
 interface StudioTemplate {
   id: string;
