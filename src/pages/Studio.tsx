@@ -1886,6 +1886,17 @@ export default function Studio() {
         </DialogContent>
       </Dialog>
 
+      <StudioTemplateGallery
+        open={templateGalleryOpen}
+        onClose={() => setTemplateGalleryOpen(false)}
+        onApply={(newElements, bg) => {
+          pushHistory(elements);
+          setElements(newElements);
+          if (bg) setCanvasBg(bg as any);
+          toast.success("Template applied!");
+        }}
+      />
+
       <StudioStyles />
     </div>
   );
