@@ -1260,28 +1260,20 @@ export default function Player() {
 
   // Realtime: listen for playlist_items changes to refresh current playlist
   useEffect(() => {
-    if (!paired || items.length === 0) return;
-    const playlistId = items[0]?.id ? items[0] : null;
-    if (!playlistId) return;
+    if (!paired || !screenId) return;
 
-    // We need the playlist_id — get it from items context
-    // Since all items share the same playlist, fetch it
     const channel = supabase
-      .channel(`player-playlist-items`)
+      .channel(`player-playlist-items-${screenId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "playlist_items" },
-        async () => {
-          // Refetch current playlist
-          if (screenId) {
-            const { data: s } = await supabase
-              .from("screens")
-              .select("current_playlist_id")
-              .eq("id", screenId)
-              .single();
-            if (s?.current_playlist_id) {
-              fetchPlaylist(s.current_playlist_id);
-            }
+        async (payload) => {
+          // Only react if the change is for our current playlist
+          const changedPlaylistId =
+            (payload.new as any)?.playlist_id ||
+            (payload.old as any)?.playlist_id;
+          if (changedPlaylistId && changedPlaylistId === currentPlaylistIdRef.current) {
+            fetchPlaylist(currentPlaylistIdRef.current);
           }
         }
       )
@@ -1290,7 +1282,7 @@ export default function Player() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [paired, items.length, screenId, fetchPlaylist]);
+  }, [paired, screenId, fetchPlaylist]);
 
   // ── PRE-LOAD: While active buffer plays, load next item into inactive buffer ──
   useEffect(() => {
