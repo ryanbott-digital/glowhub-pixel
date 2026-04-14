@@ -659,6 +659,12 @@ export default function MediaLibrary() {
   // Delete confirmation state
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<MediaWithSize | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [restoredIds, setRestoredIds] = useState<Set<string>>(new Set());
+
+  const markRestored = (ids: string[]) => {
+    setRestoredIds(new Set(ids));
+    setTimeout(() => setRestoredIds(new Set()), 1200);
+  };
 
   const deleteMedia = async (item: MediaWithSize) => {
     // Optimistically remove from UI
