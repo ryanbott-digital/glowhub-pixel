@@ -307,6 +307,97 @@ const TEMPLATES: StudioTemplate[] = [
       { id: tid(), type: "widget-clock", x: 400, y: 700, width: 220, height: 80, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
     ],
   },
+  /* ─── HEALTHCARE / CLINIC ─── */
+  {
+    id: "health-waiting",
+    name: "Waiting Room Info",
+    category: "health",
+    preview: "🏥",
+    description: "Patient information display for clinic waiting areas",
+    bg: { type: "gradient", color: "#0B1120", gradient: "linear-gradient(180deg, #0B1120 0%, #0f1923 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 60, width: 700, height: 50, content: "PATIENT INFORMATION", style: { fontSize: "18px", fontWeight: "700", color: "hsl(180, 100%, 45%)", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 120, width: 800, height: 100, content: "Welcome to\nBrightcare Clinic", style: { fontSize: "56px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.15" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 120, y: 240, width: 100, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "hsl(180, 100%, 45%)", shapeStroke: "hsl(180, 100%, 45%)", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 280, width: 750, height: 400, content: "📋  Please check in at the front desk\n\n⏱️  Average wait time: 15 minutes\n\n😷  Masks are recommended in clinical areas\n\n📱  Free Wi-Fi: BrightCare-Guest\n\n💧  Water & refreshments available\n\n🚗  Parking validation at checkout", style: { fontSize: "22px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-clock", x: 700, y: 60, width: 200, height: 80, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "health-services",
+    name: "Clinic Services",
+    category: "health",
+    preview: "💊",
+    description: "Healthcare services overview for lobby displays",
+    bg: { type: "gradient", color: "#0a1628", gradient: "linear-gradient(135deg, #0a1628 0%, #0f1a2e 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 100, y: 60, width: 800, height: 70, content: "OUR SERVICES", style: { fontSize: "48px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 100, y: 140, width: 150, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "hsl(180, 100%, 45%)", shapeStroke: "hsl(180, 100%, 45%)", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 180, width: 800, height: 550, content: "🩺  General Practice\n     Walk-ins & appointments available\n\n🦷  Dental Care\n     Routine checkups & cosmetic dentistry\n\n👁️  Optometry\n     Eye exams & prescription lenses\n\n💉  Vaccinations\n     Flu, travel & childhood immunisations\n\n🧠  Mental Health\n     Counselling & therapy services\n\n🏃  Physiotherapy\n     Injury rehab & sports medicine", style: { fontSize: "20px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.65" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 780, width: 700, height: 35, content: "Call 0800 123 456 or book online at brightcare.co.uk", style: { fontSize: "16px", fontWeight: "500", color: "hsl(180, 100%, 45%)", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "health-tips",
+    name: "Health Tips",
+    category: "health",
+    preview: "❤️",
+    description: "Wellness tips and health reminders for waiting rooms",
+    bg: { type: "solid", color: "#0a0a12" },
+    elements: [
+      { id: tid(), type: "text", x: 140, y: 80, width: 300, height: 35, content: "WELLNESS CORNER", style: { fontSize: "16px", fontWeight: "700", color: "hsl(180, 100%, 45%)", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 140, y: 130, width: 750, height: 120, content: "5 Daily Habits\nfor Better Health", style: { fontSize: "56px", fontWeight: "800", color: "#FFFFFF", lineHeight: "1.1" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 140, y: 270, width: 120, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "hsl(180, 100%, 45%)", shapeStroke: "hsl(180, 100%, 45%)", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 140, y: 320, width: 700, height: 400, content: "1.  Drink 8 glasses of water daily\n\n2.  Get 30 minutes of exercise\n\n3.  Eat 5 portions of fruit & veg\n\n4.  Sleep 7–9 hours per night\n\n5.  Take 10 minutes for mindfulness", style: { fontSize: "26px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.9" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 140, y: 760, width: 600, height: 35, content: "Your health is your greatest wealth", style: { fontSize: "18px", fontWeight: "500", color: "#94A3B8", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+
+  /* ─── EDUCATION / SCHOOL ─── */
+  {
+    id: "edu-notice",
+    name: "School Notice Board",
+    category: "education",
+    preview: "📚",
+    description: "School announcements and daily notices",
+    bg: { type: "gradient", color: "#0B1120", gradient: "linear-gradient(135deg, #0B1120 0%, #1a1a2e 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 80, y: 50, width: 800, height: 70, content: "DAILY NOTICES", style: { fontSize: "48px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 130, width: 500, height: 30, content: "MONDAY 14 APRIL 2026", style: { fontSize: "16px", fontWeight: "600", color: "hsl(180, 100%, 45%)", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 175, width: 800, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 200, width: 800, height: 550, content: "📢  Assembly at 9:00 AM — Main Hall\n     Guest speaker: Local MP on civic leadership\n\n📝  Year 11 Mock Results\n     Collect from form tutors today\n\n⚽  Football Trial — 3:30 PM\n     Meet at the sports pavilion\n\n🎭  Drama Club Auditions\n     Thursday lunch in the theatre\n\n🍕  Canteen Special: Pizza Friday!\n     Pre-order by Wednesday\n\n📅  Parents Evening — 22 April\n     Book slots via the school app", style: { fontSize: "20px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.65" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-clock", x: 750, y: 50, width: 180, height: 70, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "edu-timetable",
+    name: "Class Timetable",
+    category: "education",
+    preview: "🕐",
+    description: "Period-by-period class schedule display",
+    bg: { type: "solid", color: "#0a0a12" },
+    elements: [
+      { id: tid(), type: "text", x: 100, y: 50, width: 700, height: 70, content: "TODAY'S TIMETABLE", style: { fontSize: "48px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 130, width: 400, height: 30, content: "YEAR 10 — FORM 10B", style: { fontSize: "16px", fontWeight: "600", color: "#FFD700", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 100, y: 175, width: 800, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 200, width: 800, height: 550, content: "P1    08:45    English Literature — Mrs Thompson\n                   Room 204 · Bring poetry anthology\n\nP2    09:45    Mathematics — Mr Patel\n                   Room 112 · Calculator needed\n\nP3    10:55    Biology — Dr Chen\n                   Lab 3 · Practical session\n\n         12:00    LUNCH\n\nP4    13:00    History — Ms Williams\n                   Room 301 · Essay due\n\nP5    14:00    Physical Education\n                   Sports Hall · Kit required", style: { fontSize: "20px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.65" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+  {
+    id: "edu-achievement",
+    name: "Achievement Board",
+    category: "education",
+    preview: "🏆",
+    description: "Student achievements and recognition display",
+    bg: { type: "gradient", color: "#0f0f0f", gradient: "linear-gradient(180deg, #0f0f0f 0%, #1a1628 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 120, y: 60, width: 300, height: 35, content: "STAR STUDENTS", style: { fontSize: "16px", fontWeight: "700", color: "#FFD700", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 110, width: 800, height: 100, content: "This Week's\nAchievements", style: { fontSize: "64px", fontWeight: "800", color: "#FFFFFF", lineHeight: "1.1" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 120, y: 230, width: 150, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#FFD700", shapeStroke: "#FFD700", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 280, width: 750, height: 400, content: "🥇  Student of the Week\n     Amara K. — Outstanding science project\n\n📖  Reading Challenge Winner\n     Jake M. — 50 books this term!\n\n🎨  Art Exhibition Star\n     Lily T. — Selected for regional gallery\n\n🏅  Sports Achievement\n     Year 9 Girls — District netball champions\n\n🎵  Music Excellence\n     School Orchestra — Grade A at festival", style: { fontSize: "22px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.75" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 120, y: 730, width: 600, height: 35, content: "Congratulations to all our achievers! 🌟", style: { fontSize: "18px", fontWeight: "500", color: "#FFD700", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
 ];
 
 /* ── Category config ── */
@@ -318,6 +409,8 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
   { id: "fitness", label: "Gym & Fitness", icon: Dumbbell },
   { id: "retail", label: "Retail", icon: Store },
   { id: "hotel", label: "Hotel Lobby", icon: Hotel },
+  { id: "health", label: "Healthcare", icon: HeartPulse },
+  { id: "education", label: "Education", icon: GraduationCap },
 ];
 
 /* ── Mini canvas thumbnail ── */
