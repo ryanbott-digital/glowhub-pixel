@@ -1093,6 +1093,7 @@ export default function MediaLibrary() {
           {filteredMedia.map((item) => {
             const url = getPublicUrl(item.storage_path);
             const isSelected = selected.has(item.id);
+            const isRestored = restoredIds.has(item.id);
             return (
               <div
                 key={item.id}
