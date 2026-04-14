@@ -842,6 +842,8 @@ const TEMPLATE_TAGS: Record<string, string[]> = {
   "church-service": ["church", "worship", "service", "prayer", "sunday", "mass", "congregation", "faith"],
   "church-events": ["church", "events", "community", "bible study", "youth", "choir", "fellowship"],
   "church-verse": ["scripture", "bible", "verse", "quote", "faith", "inspirational", "devotional"],
+  "church-sermon": ["sermon", "series", "preaching", "pastor", "speaker", "teaching", "message", "sunday"],
+  "church-prayer": ["prayer", "request", "intercession", "healing", "praise", "missions", "community", "support"],
   "corporate-welcome": ["office", "lobby", "corporate", "company", "reception", "visitor", "professional"],
   "corporate-meeting": ["meeting", "conference room", "boardroom", "schedule", "booking", "available"],
   "corporate-kpi": ["dashboard", "KPI", "metrics", "analytics", "performance", "revenue", "data"],
