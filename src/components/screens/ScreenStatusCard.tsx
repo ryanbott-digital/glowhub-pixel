@@ -249,7 +249,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
   return (
     <div
-      className={`group relative flex flex-col rounded-2xl glass overflow-hidden transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
+      className={`group relative flex flex-col rounded-2xl glass transition-all duration-300 hover:shadow-lg ${!isAlive ? "watchdog-offline-pulse" : ""}`}
       style={{
         boxShadow: isAlive
           ? "0 0 20px hsla(180, 100%, 45%, 0.08), 0 4px 20px rgba(0,0,0,0.1)"
@@ -469,8 +469,8 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
 
       {/* Expandable detail section */}
       <div
-        className="overflow-hidden transition-all duration-300 ease-in-out"
-        style={{ maxHeight: expanded ? "800px" : "0", opacity: expanded ? 1 : 0 }}
+        className="transition-all duration-300 ease-in-out"
+        style={{ maxHeight: expanded ? "2000px" : "0", opacity: expanded ? 1 : 0, overflow: expanded ? "visible" : "hidden" }}
       >
         <div className="px-4 pb-4 space-y-4 border-t border-border/50 pt-3">
           {/* Rename */}
@@ -791,11 +791,10 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                   {radioSearching && (
                     <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 animate-spin text-muted-foreground" />
                   )}
-                </div>
 
-                {/* Search results */}
-                {radioResults.length > 0 && (
-                  <div className="max-h-36 overflow-y-auto space-y-1 rounded-lg border border-border/50 bg-card/50 p-1">
+                  {/* Search results — absolute overlay */}
+                  {radioResults.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-56 overflow-y-auto space-y-1 rounded-lg border border-border bg-card shadow-lg p-1">
                     {radioResults.map((station) => (
                       <button
                         key={station.id}
@@ -825,8 +824,9 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
                         </div>
                       </button>
                     ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Volume slider */}
                 <div className="flex items-center gap-2">
