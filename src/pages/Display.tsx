@@ -207,7 +207,7 @@ export default function Display() {
           key={item.id}
           src={url}
           alt=""
-          className="absolute inset-0 w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       );
     }
