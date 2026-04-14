@@ -98,6 +98,7 @@ export default function Player() {
   const [transitionType, setTransitionType] = useState("crossfade");
   const [fadeToBlackActive, setFadeToBlackActive] = useState(false);
   const [loopEnabled, setLoopEnabled] = useState(true);
+  const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
   const [cachedCount, setCachedCount] = useState(0);
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -695,7 +696,7 @@ export default function Player() {
         // Fetch playlist if assigned
         const { data: screen } = await supabase
           .from("screens")
-          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype")
+          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode")
           .eq("id", pairing.screen_id)
           .maybeSingle();
 
@@ -703,6 +704,7 @@ export default function Player() {
           if (screen.transition_type) setTransitionType(screen.transition_type);
           if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
           if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
+          if ((screen as any).display_mode === "fit" || (screen as any).display_mode === "fill") setDisplayMode((screen as any).display_mode);
           if (screen.current_playlist_id) await fetchPlaylist(screen.current_playlist_id);
           setAudioEnabled((screen as any).audio_enabled === true);
           setAudioStationUrl((screen as any).audio_station_url || null);
@@ -724,7 +726,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype")
+        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -748,6 +750,7 @@ export default function Player() {
       if (screen.transition_type) setTransitionType(screen.transition_type);
       if (screen.crossfade_ms != null) setCrossfadeDuration(screen.crossfade_ms);
       if (screen.loop_enabled != null) setLoopEnabled(screen.loop_enabled);
+      if ((screen as any).display_mode === "fit" || (screen as any).display_mode === "fill") setDisplayMode((screen as any).display_mode);
       setAudioEnabled((screen as any).audio_enabled === true);
       setAudioStationUrl((screen as any).audio_station_url || null);
       setAudioStationName((screen as any).audio_station_name || null);
@@ -1117,6 +1120,7 @@ export default function Player() {
           if (updated.transition_type) setTransitionType(updated.transition_type);
           if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
           if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
+          if (updated.display_mode === "fit" || updated.display_mode === "fill") setDisplayMode(updated.display_mode);
           if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
           // Apply audio settings in real-time
           if (updated.audio_enabled != null) setAudioEnabled(updated.audio_enabled);
@@ -1993,9 +1997,10 @@ export default function Player() {
       syncMediaStyle.top = `-${position * 100}%`;
     }
   }
+  const objectFit = displayMode === "fit" ? "object-contain" : "object-cover";
   const mediaClassName = (syncLayout || (syncInfo && syncInfo.total > 1))
     ? "absolute inset-0"
-    : "max-w-full max-h-screen object-contain absolute inset-0 m-auto";
+    : `w-full h-full ${objectFit} absolute inset-0`;
 
   return (
     <div className="w-screen h-screen bg-black flex items-center justify-center overflow-hidden relative" style={{ animation: "contentFadeIn 1.2s ease-out forwards" }}>
