@@ -12,6 +12,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { hapticMedium } from "@/lib/haptics";
 
+const UNDO_DURATION = 8000;
+
+function UndoCountdown({ seconds }: { seconds: number }) {
+  const [remaining, setRemaining] = useState(seconds);
+  useEffect(() => {
+    if (remaining <= 0) return;
+    const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
+    return () => clearTimeout(t);
+  }, [remaining]);
+  const pct = (remaining / seconds) * 100;
+  return createElement("div", { className: "flex items-center gap-2 mt-1" },
+    createElement("div", {
+      className: "h-1 flex-1 rounded-full overflow-hidden",
+      style: { backgroundColor: "hsl(var(--muted))" },
+    },
+      createElement("div", {
+        className: "h-full rounded-full transition-all duration-1000 ease-linear",
+        style: { width: `${pct}%`, backgroundColor: "hsl(var(--primary))" },
+      })
+    ),
+    createElement("span", {
+      className: "text-[11px] tabular-nums text-muted-foreground shrink-0",
+    }, `${remaining}s`)
+  );
+}
+
 interface PairedScreen {
   id: string;
   name: string;
