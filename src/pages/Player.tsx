@@ -697,7 +697,7 @@ export default function Player() {
         // Fetch playlist if assigned
         const { data: screen } = await supabase
           .from("screens")
-          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode")
+          .select("current_playlist_id, transition_type, crossfade_ms, loop_enabled, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode, fit_bg_color")
           .eq("id", pairing.screen_id)
           .maybeSingle();
 
