@@ -561,6 +561,43 @@ const TEMPLATES: StudioTemplate[] = [
   },
 ];
 
+/* ── Tag map for searchability ── */
+const TEMPLATE_TAGS: Record<string, string[]> = {
+  "menu-cafe": ["coffee", "cafe", "drinks", "espresso", "latte", "beverages", "shop", "prices"],
+  "menu-restaurant": ["dinner", "food", "specials", "dining", "elegant", "fine dining", "starter", "dessert"],
+  "menu-bar": ["cocktail", "bar", "drinks", "nightclub", "happy hour", "neon", "pub", "alcohol"],
+  "promo-flash-sale": ["sale", "discount", "deal", "offer", "limited", "flash", "shopping", "clearance"],
+  "promo-new-product": ["launch", "product", "new", "release", "announcement", "reveal"],
+  "promo-loyalty": ["loyalty", "rewards", "membership", "points", "VIP", "customer", "program"],
+  "info-welcome": ["welcome", "lobby", "reception", "visitor", "entrance", "wayfinding"],
+  "info-hours": ["hours", "schedule", "opening", "closing", "times", "business hours"],
+  "info-event": ["event", "conference", "seminar", "workshop", "meeting", "calendar"],
+  "fitness-class": ["gym", "class", "workout", "exercise", "schedule", "HIIT", "yoga", "spin"],
+  "fitness-membership": ["membership", "pricing", "plan", "subscription", "join", "sign up"],
+  "fitness-motivational": ["motivation", "quote", "inspiration", "goals", "strength", "training"],
+  "retail-window": ["window", "display", "storefront", "fashion", "clothing", "boutique", "shop"],
+  "retail-seasonal": ["seasonal", "summer", "winter", "spring", "collection", "trend"],
+  "retail-loyalty": ["loyalty", "rewards", "card", "discount", "member", "VIP"],
+  "hotel-welcome": ["hotel", "lobby", "guest", "hospitality", "resort", "check-in", "concierge"],
+  "hotel-amenities": ["amenities", "spa", "pool", "gym", "room service", "facilities", "wifi"],
+  "hotel-checkout": ["checkout", "departure", "luggage", "parking", "transfer", "airport"],
+  "health-waiting": ["waiting room", "clinic", "patient", "doctor", "medical", "hospital", "check-in"],
+  "health-services": ["services", "medical", "dental", "optometry", "vaccination", "GP", "practice"],
+  "health-tips": ["wellness", "health tips", "lifestyle", "nutrition", "exercise", "mindfulness"],
+  "health-pharmacy": ["pharmacy", "prescription", "medicine", "chemist", "drugstore", "vaccination", "flu"],
+  "health-dental": ["dental", "dentist", "teeth", "orthodontics", "braces", "whitening", "oral health"],
+  "health-physio": ["physiotherapy", "rehab", "rehabilitation", "sports injury", "mobility", "massage", "therapy"],
+  "edu-notice": ["school", "notice", "announcement", "student", "principal", "campus", "bulletin"],
+  "edu-timetable": ["timetable", "schedule", "class", "period", "lesson", "subject", "classroom"],
+  "edu-achievement": ["achievement", "award", "recognition", "honor", "star", "student of the month"],
+  "church-service": ["church", "worship", "service", "prayer", "sunday", "mass", "congregation", "faith"],
+  "church-events": ["church", "events", "community", "bible study", "youth", "choir", "fellowship"],
+  "church-verse": ["scripture", "bible", "verse", "quote", "faith", "inspirational", "devotional"],
+  "corporate-welcome": ["office", "lobby", "corporate", "company", "reception", "visitor", "professional"],
+  "corporate-meeting": ["meeting", "conference room", "boardroom", "schedule", "booking", "available"],
+  "corporate-kpi": ["dashboard", "KPI", "metrics", "analytics", "performance", "revenue", "data"],
+};
+
 /* ── Category config ── */
 const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: "all", label: "All Templates", icon: LayoutTemplate },
