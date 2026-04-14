@@ -708,7 +708,10 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
     let list = category === "all" ? TEMPLATES : TEMPLATES.filter((t) => t.category === category);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter((t) => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+      list = list.filter((t) => {
+        const tags = (t.tags || TEMPLATE_TAGS[t.id] || []).join(" ").toLowerCase();
+        return t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || tags.includes(q);
+      });
     }
     return list;
   }, [category, search]);
