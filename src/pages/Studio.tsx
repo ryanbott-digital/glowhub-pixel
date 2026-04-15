@@ -261,6 +261,7 @@ export default function Studio() {
   const [rssCache, setRssCache] = useState<Record<string, string[]>>({});
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
+  const [placeholderTarget, setPlaceholderTarget] = useState<{ groupId: string; x: number; y: number; width: number; height: number } | null>(null);
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
   const [lightCanvas, setLightCanvas] = useState(false);
