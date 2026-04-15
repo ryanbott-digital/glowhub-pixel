@@ -212,12 +212,29 @@ export default function Player() {
   }, [showSettings]);
 
   // Detect Fully Kiosk Browser — hides pairing chrome for clean kiosk experience
+  // Also auto-detect screen resolution and set display mode accordingly
   useEffect(() => {
     const w = window as any;
     if (w.fully || w.FullyKiosk || navigator.userAgent.includes("FullyKiosk")) {
       setIsFullyKiosk(true);
       // Request fullscreen immersive via FKB API if available
       try { w.fully?.setFullscreen?.(true); } catch {}
+
+      // Auto-detect screen resolution and set display mode
+      try {
+        const screenW = w.fully?.getScreenWidth?.() ?? w.fully?.screenWidth;
+        const screenH = w.fully?.getScreenHeight?.() ?? w.fully?.screenHeight;
+        if (screenW && screenH) {
+          const width = Number(screenW);
+          const height = Number(screenH);
+          const ratio = width / height;
+          // Standard 16:9 = 1.778; if the panel is ultrawide or non-standard, use "fit" to avoid cropping
+          // Standard ratios (16:9, 16:10) → fill; non-standard → fit
+          const isStandardRatio = Math.abs(ratio - 16 / 9) < 0.05 || Math.abs(ratio - 16 / 10) < 0.05;
+          setDisplayMode(isStandardRatio ? "fill" : "fit");
+          console.log(`[FKB] Screen ${width}×${height} (${ratio.toFixed(2)}) → ${isStandardRatio ? "fill" : "fit"}`);
+        }
+      } catch {}
     }
   }, []);
 
