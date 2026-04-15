@@ -1579,7 +1579,7 @@ export default function Player() {
           <div className="flex items-center gap-12 lg:gap-16">
             {/* Code section */}
             <div className="flex flex-col items-center">
-              <p className="text-white/50 text-sm tracking-[0.3em] uppercase mb-6 font-medium">
+              <p className={`text-white/50 text-sm tracking-[0.3em] uppercase mb-6 font-medium${isFullyKiosk ? " hidden" : ""}`}>
                 Pair Your Screen
               </p>
 
@@ -1601,7 +1601,11 @@ export default function Player() {
               </div>
 
               <p className="text-white/30 text-sm mt-6 tracking-wide">
-                Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span> to pair
+                {isFullyKiosk ? (
+                  <>Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span></>
+                ) : (
+                  <>Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span> to pair</>
+                )}
               </p>
             </div>
 
