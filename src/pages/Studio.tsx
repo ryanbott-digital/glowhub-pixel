@@ -1098,9 +1098,9 @@ export default function Studio() {
                       e.stopPropagation();
                       setSelectedId(el.id);
                     }}
-                    onDoubleClick={async (e: any) => {
-                      e.stopPropagation();
+                    onClick={async (e: any) => {
                       if (el.placeholderGroupId) {
+                        e.stopPropagation();
                         const shapeEl = elements.find(
                           (s) => s.placeholderGroupId === el.placeholderGroupId && s.type === "shape"
                         ) || el;
@@ -1109,12 +1109,20 @@ export default function Studio() {
                           x: shapeEl.x, y: shapeEl.y,
                           width: shapeEl.width, height: shapeEl.height,
                         });
+                        setUrlPasteMode(true);
+                        setUrlPasteValue("");
                         if (user) {
                           const { data } = await supabase.from("media").select("id, name, storage_path, type")
                             .eq("user_id", user.id).order("created_at", { ascending: false });
                           setMediaItems(data || []);
                         }
                         setMediaPickerOpen(true);
+                      }
+                    }}
+                    onDoubleClick={async (e: any) => {
+                      e.stopPropagation();
+                      if (el.placeholderGroupId) {
+                        // double-click also opens picker (backwards compat)
                       }
                     }}
                     disableDragging={el.locked}
@@ -1150,7 +1158,7 @@ export default function Studio() {
                     {el.placeholderGroupId && el.type === "shape" && (
                       <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer rounded-2xl bg-primary/10 backdrop-blur-[2px]">
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/90 text-primary-foreground text-[10px] font-semibold tracking-wider shadow-lg">
-                          <Upload className="h-3 w-3" /> Double-click to add image
+                          <Upload className="h-3 w-3" /> Click to add image
                         </div>
                       </div>
                     )}
