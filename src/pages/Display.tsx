@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
 import glowLogoPng from "@/assets/glow-text.png";
+import { useVersionCheck } from "@/hooks/use-version-check";
 
 interface PlaylistItem {
   id: string;
@@ -22,6 +23,7 @@ const CACHE_KEY = "glowhub_player_cache";
 const CROSSFADE_MS = 800;
 
 export default function Display() {
+  useVersionCheck(120_000);
   const { screenId } = useParams<{ screenId: string }>();
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [loading, setLoading] = useState(true);
