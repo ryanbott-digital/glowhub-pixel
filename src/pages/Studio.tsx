@@ -1878,7 +1878,7 @@ export default function Studio() {
       </Dialog>
 
       {/* Media Picker Modal */}
-      <Dialog open={mediaPickerOpen} onOpenChange={setMediaPickerOpen}>
+      <Dialog open={mediaPickerOpen} onOpenChange={(v) => { setMediaPickerOpen(v); if (!v) setPlaceholderTarget(null); }}>
         <DialogContent className="bg-card border-border/30 max-w-lg max-h-[70vh] flex flex-col p-0 overflow-hidden">
           <div className="p-4 border-b border-border/20">
             <h3 className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide flex items-center gap-2">
