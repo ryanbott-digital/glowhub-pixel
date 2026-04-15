@@ -71,9 +71,9 @@ const TEMPLATES: StudioTemplate[] = [
     description: "Neon-styled cocktail menu with glowing accents",
     bg: { type: "gradient", color: "#0a0a1a", gradient: "linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 100%)" },
     elements: [
-      { id: tid(), type: "text", x: 140, y: 60, width: 700, height: 90, content: "COCKTAIL HOUR", style: { fontSize: "60px", fontWeight: "900", color: "#FF6B9D" }, visible: true, locked: false, fontFamily: "Righteous", filters: { ...DEFAULT_FILTERS }, glowIntensity: 80 },
-      { id: tid(), type: "text", x: 140, y: 160, width: 500, height: 35, content: "HAPPY HOUR 5–7 PM • ALL $8", style: { fontSize: "18px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 140, y: 240, width: 700, height: 500, content: "🍋 Lemon Drop Martini\nVodka, triple sec, fresh lemon, sugar rim\n\n🌿 Mojito Fresco\nWhite rum, mint, lime, soda, brown sugar\n\n🥃 Old Fashioned\nBourbon, Angostura bitters, orange peel\n\n🍓 Strawberry Daiquiri\nRum, fresh strawberries, lime, simple syrup\n\n🫒 Espresso Martini\nVodka, Kahlúa, fresh espresso, vanilla", style: { fontSize: "22px", fontWeight: "400", color: "#E8D5FF", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 30, width: 700, height: 60, content: "COCKTAIL HOUR", style: { fontSize: "48px", fontWeight: "900", color: "#FF6B9D" }, visible: true, locked: false, fontFamily: "Righteous", filters: { ...DEFAULT_FILTERS }, glowIntensity: 80 },
+      { id: tid(), type: "text", x: 100, y: 95, width: 500, height: 25, content: "HAPPY HOUR 5–7 PM • ALL $8", style: { fontSize: "16px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 130, width: 760, height: 390, content: "🍋 Lemon Drop Martini\nVodka, triple sec, fresh lemon, sugar rim\n\n🌿 Mojito Fresco\nWhite rum, mint, lime, soda, brown sugar\n\n🥃 Old Fashioned\nBourbon, Angostura bitters, orange peel\n\n🍓 Strawberry Daiquiri\nRum, fresh strawberries, lime, simple syrup\n\n🫒 Espresso Martini\nVodka, Kahlúa, fresh espresso, vanilla", style: { fontSize: "18px", fontWeight: "400", color: "#E8D5FF", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
     ],
   },
   {
