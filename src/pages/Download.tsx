@@ -18,9 +18,9 @@ const CHANGELOG = [
     version: APK_VERSION,
     date: APK_DATE,
     changes: [
-      { icon: Zap, text: "Improved player stability and performance on Fire TV devices" },
-      { icon: Shield, text: "Enhanced offline caching for smoother playback" },
-      { icon: Sparkles, text: "Updated PWA manifest for better installability" },
+      { icon: Zap, text: "Rebuilt as native Capacitor WebView — no more Silk browser or URL bar" },
+      { icon: Shield, text: "True fullscreen with immersive mode and video autoplay" },
+      { icon: Sparkles, text: "Deep Space boot screen with instant player load" },
     ],
   },
   {
@@ -339,7 +339,7 @@ export default function DownloadPage() {
               <div>
                 <h3 className="text-lg font-bold text-[#E2E8F0] tracking-wide">The Player</h3>
                 <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
-                  Deploy the APK on your TV hardware to ignite the canvas.
+                  Native WebView APK — true fullscreen, no browser chrome.
                 </p>
               </div>
               <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#00E5FF]/70">
@@ -466,7 +466,7 @@ export default function DownloadPage() {
                 <h3 className="text-lg font-bold tracking-wide">Direct APK Download</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-                For Android TV boxes and sideloading onto any device.
+                Native WebView wrapper — no browser chrome, true fullscreen, video autoplay.
               </p>
               <a
                 href="/GlowHub.apk"
@@ -496,23 +496,25 @@ export default function DownloadPage() {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2 glass rounded-xl border-primary/15 p-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
               <Step n={1}>
-                Download the APK file above to your device or a USB drive.
+                Download the <strong className="text-foreground">GlowHub.apk</strong> file above to your device, a USB drive, or use the Downloader app (code: <strong className="text-foreground font-mono">{DOWNLOADER_CODE}</strong>).
               </Step>
               <Step n={2}>
-                On your Android TV / Firestick, go to <strong className="text-foreground">Settings → My Fire TV → Developer Options</strong> and enable <strong className="text-foreground">Install Unknown Apps</strong>.
+                On your Fire Stick, go to <strong className="text-foreground">Settings → My Fire TV → Developer Options</strong> and enable <strong className="text-foreground">Install Unknown Apps</strong> for your file manager or Downloader.
               </Step>
               <Step n={3}>
-                If you don't have a file manager, install one from the app store (e.g. <strong className="text-foreground">File Commander</strong> or <strong className="text-foreground">ES File Explorer</strong>).
+                Open the downloaded <strong className="text-foreground">GlowHub.apk</strong> and tap <strong className="text-foreground">Install</strong>. Confirm any prompts.
               </Step>
               <Step n={4}>
-                Open the file manager and navigate to the downloaded <strong className="text-foreground">GlowHub.apk</strong> file.
+                Launch <strong className="text-foreground">Glow Player</strong> from your apps list. It opens in a native WebView — <em>no URL bar, no browser chrome</em>.
               </Step>
               <Step n={5}>
-                Tap the APK file and select <strong className="text-foreground">Install</strong>. Confirm any prompts.
+                Pair your screen using the code displayed, then your content plays in true fullscreen with autoplay enabled.
               </Step>
-              <Step n={6}>
-                Once installed, open <strong className="text-foreground">Glow Player</strong> from your apps list and pair your screen.
-              </Step>
+              <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/15">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-primary">v3.0 — Native WebView:</strong> The APK now uses an embedded Capacitor WebView instead of opening in Amazon Silk. This means zero browser UI, reliable video autoplay, and immersive fullscreen out of the box.
+                </p>
+              </div>
             </CollapsibleContent>
           </Collapsible>
 
