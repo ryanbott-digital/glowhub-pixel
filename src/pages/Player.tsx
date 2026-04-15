@@ -675,6 +675,32 @@ export default function Player() {
     }
   }, []);
 
+  // Fetch a single media item by ID and set it as the sole playback item
+  const fetchSingleMedia = useCallback(async (mediaId: string) => {
+    const { data } = await supabase
+      .from("media")
+      .select("id, storage_path, type, name, duration, audio_muted")
+      .eq("id", mediaId)
+      .maybeSingle();
+
+    if (data) {
+      currentPlaylistIdRef.current = null;
+      const item: PlaylistItem = {
+        id: `remote-${data.id}`,
+        position: 0,
+        override_duration: null,
+        media: data,
+      };
+      setItems([item]);
+      currentIndexRef.current = 0;
+      setCurrentIndex(0);
+      setActiveBuffer("A");
+
+      const url = getPublicUrl(data.storage_path);
+      precacheMediaUrls([url]);
+    }
+  }, []);
+
   // ── STANDALONE ENTRY: No URL param, no stored screen → create pairing code via edge function ──
   const [pendingPairingId, setPendingPairingId] = useState<string | null>(null);
   const [pairingExpiresAt, setPairingExpiresAt] = useState<number | null>(null);
@@ -1159,6 +1185,12 @@ export default function Player() {
         (payload) => {
           const updated = payload.new as any;
           const previous = payload.old as any;
+          // Handle direct media trigger (play_media action)
+          const mediaChanged = updated.current_media_id !== previous?.current_media_id;
+          if (mediaChanged && updated.current_media_id) {
+            fetchSingleMedia(updated.current_media_id);
+          }
+          // Handle playlist trigger
           const playlistChanged = updated.current_playlist_id !== previous?.current_playlist_id;
           if (playlistChanged && updated.current_playlist_id && updated.current_playlist_id !== currentPlaylistIdRef.current) {
             fetchPlaylist(updated.current_playlist_id);
