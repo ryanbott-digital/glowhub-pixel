@@ -1098,6 +1098,25 @@ export default function Studio() {
                       e.stopPropagation();
                       setSelectedId(el.id);
                     }}
+                    onDoubleClick={async (e: any) => {
+                      e.stopPropagation();
+                      if (el.placeholderGroupId) {
+                        const shapeEl = elements.find(
+                          (s) => s.placeholderGroupId === el.placeholderGroupId && s.type === "shape"
+                        ) || el;
+                        setPlaceholderTarget({
+                          groupId: el.placeholderGroupId,
+                          x: shapeEl.x, y: shapeEl.y,
+                          width: shapeEl.width, height: shapeEl.height,
+                        });
+                        if (user) {
+                          const { data } = await supabase.from("media").select("id, name, storage_path, type")
+                            .eq("user_id", user.id).order("created_at", { ascending: false });
+                          setMediaItems(data || []);
+                        }
+                        setMediaPickerOpen(true);
+                      }
+                    }}
                     disableDragging={el.locked}
                     enableResizing={!el.locked}
                     dragGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
