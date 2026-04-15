@@ -321,7 +321,7 @@ export default function DownloadPage() {
           </div>
 
           {/* ── ECOSYSTEM CARDS ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* The Player */}
             <div className="rounded-2xl p-6 space-y-4 text-center" style={{
               background: "rgba(2, 6, 23, 0.7)",
@@ -345,6 +345,35 @@ export default function DownloadPage() {
               <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#00E5FF]/70">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 DISPLAY ENGINE
+              </div>
+            </div>
+
+            {/* Fully Kiosk Browser */}
+            <div className="rounded-2xl p-6 space-y-4 text-center relative" style={{
+              background: "rgba(2, 6, 23, 0.7)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
+              boxShadow: "0 0 30px rgba(245, 158, 11, 0.08), inset 0 1px 0 rgba(255,255,255,0.03)",
+            }}>
+              <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                Recommended
+              </span>
+              <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{
+                background: "linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.1))",
+                border: "1px solid rgba(245, 158, 11, 0.25)",
+              }}>
+                <Shield className="h-7 w-7 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#E2E8F0] tracking-wide">Fully Kiosk Browser</h3>
+                <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
+                  Pro kiosk mode — no URL bar, auto-launch, remote management.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-amber-400/70">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                KIOSK MODE
               </div>
             </div>
 
@@ -484,6 +513,75 @@ export default function DownloadPage() {
               <Step n={6}>
                 Once installed, open <strong className="text-foreground">Glow Player</strong> from your apps list and pair your screen.
               </Step>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* ── FULLY KIOSK BROWSER GUIDE ── */}
+          <Collapsible>
+            <CollapsibleTrigger className="w-full glass rounded-xl border-amber-500/20 p-5 flex items-center justify-between text-left group hover:border-amber-500/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-amber-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm tracking-wide">Fully Kiosk Browser Setup</h3>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono uppercase bg-amber-500/15 text-amber-400 border border-amber-500/25">Recommended</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Best for Fire TV — true fullscreen kiosk with autoplay</p>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 glass rounded-xl border-amber-500/15 p-6 space-y-5 animate-in slide-in-from-top-2 duration-200">
+              <div className="space-y-4">
+                <Step n={1}>
+                  Install <strong className="text-foreground">Fully Kiosk Browser</strong> from the Amazon App Store on your Fire Stick. Alternatively, sideload it from{" "}
+                  <a href="https://www.fully-kiosk.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline hover:text-amber-300 transition-colors">fully-kiosk.com</a>.
+                </Step>
+                <Step n={2}>
+                  Open Fully Kiosk Browser. When prompted for a start URL, enter:<br />
+                  <code className="inline-block mt-1.5 px-3 py-1.5 rounded-lg bg-background/80 border border-amber-500/20 text-amber-400 text-xs font-mono select-all">
+                    https://glowhub-pixel.lovable.app/player
+                  </code>
+                </Step>
+                <Step n={3}>
+                  Go to <strong className="text-foreground">Settings → Web Content Settings</strong> and enable:<br />
+                  • <strong className="text-foreground">Autoplay Videos</strong><br />
+                  • <strong className="text-foreground">Enable JavaScript</strong>
+                </Step>
+                <Step n={4}>
+                  Go to <strong className="text-foreground">Settings → Kiosk Mode</strong> and enable <strong className="text-foreground">Enable Kiosk Mode</strong>. This locks the device to Glow — no URL bar, no navigation.
+                </Step>
+                <Step n={5}>
+                  Go to <strong className="text-foreground">Settings → Device Management</strong> and enable <strong className="text-foreground">Launch on Boot</strong> so Glow starts automatically when the Fire Stick powers on.
+                </Step>
+                <Step n={6}>
+                  <em className="text-muted-foreground">Optional:</em> Enable <strong className="text-foreground">Screen On/Off Scheduling</strong> under Device Management to power the display on and off at set times.
+                </Step>
+                <Step n={7}>
+                  <em className="text-muted-foreground">Optional:</em> Activate a <strong className="text-foreground">PLUS license</strong> ($7.90 one-time) for remote device management, restart, and screenshot capture from any browser.
+                </Step>
+              </div>
+
+              {/* Advantages callout */}
+              <div className="rounded-xl p-4 space-y-2" style={{
+                background: "rgba(245, 158, 11, 0.05)",
+                border: "1px solid rgba(245, 158, 11, 0.15)",
+              }}>
+                <p className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Why Fully Kiosk Browser?
+                </p>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#94A3B8]">
+                  <li className="flex items-center gap-1.5">✓ No URL bar or browser chrome</li>
+                  <li className="flex items-center gap-1.5">✓ True fullscreen with autoplay</li>
+                  <li className="flex items-center gap-1.5">✓ Launch-on-boot without custom APK</li>
+                  <li className="flex items-center gap-1.5">✓ Remote restart & screenshot capture</li>
+                  <li className="flex items-center gap-1.5">✓ Screen on/off scheduling built in</li>
+                  <li className="flex items-center gap-1.5">✓ Works on all Fire TV & Android TV</li>
+                </ul>
+              </div>
             </CollapsibleContent>
           </Collapsible>
 
