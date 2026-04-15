@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
@@ -22,8 +22,33 @@ interface PlaylistItem {
 const CACHE_KEY = "glowhub_player_cache";
 const CROSSFADE_MS = 800;
 
+// Inject TV-optimised styles to fill viewport even with browser chrome
+const TV_DISPLAY_STYLES = `
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    height: 100vh !important;
+    background: #000 !important;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+    display: none !important;
+  }
+`;
+
 export default function Display() {
   useVersionCheck(120_000, true);
+
+  // Inject TV styles on mount
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = TV_DISPLAY_STYLES;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   const { screenId } = useParams<{ screenId: string }>();
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,10 +235,20 @@ export default function Display() {
   // Detect autoplay failure and show tap overlay
   const handleVideoPlay = useCallback((video: HTMLVideoElement | null) => {
     if (!video) return;
+    // Set attributes explicitly for Silk
+    video.muted = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        setNeedsTap(true);
+        // Retry once after a short delay
+        setTimeout(() => {
+          video.play().catch(() => {
+            setNeedsTap(true);
+          });
+        }, 500);
       });
     }
   }, []);
@@ -227,20 +262,24 @@ export default function Display() {
     if (rfs) {
       try { rfs.call(el); } catch {}
     }
-    // Start video playback
-    const activeVideo = activeLayer === "A" ? videoRefA.current : videoRefB.current;
-    if (activeVideo) {
-      activeVideo.play().catch(() => {});
-    }
-  }, [activeLayer]);
+    // Start video playback on both refs (whichever is active)
+    [videoRefA.current, videoRefB.current].forEach(v => {
+      if (v) { v.muted = true; v.play().catch(() => {}); }
+    });
+  }, []);
 
-  // Auto-request fullscreen on load (works in some WebView contexts)
+  // Auto-request fullscreen on load & periodic retry
   useEffect(() => {
-    const el = document.documentElement;
-    const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
-    if (rfs) {
-      try { rfs.call(el); } catch {}
-    }
+    const tryFullscreen = () => {
+      if (document.fullscreenElement) return;
+      const el = document.documentElement;
+      const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
+      if (rfs) { try { rfs.call(el); } catch {} }
+    };
+    tryFullscreen();
+    // Re-attempt every 5s in case Silk initially blocked it
+    const iv = setInterval(tryFullscreen, 5000);
+    return () => clearInterval(iv);
   }, []);
 
   const objectClass = displayMode === "fit" ? "object-contain" : "object-cover";
@@ -282,7 +321,7 @@ export default function Display() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-foreground">
+      <div className="fixed inset-0 flex items-center justify-center bg-foreground" style={{ height: '100dvh' }}>
         <GHLoader size={72} />
       </div>
     );
@@ -290,7 +329,7 @@ export default function Display() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-foreground gap-4">
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-foreground gap-4" style={{ height: '100dvh' }}>
         <div className="text-3xl font-bold">
           <span className="text-glow">Glow</span>
           <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
@@ -301,7 +340,7 @@ export default function Display() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor }}>
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: fitBgColor, height: '100dvh' }}>
       {/* Layer A */}
       <div
         className="absolute inset-0 flex items-center justify-center"
