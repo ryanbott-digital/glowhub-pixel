@@ -11,7 +11,7 @@ const STORAGE_KEY = "glowhub_app_hash";
  *
  * @param intervalMs – polling interval in milliseconds (0 = disabled)
  */
-export function useVersionCheck(intervalMs: number) {
+export function useVersionCheck(intervalMs: number, silent = false) {
   const currentHash = useRef<string | null>(null);
   const reloading = useRef(false);
 
@@ -43,9 +43,13 @@ export function useVersionCheck(intervalMs: number) {
         if (hash !== currentHash.current) {
           reloading.current = true;
           console.log(`[VersionCheck] New version detected (${currentHash.current} → ${hash}), reloading…`);
-          toast.info("Updating to latest version…", { duration: 3000 });
           localStorage.setItem(STORAGE_KEY, hash);
-          setTimeout(() => window.location.reload(), 2500);
+          if (silent) {
+            window.location.reload();
+          } else {
+            toast.info("Updating to latest version…", { duration: 3000 });
+            setTimeout(() => window.location.reload(), 2500);
+          }
         }
       } catch {
         // Network error — silently ignore

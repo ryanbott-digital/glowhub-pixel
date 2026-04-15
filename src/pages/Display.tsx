@@ -23,7 +23,7 @@ const CACHE_KEY = "glowhub_player_cache";
 const CROSSFADE_MS = 800;
 
 export default function Display() {
-  useVersionCheck(120_000);
+  useVersionCheck(120_000, true);
   const { screenId } = useParams<{ screenId: string }>();
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [loading, setLoading] = useState(true);
