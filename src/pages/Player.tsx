@@ -834,6 +834,8 @@ export default function Player() {
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
+      } else if ((screen as any).current_media_id) {
+        await fetchSingleMedia((screen as any).current_media_id);
       }
       setLoading(false);
     };
