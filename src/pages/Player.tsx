@@ -675,6 +675,32 @@ export default function Player() {
     }
   }, []);
 
+  // Fetch a single media item by ID and set it as the sole playback item
+  const fetchSingleMedia = useCallback(async (mediaId: string) => {
+    const { data } = await supabase
+      .from("media")
+      .select("id, storage_path, type, name, duration, audio_muted")
+      .eq("id", mediaId)
+      .maybeSingle();
+
+    if (data) {
+      currentPlaylistIdRef.current = null;
+      const item: PlaylistItem = {
+        id: `remote-${data.id}`,
+        position: 0,
+        override_duration: null,
+        media: data,
+      };
+      setItems([item]);
+      currentIndexRef.current = 0;
+      setCurrentIndex(0);
+      setActiveBuffer("A");
+
+      const url = getPublicUrl(data.storage_path);
+      precacheMediaUrls([url]);
+    }
+  }, []);
+
   // ── STANDALONE ENTRY: No URL param, no stored screen → create pairing code via edge function ──
   const [pendingPairingId, setPendingPairingId] = useState<string | null>(null);
   const [pairingExpiresAt, setPairingExpiresAt] = useState<number | null>(null);
@@ -772,7 +798,7 @@ export default function Player() {
     const checkStoredScreen = async () => {
       const { data: screen } = await supabase
         .from("screens")
-        .select("id, current_playlist_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode, fit_bg_color")
+        .select("id, current_playlist_id, current_media_id, pairing_code, status, transition_type, crossfade_ms, loop_enabled, sync_layout, user_id, audio_enabled, audio_station_url, audio_station_name, audio_volume, audio_mute_on_hype, display_mode, fit_bg_color")
         .eq("id", screenId)
         .maybeSingle();
 
@@ -808,6 +834,8 @@ export default function Player() {
       setPaired(true);
       if (screen.current_playlist_id) {
         await fetchPlaylist(screen.current_playlist_id);
+      } else if ((screen as any).current_media_id) {
+        await fetchSingleMedia((screen as any).current_media_id);
       }
       setLoading(false);
     };
@@ -1159,6 +1187,12 @@ export default function Player() {
         (payload) => {
           const updated = payload.new as any;
           const previous = payload.old as any;
+          // Handle direct media trigger (play_media action)
+          const mediaChanged = updated.current_media_id !== previous?.current_media_id;
+          if (mediaChanged && updated.current_media_id) {
+            fetchSingleMedia(updated.current_media_id);
+          }
+          // Handle playlist trigger
           const playlistChanged = updated.current_playlist_id !== previous?.current_playlist_id;
           if (playlistChanged && updated.current_playlist_id && updated.current_playlist_id !== currentPlaylistIdRef.current) {
             fetchPlaylist(updated.current_playlist_id);
@@ -1183,7 +1217,7 @@ export default function Player() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [screenId, paired, fetchPlaylist]);
+  }, [screenId, paired, fetchPlaylist, fetchSingleMedia]);
 
   // ── BACKGROUND AUDIO ENGINE ──
   useEffect(() => {
