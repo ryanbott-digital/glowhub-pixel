@@ -538,7 +538,7 @@ const TEMPLATES: StudioTemplate[] = [
       { id: tid(), type: "text", x: 520, y: 258, width: 300, height: 14, content: "4 bed  •  3 bath  •  Garden  •  Garage", style: { fontSize: "11px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
       { id: tid(), type: "text", x: 520, y: 278, width: 200, height: 25, content: "$875,000", style: { fontSize: "22px", fontWeight: "800", color: "#C9A96E" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
       // Property 3
-      ...imgPlaceholder(520, 315, width = 400, 100, "PROPERTY PHOTO 3", "#C9A96E"),
+      ...imgPlaceholder(520, 315, 400, 100, "PROPERTY PHOTO 3", "#C9A96E"),
       { id: tid(), type: "text", x: 520, y: 420, width: 300, height: 20, content: "Modern City Apartment", style: { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
       { id: tid(), type: "text", x: 520, y: 443, width: 300, height: 14, content: "2 bed  •  1 bath  •  Balcony  •  Parking", style: { fontSize: "11px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
       { id: tid(), type: "text", x: 520, y: 462, width: 200, height: 25, content: "$425,000", style: { fontSize: "22px", fontWeight: "800", color: "#C9A96E" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
