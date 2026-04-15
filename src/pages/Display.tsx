@@ -210,10 +210,20 @@ export default function Display() {
   // Detect autoplay failure and show tap overlay
   const handleVideoPlay = useCallback((video: HTMLVideoElement | null) => {
     if (!video) return;
+    // Set attributes explicitly for Silk
+    video.muted = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
     const playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        setNeedsTap(true);
+        // Retry once after a short delay
+        setTimeout(() => {
+          video.play().catch(() => {
+            setNeedsTap(true);
+          });
+        }, 500);
       });
     }
   }, []);
@@ -227,20 +237,24 @@ export default function Display() {
     if (rfs) {
       try { rfs.call(el); } catch {}
     }
-    // Start video playback
-    const activeVideo = activeLayer === "A" ? videoRefA.current : videoRefB.current;
-    if (activeVideo) {
-      activeVideo.play().catch(() => {});
-    }
-  }, [activeLayer]);
+    // Start video playback on both refs (whichever is active)
+    [videoRefA.current, videoRefB.current].forEach(v => {
+      if (v) { v.muted = true; v.play().catch(() => {}); }
+    });
+  }, []);
 
-  // Auto-request fullscreen on load (works in some WebView contexts)
+  // Auto-request fullscreen on load & periodic retry
   useEffect(() => {
-    const el = document.documentElement;
-    const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
-    if (rfs) {
-      try { rfs.call(el); } catch {}
-    }
+    const tryFullscreen = () => {
+      if (document.fullscreenElement) return;
+      const el = document.documentElement;
+      const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
+      if (rfs) { try { rfs.call(el); } catch {} }
+    };
+    tryFullscreen();
+    // Re-attempt every 5s in case Silk initially blocked it
+    const iv = setInterval(tryFullscreen, 5000);
+    return () => clearInterval(iv);
   }, []);
 
   const objectClass = displayMode === "fit" ? "object-contain" : "object-cover";
