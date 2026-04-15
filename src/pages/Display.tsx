@@ -22,6 +22,22 @@ interface PlaylistItem {
 const CACHE_KEY = "glowhub_player_cache";
 const CROSSFADE_MS = 800;
 
+// Inject TV-optimised styles to fill viewport even with browser chrome
+const TV_DISPLAY_STYLES = `
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    height: 100vh !important;
+    background: #000 !important;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+    display: none !important;
+  }
+`;
+
 export default function Display() {
   useVersionCheck(120_000, true);
   const { screenId } = useParams<{ screenId: string }>();
