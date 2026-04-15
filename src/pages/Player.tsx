@@ -212,7 +212,7 @@ export default function Player() {
   }, [showSettings]);
 
   // Detect Fully Kiosk Browser — hides pairing chrome for clean kiosk experience
-  // Also auto-detect screen resolution and set display mode accordingly
+  // Also auto-detect screen resolution, set display mode, and store device info
   useEffect(() => {
     const w = window as any;
     if (w.fully || w.FullyKiosk || navigator.userAgent.includes("FullyKiosk")) {
@@ -228,15 +228,41 @@ export default function Player() {
           const width = Number(screenW);
           const height = Number(screenH);
           const ratio = width / height;
-          // Standard 16:9 = 1.778; if the panel is ultrawide or non-standard, use "fit" to avoid cropping
-          // Standard ratios (16:9, 16:10) → fill; non-standard → fit
           const isStandardRatio = Math.abs(ratio - 16 / 9) < 0.05 || Math.abs(ratio - 16 / 10) < 0.05;
           setDisplayMode(isStandardRatio ? "fill" : "fit");
           console.log(`[FKB] Screen ${width}×${height} (${ratio.toFixed(2)}) → ${isStandardRatio ? "fill" : "fit"}`);
         }
       } catch {}
+
+      // Store FKB device ID and metadata in the screens table
+      if (screenId) {
+        try {
+          const deviceId = w.fully?.getDeviceId?.() || w.fully?.deviceId || null;
+          const deviceInfo: Record<string, unknown> = {};
+          try { deviceInfo.ip = w.fully?.getIp4Address?.() || null; } catch {}
+          try { deviceInfo.mac = w.fully?.getMacAddress?.() || null; } catch {}
+          try { deviceInfo.model = w.fully?.getDeviceModel?.() || null; } catch {}
+          try { deviceInfo.serial = w.fully?.getSerialNumber?.() || null; } catch {}
+          try { deviceInfo.android_version = w.fully?.getAndroidVersion?.() || null; } catch {}
+          try { deviceInfo.fkb_version = w.fully?.getFullyVersion?.() || null; } catch {}
+          try {
+            deviceInfo.screen_w = Number(w.fully?.getScreenWidth?.()) || null;
+            deviceInfo.screen_h = Number(w.fully?.getScreenHeight?.()) || null;
+          } catch {}
+
+          if (deviceId) {
+            supabase.from("screens").update({
+              fkb_device_id: deviceId,
+              fkb_device_info: deviceInfo,
+            } as any).eq("id", screenId).then(({ error }) => {
+              if (error) console.warn("[FKB] Failed to store device info:", error.message);
+              else console.log(`[FKB] Device ${deviceId} registered`);
+            });
+          }
+        } catch (e) { console.warn("[FKB] Device detection error:", e); }
+      }
     }
-  }, []);
+  }, [screenId]);
 
   // Wake Lock — keep screen on at all times
   useEffect(() => {
