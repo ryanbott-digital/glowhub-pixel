@@ -23,22 +23,27 @@ let _tid = 0;
 const tid = () => `tpl-${Date.now()}-${++_tid}`;
 
 /* ── Refined image placeholder: subtle gradient fill, dashed border, centered label ── */
-const imgPlaceholder = (x: number, y: number, w: number, h: number, label = "YOUR IMAGE", accent = "#475569"): CanvasElement[] => [
-  {
-    id: tid(), type: "shape", x, y, width: w, height: h, content: "", style: {},
-    shapeType: "rounded-rect",
-    shapeFill: `${accent}12`,
-    shapeStroke: accent,
-    shapeStrokeWidth: 1,
-    visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
-  },
-  {
-    id: tid(), type: "text", x, y: y + h / 2 - 14, width: w, height: 28,
-    content: `📷 ${label}`,
-    style: { fontSize: "11px", fontWeight: "600", color: `${accent}99`, textAlign: "center", letterSpacing: "1px" },
-    visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS },
-  },
-];
+const imgPlaceholder = (x: number, y: number, w: number, h: number, label = "YOUR IMAGE", accent = "#475569"): CanvasElement[] => {
+  const groupId = `placeholder-${Date.now()}-${++_tid}`;
+  return [
+    {
+      id: tid(), type: "shape", x, y, width: w, height: h, content: "", style: {},
+      shapeType: "rounded-rect",
+      shapeFill: `${accent}12`,
+      shapeStroke: accent,
+      shapeStrokeWidth: 1,
+      visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+      placeholderGroupId: groupId,
+    },
+    {
+      id: tid(), type: "text", x, y: y + h / 2 - 14, width: w, height: 28,
+      content: `📷 ${label}`,
+      style: { fontSize: "11px", fontWeight: "600", color: `${accent}99`, textAlign: "center", letterSpacing: "1px" },
+      visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS },
+      placeholderGroupId: groupId,
+    },
+  ];
+};
 
 /* ── Divider helper ── */
 const divider = (x: number, y: number, w: number, color: string): CanvasElement => ({
