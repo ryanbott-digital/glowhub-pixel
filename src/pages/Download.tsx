@@ -321,7 +321,7 @@ export default function DownloadPage() {
           </div>
 
           {/* ── ECOSYSTEM CARDS ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* The Player */}
             <div className="rounded-2xl p-6 space-y-4 text-center" style={{
               background: "rgba(2, 6, 23, 0.7)",
@@ -345,6 +345,35 @@ export default function DownloadPage() {
               <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#00E5FF]/70">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 DISPLAY ENGINE
+              </div>
+            </div>
+
+            {/* Fully Kiosk Browser */}
+            <div className="rounded-2xl p-6 space-y-4 text-center relative" style={{
+              background: "rgba(2, 6, 23, 0.7)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
+              boxShadow: "0 0 30px rgba(245, 158, 11, 0.08), inset 0 1px 0 rgba(255,255,255,0.03)",
+            }}>
+              <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                Recommended
+              </span>
+              <div className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center" style={{
+                background: "linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.1))",
+                border: "1px solid rgba(245, 158, 11, 0.25)",
+              }}>
+                <Shield className="h-7 w-7 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#E2E8F0] tracking-wide">Fully Kiosk Browser</h3>
+                <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
+                  Pro kiosk mode — no URL bar, auto-launch, remote management.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-amber-400/70">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                KIOSK MODE
               </div>
             </div>
 
