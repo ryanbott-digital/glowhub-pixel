@@ -1,27 +1,25 @@
 
 
-## Plan: Time label tooltip during touch drag on Schedule
+## Force-Refresh for Published Player Screens
 
-### What it does
-When dragging a media item or playlist onto the schedule grid via touch, a small time label (e.g. "09:15") appears near the drag ghost, showing the exact snapped start time the block would land on. It disappears when the finger leaves the grid area.
+### Problem
+The `Display.tsx` page (used by published player screens at `/display/:screenId`) doesn't use the `useVersionCheck` hook, so it never auto-reloads when a new frontend deployment is published. The `Player.tsx` page already has this working.
 
-### Implementation
+### Plan
 
-**`src/pages/Schedule.tsx`** — one file, two changes:
+**1. Add `useVersionCheck` to `Display.tsx`**
+- Import `useVersionCheck` from `@/hooks/use-version-check`
+- Call `useVersionCheck(120_000)` (poll every 2 minutes) at the top of the `Display` component
+- This uses the existing, proven mechanism that detects changed Vite bundle hashes and auto-reloads
 
-1. **Compute the time label from existing state**: `touchDropHighlight` already has `hour` and `offsetY`. Derive minutes as `hour * 60 + (offsetY / HOUR_HEIGHT) * 60`, then format as `HH:MM`. This is a simple inline computation in the render — no new state needed.
+**2. Clear service worker cache on reload (optional hardening)**
+- The service worker already uses NetworkFirst for JS/CSS bundles, so new code will be fetched on reload — no SW changes needed.
 
-2. **Render a time pill below the drag ghost** (~line 1271): Inside the existing touch drag ghost block, add a secondary element that shows the formatted time when `touchDropHighlight` is non-null. Positioned as a small pill below the ghost, offset ~40px down from the drag position. Styled with a dark background, primary-colored text, and mono font for readability.
+### Technical Details
+- The `useVersionCheck` hook fetches `/?_t=<timestamp>` with `cache: "no-store"`, extracts the Vite bundle hash from the HTML, and triggers `window.location.reload()` when it changes.
+- A 2-minute interval is appropriate for unattended display screens — frequent enough to pick up updates quickly, lightweight enough to not cause issues.
+- The toast notification ("Updating to latest version…") will briefly appear on the display screen before reload, which is acceptable for a ~2.5s window.
 
-### Visual result
-```text
-  ┌──────────────┐
-  │ 🎬  video.mp4 │  ← existing drag ghost
-  └──────────────┘
-      ┌───────┐
-      │ 09:15 │  ← new time tooltip
-      └───────┘
-```
-
-No new dependencies, no new state — just a computed label rendered conditionally.
+### Files to Edit
+- `src/pages/Display.tsx` — add one import and one hook call (2 lines)
 
