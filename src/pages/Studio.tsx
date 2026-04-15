@@ -261,6 +261,7 @@ export default function Studio() {
   const [rssCache, setRssCache] = useState<Record<string, string[]>>({});
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
+  const [placeholderTarget, setPlaceholderTarget] = useState<{ groupId: string; x: number; y: number; width: number; height: number } | null>(null);
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
   const [lightCanvas, setLightCanvas] = useState(false);
@@ -1097,6 +1098,25 @@ export default function Studio() {
                       e.stopPropagation();
                       setSelectedId(el.id);
                     }}
+                    onDoubleClick={async (e: any) => {
+                      e.stopPropagation();
+                      if (el.placeholderGroupId) {
+                        const shapeEl = elements.find(
+                          (s) => s.placeholderGroupId === el.placeholderGroupId && s.type === "shape"
+                        ) || el;
+                        setPlaceholderTarget({
+                          groupId: el.placeholderGroupId,
+                          x: shapeEl.x, y: shapeEl.y,
+                          width: shapeEl.width, height: shapeEl.height,
+                        });
+                        if (user) {
+                          const { data } = await supabase.from("media").select("id, name, storage_path, type")
+                            .eq("user_id", user.id).order("created_at", { ascending: false });
+                          setMediaItems(data || []);
+                        }
+                        setMediaPickerOpen(true);
+                      }
+                    }}
                     disableDragging={el.locked}
                     enableResizing={!el.locked}
                     dragGrid={snapToGrid ? [gridSize, gridSize] : [1, 1]}
@@ -1124,6 +1144,14 @@ export default function Studio() {
                     {el.locked && (
                       <div className="absolute top-0.5 left-0.5 z-30 p-0.5 rounded bg-muted/80">
                         <LockIcon className="h-2.5 w-2.5 text-muted-foreground" />
+                      </div>
+                    )}
+                    {/* Placeholder hint */}
+                    {el.placeholderGroupId && el.type === "shape" && (
+                      <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer rounded-2xl bg-primary/10 backdrop-blur-[2px]">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/90 text-primary-foreground text-[10px] font-semibold tracking-wider shadow-lg">
+                          <Upload className="h-3 w-3" /> Double-click to add image
+                        </div>
                       </div>
                     )}
                     {renderElementContent(el)}
@@ -1850,7 +1878,7 @@ export default function Studio() {
       </Dialog>
 
       {/* Media Picker Modal */}
-      <Dialog open={mediaPickerOpen} onOpenChange={setMediaPickerOpen}>
+      <Dialog open={mediaPickerOpen} onOpenChange={(v) => { setMediaPickerOpen(v); if (!v) setPlaceholderTarget(null); }}>
         <DialogContent className="bg-card border-border/30 max-w-lg max-h-[70vh] flex flex-col p-0 overflow-hidden">
           <div className="p-4 border-b border-border/20">
             <h3 className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide flex items-center gap-2">
@@ -1871,7 +1899,31 @@ export default function Studio() {
                 {mediaItems.map((item) => {
                   const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
                   return (
-                    <button key={item.id} onClick={() => { updateSelected({ content: publicUrl }); setMediaPickerOpen(false); toast.success(`Added "${item.name}"`); }}
+                    <button key={item.id} onClick={() => {
+                      if (placeholderTarget) {
+                        // Replace placeholder group with image element
+                        pushHistory(elements);
+                        const newId = crypto.randomUUID();
+                        const imgEl: CanvasElement = {
+                          id: newId, type: "image", content: publicUrl,
+                          x: placeholderTarget.x, y: placeholderTarget.y,
+                          width: placeholderTarget.width, height: placeholderTarget.height,
+                          style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+                        };
+                        setElements((prev) => [
+                          ...prev.filter((e) => e.placeholderGroupId !== placeholderTarget.groupId),
+                          imgEl,
+                        ]);
+                        setSelectedId(newId);
+                        setPlaceholderTarget(null);
+                        setMediaPickerOpen(false);
+                        toast.success(`Placed "${item.name}"`);
+                      } else {
+                        updateSelected({ content: publicUrl });
+                        setMediaPickerOpen(false);
+                        toast.success(`Added "${item.name}"`);
+                      }
+                    }}
                       className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square hover:border-primary/50 hover:shadow-[0_0_12px_hsla(180,100%,32%,0.15)] transition-all">
                       <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">

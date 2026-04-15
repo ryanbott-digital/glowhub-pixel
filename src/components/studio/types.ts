@@ -38,6 +38,8 @@ export interface CanvasElement {
   blendMode?: string;
   // Typography
   fontFamily?: string;
+  // Image placeholder (template zones)
+  placeholderGroupId?: string;
 }
 
 export const DEFAULT_FILTERS: CanvasElement["filters"] = {
