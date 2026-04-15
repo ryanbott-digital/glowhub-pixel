@@ -221,6 +221,39 @@ export default function Player() {
     }
   }, []);
 
+  // Wake Lock — keep screen on at all times
+  useEffect(() => {
+    let wakeLock: any = null;
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request("screen");
+          wakeLock.addEventListener("release", () => { wakeLock = null; });
+        }
+      } catch {}
+    };
+    requestWakeLock();
+    // Re-acquire on visibility change (e.g. after returning from background)
+    const onVisibility = () => {
+      if (document.visibilityState === "visible" && !wakeLock) requestWakeLock();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      wakeLock?.release?.().catch(() => {});
+    };
+  }, []);
+
+  // Lock orientation to landscape
+  useEffect(() => {
+    try {
+      const lockOrientation = (screen.orientation as any)?.lock;
+      if (lockOrientation) {
+        (screen.orientation as any).lock("landscape").catch(() => {});
+      }
+    } catch {}
+  }, []);
+
   // Inject TV styles + register media cache SW
   const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
   const [focusIndex, setFocusIndex] = useState(-1);
