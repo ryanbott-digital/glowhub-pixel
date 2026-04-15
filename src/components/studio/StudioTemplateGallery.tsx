@@ -22,529 +22,568 @@ interface StudioTemplate {
 let _tid = 0;
 const tid = () => `tpl-${Date.now()}-${++_tid}`;
 
-/* ── Image placeholder helper: creates a rounded-rect zone + camera icon label ── */
-const imgPlaceholder = (x: number, y: number, w: number, h: number, label = "YOUR IMAGE", borderColor = "#334155"): CanvasElement[] => [
-  { id: tid(), type: "shape", x, y, width: w, height: h, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f1219", shapeStroke: borderColor, shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-  { id: tid(), type: "text", x, y: y + h / 2 - 18, width: w, height: 36, content: `📸\n${label}`, style: { fontSize: "13px", fontWeight: "500", color: "#475569", textAlign: "center", lineHeight: "1.4" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+/* ── Refined image placeholder: subtle gradient fill, dashed border, centered label ── */
+const imgPlaceholder = (x: number, y: number, w: number, h: number, label = "YOUR IMAGE", accent = "#475569"): CanvasElement[] => [
+  {
+    id: tid(), type: "shape", x, y, width: w, height: h, content: "", style: {},
+    shapeType: "rounded-rect",
+    shapeFill: `${accent}12`,
+    shapeStroke: accent,
+    shapeStrokeWidth: 1,
+    visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+  },
+  {
+    id: tid(), type: "text", x, y: y + h / 2 - 14, width: w, height: 28,
+    content: `📷 ${label}`,
+    style: { fontSize: "11px", fontWeight: "600", color: `${accent}99`, textAlign: "center", letterSpacing: "1px" },
+    visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS },
+  },
 ];
+
+/* ── Divider helper ── */
+const divider = (x: number, y: number, w: number, color: string): CanvasElement => ({
+  id: tid(), type: "shape", x, y, width: w, height: 2, content: "", style: {},
+  shapeType: "line", shapeFill: color, shapeStroke: color, shapeStrokeWidth: 2,
+  visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+});
+
+/* ── Card helper ── */
+const card = (x: number, y: number, w: number, h: number, fill = "#111827", stroke = "#1E293B"): CanvasElement => ({
+  id: tid(), type: "shape", x, y, width: w, height: h, content: "", style: {},
+  shapeType: "rounded-rect", shapeFill: fill, shapeStroke: stroke, shapeStrokeWidth: 1,
+  visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+});
+
+/* ── Text helper ── */
+const txt = (x: number, y: number, w: number, h: number, content: string, style: Record<string, string>, font = "Inter"): CanvasElement => ({
+  id: tid(), type: "text", x, y, width: w, height: h, content,
+  style: { fontWeight: "400", ...style },
+  visible: true, locked: false, fontFamily: font, filters: { ...DEFAULT_FILTERS },
+});
 
 /* ── Pre-made templates ── */
 const TEMPLATES: StudioTemplate[] = [
-  /* ─── MENU BOARDS ─── */
+  /* ─── CAFÉ MENU ─── */
   {
     id: "menu-cafe",
     name: "Café Menu",
     category: "menu",
     preview: "☕",
-    description: "Modern coffee shop menu with hero image and pricing columns",
-    bg: { type: "gradient", color: "#1a1a2e", gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)" },
+    description: "Modern coffee shop menu with hero image and pricing",
+    bg: { type: "gradient", color: "#1a1a2e", gradient: "linear-gradient(160deg, #1a1a2e 0%, #0f1628 100%)" },
     elements: [
-      // Hero image area
-      ...imgPlaceholder(40, 20, 300, 200, "HERO PHOTO", "#D4A574"),
-      // Title
-      { id: tid(), type: "text", x: 370, y: 30, width: 550, height: 50, content: "THE DAILY GRIND", style: { fontSize: "42px", fontWeight: "800", color: "#F5DEB3" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 370, y: 85, width: 200, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#D4A574", shapeStroke: "#D4A574", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 370, y: 100, width: 550, height: 22, content: "CRAFTED COFFEE  •  BAKED DAILY", style: { fontSize: "12px", fontWeight: "600", color: "#D4A574", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 370, y: 135, width: 550, height: 90, content: "Espresso ........................ $3.50\nAmericano ..................... $4.00\nCappuccino ................... $4.50\nLatte ............................... $4.75", style: { fontSize: "15px", fontWeight: "400", color: "#E8D5B7", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Second column
-      { id: tid(), type: "text", x: 40, y: 240, width: 400, height: 28, content: "COLD BREW & ICED", style: { fontSize: "18px", fontWeight: "700", color: "#D4A574", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 40, y: 275, width: 400, height: 120, content: "Cold Brew ...................... $4.50\nIced Latte ....................... $5.00\nIced Mocha .................... $5.50\nFrappé ........................... $5.75", style: { fontSize: "15px", fontWeight: "400", color: "#E8D5B7", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Pastry image zone
-      ...imgPlaceholder(500, 240, 420, 160, "PASTRY PHOTO", "#D4A574"),
-      // Footer
-      { id: tid(), type: "text", x: 40, y: 420, width: 880, height: 28, content: "✦ Ask about our seasonal specials  •  Oat & soy milk available ✦", style: { fontSize: "14px", fontWeight: "500", color: "#D4A574", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(40, 24, 280, 180, "HERO PHOTO", "#C8A97E"),
+      txt(350, 28, 570, 44, "THE DAILY GRIND", { fontSize: "38px", fontWeight: "800", color: "#F5DEB3", letterSpacing: "2px" }, "Playfair Display"),
+      divider(350, 78, 180, "#C8A97E"),
+      txt(350, 92, 570, 18, "CRAFTED COFFEE  •  BAKED DAILY", { fontSize: "11px", fontWeight: "600", color: "#C8A97E", letterSpacing: "4px" }, "Space Grotesk"),
+      txt(350, 118, 280, 86, "Espresso .................... $3.50\nAmericano ................. $4.00\nCappuccino ............... $4.50\nLatte .......................... $4.75", { fontSize: "14px", color: "#E8D5B7", lineHeight: "1.75" }, "DM Sans"),
+      txt(650, 118, 260, 86, "Flat White .................. $4.50\nMocha ........................ $5.00\nChai Latte .................. $4.75\nMatcha Latte ............. $5.25", { fontSize: "14px", color: "#E8D5B7", lineHeight: "1.75" }, "DM Sans"),
+      divider(40, 218, 880, "#1E293B"),
+      txt(40, 230, 200, 22, "COLD BREW & ICED", { fontSize: "15px", fontWeight: "700", color: "#C8A97E", letterSpacing: "3px" }, "Bebas Neue"),
+      txt(40, 258, 440, 86, "Cold Brew .................. $4.50\nIced Latte ................... $5.00\nIced Mocha ................ $5.50\nFrappé ....................... $5.75", { fontSize: "14px", color: "#E8D5B7", lineHeight: "1.75" }, "DM Sans"),
+      ...imgPlaceholder(500, 230, 420, 130, "PASTRY / FOOD PHOTO", "#C8A97E"),
+      txt(40, 375, 140, 22, "PASTRIES", { fontSize: "15px", fontWeight: "700", color: "#C8A97E", letterSpacing: "3px" }, "Bebas Neue"),
+      txt(40, 400, 440, 70, "Croissant ................... $3.50\nPain au Chocolat ...... $4.00\nCinnamon Roll ........... $4.50", { fontSize: "14px", color: "#E8D5B7", lineHeight: "1.75" }, "DM Sans"),
+      ...imgPlaceholder(500, 375, 200, 100, "PASTRY CLOSE-UP", "#C8A97E"),
+      ...imgPlaceholder(720, 375, 200, 100, "COFFEE ART", "#C8A97E"),
+      divider(40, 490, 880, "#1E293B"),
+      txt(40, 500, 880, 22, "✦  Ask about our seasonal specials  •  Oat & almond milk available  •  All beans ethically sourced  ✦", { fontSize: "12px", fontWeight: "500", color: "#8B7355", textAlign: "center", fontStyle: "italic" }, "Lora"),
     ],
   },
+
+  /* ─── RESTAURANT SPECIALS ─── */
   {
     id: "menu-restaurant",
     name: "Restaurant Specials",
     category: "menu",
     preview: "🍽️",
     description: "Elegant specials board with dish photography zones",
-    bg: { type: "solid", color: "#0f0f0f" },
+    bg: { type: "solid", color: "#0C0C0C" },
     elements: [
-      { id: tid(), type: "text", x: 60, y: 25, width: 500, height: 50, content: "TODAY'S SPECIALS", style: { fontSize: "44px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 60, y: 80, width: 160, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#B8860B", shapeStroke: "#B8860B", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      // Starter row
-      { id: tid(), type: "text", x: 60, y: 100, width: 120, height: 20, content: "STARTER", style: { fontSize: "13px", fontWeight: "600", color: "#D4A017", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(60, 125, 180, 120, "DISH PHOTO", "#D4A017"),
-      { id: tid(), type: "text", x: 260, y: 130, width: 350, height: 25, content: "Burrata with Heirloom Tomatoes", style: { fontSize: "20px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 260, y: 160, width: 350, height: 20, content: "Fresh basil oil, aged balsamic, micro herbs", style: { fontSize: "13px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 260, y: 190, width: 80, height: 25, content: "$14", style: { fontSize: "22px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      // Main row
-      { id: tid(), type: "text", x: 60, y: 260, width: 120, height: 20, content: "MAIN", style: { fontSize: "13px", fontWeight: "600", color: "#D4A017", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(60, 285, 180, 120, "DISH PHOTO", "#D4A017"),
-      { id: tid(), type: "text", x: 260, y: 290, width: 350, height: 25, content: "Pan-Seared Salmon", style: { fontSize: "20px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 260, y: 320, width: 350, height: 20, content: "Dill cream, grilled asparagus, lemon butter", style: { fontSize: "13px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 260, y: 350, width: 80, height: 25, content: "$28", style: { fontSize: "22px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      // Right side image
-      ...imgPlaceholder(660, 100, 260, 310, "AMBIANCE PHOTO", "#B8860B"),
-      // Dessert
-      { id: tid(), type: "text", x: 60, y: 425, width: 120, height: 20, content: "DESSERT", style: { fontSize: "13px", fontWeight: "600", color: "#D4A017", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 450, width: 450, height: 22, content: "Dark Chocolate Fondant with Salted Caramel — $12", style: { fontSize: "17px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 660, y: 425, width: 260, height: 40, content: "Reservations: 020 7123 4567", style: { fontSize: "14px", fontWeight: "500", color: "#94A3B8", textAlign: "center" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      txt(50, 24, 500, 44, "TODAY'S SPECIALS", { fontSize: "40px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "4px" }, "Oswald"),
+      divider(50, 72, 140, "#B8860B"),
+      txt(50, 84, 200, 16, "STARTER", { fontSize: "12px", fontWeight: "700", color: "#D4A017", letterSpacing: "5px" }, "Space Grotesk"),
+      ...imgPlaceholder(50, 106, 170, 120, "DISH PHOTO", "#D4A017"),
+      txt(240, 110, 360, 22, "Burrata with Heirloom Tomatoes", { fontSize: "19px", fontWeight: "300", color: "#FFFFFF" }, "Playfair Display"),
+      txt(240, 136, 360, 16, "Fresh basil oil, aged balsamic, micro herbs", { fontSize: "12px", color: "#94A3B8" }),
+      txt(240, 160, 80, 22, "$14", { fontSize: "20px", fontWeight: "700", color: "#D4A017" }, "Oswald"),
+      divider(50, 236, 560, "#1E293B"),
+      txt(50, 248, 200, 16, "MAIN", { fontSize: "12px", fontWeight: "700", color: "#D4A017", letterSpacing: "5px" }, "Space Grotesk"),
+      ...imgPlaceholder(50, 270, 170, 120, "DISH PHOTO", "#D4A017"),
+      txt(240, 274, 360, 22, "Pan-Seared Salmon", { fontSize: "19px", fontWeight: "300", color: "#FFFFFF" }, "Playfair Display"),
+      txt(240, 300, 360, 16, "Dill cream, grilled asparagus, lemon butter", { fontSize: "12px", color: "#94A3B8" }),
+      txt(240, 324, 80, 22, "$28", { fontSize: "20px", fontWeight: "700", color: "#D4A017" }, "Oswald"),
+      // Right column
+      ...imgPlaceholder(640, 84, 280, 306, "AMBIANCE PHOTO", "#B8860B"),
+      divider(50, 400, 870, "#1E293B"),
+      txt(50, 412, 120, 16, "DESSERT", { fontSize: "12px", fontWeight: "700", color: "#D4A017", letterSpacing: "5px" }, "Space Grotesk"),
+      txt(50, 434, 500, 20, "Dark Chocolate Fondant with Salted Caramel — $12", { fontSize: "16px", fontWeight: "300", color: "#FFFFFF" }),
+      txt(50, 462, 500, 20, "Lemon Tart, Crème Fraîche, Raspberry Coulis — $10", { fontSize: "16px", fontWeight: "300", color: "#FFFFFF" }),
+      txt(640, 416, 280, 70, "Reservations\n020 7123 4567", { fontSize: "14px", fontWeight: "500", color: "#94A3B8", textAlign: "center", lineHeight: "1.6" }),
+      ...imgPlaceholder(720, 478, 100, 40, "LOGO", "#B8860B"),
     ],
   },
+
+  /* ─── BAR & COCKTAILS ─── */
   {
     id: "menu-bar",
     name: "Bar & Cocktails",
     category: "menu",
     preview: "🍸",
-    description: "Neon cocktail menu with drink photography zones",
-    bg: { type: "gradient", color: "#0a0a1a", gradient: "linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 100%)" },
+    description: "Neon-accented cocktail menu with drink photography",
+    bg: { type: "gradient", color: "#0a0a1a", gradient: "linear-gradient(180deg, #080818 0%, #150a28 100%)" },
     elements: [
-      { id: tid(), type: "text", x: 80, y: 25, width: 500, height: 55, content: "COCKTAIL HOUR", style: { fontSize: "48px", fontWeight: "900", color: "#FF6B9D" }, visible: true, locked: false, fontFamily: "Righteous", filters: { ...DEFAULT_FILTERS }, glowIntensity: 80 },
-      { id: tid(), type: "text", x: 80, y: 85, width: 500, height: 22, content: "HAPPY HOUR 5–7 PM • ALL $8", style: { fontSize: "14px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      // Cocktail images row
-      ...imgPlaceholder(640, 20, 280, 180, "COCKTAIL PHOTO", "#FF6B9D"),
-      // Drink list
-      { id: tid(), type: "text", x: 80, y: 120, width: 520, height: 350, content: "🍋 Lemon Drop Martini ............... $12\nVodka, triple sec, fresh lemon, sugar rim\n\n🌿 Mojito Fresco ........................... $11\nWhite rum, mint, lime, soda\n\n🥃 Old Fashioned .......................... $14\nBourbon, Angostura bitters, orange peel\n\n🍓 Strawberry Daiquiri .................. $12\nRum, fresh strawberries, lime\n\n🫒 Espresso Martini ....................... $13\nVodka, Kahlúa, fresh espresso", style: { fontSize: "16px", fontWeight: "400", color: "#E8D5FF", lineHeight: "1.55" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Bottom cocktail images
-      ...imgPlaceholder(640, 220, 135, 120, "DRINK 1", "#A855F7"),
-      ...imgPlaceholder(785, 220, 135, 120, "DRINK 2", "#A855F7"),
-      { id: tid(), type: "text", x: 640, y: 360, width: 280, height: 100, content: "🍺 CRAFT BEERS\nAsk your bartender about\nour rotating tap selection", style: { fontSize: "15px", fontWeight: "500", color: "#FFD700", textAlign: "center", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      txt(60, 24, 460, 48, "COCKTAIL HOUR", { fontSize: "44px", fontWeight: "900", color: "#FF6B9D" }, "Righteous"),
+      txt(60, 76, 460, 18, "HAPPY HOUR 5–7 PM  •  ALL CLASSICS $8", { fontSize: "12px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px" }, "Space Grotesk"),
+      divider(60, 100, 200, "#FF6B9D"),
+      ...imgPlaceholder(600, 20, 320, 170, "COCKTAIL HERO", "#FF6B9D"),
+      txt(60, 112, 500, 20, "SIGNATURE COCKTAILS", { fontSize: "14px", fontWeight: "700", color: "#A855F7", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(60, 140, 500, 280, "🍋 Lemon Drop Martini ..................... $12\n     Vodka, triple sec, fresh lemon, sugar rim\n\n🌿 Mojito Fresco ................................. $11\n     White rum, mint, lime, soda\n\n🥃 Old Fashioned ................................. $14\n     Bourbon, Angostura bitters, orange peel\n\n🍓 Strawberry Daiquiri ....................... $12\n     Rum, fresh strawberries, lime\n\n🫒 Espresso Martini ............................ $13\n     Vodka, Kahlúa, fresh espresso", { fontSize: "14px", color: "#E0D0F0", lineHeight: "1.5" }, "DM Sans"),
+      ...imgPlaceholder(600, 210, 155, 120, "DRINK 1", "#A855F7"),
+      ...imgPlaceholder(765, 210, 155, 120, "DRINK 2", "#A855F7"),
+      card(600, 345, 320, 80, "#120a20", "#2D1B4E"),
+      txt(620, 355, 280, 60, "🍺 CRAFT BEERS ON TAP\nAsk your bartender about\nour rotating selection", { fontSize: "13px", fontWeight: "500", color: "#FFD700", textAlign: "center", lineHeight: "1.6" }, "DM Sans"),
+      divider(60, 440, 860, "#1E1030"),
+      txt(60, 456, 860, 20, "Must be 21+  •  Please drink responsibly  •  Tips appreciated", { fontSize: "11px", fontWeight: "500", color: "#64748B", textAlign: "center" }),
+      ...imgPlaceholder(60, 484, 100, 40, "LOGO", "#FF6B9D"),
     ],
   },
+
+  /* ─── PIZZA MENU ─── */
   {
     id: "menu-pizza",
     name: "Pizza Menu",
     category: "menu",
     preview: "🍕",
-    description: "Wood-fired pizza menu with hero food photography",
-    bg: { type: "gradient", color: "#1a0a0a", gradient: "linear-gradient(180deg, #1a0a0a 0%, #2a1510 50%, #1a0a0a 100%)" },
+    description: "Wood-fired pizza menu with rustic styling",
+    bg: { type: "gradient", color: "#1a0a0a", gradient: "linear-gradient(180deg, #140808 0%, #1E1210 50%, #140808 100%)" },
     elements: [
-      // Hero banner
-      ...imgPlaceholder(0, 0, 960, 160, "HERO — WOOD-FIRED OVEN PHOTO", "#FF6B35"),
-      // Overlay title on hero
-      { id: tid(), type: "text", x: 200, y: 40, width: 560, height: 70, content: "STONE OVEN PIZZERIA", style: { fontSize: "48px", fontWeight: "900", color: "#FFD700", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS }, glowIntensity: 30, entranceAnim: "fade-in" },
-      { id: tid(), type: "text", x: 200, y: 115, width: 560, height: 22, content: "HAND-STRETCHED  •  WOOD-FIRED  •  STONE BAKED", style: { fontSize: "11px", fontWeight: "600", color: "#FF6B35", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      // Classic column
-      { id: tid(), type: "text", x: 50, y: 175, width: 300, height: 28, content: "CLASSIC PIZZAS", style: { fontSize: "18px", fontWeight: "700", color: "#FF6B35", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 200 },
-      { id: tid(), type: "text", x: 50, y: 210, width: 400, height: 200, content: "Margherita .......................... $12\nFresh mozzarella, San Marzano, basil\n\nPepperoni ............................. $14\nDouble pepperoni, mozzarella blend\n\nQuattro Formaggi ................ $16\nMozzarella, gorgonzola, parmesan, fontina", style: { fontSize: "15px", fontWeight: "400", color: "#E8D0C0", lineHeight: "1.55" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 300 },
-      // Gourmet column
-      { id: tid(), type: "text", x: 500, y: 175, width: 300, height: 28, content: "GOURMET PIZZAS", style: { fontSize: "18px", fontWeight: "700", color: "#FF6B35", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 250 },
-      { id: tid(), type: "text", x: 500, y: 210, width: 420, height: 200, content: "Truffle Mushroom ............... $19\nWild mushrooms, truffle oil, fontina\n\nProsciutto & Fig .................. $20\nParma ham, fig jam, arugula, balsamic\n\nBBQ Pulled Pork .................. $18\nSlow-cooked pork, BBQ glaze, jalapeños", style: { fontSize: "15px", fontWeight: "400", color: "#E8D0C0", lineHeight: "1.55" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 400 },
-      // Bottom bar
-      { id: tid(), type: "shape", x: 50, y: 430, width: 860, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#FF6B35", shapeStroke: "#FF6B35", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 50, y: 445, width: 860, height: 50, content: "Garlic Bread $6  •  Caesar Salad $9  •  Tiramisu $8  •  Gelato $7", style: { fontSize: "16px", fontWeight: "400", color: "#E8D0C0", textAlign: "center", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 200, y: 500, width: 560, height: 28, content: "🔥 ALL PIZZAS HAND-STRETCHED & WOOD-FIRED 🔥", style: { fontSize: "13px", fontWeight: "600", color: "#FFD700", textAlign: "center", letterSpacing: "2px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS }, animation: "pulse" },
+      ...imgPlaceholder(0, 0, 960, 130, "WOOD-FIRED OVEN HERO", "#FF6B35"),
+      txt(180, 30, 600, 60, "STONE OVEN PIZZERIA", { fontSize: "44px", fontWeight: "900", color: "#FFD700", textAlign: "center" }, "Oswald"),
+      txt(180, 95, 600, 18, "HAND-STRETCHED  •  WOOD-FIRED  •  STONE BAKED", { fontSize: "10px", fontWeight: "600", color: "#FF6B35", letterSpacing: "4px", textAlign: "center" }, "Space Grotesk"),
+      txt(50, 146, 200, 22, "CLASSIC PIZZAS", { fontSize: "16px", fontWeight: "700", color: "#FF6B35", letterSpacing: "3px" }, "Bebas Neue"),
+      txt(50, 174, 400, 150, "Margherita ........................ $12\nFresh mozzarella, San Marzano, basil\n\nPepperoni ........................... $14\nDouble pepperoni, mozzarella blend\n\nQuattro Formaggi .............. $16\nMozzarella, gorgonzola, parmesan, fontina", { fontSize: "14px", color: "#E8D0C0", lineHeight: "1.5" }, "DM Sans"),
+      txt(500, 146, 200, 22, "GOURMET PIZZAS", { fontSize: "16px", fontWeight: "700", color: "#FF6B35", letterSpacing: "3px" }, "Bebas Neue"),
+      txt(500, 174, 420, 150, "Truffle Mushroom ............... $19\nWild mushrooms, truffle oil, fontina\n\nProsciutto & Fig .................. $20\nParma ham, fig jam, arugula, balsamic\n\nBBQ Pulled Pork .................. $18\nSlow-cooked pork, BBQ glaze, jalapeños", { fontSize: "14px", color: "#E8D0C0", lineHeight: "1.5" }, "DM Sans"),
+      divider(50, 340, 860, "#331A0A"),
+      txt(50, 355, 200, 20, "SIDES & DESSERTS", { fontSize: "14px", fontWeight: "700", color: "#FF6B35", letterSpacing: "2px" }, "Bebas Neue"),
+      txt(50, 380, 860, 60, "Garlic Bread $6  •  Caesar Salad $9  •  Tiramisu $8  •  Gelato $7  •  Bruschetta $7  •  Arancini $8", { fontSize: "15px", color: "#E8D0C0", textAlign: "center", lineHeight: "1.6" }, "DM Sans"),
+      ...imgPlaceholder(50, 450, 280, 75, "PIZZA CLOSE-UP", "#FF6B35"),
+      ...imgPlaceholder(350, 450, 280, 75, "INTERIOR PHOTO", "#FF6B35"),
+      ...imgPlaceholder(650, 450, 260, 75, "LOGO / QR CODE", "#FFD700"),
     ],
   },
 
-  /* ─── PROMOTIONS ─── */
+  /* ─── FLASH SALE ─── */
   {
     id: "promo-flash-sale",
     name: "Flash Sale",
     category: "promo",
     preview: "⚡",
-    description: "Bold flash sale with product image zones",
+    description: "Bold promotional layout with product image grid",
     bg: { type: "gradient", color: "#0f0f0f", gradient: "linear-gradient(135deg, #1a0000 0%, #0f0f0f 50%, #001a1a 100%)" },
     elements: [
-      { id: tid(), type: "text", x: 50, y: 30, width: 500, height: 60, content: "⚡ FLASH SALE ⚡", style: { fontSize: "52px", fontWeight: "900", color: "#FF4444", textAlign: "center" }, visible: true, locked: false, fontFamily: "Russo One", filters: { ...DEFAULT_FILTERS }, animation: "pulse" },
-      { id: tid(), type: "text", x: 50, y: 100, width: 500, height: 180, content: "50%\nOFF", style: { fontSize: "110px", fontWeight: "900", color: "#FFFFFF", textAlign: "center", lineHeight: "0.9" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 50, y: 290, width: 500, height: 35, content: "EVERYTHING IN STORE", style: { fontSize: "22px", fontWeight: "700", color: "#FF6B35", textAlign: "center", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 50, y: 340, width: 500, height: 30, content: "THIS WEEKEND ONLY", style: { fontSize: "18px", fontWeight: "500", color: "#94A3B8", textAlign: "center", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      // Product images grid
-      ...imgPlaceholder(600, 30, 320, 155, "PRODUCT 1", "#FF4444"),
-      ...imgPlaceholder(600, 200, 155, 155, "PRODUCT 2", "#FF6B35"),
-      ...imgPlaceholder(765, 200, 155, 155, "PRODUCT 3", "#FF6B35"),
-      { id: tid(), type: "text", x: 600, y: 375, width: 320, height: 60, content: "Shop in-store or online\nwww.yourstore.com", style: { fontSize: "16px", fontWeight: "500", color: "#94A3B8", textAlign: "center", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      // QR code zone
-      ...imgPlaceholder(100, 390, 120, 120, "QR CODE", "#FF4444"),
-      { id: tid(), type: "text", x: 240, y: 420, width: 300, height: 50, content: "Scan for exclusive\nonline-only deals", style: { fontSize: "16px", fontWeight: "500", color: "#FFD700", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      txt(50, 28, 500, 50, "⚡ FLASH SALE", { fontSize: "46px", fontWeight: "900", color: "#FF4444", textAlign: "center" }, "Russo One"),
+      txt(50, 88, 500, 140, "50%\nOFF", { fontSize: "100px", fontWeight: "900", color: "#FFFFFF", textAlign: "center", lineHeight: "0.9" }, "Bebas Neue"),
+      txt(50, 240, 500, 28, "EVERYTHING IN STORE", { fontSize: "20px", fontWeight: "700", color: "#FF6B35", textAlign: "center", letterSpacing: "5px" }, "Space Grotesk"),
+      txt(50, 276, 500, 24, "THIS WEEKEND ONLY", { fontSize: "16px", fontWeight: "500", color: "#94A3B8", textAlign: "center", letterSpacing: "3px" }),
+      ...imgPlaceholder(600, 28, 320, 140, "PRODUCT 1", "#FF4444"),
+      ...imgPlaceholder(600, 180, 155, 130, "PRODUCT 2", "#FF6B35"),
+      ...imgPlaceholder(765, 180, 155, 130, "PRODUCT 3", "#FF6B35"),
+      txt(600, 324, 320, 50, "Shop in-store or online\nwww.yourstore.com", { fontSize: "14px", fontWeight: "500", color: "#94A3B8", textAlign: "center", lineHeight: "1.6" }),
+      divider(50, 320, 500, "#1E293B"),
+      ...imgPlaceholder(80, 350, 110, 110, "QR CODE", "#FF4444"),
+      txt(210, 375, 300, 44, "Scan for exclusive\nonline-only deals", { fontSize: "15px", fontWeight: "500", color: "#FFD700", lineHeight: "1.5" }, "DM Sans"),
+      ...imgPlaceholder(80, 475, 120, 45, "BRAND LOGO", "#FFFFFF"),
+      txt(600, 390, 320, 130, "Terms & conditions apply.\nExcludes sale items.\nCannot be combined with other offers.", { fontSize: "11px", color: "#4B5563", textAlign: "center", lineHeight: "1.6" }),
     ],
   },
+
+  /* ─── HAPPY HOUR ─── */
   {
     id: "promo-happy-hour",
     name: "Happy Hour",
     category: "promo",
     preview: "🎉",
-    description: "Vibrant happy hour with drink images and offers",
+    description: "Vibrant happy hour promotion with drink images",
     bg: { type: "gradient", color: "#0a1628", gradient: "linear-gradient(135deg, #0a1628 0%, #1a0a28 100%)" },
     elements: [
-      { id: tid(), type: "text", x: 60, y: 40, width: 500, height: 70, content: "HAPPY HOUR", style: { fontSize: "64px", fontWeight: "900", color: "#FFD700" }, visible: true, locked: false, fontFamily: "Righteous", filters: { ...DEFAULT_FILTERS }, glowIntensity: 60 },
-      { id: tid(), type: "text", x: 60, y: 115, width: 500, height: 35, content: "EVERY FRIDAY 4 PM – 7 PM", style: { fontSize: "22px", fontWeight: "600", color: "#FFFFFF", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 60, y: 160, width: 200, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#FFD700", shapeStroke: "#FFD700", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      // Drink images
-      ...imgPlaceholder(620, 30, 300, 220, "DRINKS PHOTO", "#FFD700"),
-      // Offers
-      { id: tid(), type: "text", x: 60, y: 180, width: 520, height: 280, content: "🍺 Draft Beers — $4\n🍷 House Wine — $6\n🍹 Well Cocktails — $5\n🍕 Appetizers — Half Price", style: { fontSize: "28px", fontWeight: "400", color: "#E2E8F0", lineHeight: "2.2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Logo area
-      ...imgPlaceholder(660, 280, 220, 100, "YOUR LOGO", "#FFD700"),
-      { id: tid(), type: "text", x: 60, y: 470, width: 860, height: 30, content: "No reservations needed  •  Walk-ins welcome  •  Live music every Friday", style: { fontSize: "15px", fontWeight: "400", color: "#64748B", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      txt(50, 34, 480, 60, "HAPPY HOUR", { fontSize: "56px", fontWeight: "900", color: "#FFD700" }, "Righteous"),
+      txt(50, 100, 480, 28, "EVERY FRIDAY 4 PM – 7 PM", { fontSize: "20px", fontWeight: "600", color: "#FFFFFF", letterSpacing: "3px" }, "Bebas Neue"),
+      divider(50, 136, 180, "#FFD700"),
+      ...imgPlaceholder(590, 28, 330, 200, "DRINKS PHOTO", "#FFD700"),
+      txt(50, 154, 500, 240, "🍺  Draft Beers .......................... $4\n\n🍷  House Wine .......................... $6\n\n🍹  Well Cocktails ...................... $5\n\n🍕  Appetizers ................. Half Price\n\n🥜  Bar Snacks ...................... FREE", { fontSize: "22px", color: "#E2E8F0", lineHeight: "1.8" }, "DM Sans"),
+      ...imgPlaceholder(590, 244, 160, 100, "FOOD PHOTO", "#FFD700"),
+      ...imgPlaceholder(760, 244, 160, 100, "YOUR LOGO", "#FFD700"),
+      divider(50, 410, 870, "#1E293B"),
+      txt(50, 424, 870, 24, "No reservations needed  •  Walk-ins welcome  •  Live music every Friday", { fontSize: "13px", fontWeight: "400", color: "#64748B", textAlign: "center", fontStyle: "italic" }, "Lora"),
+      txt(590, 360, 330, 40, "📍 123 Main Street  •  Downtown", { fontSize: "13px", fontWeight: "500", color: "#94A3B8", textAlign: "center" }),
     ],
   },
+
+  /* ─── SEASONAL OFFER ─── */
   {
     id: "promo-seasonal",
     name: "Seasonal Offer",
     category: "promo",
     preview: "🌸",
     description: "Elegant seasonal promotion with collection imagery",
-    bg: { type: "gradient", color: "#0f1923", gradient: "linear-gradient(180deg, #0f1923 0%, #1a2332 100%)" },
+    bg: { type: "gradient", color: "#0f1923", gradient: "linear-gradient(180deg, #0C141E 0%, #162030 100%)" },
     elements: [
-      // Full-width hero image
-      ...imgPlaceholder(500, 40, 420, 350, "COLLECTION PHOTO", "#E879A8"),
-      { id: tid(), type: "text", x: 60, y: 50, width: 400, height: 30, content: "LIMITED TIME OFFER", style: { fontSize: "14px", fontWeight: "600", color: "#E879A8", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 100, width: 400, height: 110, content: "Spring\nCollection", style: { fontSize: "64px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.1" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 230, width: 400, height: 70, content: "Refresh your space with our curated spring selection. New arrivals weekly.", style: { fontSize: "18px", fontWeight: "400", color: "#94A3B8", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 320, width: 200, height: 60, content: "20% OFF", style: { fontSize: "52px", fontWeight: "900", color: "#E879A8" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 385, width: 400, height: 30, content: "Use code: SPRING2026", style: { fontSize: "18px", fontWeight: "500", color: "#FFD700", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      // QR code
-      ...imgPlaceholder(60, 430, 100, 80, "QR CODE", "#E879A8"),
-      { id: tid(), type: "text", x: 175, y: 445, width: 250, height: 40, content: "Scan to shop the\ncollection online", style: { fontSize: "14px", fontWeight: "400", color: "#94A3B8", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(500, 30, 420, 320, "COLLECTION PHOTO", "#E879A8"),
+      txt(50, 40, 420, 24, "LIMITED TIME OFFER", { fontSize: "13px", fontWeight: "600", color: "#E879A8", letterSpacing: "6px" }, "Space Grotesk"),
+      txt(50, 80, 420, 100, "Spring\nCollection", { fontSize: "58px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.05" }, "Playfair Display"),
+      txt(50, 195, 420, 55, "Refresh your space with our curated spring selection. New arrivals weekly.", { fontSize: "16px", color: "#94A3B8", lineHeight: "1.6" }),
+      txt(50, 270, 200, 50, "20% OFF", { fontSize: "48px", fontWeight: "900", color: "#E879A8" }, "Bebas Neue"),
+      txt(50, 330, 400, 24, "Use code: SPRING2026", { fontSize: "16px", fontWeight: "500", color: "#FFD700", letterSpacing: "3px" }, "Space Grotesk"),
+      divider(50, 370, 400, "#1E293B"),
+      ...imgPlaceholder(50, 390, 100, 100, "QR CODE", "#E879A8"),
+      txt(170, 410, 250, 40, "Scan to shop the\ncollection online", { fontSize: "13px", color: "#94A3B8", lineHeight: "1.5" }),
+      ...imgPlaceholder(500, 370, 200, 80, "BRAND LOGO", "#E879A8"),
+      txt(500, 460, 420, 30, "In-store & online  •  Free shipping over $50", { fontSize: "12px", color: "#64748B", textAlign: "center" }),
     ],
   },
 
-  /* ─── INFO DISPLAYS ─── */
+  /* ─── WELCOME SCREEN ─── */
   {
     id: "info-welcome",
     name: "Welcome Screen",
     category: "info",
     preview: "👋",
-    description: "Corporate welcome with logo zone and visitor directions",
-    bg: { type: "gradient", color: "#0a0f1a", gradient: "linear-gradient(135deg, #0a0f1a 0%, #1a1a2e 100%)" },
+    description: "Corporate welcome display with logo and directions",
+    bg: { type: "gradient", color: "#0a0f1a", gradient: "linear-gradient(135deg, #080D18 0%, #141A2E 100%)" },
     elements: [
-      // Logo placeholder
-      ...imgPlaceholder(350, 60, 260, 100, "YOUR LOGO", "#6B8DD6"),
-      { id: tid(), type: "text", x: 160, y: 180, width: 640, height: 35, content: "WELCOME TO", style: { fontSize: "20px", fontWeight: "600", color: "#6B8DD6", letterSpacing: "10px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 160, y: 220, width: 640, height: 80, content: "YOUR\nCOMPANY", style: { fontSize: "68px", fontWeight: "900", color: "#FFFFFF", textAlign: "center", lineHeight: "1" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 380, y: 320, width: 200, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#4A6FA5", shapeStroke: "#4A6FA5", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 160, y: 340, width: 640, height: 40, content: "Please check in at reception", style: { fontSize: "22px", fontWeight: "300", color: "#94A3B8", textAlign: "center" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "widget-clock", x: 380, y: 400, width: 200, height: 80, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      // Office image
-      ...imgPlaceholder(40, 400, 280, 120, "OFFICE PHOTO", "#4A6FA5"),
+      ...imgPlaceholder(350, 40, 260, 90, "YOUR LOGO", "#6B8DD6"),
+      txt(160, 150, 640, 28, "WELCOME TO", { fontSize: "18px", fontWeight: "600", color: "#6B8DD6", letterSpacing: "10px", textAlign: "center" }, "Space Grotesk"),
+      txt(160, 185, 640, 70, "YOUR\nCOMPANY", { fontSize: "60px", fontWeight: "900", color: "#FFFFFF", textAlign: "center", lineHeight: "1" }, "Oswald"),
+      divider(400, 270, 160, "#4A6FA5"),
+      txt(160, 290, 640, 30, "Please check in at reception", { fontSize: "20px", fontWeight: "300", color: "#94A3B8", textAlign: "center" }),
+      { id: tid(), type: "widget-clock", x: 380, y: 340, width: 200, height: 70, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(60, 430, 260, 90, "OFFICE PHOTO", "#4A6FA5"),
+      { id: tid(), type: "widget-weather", x: 680, y: 440, width: 240, height: 70, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
     ],
   },
+
+  /* ─── EVENT SCHEDULE ─── */
   {
     id: "info-event",
     name: "Event Schedule",
     category: "info",
     preview: "📅",
     description: "Conference schedule with speaker photo zones",
-    bg: { type: "solid", color: "#0a0a12" },
+    bg: { type: "solid", color: "#08080F" },
     elements: [
-      { id: tid(), type: "text", x: 50, y: 30, width: 600, height: 55, content: "EVENT SCHEDULE", style: { fontSize: "44px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 50, y: 90, width: 400, height: 25, content: "SATURDAY, APRIL 26, 2026", style: { fontSize: "14px", fontWeight: "600", color: "#6B8DD6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      // Sponsor/event logo
-      ...imgPlaceholder(700, 25, 220, 90, "EVENT LOGO", "#6B8DD6"),
-      { id: tid(), type: "shape", x: 50, y: 125, width: 860, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 50, y: 140, width: 560, height: 370, content: "09:00    Registration & Coffee\n\n10:00    Opening Keynote — Main Stage\n              \"The Future of Digital Experience\"\n\n11:30    Workshop A — Room 1\n              Interactive Design Principles\n\n12:30    Lunch Break — Atrium\n\n14:00    Panel Discussion — Main Stage\n              Industry Leaders Q&A\n\n15:30    Networking & Demos\n\n17:00    Closing Remarks", style: { fontSize: "18px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Speaker photos
-      { id: tid(), type: "text", x: 680, y: 140, width: 240, height: 20, content: "KEYNOTE SPEAKERS", style: { fontSize: "11px", fontWeight: "700", color: "#6B8DD6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(680, 165, 100, 100, "SPEAKER 1", "#6B8DD6"),
-      ...imgPlaceholder(800, 165, 100, 100, "SPEAKER 2", "#6B8DD6"),
-      ...imgPlaceholder(680, 280, 100, 100, "SPEAKER 3", "#6B8DD6"),
-      ...imgPlaceholder(800, 280, 100, 100, "SPEAKER 4", "#6B8DD6"),
+      txt(50, 24, 560, 44, "EVENT SCHEDULE", { fontSize: "40px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "3px" }, "Oswald"),
+      txt(50, 72, 400, 20, "SATURDAY, APRIL 26, 2026", { fontSize: "13px", fontWeight: "600", color: "#6B8DD6", letterSpacing: "3px" }, "Space Grotesk"),
+      ...imgPlaceholder(700, 20, 220, 80, "EVENT LOGO", "#6B8DD6"),
+      divider(50, 100, 870, "#1E293B"),
+      txt(50, 114, 600, 340, "09:00    Registration & Coffee\n\n10:00    Opening Keynote — Main Stage\n              \"The Future of Digital Experience\"\n\n11:30    Workshop A — Room 1\n              Interactive Design Principles\n\n12:30    Lunch Break — Atrium\n\n14:00    Panel Discussion — Main Stage\n              Industry Leaders Q&A\n\n15:30    Networking & Demos\n\n17:00    Closing Remarks", { fontSize: "16px", color: "#CBD5E1", lineHeight: "1.55" }, "DM Sans"),
+      txt(680, 114, 240, 16, "KEYNOTE SPEAKERS", { fontSize: "10px", fontWeight: "700", color: "#6B8DD6", letterSpacing: "3px" }, "Space Grotesk"),
+      ...imgPlaceholder(680, 138, 110, 90, "SPEAKER 1", "#6B8DD6"),
+      ...imgPlaceholder(800, 138, 110, 90, "SPEAKER 2", "#6B8DD6"),
+      ...imgPlaceholder(680, 240, 110, 90, "SPEAKER 3", "#6B8DD6"),
+      ...imgPlaceholder(800, 240, 110, 90, "SPEAKER 4", "#6B8DD6"),
+      txt(680, 345, 240, 60, "Sponsored by\nYour Company Inc.", { fontSize: "12px", color: "#64748B", textAlign: "center", lineHeight: "1.6" }),
+      ...imgPlaceholder(730, 410, 140, 60, "SPONSOR LOGO", "#6B8DD6"),
     ],
   },
 
-  /* ─── GYM / FITNESS ─── */
+  /* ─── GYM CLASS SCHEDULE ─── */
   {
     id: "fitness-class",
     name: "Class Schedule",
     category: "fitness",
     preview: "🏋️",
     description: "Gym class timetable with trainer photo zones",
-    bg: { type: "gradient", color: "#0a0a0a", gradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%)" },
+    bg: { type: "gradient", color: "#0a0a0a", gradient: "linear-gradient(135deg, #0a0a0a 0%, #1a0808 100%)" },
     elements: [
-      // Hero banner
-      ...imgPlaceholder(0, 0, 960, 100, "GYM HERO — ACTION SHOT", "#FF4444"),
-      { id: tid(), type: "text", x: 200, y: 20, width: 560, height: 55, content: "TODAY'S CLASSES", style: { fontSize: "48px", fontWeight: "900", color: "#FF4444", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 200, y: 70, width: 560, height: 22, content: "IRON FORGE FITNESS  •  PUSH YOUR LIMITS", style: { fontSize: "11px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      // Schedule
-      { id: tid(), type: "text", x: 50, y: 115, width: 550, height: 340, content: "06:00    🔥 HIIT Burn — Studio A\n              Coach Marcus · 45 min · All levels\n\n07:30    🚴 Spin Cycle — Studio B\n              Coach Priya · 50 min · Intermediate\n\n09:00    🧘 Yoga Flow — Studio A\n              Sarah · 60 min · All levels\n\n12:00    🥊 Boxing — Studio C\n              Coach Dex · 45 min · Advanced\n\n17:30    💪 CrossFit — Main Floor\n              Coach Liam · 60 min · All levels\n\n19:00    🤸 Pilates — Studio A\n              Mia · 45 min · All levels", style: { fontSize: "15px", fontWeight: "400", color: "#E0D8C0", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Trainer photos
-      { id: tid(), type: "text", x: 650, y: 115, width: 270, height: 18, content: "OUR COACHES", style: { fontSize: "11px", fontWeight: "700", color: "#FF4444", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(650, 140, 130, 100, "COACH 1", "#FF4444"),
-      ...imgPlaceholder(790, 140, 130, 100, "COACH 2", "#FF4444"),
-      ...imgPlaceholder(650, 255, 130, 100, "COACH 3", "#FF6B35"),
-      ...imgPlaceholder(790, 255, 130, 100, "COACH 4", "#FF6B35"),
-      // CTA
-      { id: tid(), type: "text", x: 650, y: 375, width: 270, height: 70, content: "📱 Book via the app\n🆓 First class FREE\nfor new members", style: { fontSize: "14px", fontWeight: "500", color: "#FFD700", textAlign: "center", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Bottom
-      { id: tid(), type: "text", x: 50, y: 470, width: 860, height: 25, content: "🟡 HIIT    🟢 Spin    🟣 Yoga    🔴 Boxing    🔵 CrossFit    🟠 Pilates", style: { fontSize: "12px", fontWeight: "500", color: "#64748B", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 50, y: 500, width: 860, height: 22, content: "OPEN 5 AM – 10 PM MON–FRI  •  7 AM – 8 PM WEEKENDS", style: { fontSize: "11px", fontWeight: "600", color: "#FF4444", letterSpacing: "2px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(0, 0, 960, 80, "GYM HERO — ACTION SHOT", "#FF4444"),
+      txt(200, 18, 560, 42, "TODAY'S CLASSES", { fontSize: "40px", fontWeight: "900", color: "#FF4444", textAlign: "center" }, "Oswald"),
+      txt(200, 56, 560, 16, "IRON FORGE FITNESS  •  PUSH YOUR LIMITS", { fontSize: "10px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px", textAlign: "center" }, "Space Grotesk"),
+      txt(40, 94, 580, 320, "06:00    🔥 HIIT Burn — Studio A\n              Coach Marcus · 45 min · All levels\n\n07:30    🚴 Spin Cycle — Studio B\n              Coach Priya · 50 min · Intermediate\n\n09:00    🧘 Yoga Flow — Studio A\n              Sarah · 60 min · All levels\n\n12:00    🥊 Boxing — Studio C\n              Coach Dex · 45 min · Advanced\n\n17:30    💪 CrossFit — Main Floor\n              Coach Liam · 60 min · All levels\n\n19:00    🤸 Pilates — Studio A\n              Mia · 45 min · All levels", { fontSize: "14px", color: "#E0D8C0", lineHeight: "1.45" }, "DM Sans"),
+      txt(650, 94, 270, 14, "OUR COACHES", { fontSize: "10px", fontWeight: "700", color: "#FF4444", letterSpacing: "4px" }, "Space Grotesk"),
+      ...imgPlaceholder(650, 114, 130, 90, "COACH 1", "#FF4444"),
+      ...imgPlaceholder(790, 114, 130, 90, "COACH 2", "#FF4444"),
+      ...imgPlaceholder(650, 216, 130, 90, "COACH 3", "#FF6B35"),
+      ...imgPlaceholder(790, 216, 130, 90, "COACH 4", "#FF6B35"),
+      card(650, 320, 270, 70, "#1a0808", "#331A0A"),
+      txt(660, 328, 250, 55, "📱 Book via the app\n🆓 First class FREE\nfor new members", { fontSize: "13px", fontWeight: "500", color: "#FFD700", textAlign: "center", lineHeight: "1.5" }, "DM Sans"),
+      divider(40, 430, 880, "#1E1010"),
+      txt(40, 444, 880, 18, "🟡 HIIT    🟢 Spin    🟣 Yoga    🔴 Boxing    🔵 CrossFit    🟠 Pilates", { fontSize: "11px", fontWeight: "500", color: "#64748B", textAlign: "center" }, "DM Sans"),
+      txt(40, 470, 880, 18, "OPEN 5 AM – 10 PM MON–FRI  •  7 AM – 8 PM WEEKENDS", { fontSize: "10px", fontWeight: "600", color: "#FF4444", letterSpacing: "2px", textAlign: "center" }, "Space Grotesk"),
     ],
   },
 
-  /* ─── RETAIL ─── */
+  /* ─── RETAIL WINDOW ─── */
   {
     id: "retail-window",
     name: "Window Display",
     category: "retail",
     preview: "🛍️",
-    description: "Storefront window display with product image grid",
-    bg: { type: "solid", color: "#0a0a0a" },
+    description: "Storefront window with product image grid",
+    bg: { type: "solid", color: "#080808" },
     elements: [
-      // Large hero product
-      ...imgPlaceholder(40, 30, 560, 320, "HERO PRODUCT IMAGE", "#FFFFFF"),
-      // Right side info
-      { id: tid(), type: "text", x: 630, y: 30, width: 300, height: 22, content: "NEW ARRIVAL", style: { fontSize: "13px", fontWeight: "700", color: "#F59E0B", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 630, y: 60, width: 300, height: 90, content: "Summer\nEssentials", style: { fontSize: "52px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.1" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 630, y: 165, width: 300, height: 60, content: "Curated pieces for the\nmodern wardrobe", style: { fontSize: "17px", fontWeight: "400", color: "#94A3B8", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 630, y: 240, width: 100, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#F59E0B", shapeStroke: "#F59E0B", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 630, y: 260, width: 300, height: 40, content: "FROM $49.99", style: { fontSize: "32px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 630, y: 310, width: 300, height: 25, content: "Limited edition • While stocks last", style: { fontSize: "13px", fontWeight: "400", color: "#64748B", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
-      // Bottom product row
-      ...imgPlaceholder(40, 370, 200, 140, "PRODUCT 1", "#F59E0B"),
-      ...imgPlaceholder(260, 370, 200, 140, "PRODUCT 2", "#F59E0B"),
-      ...imgPlaceholder(480, 370, 200, 140, "PRODUCT 3", "#F59E0B"),
-      // Logo + QR
-      ...imgPlaceholder(720, 370, 100, 100, "QR CODE", "#FFFFFF"),
-      { id: tid(), type: "text", x: 720, y: 475, width: 100, height: 18, content: "Shop online", style: { fontSize: "11px", fontWeight: "500", color: "#64748B", textAlign: "center" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(840, 370, 80, 80, "LOGO", "#FFFFFF"),
+      ...imgPlaceholder(40, 24, 540, 290, "HERO PRODUCT IMAGE", "#F59E0B"),
+      txt(610, 28, 310, 18, "NEW ARRIVAL", { fontSize: "12px", fontWeight: "700", color: "#F59E0B", letterSpacing: "5px" }, "Space Grotesk"),
+      txt(610, 52, 310, 80, "Summer\nEssentials", { fontSize: "48px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.1" }, "Playfair Display"),
+      txt(610, 142, 310, 45, "Curated pieces for the\nmodern wardrobe", { fontSize: "15px", color: "#94A3B8", lineHeight: "1.5" }),
+      divider(610, 196, 100, "#F59E0B"),
+      txt(610, 212, 310, 36, "FROM $49.99", { fontSize: "30px", fontWeight: "800", color: "#FFFFFF" }, "Oswald"),
+      txt(610, 256, 310, 20, "Limited edition • While stocks last", { fontSize: "12px", color: "#64748B", fontStyle: "italic" }, "Lora"),
+      ...imgPlaceholder(40, 330, 200, 120, "PRODUCT 1", "#F59E0B"),
+      ...imgPlaceholder(256, 330, 200, 120, "PRODUCT 2", "#F59E0B"),
+      ...imgPlaceholder(472, 330, 200, 120, "PRODUCT 3", "#F59E0B"),
+      ...imgPlaceholder(700, 330, 100, 100, "QR CODE", "#FFFFFF"),
+      txt(700, 434, 100, 14, "Shop online", { fontSize: "10px", fontWeight: "500", color: "#64748B", textAlign: "center" }),
+      ...imgPlaceholder(830, 330, 90, 80, "LOGO", "#FFFFFF"),
+      divider(40, 466, 880, "#1E293B"),
+      txt(40, 480, 880, 18, "Free shipping on orders over $75  •  Easy returns within 30 days", { fontSize: "11px", color: "#64748B", textAlign: "center" }),
     ],
   },
 
-  /* ─── HOTEL ─── */
+  /* ─── HOTEL WELCOME ─── */
   {
     id: "hotel-welcome",
     name: "Hotel Welcome",
     category: "hotel",
     preview: "🏨",
-    description: "Luxury hotel lobby welcome with amenities and concierge",
-    bg: { type: "gradient", color: "#08060e", gradient: "linear-gradient(180deg, #08060e 0%, #141020 50%, #0a0810 100%)" },
+    description: "Luxury hotel lobby with amenities and concierge info",
+    bg: { type: "gradient", color: "#08060e", gradient: "linear-gradient(180deg, #06050C 0%, #10101E 50%, #08060E 100%)" },
     elements: [
-      // Hotel photo
-      ...imgPlaceholder(0, 0, 960, 140, "HOTEL EXTERIOR / LOBBY PHOTO", "#C9A96E"),
-      { id: tid(), type: "shape", x: 380, y: 155, width: 200, height: 1, content: "", style: {}, shapeType: "line", shapeFill: "#C9A96E", shapeStroke: "#C9A96E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 200, y: 165, width: 560, height: 22, content: "WELCOME TO", style: { fontSize: "13px", fontWeight: "600", color: "#C9A96E", letterSpacing: "10px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 190, width: 720, height: 65, content: "THE ROSEMONT", style: { fontSize: "56px", fontWeight: "300", color: "#FFFFFF", textAlign: "center", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 200, y: 260, width: 560, height: 18, content: "BOUTIQUE HOTEL & SPA  •  EST. 1897", style: { fontSize: "10px", fontWeight: "500", color: "#94A3B8", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      // Three info columns
-      { id: tid(), type: "shape", x: 40, y: 295, width: 280, height: 150, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f0d18", shapeStroke: "#1E1A2E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 308, width: 250, height: 16, content: "DINING", style: { fontSize: "11px", fontWeight: "700", color: "#C9A96E", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 330, width: 250, height: 100, content: "Breakfast  7:00 – 10:30\nLunch  12:00 – 14:30\nDinner  18:30 – 22:00\nRoom service 24 hours", style: { fontSize: "12px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 340, y: 295, width: 280, height: 150, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f0d18", shapeStroke: "#1E1A2E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 355, y: 308, width: 250, height: 16, content: "SPA & WELLNESS", style: { fontSize: "11px", fontWeight: "700", color: "#C9A96E", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 355, y: 330, width: 250, height: 100, content: "Pool  06:00 – 21:00\nSpa  09:00 – 20:00\nFitness  24 hours\nYoga class  08:00 daily", style: { fontSize: "12px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 640, y: 295, width: 280, height: 150, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f0d18", shapeStroke: "#1E1A2E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 655, y: 308, width: 250, height: 16, content: "CONCIERGE", style: { fontSize: "11px", fontWeight: "700", color: "#C9A96E", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 655, y: 330, width: 250, height: 100, content: "Airport transfers\nTour bookings\nRestaurant reservations\nDial 0 for assistance", style: { fontSize: "12px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Wi-Fi + widgets
-      { id: tid(), type: "text", x: 200, y: 465, width: 560, height: 18, content: "WI-FI: ROSEMONT-GUEST  •  NO PASSWORD REQUIRED", style: { fontSize: "10px", fontWeight: "500", color: "#64748B", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "widget-clock", x: 340, y: 490, width: 140, height: 40, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "widget-weather", x: 490, y: 490, width: 140, height: 40, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(0, 0, 960, 120, "HOTEL EXTERIOR / LOBBY", "#C9A96E"),
+      divider(380, 134, 200, "#C9A96E"),
+      txt(200, 148, 560, 18, "WELCOME TO", { fontSize: "12px", fontWeight: "600", color: "#C9A96E", letterSpacing: "10px", textAlign: "center" }, "Space Grotesk"),
+      txt(120, 170, 720, 50, "THE ROSEMONT", { fontSize: "50px", fontWeight: "300", color: "#FFFFFF", textAlign: "center", letterSpacing: "4px" }, "Playfair Display"),
+      txt(200, 226, 560, 16, "BOUTIQUE HOTEL & SPA  •  EST. 1897", { fontSize: "10px", fontWeight: "500", color: "#94A3B8", letterSpacing: "4px", textAlign: "center" }, "Space Grotesk"),
+      // Three info cards
+      card(40, 260, 280, 130, "#0C0A14", "#1E1A2E"),
+      txt(54, 270, 250, 14, "DINING", { fontSize: "10px", fontWeight: "700", color: "#C9A96E", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(54, 290, 250, 90, "Breakfast  7:00 – 10:30\nLunch  12:00 – 14:30\nDinner  18:30 – 22:00\nRoom service 24 hours", { fontSize: "12px", color: "#CBD5E1", lineHeight: "1.7" }, "DM Sans"),
+      card(340, 260, 280, 130, "#0C0A14", "#1E1A2E"),
+      txt(354, 270, 250, 14, "SPA & WELLNESS", { fontSize: "10px", fontWeight: "700", color: "#C9A96E", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(354, 290, 250, 90, "Pool  06:00 – 21:00\nSpa  09:00 – 20:00\nFitness  24 hours\nYoga class  08:00 daily", { fontSize: "12px", color: "#CBD5E1", lineHeight: "1.7" }, "DM Sans"),
+      card(640, 260, 280, 130, "#0C0A14", "#1E1A2E"),
+      txt(654, 270, 250, 14, "CONCIERGE", { fontSize: "10px", fontWeight: "700", color: "#C9A96E", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(654, 290, 250, 90, "Airport transfers\nTour bookings\nRestaurant reservations\nDial 0 for assistance", { fontSize: "12px", color: "#CBD5E1", lineHeight: "1.7" }, "DM Sans"),
+      txt(200, 410, 560, 16, "WI-FI: ROSEMONT-GUEST  •  NO PASSWORD REQUIRED", { fontSize: "10px", fontWeight: "500", color: "#64748B", letterSpacing: "3px", textAlign: "center" }, "Space Grotesk"),
+      { id: tid(), type: "widget-clock", x: 340, y: 440, width: 140, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-weather", x: 490, y: 440, width: 140, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
     ],
   },
 
-  /* ─── HEALTHCARE ─── */
+  /* ─── CLINIC WELCOME ─── */
   {
     id: "health-waiting",
     name: "Clinic Welcome",
     category: "health",
     preview: "🏥",
-    description: "Patient waiting room display with facility photos",
-    bg: { type: "gradient", color: "#0a1520", gradient: "linear-gradient(180deg, #0a1520 0%, #0f1923 100%)" },
+    description: "Patient waiting room display with facility info",
+    bg: { type: "gradient", color: "#0a1520", gradient: "linear-gradient(180deg, #081218 0%, #0E1822 100%)" },
     elements: [
-      // Clinic photo
-      ...imgPlaceholder(40, 30, 350, 200, "CLINIC PHOTO", "#5BA8D6"),
-      { id: tid(), type: "text", x: 420, y: 30, width: 500, height: 22, content: "PATIENT INFORMATION", style: { fontSize: "13px", fontWeight: "700", color: "#5BA8D6", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 420, y: 60, width: 500, height: 80, content: "Welcome to\nBrightcare Clinic", style: { fontSize: "44px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.15" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 420, y: 150, width: 80, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#5BA8D6", shapeStroke: "#5BA8D6", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 420, y: 170, width: 500, height: 60, content: "Please check in at the front desk.\nAverage wait time: 15 minutes.", style: { fontSize: "16px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Info grid
-      { id: tid(), type: "text", x: 40, y: 260, width: 880, height: 200, content: "📋  Check in at the front desk\n\n😷  Masks are recommended in clinical areas\n\n📱  Free Wi-Fi: BrightCare-Guest\n\n💧  Water & refreshments available in the waiting area\n\n🚗  Parking validation available at checkout", style: { fontSize: "18px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "widget-clock", x: 780, y: 30, width: 140, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      // Logo
-      ...imgPlaceholder(40, 475, 160, 50, "CLINIC LOGO", "#5BA8D6"),
-      { id: tid(), type: "text", x: 220, y: 480, width: 700, height: 35, content: "Call 0800 123 456  •  www.brightcare.co.uk  •  Open Mon–Sat 8 AM – 6 PM", style: { fontSize: "12px", fontWeight: "500", color: "#64748B", letterSpacing: "1px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(40, 24, 330, 180, "CLINIC PHOTO", "#5BA8D6"),
+      txt(400, 24, 520, 18, "PATIENT INFORMATION", { fontSize: "12px", fontWeight: "700", color: "#5BA8D6", letterSpacing: "6px" }, "Space Grotesk"),
+      txt(400, 50, 520, 70, "Welcome to\nBrightcare Clinic", { fontSize: "38px", fontWeight: "300", color: "#FFFFFF", lineHeight: "1.15" }, "Playfair Display"),
+      divider(400, 126, 80, "#5BA8D6"),
+      txt(400, 142, 520, 50, "Please check in at the front desk.\nAverage wait time: 15 minutes.", { fontSize: "14px", color: "#CBD5E1", lineHeight: "1.6" }, "DM Sans"),
+      divider(40, 220, 880, "#1E293B"),
+      txt(40, 234, 880, 180, "📋  Check in at the front desk\n\n😷  Masks are recommended in clinical areas\n\n📱  Free Wi-Fi: BrightCare-Guest\n\n💧  Water & refreshments available in the waiting area\n\n🚗  Parking validation available at checkout", { fontSize: "16px", color: "#CBD5E1", lineHeight: "1.7" }, "DM Sans"),
+      { id: tid(), type: "widget-clock", x: 780, y: 24, width: 140, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      divider(40, 430, 880, "#1E293B"),
+      ...imgPlaceholder(40, 446, 150, 50, "CLINIC LOGO", "#5BA8D6"),
+      txt(210, 452, 710, 22, "Call 0800 123 456  •  www.brightcare.co.uk  •  Open Mon–Sat 8 AM – 6 PM", { fontSize: "11px", fontWeight: "500", color: "#64748B", letterSpacing: "1px" }, "Space Grotesk"),
     ],
   },
 
-  /* ─── EDUCATION ─── */
+  /* ─── SCHOOL NOTICE BOARD ─── */
   {
     id: "edu-notice",
     name: "School Notice Board",
     category: "education",
     preview: "📚",
-    description: "Daily school notices with event photo zones",
-    bg: { type: "gradient", color: "#0f1228", gradient: "linear-gradient(135deg, #0f1228 0%, #1a1a2e 100%)" },
+    description: "Daily school notices with event photos",
+    bg: { type: "gradient", color: "#0f1228", gradient: "linear-gradient(135deg, #0C0F22 0%, #161A2E 100%)" },
     elements: [
-      // School crest/logo
-      ...imgPlaceholder(40, 30, 120, 80, "SCHOOL CREST", "#3B82F6"),
-      { id: tid(), type: "text", x: 180, y: 35, width: 600, height: 50, content: "DAILY NOTICES", style: { fontSize: "42px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 180, y: 85, width: 400, height: 22, content: "MONDAY 14 APRIL 2026", style: { fontSize: "13px", fontWeight: "600", color: "#3B82F6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "widget-clock", x: 800, y: 35, width: 120, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 40, y: 120, width: 880, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 40, y: 135, width: 560, height: 340, content: "📢  Assembly at 9:00 AM — Main Hall\n     Guest speaker: Local MP on civic leadership\n\n📝  Year 11 Mock Results\n     Collect from form tutors today\n\n⚽  Football Trial — 3:30 PM\n     Meet at the sports pavilion\n\n🎭  Drama Club Auditions\n     Thursday lunch in the theatre\n\n📅  Parents Evening — 22 April\n     Book slots via the school app", style: { fontSize: "16px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Event photos
-      { id: tid(), type: "text", x: 640, y: 135, width: 280, height: 18, content: "UPCOMING EVENTS", style: { fontSize: "11px", fontWeight: "700", color: "#3B82F6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(640, 160, 280, 130, "EVENT PHOTO 1", "#3B82F6"),
-      ...imgPlaceholder(640, 305, 280, 130, "EVENT PHOTO 2", "#3B82F6"),
-      // Bottom
-      { id: tid(), type: "text", x: 40, y: 490, width: 880, height: 22, content: "🍕 Canteen Special: Pizza Friday! Pre-order by Wednesday via the app", style: { fontSize: "14px", fontWeight: "500", color: "#FFD700", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS }, animation: "pulse" },
+      ...imgPlaceholder(40, 24, 110, 70, "SCHOOL CREST", "#3B82F6"),
+      txt(168, 28, 560, 42, "DAILY NOTICES", { fontSize: "38px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "3px" }, "Oswald"),
+      txt(168, 72, 400, 18, "MONDAY 14 APRIL 2026", { fontSize: "12px", fontWeight: "600", color: "#3B82F6", letterSpacing: "3px" }, "Space Grotesk"),
+      { id: tid(), type: "widget-clock", x: 800, y: 30, width: 120, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      divider(40, 100, 880, "#1E293B"),
+      txt(40, 114, 580, 310, "📢  Assembly at 9:00 AM — Main Hall\n     Guest speaker: Local MP on civic leadership\n\n📝  Year 11 Mock Results\n     Collect from form tutors today\n\n⚽  Football Trial — 3:30 PM\n     Meet at the sports pavilion\n\n🎭  Drama Club Auditions\n     Thursday lunch in the theatre\n\n📅  Parents Evening — 22 April\n     Book slots via the school app", { fontSize: "15px", color: "#CBD5E1", lineHeight: "1.55" }, "DM Sans"),
+      txt(650, 114, 270, 14, "UPCOMING EVENTS", { fontSize: "10px", fontWeight: "700", color: "#3B82F6", letterSpacing: "3px" }, "Space Grotesk"),
+      ...imgPlaceholder(650, 136, 270, 115, "EVENT PHOTO 1", "#3B82F6"),
+      ...imgPlaceholder(650, 264, 270, 115, "EVENT PHOTO 2", "#3B82F6"),
+      divider(40, 440, 880, "#1E293B"),
+      txt(40, 454, 880, 20, "🍕  Canteen Special: Pizza Friday!  Pre-order by Wednesday via the app", { fontSize: "13px", fontWeight: "500", color: "#FFD700", textAlign: "center" }, "DM Sans"),
+      txt(40, 482, 880, 16, "Greenwood Academy  •  Excellence in Education Since 1952", { fontSize: "10px", color: "#64748B", textAlign: "center", letterSpacing: "2px" }, "Space Grotesk"),
     ],
   },
 
-  /* ─── CHURCH ─── */
+  /* ─── CHURCH SERVICE TIMES ─── */
   {
     id: "church-service",
     name: "Service Times",
     category: "church",
     preview: "⛪",
     description: "Church service times with sanctuary photography",
-    bg: { type: "gradient", color: "#0a0a14", gradient: "linear-gradient(180deg, #0a0a14 0%, #141028 100%)" },
+    bg: { type: "gradient", color: "#0a0a14", gradient: "linear-gradient(180deg, #080810 0%, #121028 100%)" },
     elements: [
-      // Sanctuary photo
-      ...imgPlaceholder(0, 0, 960, 160, "CHURCH / SANCTUARY PHOTO", "#A78BFA"),
-      // Logo
-      ...imgPlaceholder(420, 170, 120, 60, "CHURCH LOGO", "#A78BFA"),
-      { id: tid(), type: "text", x: 180, y: 240, width: 600, height: 50, content: "GRACE COMMUNITY CHURCH", style: { fontSize: "36px", fontWeight: "800", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 180, y: 295, width: 600, height: 22, content: "ALL ARE WELCOME  •  COME AS YOU ARE", style: { fontSize: "12px", fontWeight: "600", color: "#A78BFA", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 400, y: 330, width: 160, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#A78BFA", shapeStroke: "#A78BFA", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 180, y: 345, width: 600, height: 130, content: "SUNDAY SERVICES\n8:30 AM  •  Traditional Worship\n10:30 AM  •  Contemporary Worship\n6:00 PM  •  Evening Service\n\nWEDNESDAY  •  7:00 PM  •  Bible Study", style: { fontSize: "18px", fontWeight: "400", color: "#CBD5E1", textAlign: "center", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 180, y: 490, width: 600, height: 25, content: "Children's Ministry & Nursery Available at All Services", style: { fontSize: "13px", fontWeight: "500", color: "#64748B", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(0, 0, 960, 140, "CHURCH / SANCTUARY", "#A78BFA"),
+      ...imgPlaceholder(420, 150, 120, 55, "CHURCH LOGO", "#A78BFA"),
+      txt(180, 214, 600, 42, "GRACE COMMUNITY CHURCH", { fontSize: "32px", fontWeight: "800", color: "#FFFFFF", textAlign: "center" }, "Oswald"),
+      txt(180, 260, 600, 16, "ALL ARE WELCOME  •  COME AS YOU ARE", { fontSize: "11px", fontWeight: "600", color: "#A78BFA", letterSpacing: "4px", textAlign: "center" }, "Space Grotesk"),
+      divider(400, 286, 160, "#A78BFA"),
+      txt(180, 302, 600, 120, "SUNDAY SERVICES\n8:30 AM  •  Traditional Worship\n10:30 AM  •  Contemporary Worship\n6:00 PM  •  Evening Service\n\nWEDNESDAY  •  7:00 PM  •  Bible Study", { fontSize: "16px", color: "#CBD5E1", textAlign: "center", lineHeight: "1.65" }, "DM Sans"),
+      txt(180, 436, 600, 20, "Children's Ministry & Nursery Available at All Services", { fontSize: "12px", fontWeight: "500", color: "#64748B", textAlign: "center", fontStyle: "italic" }, "Lora"),
+      txt(180, 470, 600, 20, "📍 125 Oak Lane  •  📞 (555) 123-4567  •  www.gracechurch.org", { fontSize: "11px", color: "#64748B", textAlign: "center" }),
     ],
   },
 
-  /* ─── CORPORATE ─── */
+  /* ─── CORPORATE LOBBY ─── */
   {
     id: "corporate-welcome",
     name: "Corporate Lobby",
     category: "corporate",
     preview: "🏢",
-    description: "Professional office lobby with company branding zones",
-    bg: { type: "gradient", color: "#0a0f1a", gradient: "linear-gradient(135deg, #0a0f1a 0%, #121a2e 100%)" },
+    description: "Professional office lobby with company branding",
+    bg: { type: "gradient", color: "#0a0f1a", gradient: "linear-gradient(135deg, #080D18 0%, #101A2E 100%)" },
     elements: [
-      // Full-width hero
-      ...imgPlaceholder(0, 0, 960, 180, "OFFICE / TEAM PHOTO", "#6B8DD6"),
-      // Company logo
-      ...imgPlaceholder(380, 195, 200, 80, "COMPANY LOGO", "#6B8DD6"),
-      { id: tid(), type: "text", x: 120, y: 290, width: 720, height: 40, content: "ACME CORPORATION", style: { fontSize: "48px", fontWeight: "900", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 340, width: 720, height: 30, content: "Innovation  •  Excellence  •  Integrity", style: { fontSize: "18px", fontWeight: "400", color: "#8899BB", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 400, y: 385, width: 160, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#6B8DD6", shapeStroke: "#6B8DD6", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "widget-clock", x: 380, y: 400, width: 200, height: 70, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 480, width: 720, height: 30, content: "VISITOR CHECK-IN AT RECEPTION  •  FLOOR DIRECTORY ON RIGHT", style: { fontSize: "12px", fontWeight: "500", color: "#6B8DD6", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(0, 0, 960, 160, "OFFICE / TEAM PHOTO", "#6B8DD6"),
+      ...imgPlaceholder(380, 174, 200, 70, "COMPANY LOGO", "#6B8DD6"),
+      txt(120, 256, 720, 38, "ACME CORPORATION", { fontSize: "44px", fontWeight: "900", color: "#FFFFFF", textAlign: "center" }, "Oswald"),
+      txt(120, 300, 720, 24, "Innovation  •  Excellence  •  Integrity", { fontSize: "16px", fontWeight: "400", color: "#8899BB", textAlign: "center", fontStyle: "italic" }, "Lora"),
+      divider(400, 336, 160, "#6B8DD6"),
+      { id: tid(), type: "widget-clock", x: 380, y: 354, width: 200, height: 60, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      txt(120, 430, 720, 24, "VISITOR CHECK-IN AT RECEPTION  •  FLOOR DIRECTORY ON RIGHT", { fontSize: "11px", fontWeight: "500", color: "#6B8DD6", letterSpacing: "3px", textAlign: "center" }, "Space Grotesk"),
+      { id: tid(), type: "widget-weather", x: 380, y: 466, width: 200, height: 50, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
     ],
   },
+
+  /* ─── KPI DASHBOARD ─── */
   {
     id: "corporate-kpi",
     name: "KPI Dashboard",
     category: "corporate",
     preview: "📈",
     description: "Key performance metrics with branded data cards",
-    bg: { type: "gradient", color: "#0a0a12", gradient: "linear-gradient(180deg, #0a0a12 0%, #12121f 100%)" },
+    bg: { type: "gradient", color: "#0a0a12", gradient: "linear-gradient(180deg, #08080F 0%, #10101E 100%)" },
     elements: [
-      // Header
-      ...imgPlaceholder(40, 25, 60, 40, "LOGO", "#6B8DD6"),
-      { id: tid(), type: "text", x: 115, y: 25, width: 500, height: 40, content: "COMPANY DASHBOARD", style: { fontSize: "32px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 115, y: 65, width: 300, height: 22, content: "LIVE METRICS • Q2 2026", style: { fontSize: "12px", fontWeight: "500", color: "#6B8DD6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      // Metric cards
-      { id: tid(), type: "shape", x: 40, y: 100, width: 210, height: 120, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#22C55E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 112, width: 180, height: 18, content: "REVENUE", style: { fontSize: "11px", fontWeight: "600", color: "#22C55E", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 135, width: 180, height: 40, content: "$2.4M", style: { fontSize: "38px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 185, width: 180, height: 20, content: "↑ 18% vs last quarter", style: { fontSize: "12px", fontWeight: "500", color: "#22C55E" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 270, y: 100, width: 210, height: 120, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#3B82F6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 285, y: 112, width: 180, height: 18, content: "CUSTOMERS", style: { fontSize: "11px", fontWeight: "600", color: "#3B82F6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 285, y: 135, width: 180, height: 40, content: "12,847", style: { fontSize: "38px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 285, y: 185, width: 180, height: 20, content: "↑ 340 new this month", style: { fontSize: "12px", fontWeight: "500", color: "#3B82F6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 500, y: 100, width: 210, height: 120, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#F59E0B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 515, y: 112, width: 180, height: 18, content: "NPS SCORE", style: { fontSize: "11px", fontWeight: "600", color: "#F59E0B", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 515, y: 135, width: 180, height: 40, content: "72", style: { fontSize: "38px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 515, y: 185, width: 180, height: 20, content: "↑ 5 pts improvement", style: { fontSize: "12px", fontWeight: "500", color: "#F59E0B" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 730, y: 100, width: 190, height: 120, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a2e", shapeStroke: "#A78BFA", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 745, y: 112, width: 160, height: 18, content: "CHURN", style: { fontSize: "11px", fontWeight: "600", color: "#A78BFA", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 745, y: 135, width: 160, height: 40, content: "1.2%", style: { fontSize: "38px", fontWeight: "800", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 745, y: 185, width: 160, height: 20, content: "↓ Best ever quarter", style: { fontSize: "12px", fontWeight: "500", color: "#A78BFA" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Priorities
-      { id: tid(), type: "text", x: 40, y: 245, width: 500, height: 22, content: "TOP PRIORITIES THIS QUARTER", style: { fontSize: "13px", fontWeight: "600", color: "#6B8DD6", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 40, y: 275, width: 550, height: 200, content: "1. Launch v3.0 platform — On Track ✅\n2. Expand EMEA sales team — In Progress 🔄\n3. Achieve SOC2 compliance — 85% Complete\n4. Customer retention > 95% — Currently 96.2% ✅", style: { fontSize: "17px", fontWeight: "400", color: "#C0CDE0", lineHeight: "2.0" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      // Team photo
-      ...imgPlaceholder(640, 250, 280, 210, "TEAM / OFFICE PHOTO", "#6B8DD6"),
+      ...imgPlaceholder(40, 20, 55, 36, "LOGO", "#6B8DD6"),
+      txt(110, 20, 500, 34, "COMPANY DASHBOARD", { fontSize: "28px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "3px" }, "Oswald"),
+      txt(110, 56, 300, 16, "LIVE METRICS • Q2 2026", { fontSize: "11px", fontWeight: "500", color: "#6B8DD6", letterSpacing: "3px" }, "Space Grotesk"),
+      // Metric cards row
+      card(40, 84, 210, 110, "#141420", "#22C55E30"),
+      txt(54, 94, 180, 14, "REVENUE", { fontSize: "10px", fontWeight: "600", color: "#22C55E", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(54, 114, 180, 36, "$2.4M", { fontSize: "34px", fontWeight: "800", color: "#FFFFFF" }, "Oswald"),
+      txt(54, 160, 180, 16, "↑ 18% vs last quarter", { fontSize: "11px", fontWeight: "500", color: "#22C55E" }, "DM Sans"),
+      card(268, 84, 210, 110, "#141420", "#3B82F630"),
+      txt(282, 94, 180, 14, "CUSTOMERS", { fontSize: "10px", fontWeight: "600", color: "#3B82F6", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(282, 114, 180, 36, "12,847", { fontSize: "34px", fontWeight: "800", color: "#FFFFFF" }, "Oswald"),
+      txt(282, 160, 180, 16, "↑ 340 new this month", { fontSize: "11px", fontWeight: "500", color: "#3B82F6" }, "DM Sans"),
+      card(496, 84, 210, 110, "#141420", "#F59E0B30"),
+      txt(510, 94, 180, 14, "NPS SCORE", { fontSize: "10px", fontWeight: "600", color: "#F59E0B", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(510, 114, 180, 36, "72", { fontSize: "34px", fontWeight: "800", color: "#FFFFFF" }, "Oswald"),
+      txt(510, 160, 180, 16, "↑ 5 pts improvement", { fontSize: "11px", fontWeight: "500", color: "#F59E0B" }, "DM Sans"),
+      card(724, 84, 196, 110, "#141420", "#A78BFA30"),
+      txt(738, 94, 168, 14, "CHURN", { fontSize: "10px", fontWeight: "600", color: "#A78BFA", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(738, 114, 168, 36, "1.2%", { fontSize: "34px", fontWeight: "800", color: "#FFFFFF" }, "Oswald"),
+      txt(738, 160, 168, 16, "↓ Best ever quarter", { fontSize: "11px", fontWeight: "500", color: "#A78BFA" }, "DM Sans"),
+      divider(40, 208, 880, "#1E293B"),
+      txt(40, 220, 500, 16, "TOP PRIORITIES THIS QUARTER", { fontSize: "11px", fontWeight: "600", color: "#6B8DD6", letterSpacing: "3px" }, "Space Grotesk"),
+      txt(40, 244, 550, 180, "1. Launch v3.0 platform — On Track ✅\n2. Expand EMEA sales team — In Progress 🔄\n3. Achieve SOC2 compliance — 85% Complete\n4. Customer retention > 95% — Currently 96.2% ✅", { fontSize: "15px", color: "#C0CDE0", lineHeight: "1.9" }, "DM Sans"),
+      ...imgPlaceholder(630, 224, 290, 190, "TEAM / OFFICE PHOTO", "#6B8DD6"),
+      divider(40, 438, 880, "#1E293B"),
+      txt(40, 452, 880, 16, "Auto-updated every 15 minutes  •  Data powered by your analytics platform", { fontSize: "10px", color: "#64748B", textAlign: "center" }),
     ],
   },
 
-  /* ─── SOCIAL & QR ─── */
+  /* ─── FREE WiFi ─── */
   {
     id: "social-wifi-qr",
     name: "Free WiFi",
     category: "social",
     preview: "📶",
-    description: "WiFi connection screen with QR code and branding",
-    bg: { type: "gradient", color: "#0a1628", gradient: "linear-gradient(135deg, #0a1628 0%, #0f1e3a 100%)" },
+    description: "WiFi connection screen with QR code",
+    bg: { type: "gradient", color: "#0a1628", gradient: "linear-gradient(135deg, #081420 0%, #0E1E3A 100%)" },
     elements: [
-      // Logo
-      ...imgPlaceholder(380, 30, 200, 80, "YOUR LOGO", "#3B82F6"),
-      // WiFi icon area
-      { id: tid(), type: "text", x: 280, y: 130, width: 400, height: 55, content: "📶 FREE WiFi", style: { fontSize: "48px", fontWeight: "900", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 280, y: 195, width: 400, height: 28, content: "SCAN TO CONNECT INSTANTLY", style: { fontSize: "14px", fontWeight: "600", color: "#3B82F6", letterSpacing: "4px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 400, y: 235, width: 160, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#3B82F6", shapeStroke: "#3B82F6", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      // QR code - large central
-      ...imgPlaceholder(340, 250, 280, 180, "QR CODE\n(WiFi auto-connect)", "#3B82F6"),
-      // Network details
-      { id: tid(), type: "shape", x: 280, y: 445, width: 400, height: 70, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f1e3a", shapeStroke: "#1E3A5F", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 300, y: 455, width: 360, height: 50, content: "Network: YourBusiness-Guest\nPassword: welcome2026", style: { fontSize: "16px", fontWeight: "500", color: "#CBD5E1", textAlign: "center", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(380, 24, 200, 70, "YOUR LOGO", "#3B82F6"),
+      txt(280, 110, 400, 48, "📶 FREE WiFi", { fontSize: "44px", fontWeight: "900", color: "#FFFFFF", textAlign: "center" }, "Oswald"),
+      txt(280, 166, 400, 22, "SCAN TO CONNECT INSTANTLY", { fontSize: "13px", fontWeight: "600", color: "#3B82F6", letterSpacing: "4px", textAlign: "center" }, "Space Grotesk"),
+      divider(400, 196, 160, "#3B82F6"),
+      ...imgPlaceholder(350, 212, 260, 170, "QR CODE\n(WiFi auto-connect)", "#3B82F6"),
+      card(280, 400, 400, 60, "#0E1E3A", "#1E3A5F"),
+      txt(300, 410, 360, 40, "Network: YourBusiness-Guest\nPassword: welcome2026", { fontSize: "15px", fontWeight: "500", color: "#CBD5E1", textAlign: "center", lineHeight: "1.7" }, "DM Sans"),
+      txt(280, 476, 400, 16, "By connecting you agree to our usage policy", { fontSize: "10px", color: "#4B5563", textAlign: "center" }),
     ],
   },
+
+  /* ─── REVIEW WALL ─── */
   {
     id: "social-review-wall",
     name: "Review Wall",
     category: "social",
     preview: "⭐",
-    description: "Customer testimonials with profile photo zones",
-    bg: { type: "solid", color: "#0a0a12" },
+    description: "Customer testimonials with profile photos",
+    bg: { type: "solid", color: "#08080F" },
     elements: [
-      { id: tid(), type: "text", x: 200, y: 25, width: 560, height: 40, content: "WHAT OUR CUSTOMERS SAY", style: { fontSize: "28px", fontWeight: "800", color: "#FFFFFF", textAlign: "center", letterSpacing: "2px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 350, y: 70, width: 260, height: 22, content: "⭐⭐⭐⭐⭐  4.9 / 5.0", style: { fontSize: "16px", fontWeight: "600", color: "#FFD700", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      txt(200, 20, 560, 34, "WHAT OUR CUSTOMERS SAY", { fontSize: "26px", fontWeight: "800", color: "#FFFFFF", textAlign: "center", letterSpacing: "2px" }, "Oswald"),
+      txt(350, 58, 260, 18, "⭐⭐⭐⭐⭐  4.9 / 5.0", { fontSize: "14px", fontWeight: "600", color: "#FFD700", textAlign: "center" }, "DM Sans"),
+      divider(400, 84, 160, "#FFD700"),
       // Review 1
-      { id: tid(), type: "shape", x: 40, y: 110, width: 280, height: 240, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#12121f", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(115, 125, 80, 80, "PHOTO", "#FFD700"),
-      { id: tid(), type: "text", x: 60, y: 215, width: 240, height: 20, content: "Sarah M.", style: { fontSize: "16px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 235, width: 240, height: 16, content: "⭐⭐⭐⭐⭐", style: { fontSize: "12px", textAlign: "center", color: "#FFD700" }, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 60, y: 260, width: 240, height: 70, content: "\"Absolutely fantastic service. The team went above and beyond!\"", style: { fontSize: "13px", fontWeight: "400", color: "#94A3B8", textAlign: "center", fontStyle: "italic", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      card(40, 100, 280, 220, "#10101A", "#1E293B"),
+      ...imgPlaceholder(120, 112, 80, 70, "PHOTO", "#FFD700"),
+      txt(60, 190, 240, 18, "Sarah M.", { fontSize: "15px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, "DM Sans"),
+      txt(60, 210, 240, 14, "⭐⭐⭐⭐⭐", { fontSize: "11px", textAlign: "center", color: "#FFD700" }),
+      txt(60, 230, 240, 70, "\"Absolutely fantastic service. Would highly recommend to everyone.\"", { fontSize: "12px", color: "#94A3B8", textAlign: "center", fontStyle: "italic", lineHeight: "1.5" }, "Lora"),
       // Review 2
-      { id: tid(), type: "shape", x: 340, y: 110, width: 280, height: 240, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#12121f", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(415, 125, 80, 80, "PHOTO", "#FFD700"),
-      { id: tid(), type: "text", x: 360, y: 215, width: 240, height: 20, content: "James T.", style: { fontSize: "16px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 360, y: 235, width: 240, height: 16, content: "⭐⭐⭐⭐⭐", style: { fontSize: "12px", textAlign: "center", color: "#FFD700" }, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 360, y: 260, width: 240, height: 70, content: "\"Best in the business. Would recommend to everyone.\"", style: { fontSize: "13px", fontWeight: "400", color: "#94A3B8", textAlign: "center", fontStyle: "italic", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      card(340, 100, 280, 220, "#10101A", "#1E293B"),
+      ...imgPlaceholder(420, 112, 80, 70, "PHOTO", "#FFD700"),
+      txt(360, 190, 240, 18, "James R.", { fontSize: "15px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, "DM Sans"),
+      txt(360, 210, 240, 14, "⭐⭐⭐⭐⭐", { fontSize: "11px", textAlign: "center", color: "#FFD700" }),
+      txt(360, 230, 240, 70, "\"Best in the business. Professional and friendly from start to finish.\"", { fontSize: "12px", color: "#94A3B8", textAlign: "center", fontStyle: "italic", lineHeight: "1.5" }, "Lora"),
       // Review 3
-      { id: tid(), type: "shape", x: 640, y: 110, width: 280, height: 240, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#12121f", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(715, 125, 80, 80, "PHOTO", "#FFD700"),
-      { id: tid(), type: "text", x: 660, y: 215, width: 240, height: 20, content: "Emma L.", style: { fontSize: "16px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 660, y: 235, width: 240, height: 16, content: "⭐⭐⭐⭐⭐", style: { fontSize: "12px", textAlign: "center", color: "#FFD700" }, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 660, y: 260, width: 240, height: 70, content: "\"A truly premium experience. Can't fault a single thing.\"", style: { fontSize: "13px", fontWeight: "400", color: "#94A3B8", textAlign: "center", fontStyle: "italic", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
-      // Bottom CTA
-      ...imgPlaceholder(40, 380, 100, 80, "QR CODE", "#FFD700"),
-      { id: tid(), type: "text", x: 160, y: 390, width: 300, height: 50, content: "Leave us a review!\nScan the QR code", style: { fontSize: "16px", fontWeight: "500", color: "#CBD5E1", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      ...imgPlaceholder(780, 380, 140, 80, "YOUR LOGO", "#FFFFFF"),
+      card(640, 100, 280, 220, "#10101A", "#1E293B"),
+      ...imgPlaceholder(720, 112, 80, 70, "PHOTO", "#FFD700"),
+      txt(660, 190, 240, 18, "Emma L.", { fontSize: "15px", fontWeight: "700", color: "#FFFFFF", textAlign: "center" }, "DM Sans"),
+      txt(660, 210, 240, 14, "⭐⭐⭐⭐⭐", { fontSize: "11px", textAlign: "center", color: "#FFD700" }),
+      txt(660, 230, 240, 70, "\"A truly premium experience. Can't fault a single thing.\"", { fontSize: "12px", color: "#94A3B8", textAlign: "center", fontStyle: "italic", lineHeight: "1.5" }, "Lora"),
+      divider(40, 340, 880, "#1E293B"),
+      ...imgPlaceholder(40, 360, 100, 80, "QR CODE", "#FFD700"),
+      txt(160, 374, 280, 40, "Leave us a review!\nScan the QR code", { fontSize: "14px", fontWeight: "500", color: "#CBD5E1", lineHeight: "1.5" }, "DM Sans"),
+      ...imgPlaceholder(780, 360, 140, 70, "YOUR LOGO", "#FFFFFF"),
     ],
   },
 
-  /* ─── REAL ESTATE ─── */
+  /* ─── PROPERTY LISTINGS ─── */
   {
     id: "realestate-listings",
     name: "Property Listings",
     category: "realestate",
     preview: "🏠",
-    description: "Property listing board with large photo zones and details",
-    bg: { type: "solid", color: "#0a0a0a" },
+    description: "Property listing board with photo zones and details",
+    bg: { type: "solid", color: "#080808" },
     elements: [
-      // Agency branding
-      ...imgPlaceholder(40, 20, 160, 50, "AGENCY LOGO", "#FFFFFF"),
-      { id: tid(), type: "text", x: 220, y: 25, width: 500, height: 35, content: "FEATURED PROPERTIES", style: { fontSize: "28px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 220, y: 58, width: 300, height: 18, content: "WILLIAMS ESTATES", style: { fontSize: "12px", fontWeight: "600", color: "#C9A96E", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(40, 16, 150, 44, "AGENCY LOGO", "#C9A96E"),
+      txt(210, 18, 480, 30, "FEATURED PROPERTIES", { fontSize: "26px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "3px" }, "Oswald"),
+      txt(210, 50, 300, 14, "WILLIAMS ESTATES", { fontSize: "11px", fontWeight: "600", color: "#C9A96E", letterSpacing: "4px" }, "Space Grotesk"),
       // Property 1 — Large
-      ...imgPlaceholder(40, 90, 460, 220, "PROPERTY PHOTO 1", "#C9A96E"),
-      { id: tid(), type: "shape", x: 40, y: 315, width: 460, height: 100, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#12121f", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 325, width: 300, height: 22, content: "Riverside Penthouse", style: { fontSize: "20px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 350, width: 300, height: 16, content: "3 bed  •  2 bath  •  1,850 sq ft  •  River views", style: { fontSize: "12px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 55, y: 375, width: 200, height: 28, content: "$1,250,000", style: { fontSize: "24px", fontWeight: "800", color: "#C9A96E" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 350, y: 375, width: 140, height: 22, content: "FOR SALE", style: { fontSize: "12px", fontWeight: "700", color: "#22C55E", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(40, 76, 450, 200, "PROPERTY PHOTO 1", "#C9A96E"),
+      card(40, 280, 450, 90, "#101018", "#1E293B"),
+      txt(54, 288, 300, 20, "Riverside Penthouse", { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, "Playfair Display"),
+      txt(54, 312, 300, 14, "3 bed  •  2 bath  •  1,850 sq ft  •  River views", { fontSize: "11px", color: "#94A3B8" }),
+      txt(54, 334, 180, 24, "$1,250,000", { fontSize: "22px", fontWeight: "800", color: "#C9A96E" }, "Oswald"),
+      txt(350, 334, 130, 18, "FOR SALE", { fontSize: "11px", fontWeight: "700", color: "#22C55E", letterSpacing: "3px" }, "Space Grotesk"),
       // Property 2
-      ...imgPlaceholder(520, 90, 400, 140, "PROPERTY PHOTO 2", "#C9A96E"),
-      { id: tid(), type: "text", x: 520, y: 235, width: 300, height: 20, content: "Victorian Townhouse", style: { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 520, y: 258, width: 300, height: 14, content: "4 bed  •  3 bath  •  Garden  •  Garage", style: { fontSize: "11px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 520, y: 278, width: 200, height: 25, content: "$875,000", style: { fontSize: "22px", fontWeight: "800", color: "#C9A96E" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(510, 76, 410, 130, "PROPERTY PHOTO 2", "#C9A96E"),
+      txt(510, 212, 300, 18, "Victorian Townhouse", { fontSize: "16px", fontWeight: "700", color: "#FFFFFF" }, "Playfair Display"),
+      txt(510, 234, 300, 12, "4 bed  •  3 bath  •  Garden  •  Garage", { fontSize: "10px", color: "#94A3B8" }),
+      txt(510, 250, 180, 22, "$875,000", { fontSize: "20px", fontWeight: "800", color: "#C9A96E" }, "Oswald"),
       // Property 3
-      ...imgPlaceholder(520, 315, 400, 100, "PROPERTY PHOTO 3", "#C9A96E"),
-      { id: tid(), type: "text", x: 520, y: 420, width: 300, height: 20, content: "Modern City Apartment", style: { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 520, y: 443, width: 300, height: 14, content: "2 bed  •  1 bath  •  Balcony  •  Parking", style: { fontSize: "11px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 520, y: 462, width: 200, height: 25, content: "$425,000", style: { fontSize: "22px", fontWeight: "800", color: "#C9A96E" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      // Contact bar
-      { id: tid(), type: "shape", x: 40, y: 500, width: 880, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#C9A96E", shapeStroke: "#C9A96E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 40, y: 510, width: 880, height: 22, content: "📞 020 7123 4567  •  📧 info@williamsestates.co.uk  •  🌐 williamsestates.co.uk", style: { fontSize: "12px", fontWeight: "500", color: "#94A3B8", textAlign: "center" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      ...imgPlaceholder(510, 280, 410, 90, "PROPERTY PHOTO 3", "#C9A96E"),
+      txt(510, 376, 300, 18, "Modern City Apartment", { fontSize: "16px", fontWeight: "700", color: "#FFFFFF" }, "Playfair Display"),
+      txt(510, 398, 300, 12, "2 bed  •  1 bath  •  Balcony  •  Parking", { fontSize: "10px", color: "#94A3B8" }),
+      txt(510, 414, 180, 22, "$425,000", { fontSize: "20px", fontWeight: "800", color: "#C9A96E" }, "Oswald"),
+      divider(40, 446, 880, "#C9A96E"),
+      txt(40, 460, 880, 18, "📞 020 7123 4567  •  📧 info@williamsestates.co.uk  •  🌐 williamsestates.co.uk", { fontSize: "11px", fontWeight: "500", color: "#94A3B8", textAlign: "center" }),
     ],
   },
 ];
