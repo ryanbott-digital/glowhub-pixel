@@ -31,6 +31,7 @@ export default function Display() {
   const [syncing, setSyncing] = useState(false);
   const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
   const [fitBgColor, setFitBgColor] = useState("#000000");
+  const [needsTap, setNeedsTap] = useState(false);
 
   // Double-buffer crossfade state
   const [layerA, setLayerA] = useState<PlaylistItem | null>(null);
