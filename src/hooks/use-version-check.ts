@@ -43,9 +43,13 @@ export function useVersionCheck(intervalMs: number, silent = false) {
         if (hash !== currentHash.current) {
           reloading.current = true;
           console.log(`[VersionCheck] New version detected (${currentHash.current} → ${hash}), reloading…`);
-          toast.info("Updating to latest version…", { duration: 3000 });
           localStorage.setItem(STORAGE_KEY, hash);
-          setTimeout(() => window.location.reload(), 2500);
+          if (silent) {
+            window.location.reload();
+          } else {
+            toast.info("Updating to latest version…", { duration: 3000 });
+            setTimeout(() => window.location.reload(), 2500);
+          }
         }
       } catch {
         // Network error — silently ignore
