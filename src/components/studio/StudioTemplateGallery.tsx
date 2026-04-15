@@ -999,8 +999,8 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
 ];
 
 /* ── Mini canvas thumbnail ── */
-const CANVAS_W = 1024;
-const CANVAS_H = 768;
+const CANVAS_W = 960;
+const CANVAS_H = 540;
 
 function MiniCanvasPreview({ elements }: { elements: CanvasElement[] }) {
   const rendered = useMemo(() => {
@@ -1102,6 +1102,20 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
   }, [category, search]);
 
   const handleApply = (tpl: StudioTemplate) => {
+    // Preload all template fonts before applying
+    const fonts = new Set<string>();
+    tpl.elements.forEach((el) => {
+      if (el.fontFamily && el.fontFamily !== "Satoshi") fonts.add(el.fontFamily);
+    });
+    fonts.forEach((f) => {
+      const existing = document.querySelector(`link[href*="${encodeURIComponent(f)}"]`);
+      if (!existing) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f)}:wght@300;400;500;600;700;800;900&display=swap`;
+        document.head.appendChild(link);
+      }
+    });
     // Re-generate IDs so each application is unique
     const freshElements = tpl.elements.map((el) => ({
       ...el,
