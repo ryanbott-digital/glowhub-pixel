@@ -1143,6 +1143,9 @@ const TEMPLATE_TAGS: Record<string, string[]> = {
   "social-wifi-qr": ["wifi", "QR code", "scan", "connect", "internet", "password", "network", "guest"],
   "social-review-wall": ["reviews", "ratings", "testimonials", "google", "yelp", "tripadvisor", "social proof", "stars"],
   "social-hashtag": ["hashtag", "user generated", "UGC", "instagram", "tiktok", "share", "photo", "contest"],
+  "realestate-listings": ["real estate", "property", "house", "apartment", "listing", "agent", "for sale", "homes", "penthouse", "villa"],
+  "fitness-weekly": ["gym", "weekly", "timetable", "class", "schedule", "fitness", "workout", "grid", "HIIT", "yoga", "spin", "crossfit"],
+  "hotel-premium-welcome": ["hotel", "luxury", "welcome", "lobby", "five star", "concierge", "resort", "boutique", "spa"],
 };
 
 /* ── Category config ── */
@@ -1159,6 +1162,7 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
   { id: "education", label: "Education", icon: GraduationCap },
   { id: "church", label: "Church", icon: Church },
   { id: "corporate", label: "Corporate", icon: Building2 },
+  { id: "realestate", label: "Real Estate", icon: Home },
 ];
 
 /* ── Mini canvas thumbnail ── */
