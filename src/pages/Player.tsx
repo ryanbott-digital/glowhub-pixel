@@ -211,6 +211,16 @@ export default function Player() {
     getCacheSize().then(setCacheBytes);
   }, [showSettings]);
 
+  // Detect Fully Kiosk Browser — hides pairing chrome for clean kiosk experience
+  useEffect(() => {
+    const w = window as any;
+    if (w.fully || w.FullyKiosk || navigator.userAgent.includes("FullyKiosk")) {
+      setIsFullyKiosk(true);
+      // Request fullscreen immersive via FKB API if available
+      try { w.fully?.setFullscreen?.(true); } catch {}
+    }
+  }, []);
+
   // Inject TV styles + register media cache SW
   const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
   const [focusIndex, setFocusIndex] = useState(-1);
