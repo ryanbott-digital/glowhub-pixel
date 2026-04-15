@@ -1217,7 +1217,7 @@ export default function Player() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [screenId, paired, fetchPlaylist]);
+  }, [screenId, paired, fetchPlaylist, fetchSingleMedia]);
 
   // ── BACKGROUND AUDIO ENGINE ──
   useEffect(() => {
