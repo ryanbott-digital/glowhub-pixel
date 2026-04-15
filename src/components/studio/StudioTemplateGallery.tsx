@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CanvasElement, DEFAULT_FILTERS } from "@/components/studio/types";
-import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap, Search, Church, Building2, Share2 } from "lucide-react";
+import { LayoutTemplate, Utensils, Tag, Info, Sparkles, Coffee, ShoppingBag, Megaphone, CalendarDays, PartyPopper, Clock, Dumbbell, Store, Hotel, HeartPulse, GraduationCap, Search, Church, Building2, Share2, Home } from "lucide-react";
 
 /* ── Template category type ── */
-type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education" | "church" | "corporate" | "social";
+type TemplateCategory = "all" | "menu" | "promo" | "info" | "fitness" | "retail" | "hotel" | "health" | "education" | "church" | "corporate" | "social" | "realestate";
 
 interface StudioTemplate {
   id: string;
@@ -927,6 +927,169 @@ const TEMPLATES: StudioTemplate[] = [
       { id: tid(), type: "text", x: 120, y: 600, width: 780, height: 50, content: "🏆 BEST POST OF THE WEEK WINS A PRIZE!", style: { fontSize: "24px", fontWeight: "700", color: "#F59E0B", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
     ],
   },
+
+  /* ─── REAL ESTATE ─── */
+  {
+    id: "realestate-listings",
+    name: "Property Listings",
+    category: "realestate",
+    preview: "🏠",
+    description: "Premium real estate listing board with property details",
+    tags: ["real estate", "property", "house", "apartment", "listing", "agent", "for sale", "homes"],
+    bg: { type: "gradient", color: "#0a0f1a", gradient: "linear-gradient(180deg, #0a0f1a 0%, #111827 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 40, y: 20, width: 500, height: 45, content: "PREMIER ESTATES", style: { fontSize: "36px", fontWeight: "300", color: "#FFFFFF", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 65, width: 300, height: 20, content: "FEATURED PROPERTIES", style: { fontSize: "12px", fontWeight: "600", color: "#D4A574", letterSpacing: "5px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 40, y: 92, width: 120, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#D4A574", shapeStroke: "#D4A574", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      // Property 1
+      { id: tid(), type: "shape", x: 40, y: 110, width: 280, height: 175, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#151d2e", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 55, y: 120, width: 90, height: 22, content: "FOR SALE", style: { fontSize: "10px", fontWeight: "700", color: "#0a0f1a", letterSpacing: "2px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 55, y: 120, width: 78, height: 20, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#D4A574", shapeStroke: "transparent", shapeStrokeWidth: 0, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 55, y: 148, width: 250, height: 24, content: "Riverside Penthouse", style: { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 55, y: 175, width: 250, height: 16, content: "4 Bed  •  3 Bath  •  2,800 sq ft", style: { fontSize: "12px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 55, y: 200, width: 250, height: 35, content: "Panoramic river views, private terrace, concierge.", style: { fontSize: "11px", fontWeight: "400", color: "#64748B", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 55, y: 248, width: 250, height: 28, content: "$2,450,000", style: { fontSize: "22px", fontWeight: "700", color: "#D4A574" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      // Property 2
+      { id: tid(), type: "shape", x: 340, y: 110, width: 280, height: 175, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#151d2e", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 355, y: 120, width: 78, height: 20, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#22C55E", shapeStroke: "transparent", shapeStrokeWidth: 0, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 355, y: 120, width: 90, height: 22, content: "NEW", style: { fontSize: "10px", fontWeight: "700", color: "#0a0f1a", letterSpacing: "2px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 355, y: 148, width: 250, height: 24, content: "Georgian Townhouse", style: { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 355, y: 175, width: 250, height: 16, content: "5 Bed  •  4 Bath  •  3,500 sq ft", style: { fontSize: "12px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 355, y: 200, width: 250, height: 35, content: "Grade II listed, walled garden, period features.", style: { fontSize: "11px", fontWeight: "400", color: "#64748B", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 355, y: 248, width: 250, height: 28, content: "$1,875,000", style: { fontSize: "22px", fontWeight: "700", color: "#D4A574" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      // Property 3
+      { id: tid(), type: "shape", x: 640, y: 110, width: 280, height: 175, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#151d2e", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 655, y: 120, width: 100, height: 20, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#EF4444", shapeStroke: "transparent", shapeStrokeWidth: 0, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 655, y: 120, width: 100, height: 22, content: "REDUCED", style: { fontSize: "10px", fontWeight: "700", color: "#FFFFFF", letterSpacing: "2px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 655, y: 148, width: 250, height: 24, content: "Lakeside Villa", style: { fontSize: "18px", fontWeight: "700", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 655, y: 175, width: 250, height: 16, content: "3 Bed  •  2 Bath  •  1,950 sq ft", style: { fontSize: "12px", fontWeight: "400", color: "#94A3B8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 655, y: 200, width: 250, height: 35, content: "Waterfront setting, open plan, boat mooring.", style: { fontSize: "11px", fontWeight: "400", color: "#64748B", lineHeight: "1.5" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 655, y: 248, width: 250, height: 28, content: "$985,000", style: { fontSize: "22px", fontWeight: "700", color: "#D4A574" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      // Bottom bar
+      { id: tid(), type: "shape", x: 40, y: 300, width: 880, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      // Stats row
+      { id: tid(), type: "text", x: 40, y: 315, width: 220, height: 50, content: "12\nActive Listings", style: { fontSize: "14px", fontWeight: "400", color: "#94A3B8", textAlign: "center", lineHeight: "2.2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 315, width: 220, height: 30, content: "12", style: { fontSize: "28px", fontWeight: "800", color: "#D4A574", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 280, y: 315, width: 220, height: 50, content: "3\nSold This Month", style: { fontSize: "14px", fontWeight: "400", color: "#94A3B8", textAlign: "center", lineHeight: "2.2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 280, y: 315, width: 220, height: 30, content: "3", style: { fontSize: "28px", fontWeight: "800", color: "#22C55E", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 520, y: 315, width: 220, height: 50, content: "$1.2M\nAvg. Price", style: { fontSize: "14px", fontWeight: "400", color: "#94A3B8", textAlign: "center", lineHeight: "2.2" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 520, y: 315, width: 220, height: 30, content: "$1.2M", style: { fontSize: "28px", fontWeight: "800", color: "#60A5FA", textAlign: "center" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      // Agent info
+      { id: tid(), type: "text", x: 40, y: 490, width: 500, height: 25, content: "PREMIER ESTATES  •  123 HIGH STREET  •  020 7946 0958", style: { fontSize: "11px", fontWeight: "600", color: "#64748B", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 680, y: 490, width: 240, height: 25, content: "premierestates.co.uk", style: { fontSize: "13px", fontWeight: "500", color: "#D4A574", textAlign: "right" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+
+  /* ─── FITNESS — WEEKLY GRID ─── */
+  {
+    id: "fitness-weekly",
+    name: "Weekly Class Grid",
+    category: "fitness",
+    preview: "📅",
+    description: "Full-week gym class schedule in a structured grid layout",
+    tags: ["gym", "weekly", "timetable", "class", "schedule", "fitness", "workout", "grid"],
+    bg: { type: "gradient", color: "#0a0a0a", gradient: "linear-gradient(180deg, #0a0a0a 0%, #120a0a 100%)" },
+    elements: [
+      { id: tid(), type: "text", x: 40, y: 15, width: 500, height: 40, content: "WEEKLY CLASS SCHEDULE", style: { fontSize: "32px", fontWeight: "900", color: "#FF4444", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 700, y: 20, width: 220, height: 25, content: "IRON FORGE GYM", style: { fontSize: "14px", fontWeight: "600", color: "#64748B", letterSpacing: "3px", textAlign: "right" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 40, y: 55, width: 880, height: 2, content: "", style: {}, shapeType: "line", shapeFill: "#FF4444", shapeStroke: "#FF4444", shapeStrokeWidth: 2, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      // Day headers
+      { id: tid(), type: "text", x: 40, y: 65, width: 125, height: 22, content: "MON", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 165, y: 65, width: 125, height: 22, content: "TUE", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 290, y: 65, width: 125, height: 22, content: "WED", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 415, y: 65, width: 125, height: 22, content: "THU", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 540, y: 65, width: 125, height: 22, content: "FRI", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 665, y: 65, width: 125, height: 22, content: "SAT", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 790, y: 65, width: 125, height: 22, content: "SUN", style: { fontSize: "13px", fontWeight: "700", color: "#FF4444", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 40, y: 90, width: 880, height: 1, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      // Time label — 06:00
+      { id: tid(), type: "text", x: 40, y: 98, width: 50, height: 16, content: "06:00", style: { fontSize: "10px", fontWeight: "600", color: "#475569" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Row 1 — 06:00 classes
+      { id: tid(), type: "shape", x: 40, y: 98, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a10", shapeStroke: "#FFD700", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 48, y: 103, width: 110, height: 45, content: "HIIT BURN\n06:00 · 45m\nCoach Marcus", style: { fontSize: "9px", fontWeight: "400", color: "#FFD700", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 290, y: 98, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a10", shapeStroke: "#FFD700", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 298, y: 103, width: 110, height: 45, content: "HIIT BURN\n06:00 · 45m\nCoach Marcus", style: { fontSize: "9px", fontWeight: "400", color: "#FFD700", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 540, y: 98, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a1a10", shapeStroke: "#FFD700", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 548, y: 103, width: 110, height: 45, content: "HIIT BURN\n06:00 · 45m\nCoach Marcus", style: { fontSize: "9px", fontWeight: "400", color: "#FFD700", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Row 2 — 07:30 classes
+      { id: tid(), type: "text", x: 40, y: 163, width: 50, height: 16, content: "07:30", style: { fontSize: "10px", fontWeight: "600", color: "#475569" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 165, y: 163, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0a1a1a", shapeStroke: "#14B8A6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 173, y: 168, width: 110, height: 45, content: "SPIN CYCLE\n07:30 · 50m\nCoach Priya", style: { fontSize: "9px", fontWeight: "400", color: "#14B8A6", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 415, y: 163, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0a1a1a", shapeStroke: "#14B8A6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 423, y: 168, width: 110, height: 45, content: "SPIN CYCLE\n07:30 · 50m\nCoach Priya", style: { fontSize: "9px", fontWeight: "400", color: "#14B8A6", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 665, y: 163, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0a1a1a", shapeStroke: "#14B8A6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 673, y: 168, width: 110, height: 45, content: "SPIN CYCLE\n07:30 · 50m\nCoach Priya", style: { fontSize: "9px", fontWeight: "400", color: "#14B8A6", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Row 3 — 09:00 classes
+      { id: tid(), type: "text", x: 40, y: 228, width: 50, height: 16, content: "09:00", style: { fontSize: "10px", fontWeight: "600", color: "#475569" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 40, y: 228, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a0a1a", shapeStroke: "#A855F7", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 48, y: 233, width: 110, height: 45, content: "YOGA FLOW\n09:00 · 60m\nSarah", style: { fontSize: "9px", fontWeight: "400", color: "#A855F7", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 165, y: 228, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a0a1a", shapeStroke: "#A855F7", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 173, y: 233, width: 110, height: 45, content: "YOGA FLOW\n09:00 · 60m\nSarah", style: { fontSize: "9px", fontWeight: "400", color: "#A855F7", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 415, y: 228, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a0a1a", shapeStroke: "#A855F7", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 423, y: 233, width: 110, height: 45, content: "YOGA FLOW\n09:00 · 60m\nSarah", style: { fontSize: "9px", fontWeight: "400", color: "#A855F7", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 665, y: 228, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a0a1a", shapeStroke: "#A855F7", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 673, y: 233, width: 110, height: 45, content: "YOGA FLOW\n09:00 · 60m\nSarah", style: { fontSize: "9px", fontWeight: "400", color: "#A855F7", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Row 4 — 12:00 classes
+      { id: tid(), type: "text", x: 40, y: 293, width: 50, height: 16, content: "12:00", style: { fontSize: "10px", fontWeight: "600", color: "#475569" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 290, y: 293, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a0a0a", shapeStroke: "#EF4444", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 298, y: 298, width: 110, height: 45, content: "BOXING\n12:00 · 45m\nCoach Dex", style: { fontSize: "9px", fontWeight: "400", color: "#EF4444", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 540, y: 293, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a0a0a", shapeStroke: "#EF4444", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 548, y: 298, width: 110, height: 45, content: "BOXING\n12:00 · 45m\nCoach Dex", style: { fontSize: "9px", fontWeight: "400", color: "#EF4444", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Row 5 — 17:30 classes
+      { id: tid(), type: "text", x: 40, y: 358, width: 50, height: 16, content: "17:30", style: { fontSize: "10px", fontWeight: "600", color: "#475569" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 40, y: 358, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0a0a1a", shapeStroke: "#3B82F6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 48, y: 363, width: 110, height: 45, content: "CROSSFIT\n17:30 · 60m\nCoach Liam", style: { fontSize: "9px", fontWeight: "400", color: "#3B82F6", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 290, y: 358, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0a0a1a", shapeStroke: "#3B82F6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 298, y: 363, width: 110, height: 45, content: "CROSSFIT\n17:30 · 60m\nCoach Liam", style: { fontSize: "9px", fontWeight: "400", color: "#3B82F6", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 540, y: 358, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0a0a1a", shapeStroke: "#3B82F6", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 548, y: 363, width: 110, height: 45, content: "CROSSFIT\n17:30 · 60m\nCoach Liam", style: { fontSize: "9px", fontWeight: "400", color: "#3B82F6", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Row 6 — 19:00 classes
+      { id: tid(), type: "text", x: 40, y: 423, width: 50, height: 16, content: "19:00", style: { fontSize: "10px", fontWeight: "600", color: "#475569" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 165, y: 423, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a100a", shapeStroke: "#F97316", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 173, y: 428, width: 110, height: 45, content: "PILATES\n19:00 · 45m\nMia", style: { fontSize: "9px", fontWeight: "400", color: "#F97316", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 415, y: 423, width: 125, height: 55, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#1a100a", shapeStroke: "#F97316", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 423, y: 428, width: 110, height: 45, content: "PILATES\n19:00 · 45m\nMia", style: { fontSize: "9px", fontWeight: "400", color: "#F97316", lineHeight: "1.6", textAlign: "center" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Legend
+      { id: tid(), type: "shape", x: 40, y: 495, width: 880, height: 1, content: "", style: {}, shapeType: "line", shapeFill: "#1E293B", shapeStroke: "#1E293B", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 505, width: 880, height: 20, content: "🟡 HIIT    🟢 Spin    🟣 Yoga    🔴 Boxing    🔵 CrossFit    🟠 Pilates", style: { fontSize: "11px", fontWeight: "500", color: "#64748B", textAlign: "center", letterSpacing: "1px" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
+
+  /* ─── HOTEL — PREMIUM WELCOME ─── */
+  {
+    id: "hotel-premium-welcome",
+    name: "Luxury Welcome",
+    category: "hotel",
+    preview: "✨",
+    description: "Premium five-star hotel lobby welcome with concierge info",
+    tags: ["hotel", "luxury", "welcome", "lobby", "five star", "concierge", "resort", "boutique"],
+    bg: { type: "gradient", color: "#08060e", gradient: "linear-gradient(180deg, #08060e 0%, #141020 50%, #0a0810 100%)" },
+    elements: [
+      // Top accent line
+      { id: tid(), type: "shape", x: 380, y: 30, width: 200, height: 1, content: "", style: {}, shapeType: "line", shapeFill: "#C9A96E", shapeStroke: "#C9A96E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 200, y: 50, width: 560, height: 25, content: "WELCOME TO", style: { fontSize: "14px", fontWeight: "600", color: "#C9A96E", letterSpacing: "12px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in" },
+      { id: tid(), type: "text", x: 120, y: 85, width: 720, height: 80, content: "THE ROSEMONT", style: { fontSize: "62px", fontWeight: "300", color: "#FFFFFF", textAlign: "center", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 200 },
+      { id: tid(), type: "text", x: 200, y: 175, width: 560, height: 22, content: "BOUTIQUE HOTEL & SPA  •  EST. 1897", style: { fontSize: "11px", fontWeight: "500", color: "#94A3B8", letterSpacing: "5px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 400 },
+      { id: tid(), type: "shape", x: 380, y: 210, width: 200, height: 1, content: "", style: {}, shapeType: "line", shapeFill: "#C9A96E", shapeStroke: "#C9A96E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      // Three info columns
+      { id: tid(), type: "shape", x: 50, y: 235, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f0d18", shapeStroke: "#1E1A2E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 500 },
+      { id: tid(), type: "text", x: 70, y: 250, width: 230, height: 18, content: "DINING", style: { fontSize: "11px", fontWeight: "700", color: "#C9A96E", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 70, y: 275, width: 230, height: 120, content: "Breakfast  7:00 – 10:30\nLunch  12:00 – 14:30\nDinner  18:30 – 22:00\nBar  11:00 – midnight\nRoom service 24 hours", style: { fontSize: "12px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+
+      { id: tid(), type: "shape", x: 345, y: 235, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f0d18", shapeStroke: "#1E1A2E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 600 },
+      { id: tid(), type: "text", x: 365, y: 250, width: 230, height: 18, content: "SPA & WELLNESS", style: { fontSize: "11px", fontWeight: "700", color: "#C9A96E", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 365, y: 275, width: 230, height: 120, content: "Pool  06:00 – 21:00\nSpa  09:00 – 20:00\nSauna  07:00 – 21:00\nFitness  24 hours\nYoga class  08:00 daily", style: { fontSize: "12px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+
+      { id: tid(), type: "shape", x: 640, y: 235, width: 270, height: 180, content: "", style: {}, shapeType: "rounded-rect", shapeFill: "#0f0d18", shapeStroke: "#1E1A2E", shapeStrokeWidth: 1, visible: true, locked: false, filters: { ...DEFAULT_FILTERS }, entranceAnim: "fade-in", enterDelay: 700 },
+      { id: tid(), type: "text", x: 660, y: 250, width: 230, height: 18, content: "CONCIERGE", style: { fontSize: "11px", fontWeight: "700", color: "#C9A96E", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 660, y: 275, width: 230, height: 120, content: "Valet parking available\nAirport transfers\nTour bookings\nRestaurant reservations\nDial 0 for assistance", style: { fontSize: "12px", fontWeight: "400", color: "#CBD5E1", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      // Wi-Fi info
+      { id: tid(), type: "text", x: 200, y: 440, width: 560, height: 20, content: "COMPLIMENTARY WI-FI  •  NETWORK: ROSEMONT-GUEST  •  NO PASSWORD REQUIRED", style: { fontSize: "10px", fontWeight: "500", color: "#64748B", letterSpacing: "3px", textAlign: "center" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      // Clock & Weather widgets
+      { id: tid(), type: "widget-clock", x: 300, y: 475, width: 180, height: 60, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "widget-weather", x: 500, y: 475, width: 180, height: 60, content: "", style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+    ],
+  },
 ];
 
 /* ── Tag map for searchability ── */
@@ -980,6 +1143,9 @@ const TEMPLATE_TAGS: Record<string, string[]> = {
   "social-wifi-qr": ["wifi", "QR code", "scan", "connect", "internet", "password", "network", "guest"],
   "social-review-wall": ["reviews", "ratings", "testimonials", "google", "yelp", "tripadvisor", "social proof", "stars"],
   "social-hashtag": ["hashtag", "user generated", "UGC", "instagram", "tiktok", "share", "photo", "contest"],
+  "realestate-listings": ["real estate", "property", "house", "apartment", "listing", "agent", "for sale", "homes", "penthouse", "villa"],
+  "fitness-weekly": ["gym", "weekly", "timetable", "class", "schedule", "fitness", "workout", "grid", "HIIT", "yoga", "spin", "crossfit"],
+  "hotel-premium-welcome": ["hotel", "luxury", "welcome", "lobby", "five star", "concierge", "resort", "boutique", "spa"],
 };
 
 /* ── Category config ── */
@@ -996,6 +1162,7 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
   { id: "education", label: "Education", icon: GraduationCap },
   { id: "church", label: "Church", icon: Church },
   { id: "corporate", label: "Corporate", icon: Building2 },
+  { id: "realestate", label: "Real Estate", icon: Home },
 ];
 
 /* ── Mini canvas thumbnail ── */
