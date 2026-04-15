@@ -262,6 +262,8 @@ export default function Studio() {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaItems, setMediaItems] = useState<{ id: string; name: string; storage_path: string; type: string }[]>([]);
   const [placeholderTarget, setPlaceholderTarget] = useState<{ groupId: string; x: number; y: number; width: number; height: number } | null>(null);
+  const [urlPasteMode, setUrlPasteMode] = useState(true);
+  const [urlPasteValue, setUrlPasteValue] = useState("");
   const [sidebarMode, setSidebarMode] = useState<"properties" | "layers">("properties");
   const [zoom, setZoom] = useState(1);
   const [lightCanvas, setLightCanvas] = useState(false);
@@ -1886,15 +1888,85 @@ export default function Studio() {
       </Dialog>
 
       {/* Media Picker Modal */}
-      <Dialog open={mediaPickerOpen} onOpenChange={(v) => { setMediaPickerOpen(v); if (!v) setPlaceholderTarget(null); }}>
+      <Dialog open={mediaPickerOpen} onOpenChange={(v) => { setMediaPickerOpen(v); if (!v) { setPlaceholderTarget(null); setUrlPasteMode(true); setUrlPasteValue(""); } }}>
         <DialogContent className="bg-card border-border/30 max-w-lg max-h-[70vh] flex flex-col p-0 overflow-hidden">
-          <div className="p-4 border-b border-border/20">
+          <div className="p-4 border-b border-border/20 space-y-3">
             <h3 className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide flex items-center gap-2">
-              <Image className="h-4 w-4 text-primary" /> Media Library
+              <Image className="h-4 w-4 text-primary" /> {placeholderTarget ? "Replace Placeholder" : "Media Library"}
             </h3>
+            {placeholderTarget && (
+              <div className="flex gap-1 rounded-lg bg-muted/30 p-0.5">
+                <button onClick={() => setUrlPasteMode(true)} className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-colors ${urlPasteMode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                  Paste URL
+                </button>
+                <button onClick={() => setUrlPasteMode(false)} className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-colors ${!urlPasteMode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                  Media Library
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            {mediaItems.length === 0 ? (
+            {placeholderTarget && urlPasteMode ? (
+              <div className="flex flex-col items-center gap-4 py-6 px-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <ExternalLink className="h-7 w-7 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground text-center">Paste any image URL to place it on the canvas</p>
+                <Input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={urlPasteValue}
+                  onChange={(e) => setUrlPasteValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && urlPasteValue.trim()) {
+                      pushHistory(elements);
+                      const newId = crypto.randomUUID();
+                      const imgEl: CanvasElement = {
+                        id: newId, type: "image", content: urlPasteValue.trim(),
+                        x: placeholderTarget.x, y: placeholderTarget.y,
+                        width: placeholderTarget.width, height: placeholderTarget.height,
+                        style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+                      };
+                      setElements((prev) => [
+                        ...prev.filter((el) => el.placeholderGroupId !== placeholderTarget.groupId),
+                        imgEl,
+                      ]);
+                      setSelectedId(newId);
+                      setPlaceholderTarget(null);
+                      setMediaPickerOpen(false);
+                      setUrlPasteValue("");
+                      toast.success("Image placed from URL");
+                    }
+                  }}
+                  className="bg-background/50 border-primary/30 text-sm"
+                />
+                <Button
+                  disabled={!urlPasteValue.trim()}
+                  onClick={() => {
+                    pushHistory(elements);
+                    const newId = crypto.randomUUID();
+                    const imgEl: CanvasElement = {
+                      id: newId, type: "image", content: urlPasteValue.trim(),
+                      x: placeholderTarget.x, y: placeholderTarget.y,
+                      width: placeholderTarget.width, height: placeholderTarget.height,
+                      style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+                    };
+                    setElements((prev) => [
+                      ...prev.filter((el) => el.placeholderGroupId !== placeholderTarget.groupId),
+                      imgEl,
+                    ]);
+                    setSelectedId(newId);
+                    setPlaceholderTarget(null);
+                    setMediaPickerOpen(false);
+                    setUrlPasteValue("");
+                    toast.success("Image placed from URL");
+                  }}
+                  className="w-full gap-2"
+                >
+                  <Image className="h-4 w-4" /> Place Image
+                </Button>
+              </div>
+            ) : mediaItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Image className="h-8 w-8 text-muted-foreground/20" />
                 <p className="text-sm text-muted-foreground/40 font-['Satoshi',sans-serif]">No images in your library</p>
@@ -1909,7 +1981,6 @@ export default function Studio() {
                   return (
                     <button key={item.id} onClick={() => {
                       if (placeholderTarget) {
-                        // Replace placeholder group with image element
                         pushHistory(elements);
                         const newId = crypto.randomUUID();
                         const imgEl: CanvasElement = {
