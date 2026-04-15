@@ -516,6 +516,75 @@ export default function DownloadPage() {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* ── FULLY KIOSK BROWSER GUIDE ── */}
+          <Collapsible>
+            <CollapsibleTrigger className="w-full glass rounded-xl border-amber-500/20 p-5 flex items-center justify-between text-left group hover:border-amber-500/40 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-amber-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm tracking-wide">Fully Kiosk Browser Setup</h3>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono uppercase bg-amber-500/15 text-amber-400 border border-amber-500/25">Recommended</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Best for Fire TV — true fullscreen kiosk with autoplay</p>
+                </div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 glass rounded-xl border-amber-500/15 p-6 space-y-5 animate-in slide-in-from-top-2 duration-200">
+              <div className="space-y-4">
+                <Step n={1}>
+                  Install <strong className="text-foreground">Fully Kiosk Browser</strong> from the Amazon App Store on your Fire Stick. Alternatively, sideload it from{" "}
+                  <a href="https://www.fully-kiosk.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline hover:text-amber-300 transition-colors">fully-kiosk.com</a>.
+                </Step>
+                <Step n={2}>
+                  Open Fully Kiosk Browser. When prompted for a start URL, enter:<br />
+                  <code className="inline-block mt-1.5 px-3 py-1.5 rounded-lg bg-background/80 border border-amber-500/20 text-amber-400 text-xs font-mono select-all">
+                    https://glowhub-pixel.lovable.app/player
+                  </code>
+                </Step>
+                <Step n={3}>
+                  Go to <strong className="text-foreground">Settings → Web Content Settings</strong> and enable:<br />
+                  • <strong className="text-foreground">Autoplay Videos</strong><br />
+                  • <strong className="text-foreground">Enable JavaScript</strong>
+                </Step>
+                <Step n={4}>
+                  Go to <strong className="text-foreground">Settings → Kiosk Mode</strong> and enable <strong className="text-foreground">Enable Kiosk Mode</strong>. This locks the device to Glow — no URL bar, no navigation.
+                </Step>
+                <Step n={5}>
+                  Go to <strong className="text-foreground">Settings → Device Management</strong> and enable <strong className="text-foreground">Launch on Boot</strong> so Glow starts automatically when the Fire Stick powers on.
+                </Step>
+                <Step n={6}>
+                  <em className="text-muted-foreground">Optional:</em> Enable <strong className="text-foreground">Screen On/Off Scheduling</strong> under Device Management to power the display on and off at set times.
+                </Step>
+                <Step n={7}>
+                  <em className="text-muted-foreground">Optional:</em> Activate a <strong className="text-foreground">PLUS license</strong> ($7.90 one-time) for remote device management, restart, and screenshot capture from any browser.
+                </Step>
+              </div>
+
+              {/* Advantages callout */}
+              <div className="rounded-xl p-4 space-y-2" style={{
+                background: "rgba(245, 158, 11, 0.05)",
+                border: "1px solid rgba(245, 158, 11, 0.15)",
+              }}>
+                <p className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Why Fully Kiosk Browser?
+                </p>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#94A3B8]">
+                  <li className="flex items-center gap-1.5">✓ No URL bar or browser chrome</li>
+                  <li className="flex items-center gap-1.5">✓ True fullscreen with autoplay</li>
+                  <li className="flex items-center gap-1.5">✓ Launch-on-boot without custom APK</li>
+                  <li className="flex items-center gap-1.5">✓ Remote restart & screenshot capture</li>
+                  <li className="flex items-center gap-1.5">✓ Screen on/off scheduling built in</li>
+                  <li className="flex items-center gap-1.5">✓ Works on all Fire TV & Android TV</li>
+                </ul>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           <div className="space-y-4">
             <h3 className="text-lg font-bold tracking-wide text-center flex items-center justify-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
