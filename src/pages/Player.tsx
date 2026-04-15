@@ -1664,7 +1664,7 @@ export default function Player() {
         </div>
 
         {/* ── Bottom: Logo + Connection dot ── */}
-        <div className="absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10">
+        <div className={`absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10${isFullyKiosk ? " hidden" : ""}`}>
           {/* Logo center */}
           <div className="flex-1" />
           <img
