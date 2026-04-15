@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
@@ -31,6 +31,7 @@ export default function Display() {
   const [syncing, setSyncing] = useState(false);
   const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
   const [fitBgColor, setFitBgColor] = useState("#000000");
+  const [needsTap, setNeedsTap] = useState(false);
 
   // Double-buffer crossfade state
   const [layerA, setLayerA] = useState<PlaylistItem | null>(null);
@@ -206,6 +207,42 @@ export default function Display() {
     }
   }, [advanceToNext]);
 
+  // Detect autoplay failure and show tap overlay
+  const handleVideoPlay = useCallback((video: HTMLVideoElement | null) => {
+    if (!video) return;
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        setNeedsTap(true);
+      });
+    }
+  }, []);
+
+  // Try fullscreen + start playback on user tap
+  const handleTapToStart = useCallback(() => {
+    setNeedsTap(false);
+    // Request fullscreen to hide Silk URL bar
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
+    if (rfs) {
+      try { rfs.call(el); } catch {}
+    }
+    // Start video playback
+    const activeVideo = activeLayer === "A" ? videoRefA.current : videoRefB.current;
+    if (activeVideo) {
+      activeVideo.play().catch(() => {});
+    }
+  }, [activeLayer]);
+
+  // Auto-request fullscreen on load (works in some WebView contexts)
+  useEffect(() => {
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
+    if (rfs) {
+      try { rfs.call(el); } catch {}
+    }
+  }, []);
+
   const objectClass = displayMode === "fit" ? "object-contain" : "object-cover";
 
   const renderMedia = (item: PlaylistItem | null, ref: React.RefObject<HTMLVideoElement>, isActive: boolean) => {
@@ -225,7 +262,13 @@ export default function Display() {
     return (
       <video
         key={item.id}
-        ref={ref}
+        ref={(el) => {
+          (ref as React.MutableRefObject<HTMLVideoElement | null>).current = el;
+          // When a video mounts as the active layer, try to play it
+          if (el && isActive) {
+            handleVideoPlay(el);
+          }
+        }}
         src={url}
         autoPlay={isActive}
         muted
@@ -282,6 +325,22 @@ export default function Display() {
       >
         {renderMedia(layerB, videoRefB, activeLayer === "B")}
       </div>
+
+      {/* Tap-to-start overlay for browsers that block autoplay (e.g. Amazon Silk) */}
+      {needsTap && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
+          style={{ background: "rgba(0,0,0,0.85)" }}
+          onClick={handleTapToStart}
+        >
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-20 h-20 rounded-full border-2 border-white/40 flex items-center justify-center">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><polygon points="8,5 19,12 8,19" /></svg>
+            </div>
+            <span className="text-white text-lg font-medium tracking-wide">Tap to Start</span>
+          </div>
+        </div>
+      )}
 
       {showWatermark && (
         <a href="https://glowhub-pixel.lovable.app/home" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 left-4 z-30 flex items-center gap-1.5 opacity-40 hover:opacity-70 transition-opacity select-none no-underline">
