@@ -19,8 +19,9 @@ const CHANGELOG = [
     date: APK_DATE,
     changes: [
       { icon: Zap, text: "Rebuilt as native Capacitor WebView — no more Silk browser or URL bar" },
-      { icon: Shield, text: "True fullscreen with immersive mode and video autoplay" },
-      { icon: Sparkles, text: "Deep Space boot screen with instant player load" },
+      { icon: Shield, text: "Fully Kiosk Browser integration — auto-detects device ID for remote restart & screenshots" },
+      { icon: Sparkles, text: "True fullscreen with immersive mode, video autoplay, and Deep Space boot screen" },
+      { icon: Rocket, text: "Studio templates redesigned — professional layouts with interactive image placeholders" },
     ],
   },
   {
