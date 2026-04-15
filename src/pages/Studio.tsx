@@ -675,7 +675,7 @@ export default function Studio() {
     return (
       <div className="w-full h-full" style={{ ...filterStyle, mixBlendMode: (el.blendMode || "normal") as any }}>
         {el.type === "text" && (
-          <div className="w-full h-full flex items-center justify-center text-foreground text-sm p-2 overflow-hidden" style={{ ...el.style, ...glowStyle, fontFamily: `'${fontFamily}', sans-serif` }}>
+          <div className="w-full h-full flex text-foreground p-2 overflow-hidden" style={{ ...el.style, ...glowStyle, fontFamily: `'${fontFamily}', sans-serif`, whiteSpace: "pre-wrap", wordBreak: "break-word", alignItems: el.style.textAlign === "center" ? "center" : "flex-start", justifyContent: el.style.textAlign === "center" ? "center" : "flex-start" }}>
             {el.content}
           </div>
         )}

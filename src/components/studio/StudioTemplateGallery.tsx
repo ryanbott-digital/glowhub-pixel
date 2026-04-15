@@ -33,13 +33,13 @@ const TEMPLATES: StudioTemplate[] = [
     description: "Clean coffee shop menu with prices and categories",
     bg: { type: "gradient", color: "#1a1a2e", gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)" },
     elements: [
-      { id: tid(), type: "text", x: 80, y: 60, width: 600, height: 80, content: "☕ THE DAILY GRIND", style: { fontSize: "56px", fontWeight: "800", color: "#F5DEB3" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 80, y: 150, width: 400, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#F5DEB3", shapeStroke: "#F5DEB3", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 80, y: 180, width: 500, height: 50, content: "ESPRESSO DRINKS", style: { fontSize: "28px", fontWeight: "700", color: "#D4A574", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 80, y: 240, width: 700, height: 280, content: "Espresso ........................ $3.50\nAmericano ..................... $4.00\nCappuccino ................... $4.50\nLatte ............................... $4.75\nMocha ............................ $5.25\nFlat White ...................... $4.50", style: { fontSize: "24px", fontWeight: "400", color: "#E8D5B7", lineHeight: "1.9" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 80, y: 560, width: 500, height: 50, content: "COLD BREW & ICED", style: { fontSize: "28px", fontWeight: "700", color: "#D4A574", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 80, y: 620, width: 700, height: 200, content: "Cold Brew ...................... $4.50\nIced Latte ....................... $5.00\nIced Mocha .................... $5.50\nFrappé ........................... $5.75", style: { fontSize: "24px", fontWeight: "400", color: "#E8D5B7", lineHeight: "1.9" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 80, y: 880, width: 700, height: 40, content: "✦ Ask about our seasonal specials ✦", style: { fontSize: "18px", fontWeight: "500", color: "#D4A574", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 20, width: 500, height: 60, content: "☕ THE DAILY GRIND", style: { fontSize: "44px", fontWeight: "800", color: "#F5DEB3" }, visible: true, locked: false, fontFamily: "Playfair Display", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 40, y: 85, width: 350, height: 3, content: "", style: {}, shapeType: "line", shapeFill: "#F5DEB3", shapeStroke: "#F5DEB3", shapeStrokeWidth: 3, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 100, width: 400, height: 30, content: "ESPRESSO DRINKS", style: { fontSize: "22px", fontWeight: "700", color: "#D4A574", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 135, width: 420, height: 180, content: "Espresso ........................ $3.50\nAmericano ..................... $4.00\nCappuccino ................... $4.50\nLatte ............................... $4.75\nMocha ............................ $5.25\nFlat White ...................... $4.50", style: { fontSize: "16px", fontWeight: "400", color: "#E8D5B7", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 500, y: 100, width: 400, height: 30, content: "COLD BREW & ICED", style: { fontSize: "22px", fontWeight: "700", color: "#D4A574", letterSpacing: "4px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 500, y: 135, width: 420, height: 140, content: "Cold Brew ...................... $4.50\nIced Latte ....................... $5.00\nIced Mocha .................... $5.50\nFrappé ........................... $5.75", style: { fontSize: "16px", fontWeight: "400", color: "#E8D5B7", lineHeight: "1.8" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 40, y: 490, width: 880, height: 30, content: "✦ Ask about our seasonal specials ✦", style: { fontSize: "16px", fontWeight: "500", color: "#D4A574", textAlign: "center", fontStyle: "italic" }, visible: true, locked: false, fontFamily: "Lora", filters: { ...DEFAULT_FILTERS } },
     ],
   },
   {
@@ -50,17 +50,17 @@ const TEMPLATES: StudioTemplate[] = [
     description: "Elegant daily specials board with bold typography",
     bg: { type: "solid", color: "#0f0f0f" },
     elements: [
-      { id: tid(), type: "text", x: 120, y: 80, width: 800, height: 90, content: "TODAY'S SPECIALS", style: { fontSize: "64px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "shape", x: 120, y: 180, width: 200, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#B8860B", shapeStroke: "#B8860B", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 220, width: 700, height: 50, content: "STARTER", style: { fontSize: "20px", fontWeight: "600", color: "#D4A017", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 270, width: 700, height: 40, content: "Burrata with Heirloom Tomatoes & Basil Oil", style: { fontSize: "28px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 310, width: 100, height: 35, content: "$14", style: { fontSize: "24px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 400, width: 700, height: 50, content: "MAIN", style: { fontSize: "20px", fontWeight: "600", color: "#D4A017", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 450, width: 700, height: 40, content: "Pan-Seared Salmon with Dill Cream & Asparagus", style: { fontSize: "28px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 490, width: 100, height: 35, content: "$28", style: { fontSize: "24px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 580, width: 700, height: 50, content: "DESSERT", style: { fontSize: "20px", fontWeight: "600", color: "#D4A017", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 630, width: 700, height: 40, content: "Dark Chocolate Fondant with Salted Caramel", style: { fontSize: "28px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 120, y: 670, width: 100, height: 35, content: "$12", style: { fontSize: "24px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 30, width: 800, height: 60, content: "TODAY'S SPECIALS", style: { fontSize: "48px", fontWeight: "900", color: "#FFFFFF", letterSpacing: "8px" }, visible: true, locked: false, fontFamily: "Oswald", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "shape", x: 80, y: 95, width: 200, height: 4, content: "", style: {}, shapeType: "line", shapeFill: "#B8860B", shapeStroke: "#B8860B", shapeStrokeWidth: 4, visible: true, locked: false, filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 115, width: 250, height: 25, content: "STARTER", style: { fontSize: "16px", fontWeight: "600", color: "#D4A017", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 142, width: 500, height: 28, content: "Burrata with Heirloom Tomatoes & Basil Oil", style: { fontSize: "20px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 172, width: 80, height: 25, content: "$14", style: { fontSize: "18px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 220, width: 250, height: 25, content: "MAIN", style: { fontSize: "16px", fontWeight: "600", color: "#D4A017", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 247, width: 500, height: 28, content: "Pan-Seared Salmon with Dill Cream & Asparagus", style: { fontSize: "20px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 277, width: 80, height: 25, content: "$28", style: { fontSize: "18px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 325, width: 250, height: 25, content: "DESSERT", style: { fontSize: "16px", fontWeight: "600", color: "#D4A017", letterSpacing: "6px" }, visible: true, locked: false, fontFamily: "Space Grotesk", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 352, width: 500, height: 28, content: "Dark Chocolate Fondant with Salted Caramel", style: { fontSize: "20px", fontWeight: "300", color: "#FFFFFF" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 80, y: 382, width: 80, height: 25, content: "$12", style: { fontSize: "18px", fontWeight: "700", color: "#D4A017" }, visible: true, locked: false, fontFamily: "Inter", filters: { ...DEFAULT_FILTERS } },
     ],
   },
   {
@@ -71,9 +71,9 @@ const TEMPLATES: StudioTemplate[] = [
     description: "Neon-styled cocktail menu with glowing accents",
     bg: { type: "gradient", color: "#0a0a1a", gradient: "linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 100%)" },
     elements: [
-      { id: tid(), type: "text", x: 140, y: 60, width: 700, height: 90, content: "COCKTAIL HOUR", style: { fontSize: "60px", fontWeight: "900", color: "#FF6B9D" }, visible: true, locked: false, fontFamily: "Righteous", filters: { ...DEFAULT_FILTERS }, glowIntensity: 80 },
-      { id: tid(), type: "text", x: 140, y: 160, width: 500, height: 35, content: "HAPPY HOUR 5–7 PM • ALL $8", style: { fontSize: "18px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
-      { id: tid(), type: "text", x: 140, y: 240, width: 700, height: 500, content: "🍋 Lemon Drop Martini\nVodka, triple sec, fresh lemon, sugar rim\n\n🌿 Mojito Fresco\nWhite rum, mint, lime, soda, brown sugar\n\n🥃 Old Fashioned\nBourbon, Angostura bitters, orange peel\n\n🍓 Strawberry Daiquiri\nRum, fresh strawberries, lime, simple syrup\n\n🫒 Espresso Martini\nVodka, Kahlúa, fresh espresso, vanilla", style: { fontSize: "22px", fontWeight: "400", color: "#E8D5FF", lineHeight: "1.7" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 30, width: 700, height: 60, content: "COCKTAIL HOUR", style: { fontSize: "48px", fontWeight: "900", color: "#FF6B9D" }, visible: true, locked: false, fontFamily: "Righteous", filters: { ...DEFAULT_FILTERS }, glowIntensity: 80 },
+      { id: tid(), type: "text", x: 100, y: 95, width: 500, height: 25, content: "HAPPY HOUR 5–7 PM • ALL $8", style: { fontSize: "16px", fontWeight: "600", color: "#FFD700", letterSpacing: "3px" }, visible: true, locked: false, fontFamily: "Bebas Neue", filters: { ...DEFAULT_FILTERS } },
+      { id: tid(), type: "text", x: 100, y: 130, width: 760, height: 390, content: "🍋 Lemon Drop Martini\nVodka, triple sec, fresh lemon, sugar rim\n\n🌿 Mojito Fresco\nWhite rum, mint, lime, soda, brown sugar\n\n🥃 Old Fashioned\nBourbon, Angostura bitters, orange peel\n\n🍓 Strawberry Daiquiri\nRum, fresh strawberries, lime, simple syrup\n\n🫒 Espresso Martini\nVodka, Kahlúa, fresh espresso, vanilla", style: { fontSize: "18px", fontWeight: "400", color: "#E8D5FF", lineHeight: "1.6" }, visible: true, locked: false, fontFamily: "DM Sans", filters: { ...DEFAULT_FILTERS } },
     ],
   },
   {
@@ -999,8 +999,8 @@ const CATEGORIES: { id: TemplateCategory; label: string; icon: React.FC<{ classN
 ];
 
 /* ── Mini canvas thumbnail ── */
-const CANVAS_W = 1024;
-const CANVAS_H = 768;
+const CANVAS_W = 960;
+const CANVAS_H = 540;
 
 function MiniCanvasPreview({ elements }: { elements: CanvasElement[] }) {
   const rendered = useMemo(() => {
@@ -1102,11 +1102,50 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
   }, [category, search]);
 
   const handleApply = (tpl: StudioTemplate) => {
-    // Re-generate IDs so each application is unique
-    const freshElements = tpl.elements.map((el) => ({
-      ...el,
-      id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    }));
+    // Preload all template fonts before applying
+    const fonts = new Set<string>();
+    tpl.elements.forEach((el) => {
+      if (el.fontFamily && el.fontFamily !== "Satoshi") fonts.add(el.fontFamily);
+    });
+    fonts.forEach((f) => {
+      const existing = document.querySelector(`link[href*="${encodeURIComponent(f)}"]`);
+      if (!existing) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f)}:wght@300;400;500;600;700;800;900&display=swap`;
+        document.head.appendChild(link);
+      }
+    });
+    // Auto-scale elements to fit 960x540 canvas
+    const TARGET_W = 960;
+    const TARGET_H = 540;
+    let maxRight = 0, maxBottom = 0;
+    tpl.elements.forEach((el) => {
+      maxRight = Math.max(maxRight, el.x + el.width);
+      maxBottom = Math.max(maxBottom, el.y + el.height);
+    });
+    const scaleX = maxRight > TARGET_W ? TARGET_W / maxRight : 1;
+    const scaleY = maxBottom > TARGET_H ? TARGET_H / maxBottom : 1;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Re-generate IDs and scale coordinates if needed
+    const freshElements = tpl.elements.map((el) => {
+      const scaled = scale < 1 ? {
+        x: Math.round(el.x * scale),
+        y: Math.round(el.y * scale),
+        width: Math.round(el.width * scale),
+        height: Math.round(el.height * scale),
+        style: {
+          ...el.style,
+          ...(el.style.fontSize ? { fontSize: `${Math.round(parseFloat(el.style.fontSize) * scale)}px` } : {}),
+        },
+      } : {};
+      return {
+        ...el,
+        ...scaled,
+        id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      };
+    });
     onApply(freshElements, tpl.bg);
     onClose();
   };
