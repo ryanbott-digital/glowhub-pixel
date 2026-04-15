@@ -708,6 +708,8 @@ export type Database = {
           current_playlist_id: string | null
           display_mode: string
           fit_bg_color: string
+          fkb_device_id: string | null
+          fkb_device_info: Json | null
           group_id: string | null
           hardware_uuid: string | null
           id: string
@@ -736,6 +738,8 @@ export type Database = {
           current_playlist_id?: string | null
           display_mode?: string
           fit_bg_color?: string
+          fkb_device_id?: string | null
+          fkb_device_info?: Json | null
           group_id?: string | null
           hardware_uuid?: string | null
           id?: string
@@ -764,6 +768,8 @@ export type Database = {
           current_playlist_id?: string | null
           display_mode?: string
           fit_bg_color?: string
+          fkb_device_id?: string | null
+          fkb_device_info?: Json | null
           group_id?: string | null
           hardware_uuid?: string | null
           id?: string
