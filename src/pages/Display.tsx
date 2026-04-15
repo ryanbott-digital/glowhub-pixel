@@ -304,7 +304,7 @@ export default function Display() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-foreground gap-4">
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-foreground gap-4" style={{ height: '100dvh' }}>
         <div className="text-3xl font-bold">
           <span className="text-glow">Glow</span>
           <span style={{ color: "hsl(210, 20%, 90%)" }}>Hub</span>
@@ -315,7 +315,7 @@ export default function Display() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor }}>
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: fitBgColor, height: '100dvh' }}>
       {/* Layer A */}
       <div
         className="absolute inset-0 flex items-center justify-center"
