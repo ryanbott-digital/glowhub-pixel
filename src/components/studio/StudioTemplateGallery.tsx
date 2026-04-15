@@ -1116,11 +1116,36 @@ export function StudioTemplateGallery({ open, onClose, onApply }: StudioTemplate
         document.head.appendChild(link);
       }
     });
-    // Re-generate IDs so each application is unique
-    const freshElements = tpl.elements.map((el) => ({
-      ...el,
-      id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    }));
+    // Auto-scale elements to fit 960x540 canvas
+    const TARGET_W = 960;
+    const TARGET_H = 540;
+    let maxRight = 0, maxBottom = 0;
+    tpl.elements.forEach((el) => {
+      maxRight = Math.max(maxRight, el.x + el.width);
+      maxBottom = Math.max(maxBottom, el.y + el.height);
+    });
+    const scaleX = maxRight > TARGET_W ? TARGET_W / maxRight : 1;
+    const scaleY = maxBottom > TARGET_H ? TARGET_H / maxBottom : 1;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Re-generate IDs and scale coordinates if needed
+    const freshElements = tpl.elements.map((el) => {
+      const scaled = scale < 1 ? {
+        x: Math.round(el.x * scale),
+        y: Math.round(el.y * scale),
+        width: Math.round(el.width * scale),
+        height: Math.round(el.height * scale),
+        style: {
+          ...el.style,
+          ...(el.style.fontSize ? { fontSize: `${Math.round(parseFloat(el.style.fontSize) * scale)}px` } : {}),
+        },
+      } : {};
+      return {
+        ...el,
+        ...scaled,
+        id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      };
+    });
     onApply(freshElements, tpl.bg);
     onClose();
   };
