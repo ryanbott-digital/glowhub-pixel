@@ -11,7 +11,7 @@ const STORAGE_KEY = "glowhub_app_hash";
  *
  * @param intervalMs – polling interval in milliseconds (0 = disabled)
  */
-export function useVersionCheck(intervalMs: number) {
+export function useVersionCheck(intervalMs: number, silent = false) {
   const currentHash = useRef<string | null>(null);
   const reloading = useRef(false);
 
