@@ -296,7 +296,7 @@ export default function Display() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-foreground">
+      <div className="fixed inset-0 flex items-center justify-center bg-foreground" style={{ height: '100dvh' }}>
         <GHLoader size={72} />
       </div>
     );
