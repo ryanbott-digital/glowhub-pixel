@@ -109,6 +109,7 @@ export default function Player() {
   );
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
   const [showWatermark, setShowWatermark] = useState(false);
+  const [isFullyKiosk, setIsFullyKiosk] = useState(false);
 
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
@@ -209,6 +210,16 @@ export default function Player() {
     getCacheStatus().then((s) => setCachedCount(s.count));
     getCacheSize().then(setCacheBytes);
   }, [showSettings]);
+
+  // Detect Fully Kiosk Browser — hides pairing chrome for clean kiosk experience
+  useEffect(() => {
+    const w = window as any;
+    if (w.fully || w.FullyKiosk || navigator.userAgent.includes("FullyKiosk")) {
+      setIsFullyKiosk(true);
+      // Request fullscreen immersive via FKB API if available
+      try { w.fully?.setFullscreen?.(true); } catch {}
+    }
+  }, []);
 
   // Inject TV styles + register media cache SW
   const [syncProgress, setSyncProgress] = useState<CacheProgress | null>(null);
@@ -1568,7 +1579,7 @@ export default function Player() {
           <div className="flex items-center gap-12 lg:gap-16">
             {/* Code section */}
             <div className="flex flex-col items-center">
-              <p className="text-white/50 text-sm tracking-[0.3em] uppercase mb-6 font-medium">
+              <p className={`text-white/50 text-sm tracking-[0.3em] uppercase mb-6 font-medium${isFullyKiosk ? " hidden" : ""}`}>
                 Pair Your Screen
               </p>
 
@@ -1590,7 +1601,11 @@ export default function Player() {
               </div>
 
               <p className="text-white/30 text-sm mt-6 tracking-wide">
-                Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span> to pair
+                {isFullyKiosk ? (
+                  <>Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span></>
+                ) : (
+                  <>Enter this code in your <span className="text-[#00A3A3]/70">Glow Dashboard</span> to pair</>
+                )}
               </p>
             </div>
 
@@ -1649,7 +1664,7 @@ export default function Player() {
         </div>
 
         {/* ── Bottom: Logo + Connection dot ── */}
-        <div className="absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10">
+        <div className={`absolute bottom-8 left-0 right-0 z-10 flex items-end justify-between px-10${isFullyKiosk ? " hidden" : ""}`}>
           {/* Logo center */}
           <div className="flex-1" />
           <img
