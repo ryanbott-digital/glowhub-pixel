@@ -109,6 +109,7 @@ export default function Player() {
   );
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
   const [showWatermark, setShowWatermark] = useState(false);
+  const [isFullyKiosk, setIsFullyKiosk] = useState(false);
 
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
