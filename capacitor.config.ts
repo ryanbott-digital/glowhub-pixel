@@ -5,8 +5,15 @@ const config: CapacitorConfig = {
   appName: 'GlowHub',
   webDir: 'dist',
   server: {
-    url: 'https://ac739cba-0262-443b-bcae-51cf10fbf03b.lovableproject.com/player?forceHideBadge=true',
+    url: 'https://glowhub-pixel.lovable.app/player?forceHideBadge=true',
     cleartext: true,
+  },
+  backgroundColor: '#0B1120',
+  android: {
+    backgroundColor: '#0B1120',
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
   },
 };
 
