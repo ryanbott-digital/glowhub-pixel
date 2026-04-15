@@ -1891,7 +1891,31 @@ export default function Studio() {
                 {mediaItems.map((item) => {
                   const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
                   return (
-                    <button key={item.id} onClick={() => { updateSelected({ content: publicUrl }); setMediaPickerOpen(false); toast.success(`Added "${item.name}"`); }}
+                    <button key={item.id} onClick={() => {
+                      if (placeholderTarget) {
+                        // Replace placeholder group with image element
+                        pushHistory(elements);
+                        const newId = crypto.randomUUID();
+                        const imgEl: CanvasElement = {
+                          id: newId, type: "image", content: publicUrl,
+                          x: placeholderTarget.x, y: placeholderTarget.y,
+                          width: placeholderTarget.width, height: placeholderTarget.height,
+                          style: {}, visible: true, locked: false, filters: { ...DEFAULT_FILTERS },
+                        };
+                        setElements((prev) => [
+                          ...prev.filter((e) => e.placeholderGroupId !== placeholderTarget.groupId),
+                          imgEl,
+                        ]);
+                        setSelectedId(newId);
+                        setPlaceholderTarget(null);
+                        setMediaPickerOpen(false);
+                        toast.success(`Placed "${item.name}"`);
+                      } else {
+                        updateSelected({ content: publicUrl });
+                        setMediaPickerOpen(false);
+                        toast.success(`Added "${item.name}"`);
+                      }
+                    }}
                       className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square hover:border-primary/50 hover:shadow-[0_0_12px_hsla(180,100%,32%,0.15)] transition-all">
                       <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
