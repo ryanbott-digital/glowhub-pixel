@@ -207,6 +207,42 @@ export default function Display() {
     }
   }, [advanceToNext]);
 
+  // Detect autoplay failure and show tap overlay
+  const handleVideoPlay = useCallback((video: HTMLVideoElement | null) => {
+    if (!video) return;
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        setNeedsTap(true);
+      });
+    }
+  }, []);
+
+  // Try fullscreen + start playback on user tap
+  const handleTapToStart = useCallback(() => {
+    setNeedsTap(false);
+    // Request fullscreen to hide Silk URL bar
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
+    if (rfs) {
+      try { rfs.call(el); } catch {}
+    }
+    // Start video playback
+    const activeVideo = activeLayer === "A" ? videoRefA.current : videoRefB.current;
+    if (activeVideo) {
+      activeVideo.play().catch(() => {});
+    }
+  }, [activeLayer]);
+
+  // Auto-request fullscreen on load (works in some WebView contexts)
+  useEffect(() => {
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).mozRequestFullScreen || (el as any).msRequestFullscreen;
+    if (rfs) {
+      try { rfs.call(el); } catch {}
+    }
+  }, []);
+
   const objectClass = displayMode === "fit" ? "object-contain" : "object-cover";
 
   const renderMedia = (item: PlaylistItem | null, ref: React.RefObject<HTMLVideoElement>, isActive: boolean) => {
@@ -226,7 +262,13 @@ export default function Display() {
     return (
       <video
         key={item.id}
-        ref={ref}
+        ref={(el) => {
+          (ref as React.MutableRefObject<HTMLVideoElement | null>).current = el;
+          // When a video mounts as the active layer, try to play it
+          if (el && isActive) {
+            handleVideoPlay(el);
+          }
+        }}
         src={url}
         autoPlay={isActive}
         muted
