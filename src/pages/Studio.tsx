@@ -1146,6 +1146,14 @@ export default function Studio() {
                         <LockIcon className="h-2.5 w-2.5 text-muted-foreground" />
                       </div>
                     )}
+                    {/* Placeholder hint */}
+                    {el.placeholderGroupId && el.type === "shape" && (
+                      <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer rounded-2xl bg-primary/10 backdrop-blur-[2px]">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/90 text-primary-foreground text-[10px] font-semibold tracking-wider shadow-lg">
+                          <Upload className="h-3 w-3" /> Double-click to add image
+                        </div>
+                      </div>
+                    )}
                     {renderElementContent(el)}
                   </Rnd>
                 );
