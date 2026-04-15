@@ -40,6 +40,15 @@ const TV_DISPLAY_STYLES = `
 
 export default function Display() {
   useVersionCheck(120_000, true);
+
+  // Inject TV styles on mount
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = TV_DISPLAY_STYLES;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
   const { screenId } = useParams<{ screenId: string }>();
   const [items, setItems] = useState<PlaylistItem[]>([]);
   const [loading, setLoading] = useState(true);
