@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useMediaQuery } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +20,6 @@ import {
   Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3, Search, LayoutTemplate,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   CanvasElement, SavedLayout, WeatherData, DEFAULT_FILTERS,
   MOTION_PRESETS, getFilterCSS, getMotionClass,
@@ -282,26 +280,8 @@ export default function Studio() {
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
   const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
-  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
-
-  // Tablet detection: below lg breakpoint (1024px)
-  const isTablet = useMediaQuery("(max-width: 1023px)");
-
-  // Auto-fit zoom on tablet
-  useEffect(() => {
-    if (!isTablet) return;
-    const handleResize = () => {
-      const available = window.innerWidth - 32;
-      const fitZoom = Math.min(1, available / 960);
-      setZoom(Math.max(0.3, Math.round(fitZoom * 100) / 100));
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isTablet]);
 
   const isPro = serverVerifiedPro === true;
   const selected = elements.find((e) => e.id === selectedId) || null;
@@ -829,22 +809,17 @@ export default function Studio() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] animate-fade-in">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-2 lg:px-4 py-2 border-b border-border/30 bg-card/50 backdrop-blur-sm gap-2 overflow-x-auto">
-        <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-          {isTablet && (
-            <Button size="icon" variant="ghost" onClick={() => setLeftPanelOpen(true)} className="h-8 w-8 shrink-0" title="Asset Tray">
-              <Layers className="h-4 w-4 text-primary" />
-            </Button>
-          )}
-          <Layers className="h-5 w-5 text-primary hidden lg:block" />
-          <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide hidden sm:inline">Glow Studio</span>
-          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 hidden md:inline">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-card/50 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <Layers className="h-5 w-5 text-primary" />
+          <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide">Glow Studio</span>
+          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
             Creative Suite
           </span>
         </div>
-        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-28 lg:w-48 text-xs font-['Satoshi',sans-serif]" />
-          <div className="flex items-center gap-0.5 border border-border/30 rounded-md px-1 hidden sm:flex">
+        <div className="flex items-center gap-2">
+          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]" />
+          <div className="flex items-center gap-0.5 border border-border/30 rounded-md px-1">
             {[0.5, 0.75, 1].map((z) => (
               <button key={z} onClick={() => setZoom(z)}
                 className={`text-[10px] font-mono px-1.5 py-1 rounded transition-colors ${zoom === z ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
@@ -852,10 +827,10 @@ export default function Studio() {
               </button>
             ))}
           </div>
-          <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8 hidden sm:flex" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
+          <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
             <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
           </Button>
-          <div className="flex items-center gap-0.5 hidden md:flex">
+          <div className="flex items-center gap-0.5">
             <Button size="icon" variant="ghost" onClick={() => setSnapToGrid(!snapToGrid)}
               className={`h-8 w-8 ${snapToGrid ? "bg-primary/20 text-primary" : ""}`}
               title={snapToGrid ? `Grid snap ON (${gridSize}px)` : "Grid snap OFF"}>
@@ -878,37 +853,29 @@ export default function Studio() {
             <Undo2 className="h-3.5 w-3.5" />
           </Button>
           <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
-            <Eye className="h-3.5 w-3.5" /> <span className="hidden md:inline">Preview</span>
+            <Eye className="h-3.5 w-3.5" /> Preview
           </Button>
           {currentLayoutId && (
             <Button size="sm" variant="outline" onClick={() => window.open(`/studio/preview/${currentLayoutId}`, "_blank")}
-              className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent hidden lg:flex">
+              className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent">
               <ExternalLink className="h-3.5 w-3.5" /> Live Preview
             </Button>
           )}
           <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden">
             {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
           </Button>
-          {isTablet && (
-            <Button size="icon" variant="ghost" onClick={() => setRightPanelOpen(true)} className="h-8 w-8 shrink-0" title="Properties">
-              <SlidersHorizontal className="h-4 w-4 text-primary" />
-            </Button>
-          )}
         </div>
       </div>
 
       {/* Keyboard shortcuts */}
-      <div className="hidden lg:flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
+      <div className="flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
         <span className="flex items-center gap-1"><Keyboard className="h-3 w-3" /> Shortcuts:</span>
         <span>⌘Z Undo</span><span>⌘S Save</span><span>⌫ Delete</span>
       </div>
 
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
-        {isTablet ? (
-          <Sheet open={leftPanelOpen} onOpenChange={setLeftPanelOpen}>
-            <SheetContent side="left" className="w-72 p-0 bg-[hsl(220,60%,7%)] border-r border-border/30 overflow-y-auto">
-              <div className="flex flex-col h-full overflow-y-auto">
+        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
           <div className="p-3 border-b border-border/20 flex items-center justify-between">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
@@ -1040,144 +1007,6 @@ export default function Studio() {
             ))}
           </div>
         </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : (
-        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto shrink-0">
-          <div className="p-3 border-b border-border/20 flex items-center justify-between">
-            <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
-              <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
-            </h3>
-            <button
-              onClick={() => setTemplateGalleryOpen(true)}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-semibold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
-            >
-              <LayoutTemplate className="h-3 w-3" /> Templates
-            </button>
-          </div>
-
-          <div className="p-2.5 space-y-4 flex-1">
-            <div>
-              <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2">Standard</p>
-              <div className="grid grid-cols-2 gap-2">
-                {WIDGET_LIBRARY.filter(w => !w.pro).map((w) => (
-                  <button key={w.type} onClick={() => addElement(w.type, false)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing">
-                    <div className="flex-1 flex items-center justify-center w-full">{w.preview}</div>
-                    <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 mb-2 flex items-center gap-1">
-                Premium <Crown className="h-3 w-3 text-accent" />
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {WIDGET_LIBRARY.filter(w => w.pro).map((w) => (
-                  <button key={w.type} onClick={() => addElement(w.type, true)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing">
-                    {!isPro && (
-                      <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30">PRO</div>
-                    )}
-                    {!isPro && (
-                      <div className="absolute inset-0 z-[5] bg-background/30 backdrop-blur-[1px] flex items-center justify-center rounded-xl opacity-60 group-hover:opacity-30 transition-opacity">
-                        <Lock className="h-4 w-4 text-muted-foreground/50" />
-                      </div>
-                    )}
-                    <div className="flex-1 flex items-center justify-center w-full">
-                      {w.type === "widget-weather" && weatherPreview ? (
-                        <div className="flex flex-col items-center justify-center h-full gap-0.5 relative">
-                          <Sun className="h-5 w-5" style={{ color: "#FFB020", filter: "drop-shadow(0 0 8px #FFB020)", animation: "weatherSunPulse 3s ease-in-out infinite" }} />
-                          <span className="text-[11px] font-bold text-foreground mt-0.5">{weatherPreview.temp}°C</span>
-                          <span className="text-[7px] font-mono text-primary tracking-wider flex items-center gap-0.5"><MapPin className="h-2 w-2" />London · Live</span>
-                        </div>
-                      ) : w.preview ? w.preview : (
-                        <div className="flex flex-col items-center justify-center h-full gap-0.5">
-                          <Sun className="h-5 w-5 text-accent" /><span className="text-[11px] font-bold text-foreground mt-0.5">22°C</span>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Media Library */}
-          <div className="p-2.5 space-y-1.5 border-t border-border/20">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5 flex items-center gap-1">
-              <Image className="h-3 w-3 text-primary" /> Media Library
-            </p>
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/40" />
-              <Input
-                value={mediaSearch}
-                onChange={(e) => setMediaSearch(e.target.value)}
-                placeholder="Search assets..."
-                className="glass h-7 text-[10px] pl-7 pr-2 font-['Satoshi',sans-serif]"
-              />
-            </div>
-            <div className="flex gap-1 px-0.5">
-              {(["all", "image", "video"] as const).map((t) => (
-                <button key={t} onClick={() => setMediaTypeFilter(t)}
-                  className={`flex-1 h-6 rounded text-[9px] font-medium transition-all ${mediaTypeFilter === t ? "bg-primary/20 text-primary border border-primary/40" : "text-muted-foreground hover:text-foreground border border-transparent"}`}
-                >
-                  {t === "all" ? "All" : t === "image" ? "Images" : "Videos"}
-                </button>
-              ))}
-            </div>
-            {mediaItems.length === 0 ? (
-              <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No media uploaded yet</p>
-            ) : (() => {
-              const filtered = mediaItems
-                .filter(m => m.type.startsWith("image") || m.type.startsWith("video"))
-                .filter(m => mediaTypeFilter === "all" || m.type.startsWith(mediaTypeFilter))
-                .filter(m => !mediaSearch || m.name.toLowerCase().includes(mediaSearch.toLowerCase()));
-              return filtered.length === 0 ? (
-                <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No matches for "{mediaSearch}"</p>
-              ) : (
-              <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto">
-                {filtered.slice(0, 30).map((item) => {
-                  const publicUrl = supabase.storage.from("signage-content").getPublicUrl(item.storage_path).data.publicUrl;
-                  const isVideo = item.type.startsWith("video");
-                  return (
-                    <div key={item.id} draggable onDragStart={(e) => handleMediaDragStart(e, item)}
-                      className="group relative rounded-lg border border-border/30 overflow-hidden aspect-square cursor-grab active:cursor-grabbing hover:border-primary/50 hover:shadow-[0_0_10px_hsla(180,100%,32%,0.15)] transition-all">
-                      {isVideo ? (
-                        <div className="w-full h-full bg-muted/20 flex items-center justify-center">
-                          <Video className="h-4 w-4 text-primary/60" />
-                        </div>
-                      ) : (
-                        <img src={publicUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-[6px] text-white font-['Satoshi',sans-serif] truncate block">{item.name}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              );
-            })()}
-          </div>
-
-          <div className="p-2.5 space-y-1 border-t border-border/20">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 px-1 pt-0.5">Saved Layouts</p>
-            {savedLayouts.length === 0 && <p className="text-[10px] text-muted-foreground/40 px-1 italic font-['Satoshi',sans-serif]">No layouts yet</p>}
-            {savedLayouts.map((l) => (
-              <div key={l.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-primary/5 transition-colors group">
-                <button onClick={() => handleLoad(l)} className="flex-1 text-left text-xs text-foreground truncate font-['Satoshi',sans-serif]">{l.name}</button>
-                <button onClick={() => handleDelete(l.id)} className="opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-3 w-3 text-destructive" /></button>
-              </div>
-            ))}
-          </div>
-        </div>
-        </div>
-        )}
 
         {/* ─── Center: Canvas with react-rnd layers ─── */}
         <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
@@ -1347,7 +1176,7 @@ export default function Studio() {
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                   <MousePointer className="h-8 w-8 text-muted-foreground/20" />
                   <p className="text-sm text-muted-foreground/30 font-['Satoshi',sans-serif]">
-                    {isTablet ? "Tap the menu buttons to add elements" : "Drag assets from the sidebar to start designing"}
+                    Drag assets from the sidebar to start designing
                   </p>
                 </div>
               )}
@@ -1356,10 +1185,7 @@ export default function Studio() {
         </div>
 
         {/* ─── Right Sidebar: Properties Panel ─── */}
-        {isTablet ? (
-          <Sheet open={rightPanelOpen} onOpenChange={setRightPanelOpen}>
-            <SheetContent side="right" className="w-72 p-0 bg-[hsl(220,60%,7%)] border-l border-border/30 overflow-y-auto">
-              <div className="flex flex-col h-full overflow-y-auto">
+        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
           {/* Tabs */}
           <div className="flex border-b border-border/20">
             <button onClick={() => setSidebarMode("properties")}
@@ -1697,7 +1523,7 @@ export default function Studio() {
                           <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: cfg.alertMode ? "#FF0033" : "hsl(var(--muted-foreground) / 0.6)" }}>
                             <Siren className="h-3 w-3" /> Emergency Flash
                           </p>
-                          <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
+                          <div className="flex items-center gap-2">
                             <Switch checked={!!cfg.alertMode} onCheckedChange={(v) => updateCfg({ alertMode: v })} className="data-[state=checked]:bg-[#FF0033]" />
                             <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">{cfg.alertMode ? "Alert Active" : "Off"}</span>
                           </div>
@@ -1719,7 +1545,7 @@ export default function Studio() {
                       <div className="space-y-3">
                         <div className="space-y-1.5">
                           <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><MapPin className="h-3 w-3" /> Location</p>
-                          <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
+                          <div className="flex items-center gap-2">
                             <Switch checked={isAuto} onCheckedChange={(v) => updateCfg({ city: v ? "auto" : "London" })} />
                             <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">{isAuto ? "Auto-detect" : "Manual"}</span>
                           </div>
@@ -1860,7 +1686,7 @@ export default function Studio() {
                     {canvasBg.type === "solid" ? (
                       <div className="space-y-2">
                         <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Color</label>
-                        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
+                        <div className="flex items-center gap-2">
                           <input type="color" value={canvasBg.color || "#0B1120"}
                             onChange={(e) => setCanvasBg({ type: "solid", color: e.target.value })}
                             className="w-8 h-8 rounded cursor-pointer bg-transparent border border-border/30" />
@@ -1977,630 +1803,6 @@ export default function Studio() {
             </p>
           </div>
         </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : (
-        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto shrink-0">
-          {/* Tabs */}
-          <div className="flex border-b border-border/20">
-            <button onClick={() => setSidebarMode("properties")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
-              Properties
-            </button>
-            <button onClick={() => setSidebarMode("layers")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
-              Layers
-            </button>
-          </div>
-
-          {sidebarMode === "layers" ? (
-            <div className="p-2 space-y-0.5 flex-1">
-              {elements.length === 0 && <p className="text-[10px] text-muted-foreground/40 text-center py-8 font-['Satoshi',sans-serif]">No layers yet</p>}
-              {[...elements].reverse().map((el, revIdx) => {
-                const realIdx = elements.length - 1 - revIdx;
-                const WidgetIcon = WIDGET_ICON_MAP[el.type] || (el.type === "shape" ? Square : Layers);
-                const isActive = el.id === selectedId;
-                return (
-                  <div key={el.id} draggable onDragStart={() => handleLayerDragStart(realIdx)} onDragOver={(e) => e.preventDefault()} onDrop={() => handleLayerDrop(realIdx)}
-                    onClick={() => { setSelectedId(el.id); setSidebarMode("properties"); }}
-                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-xs ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}>
-                    <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0 cursor-grab" />
-                    <WidgetIcon className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className={`flex-1 truncate font-['Satoshi',sans-serif] text-[11px] ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
-                      {getWidgetLabel(el)}
-                    </span>
-                    <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, visible: !x.visible } : x)); }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.visible ? "Hide" : "Show"}>
-                      {el.visible ? <Eye className="h-3 w-3 text-muted-foreground/60" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, locked: !x.locked } : x)); }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.locked ? "Unlock" : "Lock"}>
-                      {el.locked ? <LockIcon className="h-3 w-3 text-accent/60" /> : <Unlock className="h-3 w-3 text-muted-foreground/30" />}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <>
-              {selected ? (
-                <div className="p-3 space-y-4 flex-1 overflow-y-auto">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase text-primary">
-                      {getWidgetLabel(selected)}
-                    </p>
-                    <span className="text-[8px] font-mono text-muted-foreground/40">{selected.type}</span>
-                  </div>
-
-                  {/* Position & Size */}
-                  <div className="space-y-2">
-                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Position & Size</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[8px] text-muted-foreground font-mono">X</label>
-                        <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
-                      </div>
-                      <div>
-                        <label className="text-[8px] text-muted-foreground font-mono">Y</label>
-                        <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
-                      </div>
-                      <div>
-                        <label className="text-[8px] text-muted-foreground font-mono">W</label>
-                        <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
-                      </div>
-                      <div>
-                        <label className="text-[8px] text-muted-foreground font-mono">H</label>
-                        <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Text content */}
-                  {selected.type === "text" && (
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Content</p>
-                      <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-8 text-xs" />
-                    </div>
-                  )}
-                  {selected.type === "widget-neon-label" && (
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Label Text</p>
-                      <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} className="glass h-8 text-xs" />
-                    </div>
-                  )}
-
-                  {/* Shape config */}
-                  {selected.type === "shape" && (
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Shape Type</p>
-                        <Select value={selected.shapeType || "rectangle"} onValueChange={(v) => updateSelected({ shapeType: v as any })}>
-                          <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="rectangle"><span className="flex items-center gap-1.5"><Square className="h-3 w-3" /> Rectangle</span></SelectItem>
-                            <SelectItem value="rounded-rect"><span className="flex items-center gap-1.5"><Square className="h-3 w-3" /> Rounded Rect</span></SelectItem>
-                            <SelectItem value="circle"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Circle</span></SelectItem>
-                            <SelectItem value="line"><span className="flex items-center gap-1.5"><Minus className="h-3 w-3" /> Line</span></SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Fill</label>
-                          <input type="color" value={selected.shapeFill?.startsWith("#") ? selected.shapeFill : "#00b4d8"}
-                            onChange={(e) => updateSelected({ shapeFill: e.target.value })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Stroke</label>
-                          <input type="color" value={selected.shapeStroke?.startsWith("#") ? selected.shapeStroke : "#00b4d8"}
-                            onChange={(e) => updateSelected({ shapeStroke: e.target.value })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Stroke Width</span>
-                          <span className="text-[9px] text-muted-foreground/50 font-mono">{selected.shapeStrokeWidth ?? 2}px</span>
-                        </div>
-                        <Slider value={[selected.shapeStrokeWidth ?? 2]} onValueChange={([v]) => updateSelected({ shapeStrokeWidth: v })} min={0} max={20} step={1} className="w-full" />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Particle / Glow Field config */}
-                  {selected.type === "widget-particles" && (() => {
-                    let cfg = { ...DEFAULT_GLOW_FIELD };
-                    try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                    const updateCfg = (patch: Partial<typeof cfg>) => updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
-                    return (
-                      <div className="space-y-3">
-                        <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                          <Atom className="h-3 w-3 text-primary" /> Glow Field
-                        </p>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Density</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{cfg.density}</span>
-                          </div>
-                          <Slider value={[cfg.density]} onValueChange={([v]) => updateCfg({ density: v })} min={5} max={100} step={1} className="w-full" />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Speed</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{cfg.speed}</span>
-                          </div>
-                          <Slider value={[cfg.speed]} onValueChange={([v]) => updateCfg({ speed: v })} min={1} max={10} step={1} className="w-full" />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Glow Radius</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{cfg.glow}px</span>
-                          </div>
-                          <Slider value={[cfg.glow]} onValueChange={([v]) => updateCfg({ glow: v })} min={5} max={60} step={1} className="w-full" />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Color</label>
-                          <div className="flex items-center gap-2 mt-1">
-                            <input type="color" value={cfg.color} onChange={(e) => updateCfg({ color: e.target.value })}
-                              className="w-8 h-7 rounded cursor-pointer bg-transparent border border-border/30" />
-                            <Input value={cfg.color} onChange={(e) => updateCfg({ color: e.target.value })} className="glass h-7 text-xs font-mono flex-1" />
-                          </div>
-                          <div className="flex gap-1.5 mt-2">
-                            {[
-                              { label: "Teal", color: "#00b4d8" },
-                              { label: "Purple", color: "#a78bfa" },
-                              { label: "Gold", color: "#f59e0b" },
-                              { label: "Pink", color: "#ec4899" },
-                              { label: "Green", color: "#10b981" },
-                              { label: "White", color: "#e2e8f0" },
-                            ].map((p) => (
-                              <button key={p.label} onClick={() => updateCfg({ color: p.color })}
-                                className="w-6 h-6 rounded-full border border-border/30 hover:scale-110 transition-transform"
-                                style={{ background: p.color, boxShadow: cfg.color === p.color ? `0 0 8px ${p.color}` : undefined }}
-                                title={p.label} />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Color Gradient</span>
-                            <button
-                              onClick={() => updateCfg({ colorGradient: !cfg.colorGradient })}
-                              className={`w-8 h-4 rounded-full transition-colors relative ${cfg.colorGradient ? "bg-primary" : "bg-border/50"}`}
-                            >
-                              <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-foreground transition-transform ${cfg.colorGradient ? "left-[18px]" : "left-0.5"}`} />
-                            </button>
-                          </div>
-                          {cfg.colorGradient && (
-                            <div className="space-y-2 mt-1 pl-1 border-l-2 border-primary/20">
-                              <div>
-                                <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Second Color</label>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <input type="color" value={cfg.color2 || "#ff006e"} onChange={(e) => updateCfg({ color2: e.target.value })}
-                                    className="w-8 h-7 rounded cursor-pointer bg-transparent border border-border/30" />
-                                  <Input value={cfg.color2 || "#ff006e"} onChange={(e) => updateCfg({ color2: e.target.value })} className="glass h-7 text-xs font-mono flex-1" />
-                                </div>
-                                <div className="flex gap-1.5 mt-2">
-                                  {[
-                                    { label: "Pink", color: "#ff006e" },
-                                    { label: "Purple", color: "#a78bfa" },
-                                    { label: "Gold", color: "#f59e0b" },
-                                    { label: "Teal", color: "#00b4d8" },
-                                    { label: "Green", color: "#10b981" },
-                                    { label: "White", color: "#e2e8f0" },
-                                  ].map((p) => (
-                                    <button key={p.label} onClick={() => updateCfg({ color2: p.color })}
-                                      className="w-6 h-6 rounded-full border border-border/30 hover:scale-110 transition-transform"
-                                      style={{ background: p.color, boxShadow: (cfg.color2 || "#ff006e") === p.color ? `0 0 8px ${p.color}` : undefined }}
-                                      title={p.label} />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Shift Speed</span>
-                                  <span className="text-[9px] text-muted-foreground/50 font-mono">{(cfg.gradientSpeed ?? 1).toFixed(1)}×</span>
-                                </div>
-                                <Slider value={[cfg.gradientSpeed ?? 1]} onValueChange={([v]) => updateCfg({ gradientSpeed: v })} min={0.1} max={5} step={0.1} className="w-full" />
-                              </div>
-                              <div className="h-4 rounded-md" style={{ background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color2 || "#ff006e"})` }} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Size</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{(cfg.particleSize ?? 1).toFixed(1)}×</span>
-                          </div>
-                          <Slider value={[cfg.particleSize ?? 1]} onValueChange={([v]) => updateCfg({ particleSize: v })} min={0.3} max={3} step={0.1} className="w-full" />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Opacity</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{Math.round((cfg.opacity ?? 1) * 100)}%</span>
-                          </div>
-                          <Slider value={[cfg.opacity ?? 1]} onValueChange={([v]) => updateCfg({ opacity: v })} min={0.05} max={1} step={0.05} className="w-full" />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Motion Trail</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{Math.round((cfg.trail ?? 0) * 100)}%</span>
-                          </div>
-                          <Slider value={[cfg.trail ?? 0]} onValueChange={([v]) => updateCfg({ trail: v })} min={0} max={0.95} step={0.05} className="w-full" />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Particle Shape</span>
-                          <div className="flex gap-1.5 mt-1">
-                            {([
-                              { value: "orbs", label: "Orbs", icon: "●" },
-                              { value: "stars", label: "Stars", icon: "★" },
-                              { value: "sparkles", label: "Sparkles", icon: "✦" },
-                            ] as const).map((s) => (
-                              <button key={s.value}
-                                onClick={() => updateCfg({ shape: s.value })}
-                                className={`flex-1 h-8 rounded-md border text-xs font-medium transition-all ${(cfg.shape || "orbs") === s.value ? "border-primary bg-primary/20 text-primary" : "border-border/30 text-muted-foreground hover:border-border/60"}`}
-                              >
-                                <span className="mr-1">{s.icon}</span>{s.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Turbulence</span>
-                            <span className="text-[9px] text-muted-foreground/50 font-mono">{Math.round((cfg.turbulence ?? 0) * 100)}%</span>
-                          </div>
-                          <Slider value={[cfg.turbulence ?? 0]} onValueChange={([v]) => updateCfg({ turbulence: v })} min={0} max={2} step={0.05} className="w-full" />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Direction</span>
-                          <div className="grid grid-cols-3 gap-1.5 mt-1">
-                            {([
-                              { value: "random", label: "Random", icon: "↕" },
-                              { value: "up", label: "Up", icon: "↑" },
-                              { value: "down", label: "Down", icon: "↓" },
-                              { value: "left", label: "Left", icon: "←" },
-                              { value: "right", label: "Right", icon: "→" },
-                              { value: "radial", label: "Radial", icon: "⊕" },
-                              { value: "swirl", label: "Swirl", icon: "🌀" },
-                            ] as const).map((d) => (
-                              <button key={d.value}
-                                onClick={() => updateCfg({ direction: d.value })}
-                                className={`h-7 rounded-md border text-[10px] font-medium transition-all ${(cfg.direction || "random") === d.value ? "border-primary bg-primary/20 text-primary" : "border-border/30 text-muted-foreground hover:border-border/60"}`}
-                              >
-                                <span className="mr-0.5">{d.icon}</span>{d.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                  {/* Ticker config */}
-                  {selected.type === "widget-ticker" && (() => {
-                    let cfg: any = { messages: "", speed: "normal", color: "teal", alertMode: false, source: "manual", feedUrl: "" };
-                    try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                    const updateCfg = (patch: Record<string, any>) => updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
-                    return (
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><Radio className="h-3 w-3" /> Source</p>
-                          <Select value={cfg.source || "manual"} onValueChange={(v) => updateCfg({ source: v })}>
-                            <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="manual">Manual Text</SelectItem>
-                              <SelectItem value="rss">RSS Feed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {cfg.source === "manual" ? (
-                          <div className="space-y-1.5">
-                            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Messages (· separated)</p>
-                            <Input value={cfg.messages || ""} onChange={(e) => updateCfg({ messages: e.target.value })} placeholder="Breaking News · Story 2" className="glass h-8 text-xs font-mono" />
-                          </div>
-                        ) : (
-                          <div className="space-y-1.5">
-                            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Feed URL</p>
-                            <Input value={cfg.feedUrl || ""} onChange={(e) => updateCfg({ feedUrl: e.target.value })} placeholder="https://feeds.bbci.co.uk/news/rss.xml" className="glass h-8 text-xs font-mono" />
-                          </div>
-                        )}
-                        <div className="space-y-1.5">
-                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Speed</p>
-                          <Select value={cfg.speed} onValueChange={(v) => updateCfg({ speed: v })}>
-                            <SelectTrigger className="glass h-8 text-xs"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="slow">Slow</SelectItem>
-                              <SelectItem value="normal">Normal</SelectItem>
-                              <SelectItem value="fast">Fast</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1.5 pt-1 border-t border-border/20">
-                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase flex items-center gap-1" style={{ color: cfg.alertMode ? "#FF0033" : "hsl(var(--muted-foreground) / 0.6)" }}>
-                            <Siren className="h-3 w-3" /> Emergency Flash
-                          </p>
-                          <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-                            <Switch checked={!!cfg.alertMode} onCheckedChange={(v) => updateCfg({ alertMode: v })} className="data-[state=checked]:bg-[#FF0033]" />
-                            <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">{cfg.alertMode ? "Alert Active" : "Off"}</span>
-                          </div>
-                          {cfg.alertMode && (
-                            <Input value={cfg.alertMessage || ""} onChange={(e) => updateCfg({ alertMessage: e.target.value.slice(0, 200) })} placeholder="⚠ BREAKING..." className="glass h-8 text-xs font-mono border-[#FF0033]/30" maxLength={200} />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Weather config */}
-                  {selected.type === "widget-weather" && (() => {
-                    let cfg: any = { city: "auto" };
-                    try { cfg = { ...cfg, ...JSON.parse(selected.content) }; } catch {}
-                    const isAuto = cfg.city === "auto";
-                    const updateCfg = (patch: Record<string, any>) => updateSelected({ content: JSON.stringify({ ...cfg, ...patch }) });
-                    return (
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><MapPin className="h-3 w-3" /> Location</p>
-                          <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-                            <Switch checked={isAuto} onCheckedChange={(v) => updateCfg({ city: v ? "auto" : "London" })} />
-                            <span className="text-[10px] text-muted-foreground font-['Satoshi',sans-serif]">{isAuto ? "Auto-detect" : "Manual"}</span>
-                          </div>
-                          {!isAuto && <Input value={cfg.city} onChange={(e) => updateCfg({ city: e.target.value })} placeholder="City name..." className="glass h-8 text-xs" />}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Image source */}
-                  {selected.type === "image" && (
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Image Source</p>
-                      <Button size="sm" variant="outline" className="w-full text-xs gap-1.5 border-primary/30 hover:border-primary/60"
-                        onClick={async () => {
-                          if (!user) return;
-                          const { data } = await supabase.from("media").select("id, name, storage_path, type").eq("user_id", user.id).eq("type", "image").order("created_at", { ascending: false });
-                          setMediaItems(data || []);
-                          setMediaPickerOpen(true);
-                        }}>
-                        <Image className="h-3.5 w-3.5" /> Pick from Media Library
-                      </Button>
-                      {selected.content && <div className="rounded-lg border border-border/20 overflow-hidden"><img src={selected.content} alt="" className="w-full h-20 object-cover" /></div>}
-                      <p className="text-[8px] text-muted-foreground/40 font-['Satoshi',sans-serif]">Or paste a URL:</p>
-                      <Input value={selected.content} onChange={(e) => updateSelected({ content: e.target.value })} placeholder="https://..." className="glass h-7 text-xs" />
-                    </div>
-                  )}
-
-                  {/* Colors */}
-                  {selected.type !== "shape" && (
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1"><Palette className="h-3 w-3" /> Colors</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">BG</label>
-                          <input type="color" value={selected.style.backgroundColor || "#1a1a2e"} onChange={(e) => updateSelected({ style: { ...selected.style, backgroundColor: e.target.value } })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-muted-foreground font-['Satoshi',sans-serif]">Text</label>
-                          <input type="color" value={selected.style.color || "#ffffff"} onChange={(e) => updateSelected({ style: { ...selected.style, color: e.target.value } })} className="w-full h-7 rounded cursor-pointer bg-transparent" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Font size */}
-                  {selected.type === "text" && (
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60">Font Size</p>
-                      <Slider value={[parseInt(selected.style.fontSize || "14")]} onValueChange={([v]) => updateSelected({ style: { ...selected.style, fontSize: `${v}px` } })} min={8} max={120} step={1} className="w-full" />
-                      <span className="text-[10px] text-muted-foreground font-mono">{selected.style.fontSize || "14px"}</span>
-                    </div>
-                  )}
-
-                  {/* Typography (Google Fonts) */}
-                  {(selected.type === "text" || selected.type === "widget-neon-label") && (
-                    <div className="space-y-2">
-                      <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                        <Type className="h-3 w-3" /> Font Family
-                      </p>
-                      <Select value={selected.fontFamily || "Satoshi"} onValueChange={(v) => { loadGoogleFont(v); updateSelected({ fontFamily: v }); }}>
-                        <SelectTrigger className="glass h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                          {GOOGLE_FONTS.map((f) => (
-                            <SelectItem key={f} value={f} className="text-xs">
-                              <span style={{ fontFamily: `'${f}', sans-serif` }}>{f}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Blend Mode */}
-                  <div className="space-y-2">
-                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1">
-                      <Layers className="h-3 w-3" /> Blend Mode
-                    </p>
-                    <Select value={selected.blendMode || "normal"} onValueChange={(v) => updateSelected({ blendMode: v })}>
-                      <SelectTrigger className="glass h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BLEND_MODES.map((bm) => (
-                          <SelectItem key={bm.id} value={bm.id} className="text-xs">{bm.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* ─── Visual Effects & Motion ─── */}
-                  <div className="pt-2 border-t border-border/20">
-                    <VisualEffectsPanel
-                      element={selected}
-                      isPro={isPro}
-                      onUpdate={updateSelected}
-                      onGatePro={gatePro}
-                    />
-                  </div>
-
-                  {/* Delete */}
-                  <Button variant="ghost" size="sm" onClick={deleteSelected} className="w-full text-destructive hover:text-destructive text-xs gap-1.5 mt-2">
-                    <Trash2 className="h-3.5 w-3.5" /> Delete Element
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex-1 flex flex-col p-3 gap-4">
-                  <div className="flex flex-col items-center gap-2 py-4">
-                    <MousePointer className="h-6 w-6 text-muted-foreground/20" />
-                    <p className="text-[10px] text-muted-foreground/40 font-['Satoshi',sans-serif] text-center">
-                      Select an element on the canvas to edit its properties
-                    </p>
-                  </div>
-
-                  {/* Canvas Background */}
-                  <div className="space-y-3 border-t border-border/20 pt-3">
-                    <p className="text-[9px] font-['Satoshi',sans-serif] tracking-[0.15em] uppercase text-muted-foreground/60 flex items-center gap-1.5">
-                      <Palette className="h-3 w-3 text-primary" /> Canvas Background
-                    </p>
-
-                    <div className="flex gap-1.5">
-                      <button onClick={() => setCanvasBg((prev) => ({ ...prev, type: "solid" }))}
-                        className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "solid" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
-                        Solid
-                      </button>
-                      <button onClick={() => setCanvasBg((prev) => ({ ...prev, type: "gradient" }))}
-                        className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "gradient" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
-                        Gradient
-                      </button>
-                      <button onClick={() => setCanvasBg((prev) => ({ ...prev, type: "image" }))}
-                        className={`flex-1 text-[9px] font-['Satoshi',sans-serif] tracking-wider py-1.5 rounded-md transition-colors ${canvasBg.type === "image" ? "bg-primary/20 text-primary border border-primary/30" : "text-muted-foreground hover:text-foreground border border-border/30"}`}>
-                        Image
-                      </button>
-                    </div>
-
-                    {canvasBg.type === "solid" ? (
-                      <div className="space-y-2">
-                        <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Color</label>
-                        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-                          <input type="color" value={canvasBg.color || "#0B1120"}
-                            onChange={(e) => setCanvasBg({ type: "solid", color: e.target.value })}
-                            className="w-8 h-8 rounded cursor-pointer bg-transparent border border-border/30" />
-                          <Input value={canvasBg.color || ""} placeholder="#0B1120"
-                            onChange={(e) => setCanvasBg({ type: "solid", color: e.target.value })}
-                            className="glass h-7 text-xs font-mono flex-1" />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Gradient CSS</label>
-                        <Input value={canvasBg.gradient || ""} placeholder="linear-gradient(135deg, #0B1120, #1a1a2e)"
-                          onChange={(e) => setCanvasBg({ type: "gradient", color: "", gradient: e.target.value })}
-                          className="glass h-7 text-xs font-mono" />
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {[
-                            { label: "Midnight", val: "linear-gradient(135deg, #0B1120, #1a1a2e)" },
-                            { label: "Ocean", val: "linear-gradient(135deg, #0c1d3d, #0d4f6e)" },
-                            { label: "Sunset", val: "linear-gradient(135deg, #2d1b3d, #8b3a2e)" },
-                            { label: "Forest", val: "linear-gradient(135deg, #0b1d0e, #1a3d2e)" },
-                            { label: "Neon", val: "linear-gradient(135deg, #0a0a1a, #001a2c, #0a0a1a)" },
-                            { label: "Warm", val: "linear-gradient(180deg, #1a0f0a, #2d1810)" },
-                            { label: "Purple", val: "linear-gradient(135deg, #10061a, #2a1040)" },
-                            { label: "Steel", val: "linear-gradient(135deg, #1a1a2e, #2a2a3e)" },
-                          ].map((preset) => (
-                            <button key={preset.label} onClick={() => setCanvasBg({ type: "gradient", color: "", gradient: preset.val })}
-                              className="rounded-md aspect-square border border-border/30 hover:border-primary/50 transition-all relative group overflow-hidden"
-                              style={{ background: preset.val }}>
-                              <span className="absolute inset-x-0 bottom-0 text-[6px] text-white/70 font-['Satoshi',sans-serif] text-center py-0.5 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                                {preset.label}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {canvasBg.type === "image" && (
-                      <div className="space-y-2">
-                        <label className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif]">Background Image</label>
-                        {canvasBg.imageUrl ? (
-                          <div className="space-y-2">
-                            <div className="relative rounded-lg overflow-hidden border border-border/30 aspect-video">
-                              <img src={canvasBg.imageUrl} alt="Background" className="w-full h-full object-cover" />
-                              <button onClick={() => setCanvasBg((prev) => ({ ...prev, imageUrl: undefined }))}
-                                className="absolute top-1 right-1 p-0.5 rounded bg-black/60 hover:bg-black/80 transition-colors">
-                                <Trash2 className="h-3 w-3 text-white" />
-                              </button>
-                            </div>
-                            <Input value={canvasBg.imageUrl} onChange={(e) => setCanvasBg((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                              placeholder="https://..." className="glass h-7 text-xs font-mono" />
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            <label className="flex flex-col items-center justify-center gap-2 py-4 rounded-lg border-2 border-dashed border-border/40 hover:border-primary/40 transition-colors cursor-pointer bg-muted/5">
-                              <Upload className="h-5 w-5 text-muted-foreground/40" />
-                              <span className="text-[9px] text-muted-foreground/50 font-['Satoshi',sans-serif]">Upload image</span>
-                              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file || !user) return;
-                                const ext = file.name.split(".").pop() || "jpg";
-                                const path = `${user.id}/studio-bg-${Date.now()}.${ext}`;
-                                const { error } = await supabase.storage.from("media").upload(path, file);
-                                if (error) { toast.error("Upload failed"); return; }
-                                const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
-                                setCanvasBg({ type: "image", color: "", imageUrl: publicUrl });
-                                toast.success("Background uploaded");
-                              }} />
-                            </label>
-                            <Input placeholder="Or paste image URL..." onChange={(e) => {
-                              if (e.target.value) setCanvasBg({ type: "image", color: "", imageUrl: e.target.value });
-                            }} className="glass h-7 text-xs font-mono" />
-                          </div>
-                        )}
-                        {/* Use media library items */}
-                        {mediaItems.length > 0 && (
-                          <div className="space-y-1">
-                            <span className="text-[8px] text-muted-foreground/50 font-['Satoshi',sans-serif]">Or pick from library</span>
-                            <div className="grid grid-cols-4 gap-1 max-h-24 overflow-y-auto">
-                              {mediaItems.filter((m: any) => m.type?.startsWith("image")).slice(0, 12).map((m: any) => {
-                                const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(m.storage_path);
-                                return (
-                                  <button key={m.id} onClick={() => setCanvasBg({ type: "image", color: "", imageUrl: publicUrl })}
-                                    className="rounded border border-border/30 hover:border-primary/50 transition-all overflow-hidden aspect-square">
-                                    <img src={publicUrl} alt={m.name} className="w-full h-full object-cover" />
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {(canvasBg.color || canvasBg.gradient || canvasBg.imageUrl) && (
-                      <Button variant="ghost" size="sm" onClick={() => setCanvasBg({ type: "solid", color: "" })}
-                        className="w-full text-[10px] text-muted-foreground hover:text-foreground gap-1">
-                        <Trash2 className="h-3 w-3" /> Reset Background
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Scheduling note */}
-          <div className="p-3 border-t border-border/20 mt-auto">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1 mb-1.5">
-              <Clock className="h-3 w-3" /> Scheduling
-            </p>
-            <p className="text-[10px] text-muted-foreground/50 font-['Satoshi',sans-serif]">
-              Save your layout, then assign it to screens from the Screens page.
-            </p>
-          </div>
-        </div>
-        </div>
-        )}
       </div>
 
       {/* ─── Timeline / Sequencer ─── */}
