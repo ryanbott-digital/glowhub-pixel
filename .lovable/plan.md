@@ -1,30 +1,37 @@
 
 
-## Add Drag Handles to Studio Sidebar Drawers (Tablet)
+## Hide Browser URL Bar on Android Tablets (Player Page)
 
 ### Problem
-On tablet, the left (Assets) and right (Properties) sidebar drawers open as fixed overlays but lack a visible drag handle, making them harder to dismiss via touch.
+When loading `glow.pixelhub.org.uk` directly in Chrome on an Android tablet, the browser's URL bar and tabs remain visible, eating into the player's display area. This happens because Chrome only hides chrome in two situations:
 
-### Changes
+1. The site is launched as an installed PWA (Add to Home Screen → opened from home screen icon).
+2. The page programmatically enters Fullscreen API.
 
-**File: `src/pages/Studio.tsx`**
+The manifest already declares `"display": "standalone"`, so the install path works — but loading the URL in a regular Chrome tab does NOT honor that. We need to actively request fullscreen on the player.
 
-1. **Left Sidebar (Assets) -- line ~994**: After the inner `<div className="relative z-40 ...">` opens, insert a drag handle bar at the top (only on tablet):
-   ```tsx
-   {isTablet && (
-     <div className="flex justify-center py-2 cursor-grab" onClick={() => setLeftPanelOpen(false)}>
-       <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
-     </div>
-   )}
-   ```
+### Solution
 
-2. **Right Sidebar (Properties) -- line ~1340**: Same treatment after the inner wrapper div opens:
-   ```tsx
-   {isTablet && (
-     <div className="flex justify-center py-2 cursor-grab" onClick={() => setRightPanelOpen(false)}>
-       <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
-     </div>
-   )}
-   ```
+**1. Auto-request Fullscreen on `/player` for touch devices**
 
-Both handles are styled as a small rounded pill (matching the Drawer component pattern), centered at the top of each panel. Tapping dismisses the panel. Desktop is unaffected since these only render when `is
+In `src/pages/Player.tsx`, on mount, attempt `document.documentElement.requestFullscreen()` automatically when the page loads on a non-Capacitor Android device. Browsers require a user gesture, so we also wrap it in a one-time tap listener as a fallback ("tap anywhere to enter fullscreen"). The existing TV-optimization logic already does this for desktop — we extend it to cover Android Chrome.
+
+**2. Show a subtle "Tap to enter fullscreen" hint**
+
+If autoplay-fullscreen is blocked (it usually is in Chrome without a gesture), display a small dismissible Glow-styled toast/badge in the corner of the player with text like "Tap to go fullscreen". One tap anywhere triggers fullscreen + hides the hint. Once fullscreen, store a flag in `sessionStorage` so we don't keep nagging.
+
+**3. Add an "Install as App" prompt to `/download` for Android**
+
+Surface the existing PWA install prompt more aggressively on the `/download` page when accessed from Android Chrome — this is the cleanest long-term solution since installed PWAs always launch chromeless. Use the `beforeinstallprompt` event we already hook in `AdminInstallBanner` and add a similar player-focused banner.
+
+**4. Lock viewport to remove address bar scroll behavior**
+
+Add `<meta name="mobile-web-app-capable" content="yes">` and `<meta name="apple-mobile-web-app-capable" content="yes">` to `index.html`. These reinforce standalone behavior when the page IS launched from the home screen, and signal the browser to minimize chrome where supported.
+
+### Files to Edit
+- `src/pages/Player.tsx` — auto-fullscreen request + tap-to-fullscreen hint
+- `index.html` — add mobile-web-app-capable meta tags
+- `src/components/AdminInstallBanner.tsx` (or new `PlayerInstallBanner.tsx`) — install prompt on `/download` for player devices
+
+### Why this approach
+The URL bar can ONLY be hidden by either (a) installing as a PWA, or (b) Fullscreen API after a user gesture. There is no CSS or meta tag that will remove Chrome's address bar on a regular browser tab — that's a browser security restriction. The combination of auto-fullscreen +
