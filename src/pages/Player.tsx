@@ -110,6 +110,7 @@ export default function Player() {
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
   const [showWatermark, setShowWatermark] = useState(false);
   const [isFullyKiosk, setIsFullyKiosk] = useState(false);
+  const [showFullscreenHint, setShowFullscreenHint] = useState(false);
 
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
@@ -422,21 +423,46 @@ export default function Player() {
         || (el as any).mozRequestFullScreen
         || (el as any).msRequestFullscreen;
       if (rfs) {
-        rfs.call(el).catch(() => {});
+        return rfs.call(el).catch(() => { throw new Error("blocked"); });
       }
+      return Promise.reject();
     };
 
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone === true;
+    const alreadyHinted = sessionStorage.getItem("glowhub_fs_hinted") === "1";
+
     // Try immediately (works in native Capacitor / standalone PWA)
-    requestFullscreen();
+    Promise.resolve(requestFullscreen()).catch(() => {
+      // Fullscreen blocked — show hint on touch devices in browser tab
+      const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      if (isTouch && !isStandalone && !alreadyHinted && !document.fullscreenElement) {
+        setShowFullscreenHint(true);
+      }
+    });
 
     // Fallback: enter fullscreen on first touch/click (browser requirement)
     const onInteraction = () => {
-      requestFullscreen();
+      Promise.resolve(requestFullscreen())
+        .then(() => {
+          setShowFullscreenHint(false);
+          sessionStorage.setItem("glowhub_fs_hinted", "1");
+        })
+        .catch(() => {});
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
     };
     window.addEventListener("click", onInteraction, { once: true });
     window.addEventListener("touchstart", onInteraction, { once: true });
+
+    const onFsChange = () => {
+      if (document.fullscreenElement) {
+        setShowFullscreenHint(false);
+        sessionStorage.setItem("glowhub_fs_hinted", "1");
+      }
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
 
     // Hide cursor after 3s of inactivity
     let cursorTimer: ReturnType<typeof setTimeout>;
@@ -456,6 +482,7 @@ export default function Player() {
       unsub();
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
+      document.removeEventListener("fullscreenchange", onFsChange);
       document.removeEventListener("mousemove", showCursor);
       clearTimeout(cursorTimer);
       document.body.style.cursor = "";
@@ -2134,6 +2161,12 @@ export default function Player() {
 
   return (
     <div className="w-screen h-screen flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor, animation: "contentFadeIn 1.2s ease-out forwards" }}>
+      {/* Tap-to-fullscreen hint (touch browsers only) */}
+      {showFullscreenHint && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[300] px-4 py-2 rounded-full bg-primary/90 backdrop-blur-md text-primary-foreground text-xs font-medium shadow-lg pointer-events-none animate-pulse">
+          Tap anywhere to enter fullscreen
+        </div>
+      )}
       {/* Hype Takeover Overlay */}
       <HypeTakeover />
 
