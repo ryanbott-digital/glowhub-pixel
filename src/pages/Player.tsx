@@ -422,21 +422,46 @@ export default function Player() {
         || (el as any).mozRequestFullScreen
         || (el as any).msRequestFullscreen;
       if (rfs) {
-        rfs.call(el).catch(() => {});
+        return rfs.call(el).catch(() => { throw new Error("blocked"); });
       }
+      return Promise.reject();
     };
 
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone === true;
+    const alreadyHinted = sessionStorage.getItem("glowhub_fs_hinted") === "1";
+
     // Try immediately (works in native Capacitor / standalone PWA)
-    requestFullscreen();
+    Promise.resolve(requestFullscreen()).catch(() => {
+      // Fullscreen blocked — show hint on touch devices in browser tab
+      const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      if (isTouch && !isStandalone && !alreadyHinted && !document.fullscreenElement) {
+        setShowFullscreenHint(true);
+      }
+    });
 
     // Fallback: enter fullscreen on first touch/click (browser requirement)
     const onInteraction = () => {
-      requestFullscreen();
+      Promise.resolve(requestFullscreen())
+        .then(() => {
+          setShowFullscreenHint(false);
+          sessionStorage.setItem("glowhub_fs_hinted", "1");
+        })
+        .catch(() => {});
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
     };
     window.addEventListener("click", onInteraction, { once: true });
     window.addEventListener("touchstart", onInteraction, { once: true });
+
+    const onFsChange = () => {
+      if (document.fullscreenElement) {
+        setShowFullscreenHint(false);
+        sessionStorage.setItem("glowhub_fs_hinted", "1");
+      }
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
 
     // Hide cursor after 3s of inactivity
     let cursorTimer: ReturnType<typeof setTimeout>;
