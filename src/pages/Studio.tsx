@@ -827,20 +827,22 @@ export default function Studio() {
     <div className="flex flex-col h-[calc(100vh-64px)] animate-fade-in">
       {/* Top bar */}
       <div className="flex items-center justify-between px-2 lg:px-4 py-2 border-b border-border/30 bg-card/50 backdrop-blur-sm gap-2 overflow-x-auto">
-        <div className="flex items-center gap-3">
-          {isTablet && (
-            <Button size="icon" variant="ghost" onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="h-8 w-8 shrink-0" title="Asset Tray">
-              <Layers className="h-4 w-4 text-primary" />
-            </Button>
-          )}
-          <Layers className="h-5 w-5 text-primary" />
-          <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide hidden sm:inline">Glow Studio</span>
-          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 hidden md:inline">
-            Creative Suite
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-28 lg:w-48 text-xs font-['Satoshi',sans-serif]" />
+      {/* Row 1: Logo + Name + Save */}
+      <div className="flex items-center gap-3">
+        {isTablet && (
+          <Button size="icon" variant="ghost" onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="h-11 w-11 shrink-0" title="Asset Tray">
+            <Layers className="h-5 w-5 text-primary" />
+          </Button>
+        )}
+        <Layers className="h-5 w-5 text-primary" />
+        <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide hidden sm:inline">Glow Studio</span>
+        <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 hidden md:inline">
+          Creative Suite
+        </span>
+      </div>
+      <div className={`flex items-center ${isTablet ? 'gap-2' : 'gap-1.5 lg:gap-2'} shrink-0`}>
+        <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className={`glass text-xs font-['Satoshi',sans-serif] ${isTablet ? 'h-10 w-36' : 'h-8 w-28 lg:w-48'}`} />
+        {!isTablet && (
           <div className="hidden sm:flex items-center gap-0.5 border border-border/30 rounded-md px-1">
             {[0.5, 0.75, 1].map((z) => (
               <button key={z} onClick={() => setZoom(z)}
@@ -849,6 +851,49 @@ export default function Studio() {
               </button>
             ))}
           </div>
+        )}
+        <Button size="sm" onClick={handleSave} disabled={saving} className={`bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden ${isTablet ? 'h-10 px-4' : ''}`}>
+          {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
+        </Button>
+        {isTablet && (
+          <Button size="icon" variant="ghost" onClick={() => setRightPanelOpen(!rightPanelOpen)} className="h-11 w-11 shrink-0" title="Properties">
+            <SlidersHorizontal className="h-5 w-5 text-primary" />
+          </Button>
+        )}
+      </div>
+      </div>
+
+      {/* Row 2: Tools (tablet gets its own row) */}
+      {isTablet ? (
+        <div className="flex items-center justify-between px-4 py-1.5 bg-card/30 border-b border-border/20 gap-2">
+          <div className="flex items-center gap-1.5">
+            <Button size="icon" variant="ghost" onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} className="h-10 w-10" title="Zoom Out">
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-[11px] font-mono text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
+            <Button size="icon" variant="ghost" onClick={() => setZoom(Math.min(1.5, zoom + 0.1))} className="h-10 w-10" title="Zoom In">
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button size="icon" variant="ghost" onClick={() => setSnapToGrid(!snapToGrid)}
+              className={`h-10 w-10 ${snapToGrid ? "bg-primary/20 text-primary" : ""}`}
+              title={snapToGrid ? `Grid snap ON (${gridSize}px)` : "Grid snap OFF"}>
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-10 w-10" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
+              <Sun className={`h-4 w-4 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
+            </Button>
+            <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-10 w-10" title="Undo">
+              <Undo2 className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="h-10 px-3 text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
+              <Eye className="h-4 w-4" /> Preview
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 lg:gap-2 px-4 py-1 bg-card/30 border-b border-border/20">
           <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
             <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
           </Button>
@@ -883,16 +928,8 @@ export default function Studio() {
               <ExternalLink className="h-3.5 w-3.5" /> Live Preview
             </Button>
           )}
-          <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden">
-            {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
-          </Button>
-          {isTablet && (
-            <Button size="icon" variant="ghost" onClick={() => setRightPanelOpen(!rightPanelOpen)} className="h-8 w-8 shrink-0" title="Properties">
-              <SlidersHorizontal className="h-4 w-4 text-primary" />
-            </Button>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Keyboard shortcuts */}
       <div className="hidden lg:flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
@@ -902,7 +939,7 @@ export default function Studio() {
 
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
-        <div className={`${isTablet ? (leftPanelOpen ? 'fixed inset-y-0 left-0 z-40 w-72 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-r border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
+        <div className={`${isTablet ? (leftPanelOpen ? 'fixed inset-y-0 left-0 z-40 w-80 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-r border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
           {isTablet && leftPanelOpen && (
             <div className="fixed inset-0 z-30 bg-black/40" onClick={() => setLeftPanelOpen(false)} />
           )}
@@ -925,7 +962,7 @@ export default function Studio() {
               <div className="grid grid-cols-2 gap-2">
                 {WIDGET_LIBRARY.filter(w => !w.pro).map((w) => (
                   <button key={w.type} onClick={() => addElement(w.type, false)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing">
+                    className={`group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing ${isTablet ? 'min-h-[72px]' : 'aspect-square'}`}>
                     <div className="flex-1 flex items-center justify-center w-full">{w.preview}</div>
                     <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
                   </button>
@@ -940,7 +977,7 @@ export default function Studio() {
               <div className="grid grid-cols-2 gap-2">
                 {WIDGET_LIBRARY.filter(w => w.pro).map((w) => (
                   <button key={w.type} onClick={() => addElement(w.type, true)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing">
+                    className={`group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing ${isTablet ? 'min-h-[72px]' : 'aspect-square'}`}>
                     {!isPro && (
                       <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30">PRO</div>
                     )}
