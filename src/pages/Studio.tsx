@@ -284,7 +284,10 @@ export default function Studio() {
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
+  const [pinchIndicator, setPinchIndicator] = useState(false);
+  const pinchFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isTablet = useIsTablet();
 
@@ -299,6 +302,51 @@ export default function Studio() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [isTablet]);
+
+  /* ───── Pinch-to-zoom on canvas ───── */
+  useEffect(() => {
+    const el = canvasWrapperRef.current;
+    if (!el) return;
+    let initDist: number | null = null;
+    let initZoom = 1;
+
+    const dist = (t: TouchList) => {
+      if (t.length < 2) return 0;
+      const dx = t[1].clientX - t[0].clientX;
+      const dy = t[1].clientY - t[0].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        initDist = dist(e.touches);
+        initZoom = zoom;
+        if (pinchFadeRef.current) clearTimeout(pinchFadeRef.current);
+        setPinchIndicator(true);
+      }
+    };
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initDist) {
+        e.preventDefault();
+        const scale = dist(e.touches) / initDist;
+        const newZoom = Math.min(1.5, Math.max(0.3, Math.round(initZoom * scale * 100) / 100));
+        setZoom(newZoom);
+      }
+    };
+    const onEnd = () => {
+      initDist = null;
+      pinchFadeRef.current = setTimeout(() => setPinchIndicator(false), 800);
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [zoom]);
 
   const isPro = serverVerifiedPro === true;
   const selected = elements.find((e) => e.id === selectedId) || null;
@@ -1078,10 +1126,17 @@ export default function Studio() {
         </div>
 
         {/* ─── Center: Canvas with react-rnd layers ─── */}
-        <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
+        <div ref={canvasWrapperRef} className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl blur-[80px] transition-colors duration-300 ${lightCanvas ? "bg-primary/3" : "bg-primary/5"}`} />
           </div>
+
+          {/* Pinch zoom indicator */}
+          {pinchIndicator && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-3 py-1.5 rounded-full glass border border-primary/30 text-xs font-mono text-primary animate-fade-in">
+              {Math.round(zoom * 100)}%
+            </div>
+          )}
 
           <div style={{ transform: `scale(${zoom})`, transformOrigin: "center", transition: "transform 0.2s ease" }}>
             <div
