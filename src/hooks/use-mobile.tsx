@@ -17,3 +17,17 @@ export function useIsMobile() {
 
   return !!isMobile;
 }
+
+export function useIsTablet() {
+  const [isTablet, setIsTablet] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)");
+    const onChange = () => setIsTablet(mql.matches);
+    mql.addEventListener("change", onChange);
+    setIsTablet(mql.matches);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return isTablet;
+}
