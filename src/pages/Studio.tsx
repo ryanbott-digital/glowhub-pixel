@@ -1240,11 +1240,36 @@ export default function Studio() {
               {/* Smart Guides */}
               <SmartGuides guides={guides} />
 
+              {/* Floating selection toolbar for tablet */}
+              {isTablet && selected && !selected.locked && (
+                <div
+                  className="absolute z-20 flex items-center gap-1 px-2 py-1.5 rounded-xl glass border border-primary/30 shadow-lg"
+                  style={{
+                    left: Math.max(0, Math.min(selected.x + selected.width / 2 - 70, 960 - 140)),
+                    top: Math.max(0, selected.y - 48),
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button onClick={() => { pushHistory(elements); const copy = { ...selected, id: crypto.randomUUID(), x: selected.x + 20, y: selected.y + 20 }; setElements(prev => [...prev, copy]); setSelectedId(copy.id); }}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-primary/20 transition-colors" title="Duplicate">
+                    <Plus className="h-4 w-4 text-primary" />
+                  </button>
+                  <button onClick={() => { pushHistory(elements); setElements(prev => prev.map(el => el.id === selectedId ? { ...el, locked: true } : el)); }}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-primary/20 transition-colors" title="Lock">
+                    <LockIcon className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  <button onClick={deleteSelected}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-destructive/20 transition-colors" title="Delete">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </button>
+                </div>
+              )}
+
               {elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                   <MousePointer className="h-8 w-8 text-muted-foreground/20" />
                   <p className="text-sm text-muted-foreground/30 font-['Satoshi',sans-serif]">
-                    Drag assets from the sidebar to start designing
+                    {isTablet ? "Tap assets to add, then drag to position" : "Drag assets from the sidebar to start designing"}
                   </p>
                 </div>
               )}
