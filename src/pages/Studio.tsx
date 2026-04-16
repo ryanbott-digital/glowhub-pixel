@@ -1254,7 +1254,7 @@ export default function Studio() {
         </div>
 
         {/* ─── Right Sidebar: Properties Panel ─── */}
-        <div className={`${isTablet ? (rightPanelOpen ? 'fixed inset-y-0 right-0 z-40 w-72 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-l border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
+        <div className={`${isTablet ? (rightPanelOpen ? 'fixed inset-y-0 right-0 z-40 w-80 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-l border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
           {isTablet && rightPanelOpen && (
             <div className="fixed inset-0 z-30 bg-black/40" onClick={() => setRightPanelOpen(false)} />
           )}
@@ -1262,11 +1262,11 @@ export default function Studio() {
           {/* Tabs */}
           <div className="flex border-b border-border/20">
             <button onClick={() => setSidebarMode("properties")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-1 ${isTablet ? 'py-3 text-xs' : 'py-2 text-[10px]'} font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
               Properties
             </button>
             <button onClick={() => setSidebarMode("layers")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-1 ${isTablet ? 'py-3 text-xs' : 'py-2 text-[10px]'} font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
               Layers
             </button>
           </div>
@@ -1279,21 +1279,20 @@ export default function Studio() {
                 const WidgetIcon = WIDGET_ICON_MAP[el.type] || (el.type === "shape" ? Square : Layers);
                 const isActive = el.id === selectedId;
                 return (
-                  <div key={el.id} draggable onDragStart={() => handleLayerDragStart(realIdx)} onDragOver={(e) => e.preventDefault()} onDrop={() => handleLayerDrop(realIdx)}
-                    onClick={() => { setSelectedId(el.id); setSidebarMode("properties"); }}
-                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-xs ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}>
-                    <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0 cursor-grab" />
-                    <WidgetIcon className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className={`flex-1 truncate font-['Satoshi',sans-serif] text-[11px] ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
+                    <div onClick={() => { setSelectedId(el.id); setSidebarMode("properties"); }}
+                    className={`flex items-center gap-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs ${isTablet ? 'py-3 gap-2.5' : 'py-1.5'} ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}>
+                    <GripVertical className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/30 shrink-0 cursor-grab`} />
+                    <WidgetIcon className={`${isTablet ? 'h-4 w-4' : 'h-3.5 w-3.5'} text-primary shrink-0`} />
+                    <span className={`flex-1 truncate font-['Satoshi',sans-serif] ${isTablet ? 'text-xs' : 'text-[11px]'} ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
                       {getWidgetLabel(el)}
                     </span>
                     <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, visible: !x.visible } : x)); }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.visible ? "Hide" : "Show"}>
-                      {el.visible ? <Eye className="h-3 w-3 text-muted-foreground/60" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
+                      className={`${isTablet ? 'p-1.5' : 'p-0.5'} rounded hover:bg-muted/30 transition-colors`} title={el.visible ? "Hide" : "Show"}>
+                      {el.visible ? <Eye className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/60`} /> : <EyeOff className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/30`} />}
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, locked: !x.locked } : x)); }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.locked ? "Unlock" : "Lock"}>
-                      {el.locked ? <LockIcon className="h-3 w-3 text-accent/60" /> : <Unlock className="h-3 w-3 text-muted-foreground/30" />}
+                      className={`${isTablet ? 'p-1.5' : 'p-0.5'} rounded hover:bg-muted/30 transition-colors`} title={el.locked ? "Unlock" : "Lock"}>
+                      {el.locked ? <LockIcon className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-accent/60`} /> : <Unlock className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/30`} />}
                     </button>
                   </div>
                 );
