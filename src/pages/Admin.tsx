@@ -129,6 +129,7 @@ export default function Admin() {
   const [apkDownloadUrl, setApkDownloadUrl] = useState("");
   const [apkLoading, setApkLoading] = useState(true);
   const [apkSaving, setApkSaving] = useState(false);
+  const [apkUploading, setApkUploading] = useState(false);
 
   // User detail sheet
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -1324,7 +1325,50 @@ export default function Admin() {
                   />
                 </div>
               </div>
-              <Button onClick={saveApkSettings} disabled={apkSaving} size="sm" className="gap-1.5">
+
+              {/* APK File Upload */}
+              <div className="space-y-1.5">
+                <Label className="text-sm">Upload APK File</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".apk"
+                    disabled={apkUploading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (!apkVersion.trim()) {
+                        toast.error("Enter a version number first");
+                        e.target.value = "";
+                        return;
+                      }
+                      setApkUploading(true);
+                      try {
+                        const path = `GlowHub-${apkVersion.trim()}.apk`;
+                        const { error } = await supabase.storage
+                          .from("apk-releases")
+                          .upload(path, file, { upsert: true });
+                        if (error) throw error;
+                        const { data: urlData } = supabase.storage
+                          .from("apk-releases")
+                          .getPublicUrl(path);
+                        setApkDownloadUrl(urlData.publicUrl);
+                        toast.success("APK uploaded — download URL auto-filled");
+                      } catch (err: any) {
+                        toast.error(err.message || "Upload failed");
+                      } finally {
+                        setApkUploading(false);
+                        e.target.value = "";
+                      }
+                    }}
+                    className="max-w-xs"
+                  />
+                  {apkUploading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+                <p className="text-xs text-muted-foreground">Upload a .apk file — the download URL will be set automatically</p>
+              </div>
+
+              <Button onClick={saveApkSettings} disabled={apkSaving || apkUploading} size="sm" className="gap-1.5">
                 {apkSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                 Save & Notify Devices
               </Button>
