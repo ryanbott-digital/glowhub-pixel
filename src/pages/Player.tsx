@@ -110,6 +110,7 @@ export default function Player() {
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
   const [showWatermark, setShowWatermark] = useState(false);
   const [isFullyKiosk, setIsFullyKiosk] = useState(false);
+  const [showFullscreenHint, setShowFullscreenHint] = useState(false);
 
   // ── SYNC GROUP (offset rendering) ──
   const [syncInfo, setSyncInfo] = useState<{ position: number; total: number; orientation: "horizontal" | "vertical" } | null>(null);
@@ -481,6 +482,7 @@ export default function Player() {
       unsub();
       window.removeEventListener("click", onInteraction);
       window.removeEventListener("touchstart", onInteraction);
+      document.removeEventListener("fullscreenchange", onFsChange);
       document.removeEventListener("mousemove", showCursor);
       clearTimeout(cursorTimer);
       document.body.style.cursor = "";
