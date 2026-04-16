@@ -1314,19 +1314,19 @@ export default function Studio() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">X</label>
-                        <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">Y</label>
-                        <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">W</label>
-                        <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">H</label>
-                        <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                     </div>
                   </div>
