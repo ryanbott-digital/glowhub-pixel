@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useMediaQuery } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +21,7 @@ import {
   Square, Circle, Minus, SlidersHorizontal, Undo2, Upload, Grid3X3, Search, LayoutTemplate,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   CanvasElement, SavedLayout, WeatherData, DEFAULT_FILTERS,
   MOTION_PRESETS, getFilterCSS, getMotionClass,
@@ -280,8 +282,26 @@ export default function Studio() {
   const [timelineCollapsed, setTimelineCollapsed] = useState(false);
   const [timelineDuration, setTimelineDuration] = useState(30);
   const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
+
+  // Tablet detection: below lg breakpoint (1024px)
+  const isTablet = useMediaQuery("(max-width: 1023px)");
+
+  // Auto-fit zoom on tablet
+  useEffect(() => {
+    if (!isTablet) return;
+    const handleResize = () => {
+      const available = window.innerWidth - 32; // 16px padding each side
+      const fitZoom = Math.min(1, available / 960);
+      setZoom(Math.max(0.3, Math.round(fitZoom * 100) / 100));
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isTablet]);
 
   const isPro = serverVerifiedPro === true;
   const selected = elements.find((e) => e.id === selectedId) || null;
@@ -809,17 +829,22 @@ export default function Studio() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] animate-fade-in">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-card/50 backdrop-blur-sm">
+      <div className="flex items-center justify-between px-2 lg:px-4 py-2 border-b border-border/30 bg-card/50 backdrop-blur-sm gap-2 overflow-x-auto">
         <div className="flex items-center gap-3">
+          {isTablet && (
+            <Button size="icon" variant="ghost" onClick={() => setLeftPanelOpen(true)} className="h-8 w-8 shrink-0" title="Asset Tray">
+              <Layers className="h-4 w-4 text-primary" />
+            </Button>
+          )}
           <Layers className="h-5 w-5 text-primary" />
-          <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide">Glow Studio</span>
-          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+          <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide hidden sm:inline">Glow Studio</span>
+          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 hidden md:inline">
             Creative Suite
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-48 text-xs font-['Satoshi',sans-serif]" />
-          <div className="flex items-center gap-0.5 border border-border/30 rounded-md px-1">
+        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
+          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-28 lg:w-48 text-xs font-['Satoshi',sans-serif]" />
+          <div className="flex items-center gap-0.5 border border-border/30 rounded-md px-1 hidden sm:flex">
             {[0.5, 0.75, 1].map((z) => (
               <button key={z} onClick={() => setZoom(z)}
                 className={`text-[10px] font-mono px-1.5 py-1 rounded transition-colors ${zoom === z ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
@@ -827,10 +852,10 @@ export default function Studio() {
               </button>
             ))}
           </div>
-          <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
+          <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8 hidden sm:flex" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
             <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
           </Button>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 hidden md:flex">
             <Button size="icon" variant="ghost" onClick={() => setSnapToGrid(!snapToGrid)}
               className={`h-8 w-8 ${snapToGrid ? "bg-primary/20 text-primary" : ""}`}
               title={snapToGrid ? `Grid snap ON (${gridSize}px)` : "Grid snap OFF"}>
@@ -849,33 +874,50 @@ export default function Studio() {
               </Select>
             )}
           </div>
-          <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8" title="Undo (Ctrl+Z)">
+          <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-8 w-8 shrink-0" title="Undo (Ctrl+Z)">
             <Undo2 className="h-3.5 w-3.5" />
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
-            <Eye className="h-3.5 w-3.5" /> Preview
+          <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60 hidden sm:flex">
+            <Eye className="h-3.5 w-3.5" /> <span className="hidden md:inline">Preview</span>
           </Button>
           {currentLayoutId && (
-            <Button size="sm" variant="outline" onClick={() => window.open(`/studio/preview/${currentLayoutId}`, "_blank")}
-              className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent">
-              <ExternalLink className="h-3.5 w-3.5" /> Live Preview
+            <Button size="sm" variant="outline" onClick={() => window.open(`/studio/preview/${currentLayoutId}`, "_blank")} className="text-xs gap-1.5 font-semibold tracking-wider border-accent/30 hover:border-accent/60 text-accent hover:text-accent hidden lg:flex">
+              <ExternalLink className="h-3.5 w-3.5" /> <span className="hidden lg:inline">Live Preview</span>
             </Button>
           )}
-          <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden">
-            {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
+          <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden shrink-0">
+            {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> <span className="hidden sm:inline">Saving...</span></>) : (<><Save className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Save</span></>)}
           </Button>
+          {isTablet && (
+            <Button size="icon" variant="ghost" onClick={() => setRightPanelOpen(true)} className="h-8 w-8 shrink-0" title="Properties">
+              <SlidersHorizontal className="h-4 w-4 text-primary" />
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Keyboard shortcuts */}
-      <div className="flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
+      <div className="hidden lg:flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
         <span className="flex items-center gap-1"><Keyboard className="h-3 w-3" /> Shortcuts:</span>
         <span>⌘Z Undo</span><span>⌘S Save</span><span>⌫ Delete</span>
       </div>
 
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
-        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
+        {isTablet ? (
+          <Sheet open={leftPanelOpen} onOpenChange={setLeftPanelOpen}>
+            <SheetContent side="left" className="w-72 p-0 bg-[hsl(220,60%,7%)] border-r border-border/30 overflow-y-auto">
+              {renderLeftSidebar()}
+            </SheetContent>
+          </Sheet>
+        ) : (
+        <div className="w-64 border-r border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto shrink-0">
+          {renderLeftSidebar()}
+        </div>
+        )}
+
+        {/* ─── Center: Canvas with react-rnd layers ─── */}
+        <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
           <div className="p-3 border-b border-border/20 flex items-center justify-between">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
@@ -1184,8 +1226,18 @@ export default function Studio() {
           </div>
         </div>
 
-        {/* ─── Right Sidebar: Properties Panel ─── */}
-        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto">
+        {/* ─── Right Sidebar: Properties Panel (desktop) ─── */}
+        {isTablet ? (
+          <Sheet open={rightPanelOpen} onOpenChange={setRightPanelOpen}>
+            <SheetContent side="right" className="w-72 p-0 bg-[hsl(220,60%,7%)] border-l border-border/30 overflow-y-auto">
+              {renderRightSidebar()}
+            </SheetContent>
+          </Sheet>
+        ) : (
+        <div className="w-64 border-l border-border/30 bg-[hsl(220,60%,7%)/0.85] backdrop-blur-[20px] flex flex-col overflow-y-auto shrink-0">
+          {renderRightSidebar()}
+        </div>
+        )}
           {/* Tabs */}
           <div className="flex border-b border-border/20">
             <button onClick={() => setSidebarMode("properties")}
@@ -1793,17 +1845,6 @@ export default function Studio() {
             </>
           )}
 
-          {/* Scheduling note */}
-          <div className="p-3 border-t border-border/20 mt-auto">
-            <p className="text-[9px] font-['Satoshi',sans-serif] tracking-widest uppercase text-muted-foreground/60 flex items-center gap-1 mb-1.5">
-              <Clock className="h-3 w-3" /> Scheduling
-            </p>
-            <p className="text-[10px] text-muted-foreground/50 font-['Satoshi',sans-serif]">
-              Save your layout, then assign it to screens from the Screens page.
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* ─── Timeline / Sequencer ─── */}
       <StudioTimeline
