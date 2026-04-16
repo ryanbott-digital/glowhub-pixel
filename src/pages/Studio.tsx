@@ -1126,10 +1126,17 @@ export default function Studio() {
         </div>
 
         {/* ─── Center: Canvas with react-rnd layers ─── */}
-        <div className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
+        <div ref={canvasWrapperRef} className={`flex-1 flex items-center justify-center relative overflow-hidden transition-colors duration-300 ${lightCanvas ? "bg-[hsl(220,20%,92%)]" : "bg-[hsl(220,60%,5%)]"}`}>
           <div className="absolute inset-0 pointer-events-none">
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] rounded-3xl blur-[80px] transition-colors duration-300 ${lightCanvas ? "bg-primary/3" : "bg-primary/5"}`} />
           </div>
+
+          {/* Pinch zoom indicator */}
+          {pinchIndicator && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 px-3 py-1.5 rounded-full glass border border-primary/30 text-xs font-mono text-primary animate-fade-in">
+              {Math.round(zoom * 100)}%
+            </div>
+          )}
 
           <div style={{ transform: `scale(${zoom})`, transformOrigin: "center", transition: "transform 0.2s ease" }}>
             <div
