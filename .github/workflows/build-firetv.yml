@@ -56,8 +56,13 @@ jobs:
           fi
           echo "✓ dist/ exists ($(du -sh dist | cut -f1))"
 
-      - name: Add Android platform
-        run: npx cap add android
+      - name: Verify Android platform exists
+        run: |
+          if [ ! -d "android" ]; then
+            echo "::error::android/ directory is missing from the repository"
+            exit 1
+          fi
+          echo "✓ android/ platform already exists"
 
       - name: Configure Android SDK
         run: |
@@ -87,7 +92,7 @@ jobs:
             "platforms;android-36" \
             "build-tools;36.0.0"
 
-      - name: Sync Capacitor
+      - name: Sync existing Android project
         run: npx cap sync android
 
       - name: Inject Fire TV leanback intent & banner
