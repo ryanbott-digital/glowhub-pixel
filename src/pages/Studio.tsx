@@ -827,20 +827,22 @@ export default function Studio() {
     <div className="flex flex-col h-[calc(100vh-64px)] animate-fade-in">
       {/* Top bar */}
       <div className="flex items-center justify-between px-2 lg:px-4 py-2 border-b border-border/30 bg-card/50 backdrop-blur-sm gap-2 overflow-x-auto">
-        <div className="flex items-center gap-3">
-          {isTablet && (
-            <Button size="icon" variant="ghost" onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="h-8 w-8 shrink-0" title="Asset Tray">
-              <Layers className="h-4 w-4 text-primary" />
-            </Button>
-          )}
-          <Layers className="h-5 w-5 text-primary" />
-          <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide hidden sm:inline">Glow Studio</span>
-          <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 hidden md:inline">
-            Creative Suite
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 lg:gap-2 shrink-0">
-          <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className="glass h-8 w-28 lg:w-48 text-xs font-['Satoshi',sans-serif]" />
+      {/* Row 1: Logo + Name + Save */}
+      <div className="flex items-center gap-3">
+        {isTablet && (
+          <Button size="icon" variant="ghost" onClick={() => setLeftPanelOpen(!leftPanelOpen)} className="h-11 w-11 shrink-0" title="Asset Tray">
+            <Layers className="h-5 w-5 text-primary" />
+          </Button>
+        )}
+        <Layers className="h-5 w-5 text-primary" />
+        <span className="font-['Satoshi',sans-serif] font-bold text-foreground tracking-wide hidden sm:inline">Glow Studio</span>
+        <span className="text-[9px] font-mono tracking-widest uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 hidden md:inline">
+          Creative Suite
+        </span>
+      </div>
+      <div className={`flex items-center ${isTablet ? 'gap-2' : 'gap-1.5 lg:gap-2'} shrink-0`}>
+        <Input value={layoutName} onChange={(e) => setLayoutName(e.target.value)} className={`glass text-xs font-['Satoshi',sans-serif] ${isTablet ? 'h-10 w-36' : 'h-8 w-28 lg:w-48'}`} />
+        {!isTablet && (
           <div className="hidden sm:flex items-center gap-0.5 border border-border/30 rounded-md px-1">
             {[0.5, 0.75, 1].map((z) => (
               <button key={z} onClick={() => setZoom(z)}
@@ -849,6 +851,49 @@ export default function Studio() {
               </button>
             ))}
           </div>
+        )}
+        <Button size="sm" onClick={handleSave} disabled={saving} className={`bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden ${isTablet ? 'h-10 px-4' : ''}`}>
+          {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
+        </Button>
+        {isTablet && (
+          <Button size="icon" variant="ghost" onClick={() => setRightPanelOpen(!rightPanelOpen)} className="h-11 w-11 shrink-0" title="Properties">
+            <SlidersHorizontal className="h-5 w-5 text-primary" />
+          </Button>
+        )}
+      </div>
+      </div>
+
+      {/* Row 2: Tools (tablet gets its own row) */}
+      {isTablet ? (
+        <div className="flex items-center justify-between px-4 py-1.5 bg-card/30 border-b border-border/20 gap-2">
+          <div className="flex items-center gap-1.5">
+            <Button size="icon" variant="ghost" onClick={() => setZoom(Math.max(0.3, zoom - 0.1))} className="h-10 w-10" title="Zoom Out">
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-[11px] font-mono text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
+            <Button size="icon" variant="ghost" onClick={() => setZoom(Math.min(1.5, zoom + 0.1))} className="h-10 w-10" title="Zoom In">
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button size="icon" variant="ghost" onClick={() => setSnapToGrid(!snapToGrid)}
+              className={`h-10 w-10 ${snapToGrid ? "bg-primary/20 text-primary" : ""}`}
+              title={snapToGrid ? `Grid snap ON (${gridSize}px)` : "Grid snap OFF"}>
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-10 w-10" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
+              <Sun className={`h-4 w-4 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
+            </Button>
+            <Button size="icon" variant="ghost" onClick={undo} disabled={history.length === 0} className="h-10 w-10" title="Undo">
+              <Undo2 className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setFullscreenPreview(true)} className="h-10 px-3 text-xs gap-1.5 font-semibold tracking-wider border-primary/30 hover:border-primary/60">
+              <Eye className="h-4 w-4" /> Preview
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 lg:gap-2 px-4 py-1 bg-card/30 border-b border-border/20">
           <Button size="icon" variant="ghost" onClick={() => setLightCanvas(!lightCanvas)} className="h-8 w-8" title={lightCanvas ? "Dark canvas" : "Light canvas"}>
             <Sun className={`h-3.5 w-3.5 transition-colors ${lightCanvas ? "text-amber-400" : ""}`} />
           </Button>
@@ -883,16 +928,8 @@ export default function Studio() {
               <ExternalLink className="h-3.5 w-3.5" /> Live Preview
             </Button>
           )}
-          <Button size="sm" onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-primary to-glow-blue text-primary-foreground text-xs gap-1.5 font-semibold tracking-wider relative overflow-hidden">
-            {saving ? (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</>) : (<><Save className="h-3.5 w-3.5" /> Save</>)}
-          </Button>
-          {isTablet && (
-            <Button size="icon" variant="ghost" onClick={() => setRightPanelOpen(!rightPanelOpen)} className="h-8 w-8 shrink-0" title="Properties">
-              <SlidersHorizontal className="h-4 w-4 text-primary" />
-            </Button>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Keyboard shortcuts */}
       <div className="hidden lg:flex items-center gap-3 px-4 py-1 bg-card/30 border-b border-border/20 text-[9px] text-muted-foreground/50 font-mono tracking-wider">
@@ -902,7 +939,7 @@ export default function Studio() {
 
       <div className="flex flex-1 min-h-0">
         {/* ─── Left Sidebar: Assets ─── */}
-        <div className={`${isTablet ? (leftPanelOpen ? 'fixed inset-y-0 left-0 z-40 w-72 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-r border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
+        <div className={`${isTablet ? (leftPanelOpen ? 'fixed inset-y-0 left-0 z-40 w-80 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-r border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
           {isTablet && leftPanelOpen && (
             <div className="fixed inset-0 z-30 bg-black/40" onClick={() => setLeftPanelOpen(false)} />
           )}
@@ -925,7 +962,7 @@ export default function Studio() {
               <div className="grid grid-cols-2 gap-2">
                 {WIDGET_LIBRARY.filter(w => !w.pro).map((w) => (
                   <button key={w.type} onClick={() => addElement(w.type, false)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing">
+                    className={`group relative rounded-xl border border-border/30 bg-card/50 hover:bg-primary/5 hover:border-primary/30 transition-all duration-300 flex flex-col items-center justify-center p-2 overflow-hidden cursor-grab active:cursor-grabbing ${isTablet ? 'min-h-[72px]' : 'aspect-square'}`}>
                     <div className="flex-1 flex items-center justify-center w-full">{w.preview}</div>
                     <span className="text-[9px] font-['Satoshi',sans-serif] text-muted-foreground mt-1 tracking-wider">{w.label}</span>
                   </button>
@@ -940,7 +977,7 @@ export default function Studio() {
               <div className="grid grid-cols-2 gap-2">
                 {WIDGET_LIBRARY.filter(w => w.pro).map((w) => (
                   <button key={w.type} onClick={() => addElement(w.type, true)} draggable onDragStart={(e) => handleWidgetDragStart(e, w)}
-                    className="group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 aspect-square flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing">
+                    className={`group relative rounded-xl border border-border/30 bg-card/50 hover:border-primary/40 transition-all duration-300 flex flex-col items-center justify-center p-2 overflow-hidden hover:shadow-[0_0_20px_hsla(180,100%,32%,0.15)] cursor-grab active:cursor-grabbing ${isTablet ? 'min-h-[72px]' : 'aspect-square'}`}>
                     {!isPro && (
                       <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5 rounded-md text-[7px] font-bold tracking-widest uppercase bg-accent/20 text-accent border border-accent/30">PRO</div>
                     )}
@@ -1168,12 +1205,11 @@ export default function Studio() {
                     minHeight={30}
                     className={`${!el.visible ? "opacity-30 pointer-events-none" : ""} ${motionClass} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)] z-10" : "hover:ring-1 hover:ring-primary/30"}`}
                     style={{ cursor: el.locked ? "not-allowed" : "move", mixBlendMode: (el.blendMode || "normal") as any }}
-                    resizeHandleStyles={{
-                      topLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                      topRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                      bottomLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                      bottomRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                    }}
+                    resizeHandleStyles={(() => {
+                      const sz = isTablet ? 18 : 10;
+                      const handleStyle = { width: sz, height: sz, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" };
+                      return { topLeft: handleStyle, topRight: handleStyle, bottomLeft: handleStyle, bottomRight: handleStyle };
+                    })()}
                     resizeHandleClasses={{
                       topLeft: isSelected ? "" : "!hidden",
                       topRight: isSelected ? "" : "!hidden",
@@ -1204,11 +1240,36 @@ export default function Studio() {
               {/* Smart Guides */}
               <SmartGuides guides={guides} />
 
+              {/* Floating selection toolbar for tablet */}
+              {isTablet && selected && !selected.locked && (
+                <div
+                  className="absolute z-20 flex items-center gap-1 px-2 py-1.5 rounded-xl glass border border-primary/30 shadow-lg"
+                  style={{
+                    left: Math.max(0, Math.min(selected.x + selected.width / 2 - 70, 960 - 140)),
+                    top: Math.max(0, selected.y - 48),
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button onClick={() => { pushHistory(elements); const copy = { ...selected, id: crypto.randomUUID(), x: selected.x + 20, y: selected.y + 20 }; setElements(prev => [...prev, copy]); setSelectedId(copy.id); }}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-primary/20 transition-colors" title="Duplicate">
+                    <Plus className="h-4 w-4 text-primary" />
+                  </button>
+                  <button onClick={() => { pushHistory(elements); setElements(prev => prev.map(el => el.id === selectedId ? { ...el, locked: true } : el)); }}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-primary/20 transition-colors" title="Lock">
+                    <LockIcon className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  <button onClick={deleteSelected}
+                    className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-destructive/20 transition-colors" title="Delete">
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </button>
+                </div>
+              )}
+
               {elements.length === 0 && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                   <MousePointer className="h-8 w-8 text-muted-foreground/20" />
                   <p className="text-sm text-muted-foreground/30 font-['Satoshi',sans-serif]">
-                    Drag assets from the sidebar to start designing
+                    {isTablet ? "Tap assets to add, then drag to position" : "Drag assets from the sidebar to start designing"}
                   </p>
                 </div>
               )}
@@ -1217,7 +1278,7 @@ export default function Studio() {
         </div>
 
         {/* ─── Right Sidebar: Properties Panel ─── */}
-        <div className={`${isTablet ? (rightPanelOpen ? 'fixed inset-y-0 right-0 z-40 w-72 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-l border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
+        <div className={`${isTablet ? (rightPanelOpen ? 'fixed inset-y-0 right-0 z-40 w-80 shadow-2xl' : 'hidden') : 'w-64 shrink-0'} border-l border-border/30 bg-[hsl(220,60%,7%)] backdrop-blur-[20px] flex flex-col overflow-y-auto`}>
           {isTablet && rightPanelOpen && (
             <div className="fixed inset-0 z-30 bg-black/40" onClick={() => setRightPanelOpen(false)} />
           )}
@@ -1225,11 +1286,11 @@ export default function Studio() {
           {/* Tabs */}
           <div className="flex border-b border-border/20">
             <button onClick={() => setSidebarMode("properties")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-1 ${isTablet ? 'py-3 text-xs' : 'py-2 text-[10px]'} font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "properties" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
               Properties
             </button>
             <button onClick={() => setSidebarMode("layers")}
-              className={`flex-1 py-2 text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-1 ${isTablet ? 'py-3 text-xs' : 'py-2 text-[10px]'} font-['Satoshi',sans-serif] font-bold tracking-[0.15em] uppercase transition-colors ${sidebarMode === "layers" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}>
               Layers
             </button>
           </div>
@@ -1242,21 +1303,20 @@ export default function Studio() {
                 const WidgetIcon = WIDGET_ICON_MAP[el.type] || (el.type === "shape" ? Square : Layers);
                 const isActive = el.id === selectedId;
                 return (
-                  <div key={el.id} draggable onDragStart={() => handleLayerDragStart(realIdx)} onDragOver={(e) => e.preventDefault()} onDrop={() => handleLayerDrop(realIdx)}
-                    onClick={() => { setSelectedId(el.id); setSidebarMode("properties"); }}
-                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all text-xs ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}>
-                    <GripVertical className="h-3 w-3 text-muted-foreground/30 shrink-0 cursor-grab" />
-                    <WidgetIcon className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className={`flex-1 truncate font-['Satoshi',sans-serif] text-[11px] ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
+                    <div onClick={() => { setSelectedId(el.id); setSidebarMode("properties"); }}
+                    className={`flex items-center gap-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs ${isTablet ? 'py-3 gap-2.5' : 'py-1.5'} ${isActive ? "ring-1 ring-primary bg-primary/10" : "hover:bg-muted/20"}`}>
+                    <GripVertical className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/30 shrink-0 cursor-grab`} />
+                    <WidgetIcon className={`${isTablet ? 'h-4 w-4' : 'h-3.5 w-3.5'} text-primary shrink-0`} />
+                    <span className={`flex-1 truncate font-['Satoshi',sans-serif] ${isTablet ? 'text-xs' : 'text-[11px]'} ${!el.visible ? "line-through text-muted-foreground/40" : "text-foreground"}`}>
                       {getWidgetLabel(el)}
                     </span>
                     <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, visible: !x.visible } : x)); }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.visible ? "Hide" : "Show"}>
-                      {el.visible ? <Eye className="h-3 w-3 text-muted-foreground/60" /> : <EyeOff className="h-3 w-3 text-muted-foreground/30" />}
+                      className={`${isTablet ? 'p-1.5' : 'p-0.5'} rounded hover:bg-muted/30 transition-colors`} title={el.visible ? "Hide" : "Show"}>
+                      {el.visible ? <Eye className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/60`} /> : <EyeOff className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/30`} />}
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); pushHistory(elements); setElements((prev) => prev.map((x) => x.id === el.id ? { ...x, locked: !x.locked } : x)); }}
-                      className="p-0.5 rounded hover:bg-muted/30 transition-colors" title={el.locked ? "Unlock" : "Lock"}>
-                      {el.locked ? <LockIcon className="h-3 w-3 text-accent/60" /> : <Unlock className="h-3 w-3 text-muted-foreground/30" />}
+                      className={`${isTablet ? 'p-1.5' : 'p-0.5'} rounded hover:bg-muted/30 transition-colors`} title={el.locked ? "Unlock" : "Lock"}>
+                      {el.locked ? <LockIcon className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-accent/60`} /> : <Unlock className={`${isTablet ? 'h-4 w-4' : 'h-3 w-3'} text-muted-foreground/30`} />}
                     </button>
                   </div>
                 );
@@ -1279,19 +1339,19 @@ export default function Studio() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">X</label>
-                        <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.x)} onChange={(e) => updateSelected({ x: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">Y</label>
-                        <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.y)} onChange={(e) => updateSelected({ y: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">W</label>
-                        <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.width)} onChange={(e) => updateSelected({ width: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                       <div>
                         <label className="text-[8px] text-muted-foreground font-mono">H</label>
-                        <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: Number(e.target.value) })} className="glass h-7 text-xs font-mono" />
+                        <Input type="number" value={Math.round(selected.height)} onChange={(e) => updateSelected({ height: Number(e.target.value) })} className={`glass text-xs font-mono ${isTablet ? 'h-10' : 'h-7'}`} />
                       </div>
                     </div>
                   </div>
@@ -1842,6 +1902,32 @@ export default function Studio() {
         </div>
       </div>
 
+      {/* ─── Tablet Bottom Action Bar ─── */}
+      {isTablet && (
+        <div className="flex items-center justify-around px-2 py-2 bg-[hsl(220,60%,7%)] border-t border-border/30 backdrop-blur-[20px]">
+          <button onClick={() => { setLeftPanelOpen(true); }} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <Plus className="h-5 w-5 text-primary" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Add</span>
+          </button>
+          <button onClick={() => { setRightPanelOpen(true); setSidebarMode("layers"); }} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <Layers className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Layers</span>
+          </button>
+          <button onClick={() => { setRightPanelOpen(true); setSidebarMode("properties"); }} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Props</span>
+          </button>
+          <button onClick={undo} disabled={history.length === 0} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors disabled:opacity-30">
+            <Undo2 className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Undo</span>
+          </button>
+          <button onClick={() => setFullscreenPreview(true)} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <Eye className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Preview</span>
+          </button>
+        </div>
+      )}
+
       {/* ─── Timeline / Sequencer ─── */}
       <StudioTimeline
         elements={elements}
@@ -1851,7 +1937,7 @@ export default function Studio() {
           pushHistory(elements);
           setElements((prev) => prev.map((el) => el.id === id ? { ...el, ...patch } : el));
         }}
-        collapsed={timelineCollapsed}
+        collapsed={isTablet ? true : timelineCollapsed}
         onToggleCollapse={() => setTimelineCollapsed(!timelineCollapsed)}
         totalDuration={timelineDuration}
       />

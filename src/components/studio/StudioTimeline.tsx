@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useIsTablet } from "@/hooks/use-mobile";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -68,12 +69,16 @@ export function StudioTimeline({
   onToggleCollapse,
   totalDuration,
 }: Props) {
+  const isTablet = useIsTablet();
   const timeMarks = useMemo(() => {
     const marks: number[] = [];
     const step = totalDuration <= 30 ? 5 : totalDuration <= 60 ? 10 : 15;
     for (let i = 0; i <= totalDuration; i += step) marks.push(i);
     return marks;
   }, [totalDuration]);
+
+  const rowH = isTablet ? "h-12" : "h-9";
+  const labelW = isTablet ? "w-[200px]" : "w-[180px]";
 
   return (
     <div className="border-t border-border/30 bg-[hsl(220,60%,7%)] flex flex-col">
@@ -95,7 +100,7 @@ export function StudioTimeline({
       {!collapsed && (
         <div className="flex flex-col max-h-48 overflow-y-auto">
           {/* Time ruler */}
-          <div className="flex items-center h-6 border-b border-border/20 pl-[180px] pr-4 relative">
+          <div className={`flex items-center h-6 border-b border-border/20 ${isTablet ? 'pl-[200px]' : 'pl-[180px]'} pr-4 relative`}>
             <div className="flex-1 relative h-full">
               {timeMarks.map((t) => (
                 <div
@@ -132,14 +137,14 @@ export function StudioTimeline({
               <div
                 key={el.id}
                 onClick={() => onSelectElement(el.id)}
-                className={`flex items-center h-9 border-b border-border/10 transition-colors cursor-pointer ${
+                className={`flex items-center ${rowH} border-b border-border/10 transition-colors cursor-pointer ${
                   isActive
                     ? "bg-primary/10"
                     : "hover:bg-muted/10"
                 }`}
               >
                 {/* Label */}
-                <div className="w-[180px] shrink-0 flex items-center gap-1.5 px-3">
+                <div className={`${labelW} shrink-0 flex items-center gap-1.5 px-3`}>
                   <span className="text-[11px] w-4 text-center">
                     {WIDGET_ICON_MAP[el.type] || "▪"}
                   </span>
@@ -205,7 +210,7 @@ export function StudioTimeline({
             const sel = elements.find((e) => e.id === selectedId);
             if (!sel) return null;
             return (
-              <div className="px-4 py-2 border-t border-border/20 bg-card/30 flex flex-wrap gap-x-4 gap-y-2 items-end">
+              <div className={`px-4 ${isTablet ? 'py-3' : 'py-2'} border-t border-border/20 bg-card/30 flex flex-wrap gap-x-4 ${isTablet ? 'gap-y-3' : 'gap-y-2'} items-end`}>
                 <div className="space-y-0.5 min-w-[120px]">
                   <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider uppercase">
                     Enter at
