@@ -1902,6 +1902,32 @@ export default function Studio() {
         </div>
       </div>
 
+      {/* ─── Tablet Bottom Action Bar ─── */}
+      {isTablet && (
+        <div className="flex items-center justify-around px-2 py-2 bg-[hsl(220,60%,7%)] border-t border-border/30 backdrop-blur-[20px]">
+          <button onClick={() => { setLeftPanelOpen(true); }} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <Plus className="h-5 w-5 text-primary" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Add</span>
+          </button>
+          <button onClick={() => { setRightPanelOpen(true); setSidebarMode("layers"); }} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <Layers className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Layers</span>
+          </button>
+          <button onClick={() => { setRightPanelOpen(true); setSidebarMode("properties"); }} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Props</span>
+          </button>
+          <button onClick={undo} disabled={history.length === 0} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors disabled:opacity-30">
+            <Undo2 className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Undo</span>
+          </button>
+          <button onClick={() => setFullscreenPreview(true)} className="flex flex-col items-center gap-0.5 h-12 w-14 justify-center rounded-xl hover:bg-primary/10 transition-colors">
+            <Eye className="h-5 w-5 text-muted-foreground" />
+            <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider">Preview</span>
+          </button>
+        </div>
+      )}
+
       {/* ─── Timeline / Sequencer ─── */}
       <StudioTimeline
         elements={elements}
@@ -1911,7 +1937,7 @@ export default function Studio() {
           pushHistory(elements);
           setElements((prev) => prev.map((el) => el.id === id ? { ...el, ...patch } : el));
         }}
-        collapsed={timelineCollapsed}
+        collapsed={isTablet ? true : timelineCollapsed}
         onToggleCollapse={() => setTimelineCollapsed(!timelineCollapsed)}
         totalDuration={timelineDuration}
       />
