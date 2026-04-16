@@ -1,53 +1,30 @@
 
 
-# Studio Tablet UI Overhaul
+## Add Drag Handles to Studio Sidebar Drawers (Tablet)
 
-## Problem
-The Studio page currently treats tablet as a shrunken desktop. Sidebars appear as overlays but remain desktop-sized, touch targets are too small (7-8px controls), the toolbar is cramped, and there's no touch-optimized workflow for designing on iPad/tablet.
+### Problem
+On tablet, the left (Assets) and right (Properties) sidebar drawers open as fixed overlays but lack a visible drag handle, making them harder to dismiss via touch.
 
-## Key Changes
+### Changes
 
-### 1. Touch-Friendly Toolbar Redesign
-- Reorganize the top toolbar into two rows on tablet: top row for layout name + save, bottom row for tools (zoom, grid, undo, preview)
-- Increase all button touch targets to minimum 44x44px on tablet
-- Replace tiny zoom percentage buttons with a proper zoom slider
-- Add prominent floating action buttons for the two sidebar toggles (Assets / Properties)
+**File: `src/pages/Studio.tsx`**
 
-### 2. Bottom Action Bar for Tablet
-- Add a fixed bottom bar (above the timeline) with the most-used actions: Add Element, Layers, Properties, Undo, Preview
-- This replaces the need to reach the top toolbar while designing
-- Icons-only with labels, 48px tap targets, glassmorphism styling
+1. **Left Sidebar (Assets) -- line ~994**: After the inner `<div className="relative z-40 ...">` opens, insert a drag handle bar at the top (only on tablet):
+   ```tsx
+   {isTablet && (
+     <div className="flex justify-center py-2 cursor-grab" onClick={() => setLeftPanelOpen(false)}>
+       <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+     </div>
+   )}
+   ```
 
-### 3. Improved Sidebar Drawers
-- Increase drawer width from `w-72` to `w-80` for more breathing room
-- Add a visible drag handle / close button at the top of each drawer
-- Increase all widget card tap targets in the Asset Tray (from `aspect-square` tiny cards to larger grid with `min-h-[72px]`)
-- Increase layer row height from `h-9` to `h-12` with larger visibility/lock toggle buttons
-- Make media library thumbnails larger (grid-cols-2 instead of grid-cols-3)
+2. **Right Sidebar (Properties) -- line ~1340**: Same treatment after the inner wrapper div opens:
+   ```tsx
+   {isTablet && (
+     <div className="flex justify-center py-2 cursor-grab" onClick={() => setRightPanelOpen(false)}>
+       <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+     </div>
+   )}
+   ```
 
-### 4. Canvas Interaction Improvements
-- Increase the Rnd resize handles hit area on tablet (larger corner/edge handles)
-- Add a visible selection toolbar floating above the selected element with quick actions (delete, lock, duplicate)
-- Show a "tap canvas to deselect" hint when an element is selected
-
-### 5. Timeline Touch Optimization
-- Increase timeline row height from `h-9` to `h-12` on tablet
-- Make the timing control sliders larger with bigger thumb targets
-- Collapse timeline by default on tablet to maximize canvas space
-
-### 6. Properties Panel Touch Sizing
-- Increase all input heights from `h-7`/`h-8` to `h-10` on tablet
-- Increase slider thumb sizes for easier touch dragging
-- Add more padding between property groups
-- Make color picker inputs larger
-
-## Files Modified
-- `src/pages/Studio.tsx` -- Main layout restructuring, bottom action bar, responsive classes
-- `src/components/studio/StudioTimeline.tsx` -- Larger rows and controls for tablet
-- `src/hooks/use-mobile.tsx` -- Already has `useIsTablet` (no changes needed)
-
-## Technical Approach
-- Use the existing `isTablet` boolean to conditionally apply tablet-specific classes
-- No new dependencies -- all changes are Tailwind responsive classes and conditional rendering
-- Maintain full desktop experience unchanged
-
+Both handles are styled as a small rounded pill (matching the Drawer component pattern), centered at the top of each panel. Tapping dismisses the panel. Desktop is unaffected since these only render when `is
