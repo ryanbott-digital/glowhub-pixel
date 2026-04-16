@@ -992,6 +992,11 @@ export default function Studio() {
             <div className="fixed inset-0 z-30 bg-black/40" onClick={() => setLeftPanelOpen(false)} />
           )}
           <div className="relative z-40 flex flex-col h-full overflow-y-auto bg-[hsl(220,60%,7%)]">
+          {isTablet && (
+            <div className="flex justify-center py-2 cursor-grab" onClick={() => setLeftPanelOpen(false)}>
+              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+            </div>
+          )}
           <div className="p-3 border-b border-border/20 flex items-center justify-between">
             <h3 className="text-[10px] font-['Satoshi',sans-serif] font-bold tracking-[0.2em] uppercase text-muted-foreground flex items-center gap-1.5">
               <Layers className="h-3.5 w-3.5 text-primary" /> Asset Tray
@@ -1338,6 +1343,11 @@ export default function Studio() {
             <div className="fixed inset-0 z-30 bg-black/40" onClick={() => setRightPanelOpen(false)} />
           )}
           <div className="relative z-40 flex flex-col h-full overflow-y-auto bg-[hsl(220,60%,7%)]">
+          {isTablet && (
+            <div className="flex justify-center py-2 cursor-grab" onClick={() => setRightPanelOpen(false)}>
+              <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+            </div>
+          )}
           {/* Tabs */}
           <div className="flex border-b border-border/20">
             <button onClick={() => setSidebarMode("properties")}
