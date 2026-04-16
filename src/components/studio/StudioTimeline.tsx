@@ -210,7 +210,7 @@ export function StudioTimeline({
             const sel = elements.find((e) => e.id === selectedId);
             if (!sel) return null;
             return (
-              <div className="px-4 py-2 border-t border-border/20 bg-card/30 flex flex-wrap gap-x-4 gap-y-2 items-end">
+              <div className={`px-4 ${isTablet ? 'py-3' : 'py-2'} border-t border-border/20 bg-card/30 flex flex-wrap gap-x-4 ${isTablet ? 'gap-y-3' : 'gap-y-2'} items-end`}>
                 <div className="space-y-0.5 min-w-[120px]">
                   <span className="text-[8px] text-muted-foreground font-['Satoshi',sans-serif] tracking-wider uppercase">
                     Enter at
