@@ -1205,12 +1205,11 @@ export default function Studio() {
                     minHeight={30}
                     className={`${!el.visible ? "opacity-30 pointer-events-none" : ""} ${motionClass} ${isSelected ? "ring-2 ring-primary shadow-[0_0_16px_hsla(180,100%,32%,0.4)] z-10" : "hover:ring-1 hover:ring-primary/30"}`}
                     style={{ cursor: el.locked ? "not-allowed" : "move", mixBlendMode: (el.blendMode || "normal") as any }}
-                    resizeHandleStyles={{
-                      topLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                      topRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                      bottomLeft: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                      bottomRight: { width: 10, height: 10, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" },
-                    }}
+                    resizeHandleStyles={(() => {
+                      const sz = isTablet ? 18 : 10;
+                      const handleStyle = { width: sz, height: sz, borderRadius: "50%", background: "hsl(var(--primary))", border: "2px solid hsl(var(--background))", boxShadow: "0 0 6px hsl(var(--primary))" };
+                      return { topLeft: handleStyle, topRight: handleStyle, bottomLeft: handleStyle, bottomRight: handleStyle };
+                    })()}
                     resizeHandleClasses={{
                       topLeft: isSelected ? "" : "!hidden",
                       topRight: isSelected ? "" : "!hidden",
