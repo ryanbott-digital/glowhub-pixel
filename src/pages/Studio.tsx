@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -286,7 +286,7 @@ export default function Studio() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<CanvasElement[][]>([]);
 
-  const isTablet = useIsMobile();
+  const isTablet = useIsTablet();
 
   useEffect(() => {
     if (!isTablet) return;
