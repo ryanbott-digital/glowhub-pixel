@@ -113,9 +113,30 @@ jobs:
           mkdir -p android/app/src/main/res/drawable
           cp public/tv_banner.png android/app/src/main/res/drawable/tv_banner.png
 
-          # Set immersive fullscreen theme
+          # Set immersive fullscreen theme on the runtime NoActionBar theme
           STYLES="android/app/src/main/res/values/styles.xml"
-          sed -i 's|</style>|    <item name="android:windowFullscreen">true</item>\n        <item name="android:windowNoTitle">true</item>\n    </style>|' "$STYLES"
+          python3 - <<'PY'
+import re
+p = "android/app/src/main/res/values/styles.xml"
+s = open(p).read()
+inject = (
+  '        <item name="android:windowFullscreen">true</item>\n'
+  '        <item name="android:windowTranslucentStatus">true</item>\n'
+  '        <item name="android:windowTranslucentNavigation">true</item>\n'
+)
+def add(style_name, txt):
+  pat = re.compile(r'(<style name="' + re.escape(style_name) + r'"[^>]*>)(.*?)(</style>)', re.S)
+  def repl(m):
+    body = m.group(2)
+    if 'android:windowFullscreen' in body:
+      return m.group(0)
+    return m.group(1) + body.rstrip() + '\n' + inject + '    ' + m.group(3)
+  return pat.sub(repl, txt, count=1)
+s = add('AppTheme.NoActionBar', s)
+s = add('AppTheme.NoActionBarLaunch', s)
+open(p, 'w').write(s)
+PY
+          cat "$STYLES"
 
           echo "✓ Fire TV patches applied"
           cat "$MANIFEST" | head -40
