@@ -1,37 +1,85 @@
 
 
-## Hide Browser URL Bar on Android Tablets (Player Page)
+## Kill the Top Bar on Samsung Tablet APK
 
-### Problem
-When loading `glow.pixelhub.org.uk` directly in Chrome on an Android tablet, the browser's URL bar and tabs remain visible, eating into the player's display area. This happens because Chrome only hides chrome in two situations:
+### What's actually showing
+Samsung's system status bar + an address-bar overlay. The Capacitor APK is loading `glowhub-pixel.lovable.app/player` via `server.url`, but the Activity has no immersive flags and the launch theme isn't fullscreen — so Android keeps the status bar visible the whole time.
 
-1. The site is launched as an installed PWA (Add to Home Screen → opened from home screen icon).
-2. The page programmatically enters Fullscreen API.
+### Fix (3 small native changes)
 
-The manifest already declares `"display": "standalone"`, so the install path works — but loading the URL in a regular Chrome tab does NOT honor that. We need to actively request fullscreen on the player.
+**1. `android/app/src/main/res/values/styles.xml`** — add fullscreen + translucent status to BOTH themes (currently only the GitHub workflow patches `AppTheme`, not the launch theme that the activity actually uses):
 
-### Solution
+```xml
+<style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowTranslucentStatus">true</item>
+    <item name="android:windowTranslucentNavigation">true</item>
+    <item name="android:background">@null</item>
+</style>
 
-**1. Auto-request Fullscreen on `/player` for touch devices**
+<style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+    <item name="android:background">@drawable/splash</item>
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowTranslucentStatus">true</item>
+    <item name="android:windowTranslucentNavigation">true</item>
+    <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+</style>
+```
 
-In `src/pages/Player.tsx`, on mount, attempt `document.documentElement.requestFullscreen()` automatically when the page loads on a non-Capacitor Android device. Browsers require a user gesture, so we also wrap it in a one-time tap listener as a fallback ("tap anywhere to enter fullscreen"). The existing TV-optimization logic already does this for desktop — we extend it to cover Android Chrome.
+**2. `android/app/src/main/java/.../MainActivity.java`** — enable Android immersive sticky mode so status & nav bars are fully hidden and only re-appear with a swipe:
 
-**2. Show a subtle "Tap to enter fullscreen" hint**
+```java
+package app.lovable.ac739cba0262443bbcae51cf10fbf03b;
 
-If autoplay-fullscreen is blocked (it usually is in Chrome without a gesture), display a small dismissible Glow-styled toast/badge in the corner of the player with text like "Tap to go fullscreen". One tap anywhere triggers fullscreen + hides the hint. Once fullscreen, store a flag in `sessionStorage` so we don't keep nagging.
+import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
+import com.getcapacitor.BridgeActivity;
 
-**3. Add an "Install as App" prompt to `/download` for Android**
+public class MainActivity extends BridgeActivity {
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    getWindow().setFlags(
+      WindowManager.LayoutParams.FLAG_FULLSCREEN,
+      WindowManager.LayoutParams.FLAG_FULLSCREEN
+    );
+    hideSystemBars();
+  }
 
-Surface the existing PWA install prompt more aggressively on the `/download` page when accessed from Android Chrome — this is the cleanest long-term solution since installed PWAs always launch chromeless. Use the `beforeinstallprompt` event we already hook in `AdminInstallBanner` and add a similar player-focused banner.
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus) hideSystemBars();
+  }
 
-**4. Lock viewport to remove address bar scroll behavior**
+  private void hideSystemBars() {
+    View decor = getWindow().getDecorView();
+    decor.setSystemUiVisibility(
+        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+      | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+      | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+      | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+      | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+      | View.SYSTEM_UI_FLAG_FULLSCREEN
+    );
+  }
+}
+```
 
-Add `<meta name="mobile-web-app-capable" content="yes">` and `<meta name="apple-mobile-web-app-capable" content="yes">` to `index.html`. These reinforce standalone behavior when the page IS launched from the home screen, and signal the browser to minimize chrome where supported.
+**3. `.github/workflows/build-firetv.yml`** — bump the immersive patch so it also touches `AppTheme.NoActionBar` (the runtime theme), not just `AppTheme`. Replace the current `sed` block on `STYLES` with one that injects the four `android:window*` items into `AppTheme.NoActionBar` as well.
 
-### Files to Edit
-- `src/pages/Player.tsx` — auto-fullscreen request + tap-to-fullscreen hint
-- `index.html` — add mobile-web-app-capable meta tags
-- `src/components/AdminInstallBanner.tsx` (or new `PlayerInstallBanner.tsx`) — install prompt on `/download` for player devices
+### Then
+- Re-run the GitHub workflow → reinstall the new APK on the Samsung tablet.
+- The status bar / URL overlay should be gone — only the WebView fills the screen.
 
-### Why this approach
-The URL bar can ONLY be hidden by either (a) installing as a PWA, or (b) Fullscreen API after a user gesture. There is no CSS or meta tag that will remove Chrome's address bar on a regular browser tab — that's a browser security restriction. The combination of auto-fullscreen +
+### Why the previous fixes didn't help on Samsung
+Samsung's tablet skin keeps showing the status bar unless the Activity explicitly enters immersive mode. The web-side `requestFullscreen()` only affects the browser document — it can't hide Android's system status bar inside a Capacitor WebView. The fix has to be in the native Activity.
+
+### Files to edit
+- `android/app/src/main/res/values/styles.xml`
+- `android/app/src/main/java/app/lovable/ac739cba0262443bbcae51cf10fbf03b/MainActivity.java`
+- `.github/workflows/build-firetv.yml`
+
