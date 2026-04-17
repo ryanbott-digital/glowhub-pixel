@@ -6,7 +6,7 @@
  * propagate to APK-wrapped TVs without re-packaging.
  */
 
-const CACHE_NAME = "glowhub-pwa-v2";
+const CACHE_NAME = "glowhub-pwa-v3";
 const PRECACHE_URLS = ["/index.html", "/manifest.json"];
 
 // Install: precache shell + force activate immediately
@@ -67,6 +67,12 @@ const CODE_BUNDLE_PATTERN = /\/assets\/.*\.(js|css|mjs)(\?.*)?$/i;
 // Fetch strategy
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+
+  // APK downloads should always hit the network so stale builds never get served from cache.
+  if (/\.apk$/i.test(new URL(request.url).pathname)) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   // Navigations: NetworkFirst (fall back to cached index.html when offline)
   if (request.mode === "navigate") {
