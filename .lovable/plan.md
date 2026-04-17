@@ -1,67 +1,70 @@
 
 
-## Full Immersive Kiosk Mode for Android
+## Samsung Kiosk Hardening — 5 Fixes
 
-### Current state (verified)
-- `MainActivity.java` already sets `FLAG_FULLSCREEN` + `SYSTEM_UI_FLAG_IMMERSIVE_STICKY` — that's the native-side immersive flag set
-- `AndroidManifest.xml` uses `@style/AppTheme.NoActionBarLaunch` → splash → `AppTheme.NoActionBar` (which already has `windowFullscreen`, `windowTranslucentStatus`, `windowTranslucentNavigation`)
-- `capacitor.config.ts` already has `backgroundColor: '#0B1120'`
-- **Missing**: Capacitor JS-side `StatusBar.hide()` / `NavigationBar.hide()` calls, and the CSS lockdown on `body`/`#root`
+### Current state (verified against codebase)
+- ✅ `@capacitor/status-bar` + `@hugotomazi/capacitor-navigation-bar` already installed (from last turn)
+- ✅ `src/lib/immersive-mode.ts` already calls `StatusBar.hide()` + `NavigationBar.hide()` with resume listeners
+- ✅ `MainActivity.java` already sets `SYSTEM_UI_FLAG_IMMERSIVE_STICKY`
+- ✅ `capacitor-autostart` helper exists (`src/lib/capacitor-autostart.ts`) — but Capacitor JS-side autostart only flips a pref; needs native `BOOT_COMPLETED` receiver to actually fire on boot
+- ❌ No keep-awake (Samsung will sleep the screen after timeout)
+- ❌ No `SYSTEM_ALERT_WINDOW` permission
+- ❌ No `BOOT_COMPLETED` receiver in native Android code
+- ❌ No SplashScreen config in `capacitor.config.ts` (default ~3s white-ish flash possible)
+- ❌ Background colour in `capacitor.config.ts` is `#0B1120` (Deep Space) — user wants `#000000` for retail windows
 
-The native side is mostly correct — the gap is the **JS-side hide calls** (which Capacitor reapplies on every WebView resume — important on Samsung where the system can re-show bars after focus changes) and the **CSS overflow lockdown**.
+### Fix 1 — Deeper Immersive (unhide → hide cycle)
+Update `src/lib/immersive-mode.ts` `applyHide()`:
+- Call `NavigationBar.show()` then immediately `NavigationBar.hide()` (the unhide→hide cycle re-arms the sticky immersive flag — without this, Samsung's One UI sometimes leaves the bar in a "peek" state after swipe)
+- Same trick for `StatusBar`: `show()` → `hide()`
+- Wrap in `requestAnimationFrame` so the cycle happens on the next paint (avoids race with Samsung's UI thread)
 
-### Implementation
+### Fix 2 — Keep Awake
+- Add dep: `@capacitor-community/keep-awake`
+- New helper `src/lib/keep-awake.ts` with `enableKeepAwake()` using the same Vite-safe dynamic-import pattern as `immersive-mode.ts`
+- Call from `Player.tsx` mount effect alongside `enableImmersiveMode()`
+- Re-apply on `appStateChange` resume (some OEMs drop the wakelock on background)
 
-**1. Install plugins**
-- `@capacitor/status-bar` (official)
-- `@capacitor-community/navigation-bar` (community — no official `@capacitor/navigation-bar` exists; this is the standard one)
+### Fix 3 — SYSTEM_ALERT_WINDOW
+- Add `<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />` to `android/app/src/main/AndroidManifest.xml`
+- Note in plan: Android 6+ requires the user to grant this manually via Settings → Apps → Glow → "Display over other apps" the first time. We'll add a one-time prompt later if you want — for now, the permission declaration is enough so power users can enable it.
 
-**2. New file `src/lib/immersive-mode.ts`**
-- Export `enableImmersiveMode()` that:
-  - Guards with `isNativePlatform()` (skip in browser/preview)
-  - Dynamically imports both plugins (Vite-safe pattern per `mem://tech/build-constraints`)
-  - Calls `StatusBar.hide()`, `StatusBar.setOverlaysWebView({ overlay: true })`
-  - Calls `NavigationBar.hide()`
-  - Wraps in try/catch so a missing plugin never crashes the player
-- Also re-applies on `App` resume + `visibilitychange` (Samsung re-shows bars after Recents)
+### Fix 4 — BOOT_COMPLETED Receiver
+- Add `<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />` to manifest
+- Register a receiver inside `<application>`:
+  ```xml
+  <receiver android:name=".BootReceiver" android:enabled="true" android:exported="true">
+    <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
+  </receiver>
+  ```
+- New file `android/app/src/main/java/app/lovable/ac739cba0262443bbcae51cf10fbf03b/BootReceiver.java` — on `BOOT_COMPLETED` it launches `MainActivity` with `FLAG_ACTIVITY_NEW_TASK`
+- This is the **real** autostart (the existing `capacitor-autostart` JS helper only sets a flag; it depends on a native receiver like this one to act on it). Our receiver makes it work standalone.
 
-**3. Wire into `src/pages/Player.tsx`**
-- `useEffect` on mount → `enableImmersiveMode()`
-- Add Capacitor `App.addListener('appStateChange', ...)` to re-hide on resume
-- Player-only (not App.tsx root) so the dashboard/settings UI on PWA installs still gets browser chrome
-
-**4. CSS lockdown in `src/index.css`**
-- Add a `.kiosk-lockdown` class (applied to `<html>` via `document.documentElement.classList.add` inside `enableImmersiveMode`) that sets:
-  - `html, body, #root { height: 100vh; width: 100vw; overflow: hidden; position: fixed; overscroll-behavior: none; }`
-- Class-based (not global) so it only locks down on native — the web dashboard keeps normal scrolling
-
-**5. Capacitor config**
-- `capacitor.config.ts` already has `backgroundColor` ✅
-- Add `StatusBar` plugin config block: `{ overlaysWebView: true, style: 'DARK', backgroundColor: '#0B1120' }`
-- `bundledWebRuntime: false` is the Capacitor 2 default — Capacitor 6 (current) doesn't use this key, so skip it (would just be ignored)
-
-**6. AndroidManifest.xml**
-- Already correctly using `AppTheme.NoActionBar` which extends `Theme.AppCompat.DayNight.NoActionBar` with `windowFullscreen=true` ✅
-- The user requested `@android:style/Theme.NoTitleBar.Fullscreen` — but that's a legacy non-AppCompat theme that breaks Capacitor's WebView. The current `AppTheme.NoActionBar` is the correct equivalent and already in place. **No change needed** here.
-
-**7. Trigger native rebuild**
-- After file changes, the GitHub Actions workflow will rebuild the APK on next push
-- User downloads new APK from Artifacts → sideloads to Samsung
+### Fix 5 — Splash + Black Background (no white flash)
+- `capacitor.config.ts`:
+  - Change `backgroundColor` from `'#0B1120'` to `'#000000'` (root + `android` block)
+  - Add `SplashScreen` plugin block: `{ launchShowDuration: 0, backgroundColor: '#000000', showSpinner: false, splashFullScreen: true, splashImmersive: true }`
+- Update `android/app/src/main/res/values/styles.xml` `AppTheme.NoActionBarLaunch` `windowBackground` to `@android:color/black` (currently likely the splash drawable) — prevents the brief theme flash before WebView paints
+- Note: SplashScreen plugin is already a Capacitor core dep; no install needed
 
 ### Files touched
-- `package.json` (add 2 deps)
-- `src/lib/immersive-mode.ts` (new)
-- `src/pages/Player.tsx` (call on mount + resume listener)
-- `src/index.css` (add `.kiosk-lockdown` class)
-- `capacitor.config.ts` (add StatusBar plugin config)
-
-### Files intentionally NOT changed
-- `MainActivity.java` — already correct
-- `AndroidManifest.xml` / `styles.xml` — already correct (legacy `Theme.NoTitleBar.Fullscreen` would break Capacitor)
-- `App.tsx` — keep immersive scoped to Player route only
+- `package.json` (1 dep: `@capacitor-community/keep-awake`)
+- `src/lib/immersive-mode.ts` (unhide→hide cycle)
+- `src/lib/keep-awake.ts` (new)
+- `src/pages/Player.tsx` (call `enableKeepAwake()` on mount + resume)
+- `capacitor.config.ts` (black bg + SplashScreen block)
+- `android/app/src/main/AndroidManifest.xml` (2 permissions + BootReceiver)
+- `android/app/src/main/java/.../BootReceiver.java` (new)
+- `android/app/src/main/res/values/styles.xml` (black `windowBackground` on launch theme)
 
 ### After merge
 1. GitHub Actions rebuilds APK (~5 min)
 2. Download from Artifacts → sideload Samsung
-3. Status bar + nav bar should be gone; swiping from edge briefly shows them then re-hides
+3. On first launch, manually grant "Display over other apps" in Samsung Settings (one-time)
+4. Reboot tablet → app should auto-launch into black-background fullscreen kiosk that never sleeps
+
+### What I'm NOT doing (and why)
+- Not adding a UI button to grant SYSTEM_ALERT_WINDOW — keeping this turn focused; can add a settings toggle later
+- Not changing `MainActivity.java` — its existing immersive flags are correct; the JS-side unhide→hide cycle is what's missing
+- Not touching the existing `capacitor-autostart` JS helper — it stays as a user-facing toggle; the new `BootReceiver` is the always-on native backstop
 
