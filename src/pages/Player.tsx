@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CalibrationOverlay } from "@/components/canvas/CalibrationOverlay";
 import { HypeTakeover } from "@/components/HypeTakeover";
 import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
+import { enableImmersiveMode } from "@/lib/immersive-mode";
 
 interface PlaylistItem {
   id: string;
@@ -521,14 +522,16 @@ export default function Player() {
     };
   }, []);
 
-  // Capacitor autostart detection
+  // Capacitor autostart detection + immersive kiosk mode (status/nav bar hide)
   useEffect(() => {
     const native = isNativePlatform();
     setIsNative(native);
     if (native) {
+      enableImmersiveMode();
       isAutoStartEnabled().then(setAutoStartEnabled);
     }
   }, []);
+
 
   // PWA install prompt detection
   useEffect(() => {
