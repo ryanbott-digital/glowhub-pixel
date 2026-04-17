@@ -1,34 +1,56 @@
 
 
-## How to Trigger the Fire TV Build
+## Diagnose & Fix Failing Fire TV Build
 
-I can't run GitHub Actions from inside Lovable — I only edit code, GitHub runs the workflow. Here's exactly how to kick it off:
+### What's happening
+All 3 GitHub Action runs failed. I can't read GitHub's run logs from inside Lovable, so I need either (a) the log text from the failed step, or (b) to harden the workflow against the most likely failure modes and re-run.
 
-### Steps
+### Most likely cause
+The workflow's "Inject Fire TV leanback intent & banner" step uses raw `sed` with no idempotency guard. The Android `android/` folder is committed to the repo and already contains the LEANBACK intent, banner attribute, and a `tv_banner` drawable from previous successful runs. Re-running the workflow now:
 
-1. Go to your repo on GitHub: **github.com/<your-username>/<repo-name>**
-2. Click the **Actions** tab at the top.
-3. In the left sidebar, click **Build Fire TV APK**.
-4. On the right, click the **Run workflow** dropdown button.
-5. Leave **Build type** as `release` (or pick `debug` if you want a faster, unsigned test build).
-6. Click the green **Run workflow** button.
-7. Wait ~3–5 minutes. When the run finishes with a green check:
-   - Scroll to the bottom of the run page → **Artifacts** → download `GlowHub-FireTV` (zip containing the APK), **OR**
-   - The workflow also auto-commits the new APK to `public/GlowHub.apk`, so it's available at:  
-     `https://glow.pixelhub.org.uk/GlowHub.apk`
+1. Adds a SECOND `LEANBACK_LAUNCHER` category → invalid `AndroidManifest.xml`
+2. Re-prepends `<application android:banner="..."` to a tag that already has it → duplicate attribute → manifest merger fails
+3. `cp public/tv_banner.png` succeeds but the manifest is already broken before gradle even runs
 
-### If "Run workflow" button is missing
-That means GitHub disabled the workflow (happens after long inactivity or repeated failures). Fix:
-- Actions tab → Build Fire TV APK → top right → **Enable workflow**.
-- Then repeat steps 4–6.
+This produces a red ❌ at either the "Inject" step or the "Build APK" step.
 
-### What this build includes
-The latest immersive-mode native fixes are already merged:
-- `MainActivity.java` — immersive sticky flags
-- `styles.xml` — fullscreen + translucent bars on both themes
-- `build-firetv.yml` — patches the runtime theme during build
+### Fix (single workflow file)
 
-So the next APK off this workflow should be the one that finally kills the Samsung status bar.
+Update `.github/workflows/build-firetv.yml` "Inject Fire TV leanback intent & banner" step to be idempotent — only patch what isn't already there:
 
-Once it's built and installed, let me know if the bar's gone and I'll move on to the next thing.
+```bash
+MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+# LEANBACK intent — only add if missing
+grep -q 'LEANBACK_LAUNCHER' "$MANIFEST" || \
+  sed -i 's|<category android:name="android.intent.category.LAUNCHER" />|&\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />|' "$MANIFEST"
+
+# Leanback + touchscreen feature flags — only add if missing
+grep -q 'android.software.leanback' "$MANIFEST" || \
+  sed -i 's|<application|<uses-feature android:name="android.software.leanback" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <application|' "$MANIFEST"
+
+# Banner attribute — only add if missing
+grep -q 'android:banner=' "$MANIFEST" || \
+  sed -i 's|<application |<application android:banner="@drawable/tv_banner" |' "$MANIFEST"
+
+# Internet permission — already idempotent, keep as-is
+grep -q 'android.permission.INTERNET' "$MANIFEST" || \
+  sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET" />\n    <application|' "$MANIFEST"
+
+mkdir -p android/app/src/main/res/drawable
+cp public/tv_banner.png android/app/src/main/res/drawable/tv_banner.png
+
+# Python immersive patch is already idempotent (checks for windowFullscreen) — keep
+```
+
+The Python block that injects the immersive style items is already idempotent (it checks `if 'android:windowFullscreen' in body`), so it stays as-is.
+
+### What I need from you (faster path)
+If after this idempotency fix the build still fails, please open the failed run on GitHub → click the red step (whichever has the ❌) → copy the last ~30 lines of red text and paste them here. Then I can pinpoint the exact error instead of guessing.
+
+### File to edit
+- `.github/workflows/build-firetv.yml` — make the manifest-patch step idempotent
+
+### Then
+- Commit auto-syncs to GitHub → Actions tab → Build Fire TV APK → Run workflow → wait ~5 min → download APK.
 
