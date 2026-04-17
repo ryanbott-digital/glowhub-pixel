@@ -140,6 +140,18 @@ export default function DownloadPage() {
   const { canvasRef, fire: fireConfetti } = useConfetti();
   const [consented, setConsented] = useState(false);
   const [bootPhase, setBootPhase] = useState(0); // 0=hidden, 1=booting, 2=ready
+  const [apkDownloadUrl, setApkDownloadUrl] = useState<string>("/GlowHub.apk");
+
+  useEffect(() => {
+    supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "apk_download_url")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) setApkDownloadUrl(data.value);
+      });
+  }, []);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
