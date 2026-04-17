@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     registerPlugin(OverlayPermissionPlugin.class);
+    registerPlugin(LockTaskPlugin.class);
     super.onCreate(savedInstanceState);
     getWindow().setFlags(
       WindowManager.LayoutParams.FLAG_FULLSCREEN,

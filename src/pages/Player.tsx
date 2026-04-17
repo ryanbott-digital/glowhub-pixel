@@ -20,6 +20,7 @@ import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
 import { enableImmersiveMode } from "@/lib/immersive-mode";
 import { enableKeepAwake } from "@/lib/keep-awake";
 import { OverlayPermissionPrompt } from "@/components/OverlayPermissionPrompt";
+import { startLockTask, isLockTaskActive, isLockTaskPreferred } from "@/lib/lock-task";
 
 interface PlaylistItem {
   id: string;
@@ -532,6 +533,18 @@ export default function Player() {
       enableImmersiveMode();
       enableKeepAwake();
       isAutoStartEnabled().then(setAutoStartEnabled);
+      // Auto-pin (Lock Task Mode) once paired & native — re-arms on every mount.
+      // First call shows Samsung's "Pin this app?" system prompt; subsequent
+      // launches pin silently. User can still unpin with Back+Recents.
+      (async () => {
+        await new Promise((r) => setTimeout(r, 2500));
+        const already = await isLockTaskActive();
+        if (already) return;
+        // Only auto-start if user hasn't explicitly opted out before
+        if (isLockTaskPreferred() || localStorage.getItem("glowhub_lock_task_optout_v1") !== "1") {
+          await startLockTask();
+        }
+      })();
     }
   }, []);
 
