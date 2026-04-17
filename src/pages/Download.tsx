@@ -140,17 +140,31 @@ export default function DownloadPage() {
   const { canvasRef, fire: fireConfetti } = useConfetti();
   const [consented, setConsented] = useState(false);
   const [bootPhase, setBootPhase] = useState(0); // 0=hidden, 1=booting, 2=ready
-  const [apkDownloadUrl, setApkDownloadUrl] = useState<string>("/GlowHub.apk");
+  const [apkDownloadUrl, setApkDownloadUrl] = useState<string>("");
+  const [apkDownloadReady, setApkDownloadReady] = useState(false);
 
   useEffect(() => {
+    let ignore = false;
+
     supabase
       .from("app_settings")
       .select("value")
       .eq("key", "apk_download_url")
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.value) setApkDownloadUrl(data.value);
+        if (ignore) return;
+        setApkDownloadUrl(
+          data?.value ||
+            "https://github.com/Ryanbott-digital/glowhub-pixel/releases/latest/download/GlowHub.apk"
+        );
+      })
+      .finally(() => {
+        if (!ignore) setApkDownloadReady(true);
       });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -481,14 +495,25 @@ export default function DownloadPage() {
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
                 Native WebView wrapper — no browser chrome, true fullscreen, video autoplay.
               </p>
-              <a
-                href={`${apkDownloadUrl}${apkDownloadUrl.includes("?") ? "&" : "?"}v=${APK_VERSION}`}
-                download
-                className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-10 py-4 rounded-xl text-base font-bold bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground shadow-[0_0_30px_hsla(180,100%,45%,0.3)] hover:shadow-[0_0_50px_hsla(180,100%,45%,0.5)] hover:scale-[1.02] transition-all duration-300"
-              >
-                <Download className="h-5 w-5" />
-                Download APK
-              </a>
+              {apkDownloadReady && apkDownloadUrl ? (
+                <a
+                  href={`${apkDownloadUrl}${apkDownloadUrl.includes("?") ? "&" : "?"}v=${APK_VERSION}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-10 py-4 rounded-xl text-base font-bold bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground shadow-[0_0_30px_hsla(180,100%,45%,0.3)] hover:shadow-[0_0_50px_hsla(180,100%,45%,0.5)] hover:scale-[1.02] transition-all duration-300"
+                >
+                  <Download className="h-5 w-5" />
+                  Download APK
+                </a>
+              ) : (
+                <Button
+                  disabled
+                  className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-10 py-4 rounded-xl text-base font-bold bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground opacity-70"
+                >
+                  <Download className="h-5 w-5" />
+                  Preparing download…
+                </Button>
+              )}
               <p className="text-[10px] text-muted-foreground/60 font-mono">v{APK_VERSION} · {APK_DATE}</p>
             </div>
           </div>
