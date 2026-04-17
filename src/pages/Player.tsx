@@ -528,7 +528,7 @@ export default function Player() {
     setIsNative(native);
     if (native) {
       enableImmersiveMode();
-      isAutoStartEnabled().then(setAutoStartOn);
+      isAutoStartEnabled().then(setAutoStartEnabled);
     }
   }, []);
 
