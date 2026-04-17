@@ -17,18 +17,30 @@ async function applyHide() {
 
     const { StatusBar } = await import(/* @vite-ignore */ statusBarPath);
     try {
-      await StatusBar.hide();
-    } catch (e) {
-      console.warn("[immersive] StatusBar.hide failed", e);
-    }
-    try {
       await StatusBar.setOverlaysWebView({ overlay: true });
     } catch {
       /* not supported on all versions */
     }
+    // unhide → hide cycle re-arms Samsung's sticky immersive flag
+    try {
+      await StatusBar.show();
+    } catch { /* noop */ }
+    try {
+      await StatusBar.hide();
+    } catch (e) {
+      console.warn("[immersive] StatusBar.hide failed", e);
+    }
 
     try {
       const { NavigationBar } = await import(/* @vite-ignore */ navBarPath);
+      // unhide → hide cycle (Samsung One UI sometimes leaves bar in 'peek' state)
+      try {
+        await NavigationBar.show();
+      } catch { /* noop */ }
+      // Defer to next paint to avoid race with Samsung UI thread
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      );
       await NavigationBar.hide();
     } catch (e) {
       console.warn("[immersive] NavigationBar.hide failed", e);

@@ -8,9 +8,9 @@ const config: CapacitorConfig = {
     url: 'https://glowhub-pixel.lovable.app/player?forceHideBadge=true',
     cleartext: true,
   },
-  backgroundColor: '#0B1120',
+  backgroundColor: '#000000',
   android: {
-    backgroundColor: '#0B1120',
+    backgroundColor: '#000000',
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
@@ -19,7 +19,15 @@ const config: CapacitorConfig = {
     StatusBar: {
       overlaysWebView: true,
       style: 'DARK',
-      backgroundColor: '#0B1120',
+      backgroundColor: '#000000',
+    },
+    SplashScreen: {
+      launchShowDuration: 0,
+      backgroundColor: '#000000',
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
+      androidSplashResourceName: 'splash',
     },
   },
 };
