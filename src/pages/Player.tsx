@@ -19,6 +19,7 @@ import { HypeTakeover } from "@/components/HypeTakeover";
 import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
 import { enableImmersiveMode } from "@/lib/immersive-mode";
 import { enableKeepAwake } from "@/lib/keep-awake";
+import { OverlayPermissionPrompt } from "@/components/OverlayPermissionPrompt";
 
 interface PlaylistItem {
   id: string;
@@ -2897,6 +2898,7 @@ export default function Player() {
         </div>
       )}
       <ApkUpdateBanner />
+      <OverlayPermissionPrompt enabled={isNative} />
     </div>
   );
 }
