@@ -224,12 +224,22 @@ jobs:
       - name: Commit APK to repo
         run: |
           cp "${{ steps.find_apk.outputs.apk_path }}" public/GlowHub.apk
+          echo "── APK file size ──"
+          ls -lh public/GlowHub.apk
+          APK_BYTES=$(stat -c%s public/GlowHub.apk)
+          APK_MB=$((APK_BYTES / 1024 / 1024))
+          echo "APK is ${APK_MB} MB"
+          if [ "$APK_MB" -ge 100 ]; then
+            echo "::error::APK is ${APK_MB} MB — exceeds GitHub's 100 MB file limit. Cannot push to repo. Use the Artifacts download instead, or switch to Git LFS / GitHub Releases."
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/GlowHub.apk
           git diff --cached --quiet && echo "No changes to commit" && exit 0
           git commit -m "chore: update GlowHub.apk — Fire TV Capacitor build"
-          git push || echo "::warning::APK artifact uploaded, but pushing public/GlowHub.apk back to the repo failed"
+          echo "── Pushing to $(git remote get-url origin) on $(git rev-parse --abbrev-ref HEAD) ──"
+          git push
 
       - name: Upload build logs on failure
         if: failure()
