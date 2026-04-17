@@ -1,34 +1,30 @@
 
 
-## Get the APK Despite the 404
+## Next Step: Read the Build Log
 
-### Why 404
-We made the "commit APK back to repo" step non-fatal so the workflow stays green even if the push fails. The push *is* failing (likely branch protection, GITHUB_TOKEN write perms, or file size), so `public/GlowHub.apk` was never committed → the URL 404s. The APK *was* still built — it's sitting in the workflow run's Artifacts.
+The workflow has been re-run with loud failure mode + APK size logging. I need the actual log output to diagnose why `public/GlowHub.apk` isn't reaching the repo (causing the 404).
 
-### Two paths
+### What I need from you
 
-**Path A — Grab it from Artifacts right now (fastest, works today)**
-1. GitHub → your repo → **Actions** tab
-2. Click the most recent green **Build Fire TV APK** run
-3. Scroll to bottom → **Artifacts** section → click **GlowHub-FireTV** → downloads a zip
-4. Unzip → `app-release.apk` (or `app-debug.apk`) → sideload to the Samsung tablet
+Open the latest **Build Fire TV APK** run on GitHub and tell me **one** of these:
 
-**Path B — Fix the auto-publish so the URL works (proper fix)**
-The workflow needs the push to actually succeed. Likely culprits:
-- `permissions: contents: write` missing at the workflow level (GITHUB_TOKEN defaults to read-only on many repos now)
-- APK >100MB → GitHub rejects the push
-- Branch protection on `main` blocking direct pushes from Actions
+**A) If the run is GREEN ✅ (passed)**
+- Click the run → expand the **"Commit APK to repo"** step
+- Copy the lines showing `── APK file size ──` and `APK is XX MB`
+- Also copy any line containing `Pushing to` or `No changes to commit`
 
-Plan once you approve:
-1. Read `.github/workflows/build-firetv.yml` to confirm current `permissions` block and push target
-2. Add `permissions: contents: write` at workflow root if missing
-3. Restore the push step to **fail loudly** (remove the `|| echo warning`) so we actually see the real error next run
-4. Add an `ls -lh public/GlowHub.apk` line before push so the log shows the file size (rules out the >100MB issue)
-5. You re-run the workflow → if it fails, paste the red push-step error here → I pinpoint it
+**B) If the run is RED ❌ (failed)**
+- Click the run → click the red ❌ step
+- Copy the last ~20 lines of red text (especially anything mentioning `remote:`, `denied`, `protected branch`, `exceeds`, or `403`)
 
-### Recommendation
-Do Path A right now to unblock testing the immersive-mode fix on the Samsung. Then approve Path B so the public download URL works for future builds.
+### Why I can't just look myself
+Lovable has no access to your GitHub Actions run logs — only you can see them. Without the log text I'd be guessing between three different root causes (size limit / branch protection / token perms) and likely waste another build cycle.
 
-### Files Path B touches
-- `.github/workflows/build-firetv.yml`
+### Once you paste the log
+I'll pinpoint the exact fix in one shot:
+- **>100 MB** → switch to GitHub Releases + update the `/GlowHub.apk` redirect
+- **Branch protection** → switch push target to a `builds` branch + update download URL
+- **403/permission** → add a PAT secret or fix workflow permissions block
+
+No code changes this turn — just need the log text to proceed.
 
