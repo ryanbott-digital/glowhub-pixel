@@ -99,49 +99,98 @@ jobs:
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-          # LEANBACK intent — only add if missing
-          grep -q 'LEANBACK_LAUNCHER' "$MANIFEST" || \
-            sed -i 's|<category android:name="android.intent.category.LAUNCHER" />|&\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />|' "$MANIFEST"
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
 
-          # Leanback + touchscreen feature flags — only add if missing
-          grep -q 'android.software.leanback' "$MANIFEST" || \
-            sed -i 's|<application|<uses-feature android:name="android.software.leanback" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <application|' "$MANIFEST"
+          ANDROID_NS = "http://schemas.android.com/apk/res/android"
+          ET.register_namespace("android", ANDROID_NS)
+          manifest_path = Path("android/app/src/main/AndroidManifest.xml")
+          tree = ET.parse(manifest_path)
+          root = tree.getroot()
+          android = f"{{{ANDROID_NS}}}"
 
-          # Banner attribute — only add if missing
-          grep -q 'android:banner=' "$MANIFEST" || \
-            sed -i 's|<application |<application android:banner="@drawable/tv_banner" |' "$MANIFEST"
+          application = root.find("application")
+          if application is None:
+              raise SystemExit("AndroidManifest.xml is missing <application>")
 
-          # Add internet permission if not present
-          grep -q 'android.permission.INTERNET' "$MANIFEST" || \
-            sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET" />\n    <application|' "$MANIFEST"
+          def has_named_tag(tag: str, value: str) -> bool:
+              return any(node.get(android + "name") == value for node in root.findall(tag))
 
-          # Copy TV banner drawable
+          if not has_named_tag("uses-permission", "android.permission.INTERNET"):
+              root.insert(0, ET.Element("uses-permission", {android + "name": "android.permission.INTERNET"}))
+
+          existing_features = {node.get(android + "name") for node in root.findall("uses-feature")}
+          insert_at = list(root).index(application)
+          for feature_name in ("android.software.leanback", "android.hardware.touchscreen"):
+              if feature_name not in existing_features:
+                  root.insert(
+                      insert_at,
+                      ET.Element(
+                          "uses-feature",
+                          {
+                              android + "name": feature_name,
+                              android + "required": "false",
+                          },
+                      ),
+                  )
+                  insert_at += 1
+
+          if application.get(android + "banner") != "@drawable/tv_banner":
+              application.set(android + "banner", "@drawable/tv_banner")
+
+          launcher_activity = None
+          launcher_filter = None
+          for activity in application.findall("activity"):
+              for intent_filter in activity.findall("intent-filter"):
+                  actions = {action.get(android + "name") for action in intent_filter.findall("action")}
+                  categories = {category.get(android + "name") for category in intent_filter.findall("category")}
+                  if "android.intent.action.MAIN" in actions and "android.intent.category.LAUNCHER" in categories:
+                      launcher_activity = activity
+                      launcher_filter = intent_filter
+                      break
+              if launcher_activity is not None:
+                  break
+
+          if launcher_filter is None:
+              raise SystemExit("Could not find the main launcher activity in AndroidManifest.xml")
+
+          existing_categories = {category.get(android + "name") for category in launcher_filter.findall("category")}
+          if "android.intent.category.LEANBACK_LAUNCHER" not in existing_categories:
+              ET.SubElement(
+                  launcher_filter,
+                  "category",
+                  {android + "name": "android.intent.category.LEANBACK_LAUNCHER"},
+              )
+
+          tree.write(manifest_path, encoding="utf-8", xml_declaration=True)
+          PY
+
           mkdir -p android/app/src/main/res/drawable
           cp public/tv_banner.png android/app/src/main/res/drawable/tv_banner.png
 
-          # Set immersive fullscreen theme on the runtime NoActionBar theme
           STYLES="android/app/src/main/res/values/styles.xml"
           python3 - <<'PY'
-import re
-p = "android/app/src/main/res/values/styles.xml"
-s = open(p).read()
-inject = (
-  '        <item name="android:windowFullscreen">true</item>\n'
-  '        <item name="android:windowTranslucentStatus">true</item>\n'
-  '        <item name="android:windowTranslucentNavigation">true</item>\n'
-)
-def add(style_name, txt):
-  pat = re.compile(r'(<style name="' + re.escape(style_name) + r'"[^>]*>)(.*?)(</style>)', re.S)
-  def repl(m):
-    body = m.group(2)
-    if 'android:windowFullscreen' in body:
-      return m.group(0)
-    return m.group(1) + body.rstrip() + '\n' + inject + '    ' + m.group(3)
-  return pat.sub(repl, txt, count=1)
-s = add('AppTheme.NoActionBar', s)
-s = add('AppTheme.NoActionBarLaunch', s)
-open(p, 'w').write(s)
-PY
+          import re
+          p = "android/app/src/main/res/values/styles.xml"
+          s = open(p).read()
+          inject = (
+            '        <item name="android:windowFullscreen">true</item>\n'
+            '        <item name="android:windowTranslucentStatus">true</item>\n'
+            '        <item name="android:windowTranslucentNavigation">true</item>\n'
+          )
+          def add(style_name, txt):
+            pat = re.compile(r'(<style name="' + re.escape(style_name) + r'"[^>]*>)(.*?)(</style>)', re.S)
+            def repl(m):
+              body = m.group(2)
+              if 'android:windowFullscreen' in body:
+                return m.group(0)
+              return m.group(1) + body.rstrip() + '\n' + inject + '    ' + m.group(3)
+            return pat.sub(repl, txt, count=1)
+          s = add('AppTheme.NoActionBar', s)
+          s = add('AppTheme.NoActionBarLaunch', s)
+          open(p, 'w').write(s)
+          PY
           cat "$STYLES"
 
           echo "✓ Fire TV patches applied"
@@ -180,7 +229,7 @@ PY
           git add public/GlowHub.apk
           git diff --cached --quiet && echo "No changes to commit" && exit 0
           git commit -m "chore: update GlowHub.apk — Fire TV Capacitor build"
-          git push
+          git push || echo "::warning::APK artifact uploaded, but pushing public/GlowHub.apk back to the repo failed"
 
       - name: Upload build logs on failure
         if: failure()
