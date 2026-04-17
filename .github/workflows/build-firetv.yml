@@ -214,6 +214,22 @@ jobs:
           echo "✓ Fire TV patches applied"
           cat "$MANIFEST" | head -40
 
+      - name: Generate signing keystore
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          KEYSTORE_PATH="$RUNNER_TEMP/glowhub-release.jks"
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE_PATH" \
+            -storepass glowhub -keypass glowhub \
+            -alias glowhub \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=GlowHub, OU=Pixel, O=GlowHub, L=London, S=London, C=GB"
+          echo "GLOWHUB_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo "GLOWHUB_KEYSTORE_PASSWORD=glowhub" >> "$GITHUB_ENV"
+          echo "GLOWHUB_KEY_ALIAS=glowhub" >> "$GITHUB_ENV"
+          echo "GLOWHUB_KEY_PASSWORD=glowhub" >> "$GITHUB_ENV"
+          echo "✓ Keystore generated at $KEYSTORE_PATH"
+
       - name: Build APK
         run: |
           cd android
