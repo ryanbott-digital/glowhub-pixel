@@ -18,6 +18,7 @@ import { CalibrationOverlay } from "@/components/canvas/CalibrationOverlay";
 import { HypeTakeover } from "@/components/HypeTakeover";
 import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
 import { enableImmersiveMode } from "@/lib/immersive-mode";
+import { enableKeepAwake } from "@/lib/keep-awake";
 
 interface PlaylistItem {
   id: string;
@@ -528,6 +529,7 @@ export default function Player() {
     setIsNative(native);
     if (native) {
       enableImmersiveMode();
+      enableKeepAwake();
       isAutoStartEnabled().then(setAutoStartEnabled);
     }
   }, []);
