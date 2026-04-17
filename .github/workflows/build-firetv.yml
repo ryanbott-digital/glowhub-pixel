@@ -99,11 +99,17 @@ jobs:
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-          # Add LEANBACK_LAUNCHER intent to main activity
-          sed -i 's|<category android:name="android.intent.category.LAUNCHER" />|<category android:name="android.intent.category.LAUNCHER" />\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />|' "$MANIFEST"
+          # LEANBACK intent — only add if missing
+          grep -q 'LEANBACK_LAUNCHER' "$MANIFEST" || \
+            sed -i 's|<category android:name="android.intent.category.LAUNCHER" />|&\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />|' "$MANIFEST"
 
-          # Add leanback + touchscreen feature flags and banner attribute
-          sed -i 's|<application|<uses-feature android:name="android.software.leanback" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <application android:banner="@drawable/tv_banner"|' "$MANIFEST"
+          # Leanback + touchscreen feature flags — only add if missing
+          grep -q 'android.software.leanback' "$MANIFEST" || \
+            sed -i 's|<application|<uses-feature android:name="android.software.leanback" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n    <application|' "$MANIFEST"
+
+          # Banner attribute — only add if missing
+          grep -q 'android:banner=' "$MANIFEST" || \
+            sed -i 's|<application |<application android:banner="@drawable/tv_banner" |' "$MANIFEST"
 
           # Add internet permission if not present
           grep -q 'android.permission.INTERNET' "$MANIFEST" || \
