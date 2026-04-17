@@ -145,22 +145,26 @@ export default function DownloadPage() {
 
   useEffect(() => {
     let ignore = false;
+    const fallbackApkUrl =
+      "https://github.com/Ryanbott-digital/glowhub-pixel/releases/latest/download/GlowHub.apk";
 
     supabase
       .from("app_settings")
       .select("value")
       .eq("key", "apk_download_url")
       .maybeSingle()
-      .then(({ data }) => {
-        if (ignore) return;
-        setApkDownloadUrl(
-          data?.value ||
-            "https://github.com/Ryanbott-digital/glowhub-pixel/releases/latest/download/GlowHub.apk"
-        );
-      })
-      .finally(() => {
-        if (!ignore) setApkDownloadReady(true);
-      });
+      .then(
+        ({ data }) => {
+          if (ignore) return;
+          setApkDownloadUrl(data?.value || fallbackApkUrl);
+          setApkDownloadReady(true);
+        },
+        () => {
+          if (ignore) return;
+          setApkDownloadUrl(fallbackApkUrl);
+          setApkDownloadReady(true);
+        }
+      );
 
     return () => {
       ignore = true;
