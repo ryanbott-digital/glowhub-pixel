@@ -20,6 +20,7 @@ import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
 import { enableImmersiveMode } from "@/lib/immersive-mode";
 import { enableKeepAwake } from "@/lib/keep-awake";
 import { OverlayPermissionPrompt } from "@/components/OverlayPermissionPrompt";
+import { startLockTask, isLockTaskActive, isLockTaskPreferred } from "@/lib/lock-task";
 
 interface PlaylistItem {
   id: string;
