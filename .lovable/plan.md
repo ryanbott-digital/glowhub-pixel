@@ -1,30 +1,27 @@
 
 
-## Next Step: Read the Build Log
+## Where to Click
 
-The workflow has been re-run with loud failure mode + APK size logging. I need the actual log output to diagnose why `public/GlowHub.apk` isn't reaching the repo (causing the 404).
+You're on the right page. Two options:
 
-### What I need from you
+### Option A — Download from Artifacts (always works)
+1. Scroll to the **Artifacts** section at the bottom (you can see it in your screenshot)
+2. Click **GlowHub-FireTV** (the row showing 5.51 MB) — or click the small **download arrow icon** on the far right of that row
+3. Browser downloads `GlowHub-FireTV.zip`
+4. Unzip it → you'll get `app-release.apk`
+5. Sideload to the Samsung tablet (transfer via USB / Google Drive / email and tap to install)
 
-Open the latest **Build Fire TV APK** run on GitHub and tell me **one** of these:
+### Option B — Try the public URL again
+Since the APK is only 5.51 MB (way under 100 MB), the auto-commit step should have succeeded this run. Try:
 
-**A) If the run is GREEN ✅ (passed)**
-- Click the run → expand the **"Commit APK to repo"** step
-- Copy the lines showing `── APK file size ──` and `APK is XX MB`
-- Also copy any line containing `Pushing to` or `No changes to commit`
+**https://glow.pixelhub.org.uk/GlowHub.apk**
 
-**B) If the run is RED ❌ (failed)**
-- Click the run → click the red ❌ step
-- Copy the last ~20 lines of red text (especially anything mentioning `remote:`, `denied`, `protected branch`, `exceeds`, or `403`)
+If it downloads → done, that URL now works for all future builds.
+If it still 404s → the push step failed silently (branch protection most likely). Tell me and I'll switch the workflow to publish via a `builds` branch or GitHub Releases instead.
 
-### Why I can't just look myself
-Lovable has no access to your GitHub Actions run logs — only you can see them. Without the log text I'd be guessing between three different root causes (size limit / branch protection / token perms) and likely waste another build cycle.
+### Recommendation
+Do **Option A right now** to unblock testing. Then try Option B in a separate tab — if B works too, even better for future updates.
 
-### Once you paste the log
-I'll pinpoint the exact fix in one shot:
-- **>100 MB** → switch to GitHub Releases + update the `/GlowHub.apk` redirect
-- **Branch protection** → switch push target to a `builds` branch + update download URL
-- **403/permission** → add a PAT secret or fix workflow permissions block
-
-No code changes this turn — just need the log text to proceed.
+### No code changes needed this turn
+This is purely a "click here" guide. Once you've installed the APK on the Samsung, report back whether the status bar is gone.
 
