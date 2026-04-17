@@ -224,11 +224,41 @@ jobs:
       - name: Find built APK
         id: find_apk
         run: |
-          APK=$(find android -name "*.apk" -print -quit)
+          if [ "${{ github.event.inputs.build_type }}" = "release" ]; then
+            CANDIDATES=(
+              "android/app/build/outputs/apk/release/app-release.apk"
+              "android/app/build/outputs/apk/release/app-release-unsigned.apk"
+            )
+          else
+            CANDIDATES=("android/app/build/outputs/apk/debug/app-debug.apk")
+          fi
+
+          APK=""
+          for candidate in "${CANDIDATES[@]}"; do
+            if [ -f "$candidate" ]; then
+              APK="$candidate"
+              break
+            fi
+          done
+
           if [ -z "$APK" ]; then
-            echo "::error::No APK found after build"
+            echo "::error::Expected APK not found in build outputs"
+            find android/app/build/outputs -maxdepth 4 -type f | sort
             exit 1
           fi
+
+          if ! unzip -l "$APK" | grep -q "assets/public/index.html"; then
+            echo "::error::APK does not contain Capacitor web assets (assets/public/index.html missing)"
+            unzip -l "$APK" | sed -n '1,120p'
+            exit 1
+          fi
+
+          if unzip -l "$APK" | grep -q "assets/appConfig.json"; then
+            echo "::error::APK looks like a Median/GoNative wrapper, not the Capacitor build"
+            unzip -l "$APK" | sed -n '1,120p'
+            exit 1
+          fi
+
           echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
           echo "✓ Found APK: $APK ($(du -sh "$APK" | cut -f1))"
 
