@@ -12,10 +12,10 @@ async function getPlugin() {
     const { Capacitor, registerPlugin } = await import(/* @vite-ignore */ corePath);
     if (!Capacitor?.isNativePlatform?.()) return null;
     if (Capacitor.getPlatform?.() !== "android") return null;
-    return registerPlugin<{
+    return registerPlugin("OverlayPermission") as {
       check: () => Promise<{ granted: boolean }>;
       request: () => Promise<{ opened: boolean }>;
-    }>("OverlayPermission");
+    };
   } catch {
     return null;
   }
