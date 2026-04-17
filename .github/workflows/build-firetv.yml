@@ -92,6 +92,24 @@ jobs:
             "platforms;android-36" \
             "build-tools;36.0.0"
 
+      - name: Sync APK version into build.gradle
+        id: apk_version
+        run: |
+          APK_VERSION=$(grep -oP 'APK_VERSION\s*=\s*"\K[^"]+' src/lib/apk-version.ts)
+          if [ -z "$APK_VERSION" ]; then
+            echo "::error::Could not extract APK_VERSION from src/lib/apk-version.ts"
+            exit 1
+          fi
+          # versionCode = integer derived from semver (major*10000 + minor*100 + patch)
+          IFS='.' read -r MAJ MIN PAT <<< "$APK_VERSION"
+          VERSION_CODE=$(( ${MAJ:-0} * 10000 + ${MIN:-0} * 100 + ${PAT:-0} ))
+          echo "✓ APK_VERSION=$APK_VERSION  versionCode=$VERSION_CODE"
+          sed -i -E "s/versionCode [0-9]+/versionCode ${VERSION_CODE}/" android/app/build.gradle
+          sed -i -E "s/versionName \"[^\"]+\"/versionName \"${APK_VERSION}\"/" android/app/build.gradle
+          grep -E 'versionCode|versionName' android/app/build.gradle
+          echo "apk_version=$APK_VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
       - name: Sync existing Android project
         run: npx cap sync android
 
@@ -221,25 +239,32 @@ jobs:
           path: ${{ steps.find_apk.outputs.apk_path }}
           retention-days: 90
 
-      - name: Commit APK to repo
+      - name: Stage APK for release
+        id: stage_apk
         run: |
-          cp "${{ steps.find_apk.outputs.apk_path }}" public/GlowHub.apk
-          echo "── APK file size ──"
-          ls -lh public/GlowHub.apk
-          APK_BYTES=$(stat -c%s public/GlowHub.apk)
-          APK_MB=$((APK_BYTES / 1024 / 1024))
-          echo "APK is ${APK_MB} MB"
-          if [ "$APK_MB" -ge 100 ]; then
-            echo "::error::APK is ${APK_MB} MB — exceeds GitHub's 100 MB file limit. Cannot push to repo. Use the Artifacts download instead, or switch to Git LFS / GitHub Releases."
-            exit 1
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/GlowHub.apk
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
-          git commit -m "chore: update GlowHub.apk — Fire TV Capacitor build"
-          echo "── Pushing to $(git remote get-url origin) on $(git rev-parse --abbrev-ref HEAD) ──"
-          git push
+          mkdir -p release-staging
+          cp "${{ steps.find_apk.outputs.apk_path }}" release-staging/GlowHub.apk
+          ls -lh release-staging/GlowHub.apk
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.apk_version.outputs.apk_version }}-${{ github.run_number }}
+          name: GlowHub v${{ steps.apk_version.outputs.apk_version }} (build ${{ github.run_number }})
+          body: |
+            Automated Fire TV / Android Capacitor build.
+
+            - APK_VERSION: `${{ steps.apk_version.outputs.apk_version }}`
+            - versionCode: `${{ steps.apk_version.outputs.version_code }}`
+            - Build #: `${{ github.run_number }}`
+
+            **Always-latest URL:**
+            `https://github.com/${{ github.repository }}/releases/latest/download/GlowHub.apk`
+          files: release-staging/GlowHub.apk
+          make_latest: "true"
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload build logs on failure
         if: failure()

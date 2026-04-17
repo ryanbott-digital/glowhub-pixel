@@ -140,6 +140,18 @@ export default function DownloadPage() {
   const { canvasRef, fire: fireConfetti } = useConfetti();
   const [consented, setConsented] = useState(false);
   const [bootPhase, setBootPhase] = useState(0); // 0=hidden, 1=booting, 2=ready
+  const [apkDownloadUrl, setApkDownloadUrl] = useState<string>("/GlowHub.apk");
+
+  useEffect(() => {
+    supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "apk_download_url")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) setApkDownloadUrl(data.value);
+      });
+  }, []);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -470,7 +482,7 @@ export default function DownloadPage() {
                 Native WebView wrapper — no browser chrome, true fullscreen, video autoplay.
               </p>
               <a
-                href="/GlowHub.apk"
+                href={`${apkDownloadUrl}${apkDownloadUrl.includes("?") ? "&" : "?"}v=${APK_VERSION}`}
                 download
                 className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-10 py-4 rounded-xl text-base font-bold bg-gradient-to-r from-primary to-[hsl(220,80%,55%)] text-primary-foreground shadow-[0_0_30px_hsla(180,100%,45%,0.3)] hover:shadow-[0_0_50px_hsla(180,100%,45%,0.5)] hover:scale-[1.02] transition-all duration-300"
               >
