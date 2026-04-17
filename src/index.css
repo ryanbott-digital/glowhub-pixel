@@ -513,3 +513,17 @@ html, body {
 /* Hide scrollbar but allow scroll */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Kiosk lockdown — applied to <html> by enableImmersiveMode() on native only ── */
+.kiosk-lockdown,
+.kiosk-lockdown body,
+.kiosk-lockdown #root {
+  height: 100vh !important;
+  width: 100vw !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  overscroll-behavior: none !important;
+  touch-action: none !important;
+}

@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CalibrationOverlay } from "@/components/canvas/CalibrationOverlay";
 import { HypeTakeover } from "@/components/HypeTakeover";
 import { ApkUpdateBanner } from "@/components/ApkUpdateBanner";
+import { enableImmersiveMode } from "@/lib/immersive-mode";
 
 interface PlaylistItem {
   id: string;
