@@ -1,25 +1,19 @@
 
 
-Yes — just use the website. The Download button on `glow.pixelhub.org.uk/download` now pulls the URL from the database (which I set to your GitHub Releases endpoint), so it will always grab the latest APK without you needing to republish.
+The repo is public now, so `https://github.com/Ryanbott-digital/glowhub-pixel/releases/latest/download/GlowHub.apk` will resolve for anyone. No code changes needed.
 
-**For the Samsung browser, use:**
-```
-https://glow.pixelhub.org.uk/download
-```
-Tap the **Download APK** button → it redirects to GitHub Releases → installs v3.0.0.
+## Test it
 
-**Or skip the page entirely and hit the direct URL:**
-```
-https://github.com/Ryanbott-digital/glowhub-pixel/releases/latest/download/GlowHub.apk
-```
-This is the canonical link — it always serves whatever the most recent successful workflow run published. Bookmark it on the Samsung; you'll never need to republish the website again to push a new APK.
+1. **Laptop sanity check** (10 seconds): open the URL above in an incognito tab. It should immediately download `GlowHub.apk` (~6.7 MB). If it does, the pipeline is fully wired.
 
-**Order of operations to test now:**
-1. Confirm the GitHub Action finished and a Release with tag `v3.0.0-{n}` exists at https://github.com/Ryanbott-digital/glowhub-pixel/releases
-2. On Samsung: uninstall old GlowHub first (Settings → Apps → GlowHub → Uninstall) — avoids signature conflicts
-3. Open browser → paste the direct URL above → install
-4. Open "App info" → version should read **3.0.0** ✅
-5. Launch app → no update banner
+2. **Samsung install**:
+   - Settings → Apps → GlowHub → **Uninstall** (critical — signature mismatch will block reinstall otherwise)
+   - Browser → either tap **Download APK** on `glow.pixelhub.org.uk/download` *or* paste the direct GitHub URL
+   - Install when prompted
+   - Settings → Apps → GlowHub → App info → version should read **3.0.0**
+   - Launch app → no orange update banner at the top
 
-If the Release doesn't exist yet, the workflow either hasn't run since the changes merged or it failed — check the Actions tab.
+3. **If the banner still appears**: force-close the Samsung browser, clear its cache, and reload `/download` once — the old service worker may still be serving cached HTML for a minute after the republish.
+
+Nothing for me to build. Run the test and report back if anything's still off.
 
