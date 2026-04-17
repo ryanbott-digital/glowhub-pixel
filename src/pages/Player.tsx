@@ -522,10 +522,15 @@ export default function Player() {
     };
   }, []);
 
-  // Capacitor autostart detection
+  // Capacitor autostart detection + immersive kiosk mode (status/nav bar hide)
   useEffect(() => {
     const native = isNativePlatform();
     setIsNative(native);
+    if (native) {
+      enableImmersiveMode();
+      isAutoStartEnabled().then(setAutoStartOn);
+    }
+  }, []);
     if (native) {
       isAutoStartEnabled().then(setAutoStartEnabled);
     }
