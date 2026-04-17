@@ -531,10 +531,7 @@ export default function Player() {
       isAutoStartEnabled().then(setAutoStartOn);
     }
   }, []);
-    if (native) {
-      isAutoStartEnabled().then(setAutoStartEnabled);
-    }
-  }, []);
+
 
   // PWA install prompt detection
   useEffect(() => {
