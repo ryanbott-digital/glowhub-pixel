@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef, createElement } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft, ListMusic, Plus } from "lucide-react";
+import { Upload, Image as ImageIcon, Film, Trash2, FileWarning, Loader2, CheckSquare, X, Send, Monitor, Pencil, Shrink, Volume2, VolumeX, FolderPlus, Folder, FolderOpen, ChevronRight, Home, MoveRight, ArrowLeft, ListMusic, Plus, Maximize2, Minimize2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -1263,6 +1263,32 @@ export default function MediaLibrary() {
                         <VolumeX className="h-3.5 w-3.5 text-destructive" />
                       ) : (
                         <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </button>
+                  )}
+
+                  {/* Per-media scaling override */}
+                  {!isSelecting && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        cycleDisplayMode(item);
+                      }}
+                      className={`absolute bottom-2 ${item.type === "video" ? "left-10" : "left-2"} p-1.5 rounded-md bg-background/80 backdrop-blur-sm hover:bg-background/90 transition-colors z-10`}
+                      title={
+                        item.display_mode === "fit"
+                          ? "Always Fit (no cropping) — click to switch to Always Fill"
+                          : item.display_mode === "fill"
+                          ? "Always Fill (crop to fill) — click to inherit screen setting"
+                          : "Inherits screen setting — click to force Fit"
+                      }
+                    >
+                      {item.display_mode === "fit" ? (
+                        <Minimize2 className="h-3.5 w-3.5 text-primary" />
+                      ) : item.display_mode === "fill" ? (
+                        <Maximize2 className="h-3.5 w-3.5 text-primary" />
+                      ) : (
+                        <Shrink className="h-3.5 w-3.5 text-muted-foreground" />
                       )}
                     </button>
                   )}
