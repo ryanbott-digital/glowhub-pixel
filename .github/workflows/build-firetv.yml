@@ -42,6 +42,14 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Guard against remote server.url in capacitor.config
+        run: |
+          if grep -E "^\s*url\s*:\s*['\"]https?://" capacitor.config.ts; then
+            echo "::error::capacitor.config.ts has a remote server.url. Release APKs must load bundled assets, not a website. Remove the server.url block before building."
+            exit 1
+          fi
+          echo "✓ No remote server.url in capacitor.config.ts"
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
