@@ -1246,6 +1246,10 @@ export default function MediaLibrary() {
                       alt={item.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
+                      onLoad={(e) => {
+                        const el = e.currentTarget;
+                        recordAspect(item, el.naturalWidth, el.naturalHeight);
+                      }}
                     />
                   ) : (
                     <video
