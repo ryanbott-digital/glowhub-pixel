@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { APK_VERSION, APK_DATE } from "@/lib/apk-version";
 import { toast } from "sonner";
 
-const DOWNLOADER_CODE = "1648081";
+const DOWNLOADER_CODE = "1692151";
 
 const CHANGELOG = [
   {
