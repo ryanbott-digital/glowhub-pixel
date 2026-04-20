@@ -11,8 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { hapticMedium } from "@/lib/haptics";
+import { AiFillSuggestionPill } from "@/components/media/AiFillSuggestionPill";
+import { AiFillModal } from "@/components/media/AiFillModal";
 
 const UNDO_DURATION = 8000;
+const SIXTEEN_NINE = 16 / 9;
+const ASPECT_TOLERANCE = 0.1; // 10%
 
 function UndoCountdown({ seconds }: { seconds: number }) {
   const [remaining, setRemaining] = useState(seconds);
@@ -72,6 +76,7 @@ interface MediaItem {
   audio_muted: boolean;
   display_mode: "fit" | "fill" | string | null;
   folder_id: string | null;
+  aspect_ratio: string | null;
 }
 
 interface MediaWithSize extends MediaItem {
@@ -181,6 +186,11 @@ export default function MediaLibrary() {
   const [addingToPlaylist, setAddingToPlaylist] = useState(false);
   const [playlistMediaIds, setPlaylistMediaIds] = useState<string[]>([]);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+
+  // AI Fill suggestion state
+  const [aspectMap, setAspectMap] = useState<Map<string, number>>(new Map());
+  const [aiFillTarget, setAiFillTarget] = useState<MediaWithSize | null>(null);
+
   // Fetch folders
   const fetchFolders = useCallback(async () => {
     if (!user) return;
@@ -701,6 +711,46 @@ export default function MediaLibrary() {
     }
   };
 
+  // ── AI Fill candidate detection ──
+  const parseAspect = (ar: string | null): number | null => {
+    if (!ar) return null;
+    if (ar.includes(":")) {
+      const [w, h] = ar.split(":").map(Number);
+      if (w > 0 && h > 0) return w / h;
+    }
+    const n = Number(ar);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
+  const getAspect = (item: MediaWithSize): number | null => {
+    return aspectMap.get(item.id) ?? parseAspect(item.aspect_ratio);
+  };
+
+  const isFillCandidate = (item: MediaWithSize): boolean => {
+    if (item.type !== "image") return false;
+    if (item.display_mode === "fill") return false;
+    if (/\(AI Fill 16:9\)/.test(item.name)) return false;
+    const ratio = getAspect(item);
+    if (!ratio) return false;
+    return Math.abs(ratio - SIXTEEN_NINE) / SIXTEEN_NINE > ASPECT_TOLERANCE;
+  };
+
+  const recordAspect = async (item: MediaWithSize, w: number, h: number) => {
+    if (!w || !h) return;
+    const ratio = w / h;
+    if (aspectMap.get(item.id) === ratio) return;
+    setAspectMap((prev) => {
+      const next = new Map(prev);
+      next.set(item.id, ratio);
+      return next;
+    });
+    if (!item.aspect_ratio) {
+      const arStr = `${w}:${h}`;
+      await (supabase.from("media") as any).update({ aspect_ratio: arStr }).eq("id", item.id);
+      setMedia((prev) => prev.map((m) => (m.id === item.id ? { ...m, aspect_ratio: arStr } : m)));
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -1196,6 +1246,10 @@ export default function MediaLibrary() {
                       alt={item.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
+                      onLoad={(e) => {
+                        const el = e.currentTarget;
+                        recordAspect(item, el.naturalWidth, el.naturalHeight);
+                      }}
                     />
                   ) : (
                     <video
@@ -1238,6 +1292,11 @@ export default function MediaLibrary() {
                     )}
                     {item.type}
                   </Badge>
+
+                  {/* AI Fill suggestion pill — shows on non-16:9 images */}
+                  {!isSelecting && isFillCandidate(item) && (
+                    <AiFillSuggestionPill onClick={() => setAiFillTarget(item)} />
+                  )}
 
                   {/* Duration badge for video */}
                   {item.type === "video" && item.duration && (
@@ -1678,6 +1737,18 @@ export default function MediaLibrary() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* AI Fill modal */}
+      {aiFillTarget && (
+        <AiFillModal
+          open={!!aiFillTarget}
+          onOpenChange={(open) => !open && setAiFillTarget(null)}
+          mediaId={aiFillTarget.id}
+          mediaName={aiFillTarget.name}
+          originalUrl={getPublicUrl(aiFillTarget.storage_path)}
+          onComplete={() => fetchMedia()}
+        />
+      )}
     </div>
   );
 }
