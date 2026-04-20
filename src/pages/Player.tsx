@@ -748,22 +748,35 @@ export default function Player() {
       .eq("playlist_id", playlistId)
       .order("position");
 
+    const isSamePlaylist = currentPlaylistIdRef.current === playlistId;
     currentPlaylistIdRef.current = playlistId;
 
     if (data && data.length > 0) {
       const parsed = data as unknown as PlaylistItem[];
-      setItems(parsed);
-      currentIndexRef.current = 0;
-      setCurrentIndex(0);
-      setActiveBuffer("A");
 
-      const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
-      precacheMediaUrls(urls);
-      evictStaleMedia(urls);
+      // Compare against current items to avoid resetting playback on no-op realtime updates
+      const newSig = parsed.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
+      const oldSig = items.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
+      const contentChanged = newSig !== oldSig;
+
+      if (contentChanged) {
+        setItems(parsed);
+        // Only reset playback position if the playlist itself changed, not on item edits
+        if (!isSamePlaylist) {
+          currentIndexRef.current = 0;
+          setCurrentIndex(0);
+          setActiveBuffer("A");
+        }
+
+        const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
+        precacheMediaUrls(urls);
+        evictStaleMedia(urls);
+      }
     } else {
       setItems([]);
     }
-  }, []);
+  }, [items]);
+
 
   // Fetch a single media item by ID and set it as the sole playback item
   const fetchSingleMedia = useCallback(async (mediaId: string) => {
