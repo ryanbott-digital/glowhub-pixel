@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.check-watermark]
 verify_jwt = false
+
+[functions.remote-trigger]
+verify_jwt = false
