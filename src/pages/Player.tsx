@@ -494,7 +494,7 @@ export default function Player() {
     };
   }, []);
 
-  // Toast when pre-caching completes (once per cycle)
+  // Toast when pre-caching completes (only once per session, not on every re-cache)
   const cacheToastedRef = useRef(false);
   useEffect(() => {
     if (syncProgress?.done && syncProgress.total > 0 && !cacheToastedRef.current) {
@@ -505,10 +505,9 @@ export default function Player() {
       } else {
         toast.success(`All ${syncProgress.total} media files cached for offline playback`);
       }
-    } else if (!syncProgress?.done) {
-      cacheToastedRef.current = false;
     }
-  }, [syncProgress?.done]);
+  }, [syncProgress?.done, syncProgress?.total, syncProgress?.completed, syncProgress?.failed]);
+
 
   // Offline/online detection with toast
   useEffect(() => {
@@ -748,22 +747,35 @@ export default function Player() {
       .eq("playlist_id", playlistId)
       .order("position");
 
+    const isSamePlaylist = currentPlaylistIdRef.current === playlistId;
     currentPlaylistIdRef.current = playlistId;
 
     if (data && data.length > 0) {
       const parsed = data as unknown as PlaylistItem[];
-      setItems(parsed);
-      currentIndexRef.current = 0;
-      setCurrentIndex(0);
-      setActiveBuffer("A");
 
-      const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
-      precacheMediaUrls(urls);
-      evictStaleMedia(urls);
+      // Compare against current items to avoid resetting playback on no-op realtime updates
+      const newSig = parsed.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
+      const oldSig = items.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
+      const contentChanged = newSig !== oldSig;
+
+      if (contentChanged) {
+        setItems(parsed);
+        // Only reset playback position if the playlist itself changed, not on item edits
+        if (!isSamePlaylist) {
+          currentIndexRef.current = 0;
+          setCurrentIndex(0);
+          setActiveBuffer("A");
+        }
+
+        const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
+        precacheMediaUrls(urls);
+        evictStaleMedia(urls);
+      }
     } else {
       setItems([]);
     }
-  }, []);
+  }, [items]);
+
 
   // Fetch a single media item by ID and set it as the sole playback item
   const fetchSingleMedia = useCallback(async (mediaId: string) => {
