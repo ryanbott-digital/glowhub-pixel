@@ -70,6 +70,7 @@ interface MediaItem {
   mux_asset_id: string | null;
   mux_status: string | null;
   audio_muted: boolean;
+  display_mode: "fit" | "fill" | null;
   folder_id: string | null;
 }
 
@@ -670,6 +671,33 @@ export default function MediaLibrary() {
         prev.map((m) => (m.id === item.id ? { ...m, audio_muted: newMuted } : m))
       );
       toast.success(newMuted ? "Audio muted" : "Audio unmuted");
+    }
+  };
+
+  // Cycle: inherit (null) → fit → fill → inherit
+  const cycleDisplayMode = async (item: MediaWithSize) => {
+    const next: "fit" | "fill" | null =
+      item.display_mode === null || item.display_mode === undefined
+        ? "fit"
+        : item.display_mode === "fit"
+        ? "fill"
+        : null;
+    const { error } = await (supabase.from("media") as any)
+      .update({ display_mode: next })
+      .eq("id", item.id);
+    if (error) {
+      toast.error("Failed to update scaling");
+    } else {
+      setMedia((prev) =>
+        prev.map((m) => (m.id === item.id ? { ...m, display_mode: next } : m))
+      );
+      toast.success(
+        next === "fit"
+          ? "Always Fit (no cropping)"
+          : next === "fill"
+          ? "Always Fill (crop to fill)"
+          : "Inherits screen setting"
+      );
     }
   };
 
