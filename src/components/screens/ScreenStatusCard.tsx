@@ -120,7 +120,7 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
   const [audioStationUrl, setAudioStationUrl] = useState(screen.audio_station_url || "");
   const [audioStationName, setAudioStationName] = useState(screen.audio_station_name || "");
   const [audioVolume, setAudioVolume] = useState(screen.audio_volume ?? 80);
-  const [displayMode, setDisplayMode] = useState(screen.display_mode || "fill");
+  const [displayMode, setDisplayMode] = useState(screen.display_mode || "fit");
   const [fitBgColor, setFitBgColor] = useState(screen.fit_bg_color || "#000000");
   const [audioMuteOnHype, setAudioMuteOnHype] = useState(screen.audio_mute_on_hype !== false);
   const [orientation, setOrientation] = useState(screen.orientation || "landscape");
@@ -614,23 +614,28 @@ export function ScreenStatusCard({ screen, playlists, onPublish, onDelete, onCop
             )}
 
             {/* Display mode */}
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground w-20 shrink-0">Scaling</Label>
-              <Select
-                value={displayMode}
-                onValueChange={(val) => {
-                  setDisplayMode(val);
-                  updateScreenSetting({ display_mode: val });
-                }}
-              >
-                <SelectTrigger className="flex-1 h-7 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fill">Fill (crop edges)</SelectItem>
-                  <SelectItem value="fit">Fit (show all)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-start gap-2">
+              <Label className="text-xs text-muted-foreground w-20 shrink-0 mt-1.5">Scaling</Label>
+              <div className="flex-1 space-y-1">
+                <Select
+                  value={displayMode}
+                  onValueChange={(val) => {
+                    setDisplayMode(val);
+                    updateScreenSetting({ display_mode: val });
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fit">Fit (no cropping) — recommended</SelectItem>
+                    <SelectItem value="fill">Fill (crop to fill)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground/70 leading-tight">
+                  Use Fit for posters / Fill for 16:9 video.
+                </p>
+              </div>
             </div>
 
             {/* Fit background color — only show in Fit mode */}
