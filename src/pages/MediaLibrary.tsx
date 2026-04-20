@@ -711,6 +711,46 @@ export default function MediaLibrary() {
     }
   };
 
+  // ── AI Fill candidate detection ──
+  const parseAspect = (ar: string | null): number | null => {
+    if (!ar) return null;
+    if (ar.includes(":")) {
+      const [w, h] = ar.split(":").map(Number);
+      if (w > 0 && h > 0) return w / h;
+    }
+    const n = Number(ar);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+
+  const getAspect = (item: MediaWithSize): number | null => {
+    return aspectMap.get(item.id) ?? parseAspect(item.aspect_ratio);
+  };
+
+  const isFillCandidate = (item: MediaWithSize): boolean => {
+    if (item.type !== "image") return false;
+    if (item.display_mode === "fill") return false;
+    if (/\(AI Fill 16:9\)/.test(item.name)) return false;
+    const ratio = getAspect(item);
+    if (!ratio) return false;
+    return Math.abs(ratio - SIXTEEN_NINE) / SIXTEEN_NINE > ASPECT_TOLERANCE;
+  };
+
+  const recordAspect = async (item: MediaWithSize, w: number, h: number) => {
+    if (!w || !h) return;
+    const ratio = w / h;
+    if (aspectMap.get(item.id) === ratio) return;
+    setAspectMap((prev) => {
+      const next = new Map(prev);
+      next.set(item.id, ratio);
+      return next;
+    });
+    if (!item.aspect_ratio) {
+      const arStr = `${w}:${h}`;
+      await (supabase.from("media") as any).update({ aspect_ratio: arStr }).eq("id", item.id);
+      setMedia((prev) => prev.map((m) => (m.id === item.id ? { ...m, aspect_ratio: arStr } : m)));
+    }
+  };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
