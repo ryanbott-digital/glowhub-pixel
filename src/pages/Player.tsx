@@ -729,6 +729,9 @@ export default function Player() {
     }, 3000);
   }, []);
 
+  // Track last loaded playlist signature to avoid resetting on no-op realtime updates
+  const lastPlaylistSigRef = useRef<string>("");
+
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
       .from("playlist_items")
@@ -742,28 +745,31 @@ export default function Player() {
     if (data && data.length > 0) {
       const parsed = data as unknown as PlaylistItem[];
 
-      // Compare against current items to avoid resetting playback on no-op realtime updates
-      const newSig = parsed.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
-      const oldSig = items.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
-      const contentChanged = newSig !== oldSig;
-
-      if (contentChanged) {
-        setItems(parsed);
-        // Only reset playback position if the playlist itself changed, not on item edits
-        if (!isSamePlaylist) {
-          currentIndexRef.current = 0;
-          setCurrentIndex(0);
-          setActiveBuffer("A");
-        }
-
-        const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
-        precacheMediaUrls(urls);
-        evictStaleMedia(urls);
+      // Compare against last loaded signature to avoid resetting playback on no-op realtime updates
+      const newSig = `${playlistId}::` + parsed.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
+      if (newSig === lastPlaylistSigRef.current) {
+        // Identical content — do not touch state, do not restart timers
+        return;
       }
+      lastPlaylistSigRef.current = newSig;
+
+      setItems(parsed);
+      // Only reset playback position if the playlist itself changed, not on item edits
+      if (!isSamePlaylist) {
+        currentIndexRef.current = 0;
+        setCurrentIndex(0);
+        setActiveBuffer("A");
+      }
+
+      const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
+      precacheMediaUrls(urls);
+      evictStaleMedia(urls);
     } else {
+      lastPlaylistSigRef.current = "";
       setItems([]);
     }
-  }, [items]);
+  }, []);
+
 
 
   // Fetch a single media item by ID and set it as the sole playback item
