@@ -82,6 +82,7 @@ export type Database = {
           aspect_ratio: string | null
           audio_muted: boolean
           created_at: string
+          display_mode: string | null
           duration: number | null
           folder_id: string | null
           id: string
@@ -96,6 +97,7 @@ export type Database = {
           aspect_ratio?: string | null
           audio_muted?: boolean
           created_at?: string
+          display_mode?: string | null
           duration?: number | null
           folder_id?: string | null
           id?: string
@@ -110,6 +112,7 @@ export type Database = {
           aspect_ratio?: string | null
           audio_muted?: boolean
           created_at?: string
+          display_mode?: string | null
           duration?: number | null
           folder_id?: string | null
           id?: string
