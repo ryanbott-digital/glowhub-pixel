@@ -1288,9 +1288,12 @@ export default function Player() {
         (payload) => {
           const updated = payload.new as any;
           const previous = payload.old as any;
-          // Handle direct media trigger (play_media action)
+          // Handle direct media trigger (play_media action) — but ONLY when no playlist is set.
+          // Otherwise our own 60s heartbeat (which writes current_media_id as we advance through
+          // the playlist) would echo back here, call fetchSingleMedia, and collapse the playlist
+          // down to that one item — leaving the player stuck on whatever frame was current.
           const mediaChanged = updated.current_media_id !== previous?.current_media_id;
-          if (mediaChanged && updated.current_media_id) {
+          if (mediaChanged && updated.current_media_id && !updated.current_playlist_id) {
             fetchSingleMedia(updated.current_media_id);
           }
           // Handle playlist trigger
