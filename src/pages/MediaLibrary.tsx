@@ -70,7 +70,7 @@ interface MediaItem {
   mux_asset_id: string | null;
   mux_status: string | null;
   audio_muted: boolean;
-  display_mode: "fit" | "fill" | null;
+  display_mode: "fit" | "fill" | string | null;
   folder_id: string | null;
 }
 
