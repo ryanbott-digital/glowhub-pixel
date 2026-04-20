@@ -500,8 +500,15 @@ export default function DownloadPage() {
 
               <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
                 Open the <strong className="text-foreground">Downloader</strong> app on your Firestick and enter this code to fetch the GlowHub APK.
-                Make sure you tap <strong className="text-foreground">Install</strong> when the APK downloads — don't just open the URL.
+                When the download finishes, tap <strong className="text-foreground">Install</strong>, then <strong className="text-foreground">Done</strong> — and launch <strong className="text-foreground">GlowHub</strong> from your Apps list.
               </p>
+
+              <div className="mt-3 mx-auto max-w-sm text-left rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-1">
+                <p className="text-[11px] font-semibold text-destructive uppercase tracking-wider">Wrong screen?</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  If you see <strong className="text-foreground font-mono">glow.pixelhub.org.uk</strong> in a bar at the top, you're in <strong className="text-foreground">Amazon Silk</strong> (the browser) — not the GlowHub app. Close Silk and open <strong className="text-foreground">GlowHub</strong> from your Fire TV Apps list instead.
+                </p>
+              </div>
             </div>
           </div>
 
