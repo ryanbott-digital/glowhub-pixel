@@ -2,3 +2,9 @@ project_id = "mblgzzpnkpaxsrserwme"
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.create-pending-screen]
+verify_jwt = false
+
+[functions.check-watermark]
+verify_jwt = false
