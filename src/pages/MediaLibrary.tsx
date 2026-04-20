@@ -186,6 +186,11 @@ export default function MediaLibrary() {
   const [addingToPlaylist, setAddingToPlaylist] = useState(false);
   const [playlistMediaIds, setPlaylistMediaIds] = useState<string[]>([]);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+
+  // AI Fill suggestion state
+  const [aspectMap, setAspectMap] = useState<Map<string, number>>(new Map());
+  const [aiFillTarget, setAiFillTarget] = useState<MediaWithSize | null>(null);
+
   // Fetch folders
   const fetchFolders = useCallback(async () => {
     if (!user) return;
