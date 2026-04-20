@@ -2198,11 +2198,7 @@ export default function Player() {
     <div className="w-screen h-screen flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor, animation: "contentFadeIn 1.2s ease-out forwards" }}>
       <SilkFallbackOverlay />
       {/* Tap-to-fullscreen hint (touch browsers only) */}
-      {showFullscreenHint && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[300] px-4 py-2 rounded-full bg-primary/90 backdrop-blur-md text-primary-foreground text-xs font-medium shadow-lg pointer-events-none animate-pulse">
-          Tap anywhere to enter fullscreen
-        </div>
-      )}
+      {/* Fullscreen hint removed — Fire Stick / kiosk launches full-screen natively */}
       {/* Hype Takeover Overlay */}
       <HypeTakeover />
 
