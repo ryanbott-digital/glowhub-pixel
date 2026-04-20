@@ -526,17 +526,15 @@ export default function Player() {
       enableImmersiveMode();
       enableKeepAwake();
       isAutoStartEnabled().then(setAutoStartEnabled);
-      // Auto-pin (Lock Task Mode) once paired & native — re-arms on every mount.
-      // First call shows Samsung's "Pin this app?" system prompt; subsequent
-      // launches pin silently. User can still unpin with Back+Recents.
+      // Lock Task Mode (screen pinning) is OPT-IN only — enabled from Settings → Kiosk Mode.
+      // Auto-starting it triggers Android's persistent "To unpin, touch and hold Back + Overview"
+      // system overlay which flickers under immersive mode. Only start if explicitly preferred.
       (async () => {
+        if (!isLockTaskPreferred()) return;
         await new Promise((r) => setTimeout(r, 2500));
         const already = await isLockTaskActive();
         if (already) return;
-        // Only auto-start if user hasn't explicitly opted out before
-        if (isLockTaskPreferred() || localStorage.getItem("glowhub_lock_task_optout_v1") !== "1") {
-          await startLockTask();
-        }
+        await startLockTask();
       })();
     }
   }, []);
