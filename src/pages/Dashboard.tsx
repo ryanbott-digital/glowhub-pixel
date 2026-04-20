@@ -129,11 +129,8 @@ export default function Dashboard() {
               (s) => s.current_playlist_id === changedPlaylistId
             );
             if (affectedScreen) {
-              toast.success(`"${affectedScreen.name}" synced new content`, {
-                description: "Playlist update pushed to screen",
-                icon: "📡",
-                duration: 4000,
-              });
+              // Silent sync - no toast notification
+              console.log(`[Dashboard] ${affectedScreen.name} synced new content`);
             }
             return prev;
           });
