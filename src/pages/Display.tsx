@@ -17,6 +17,7 @@ interface PlaylistItem {
     name: string;
     duration: number | null;
     audio_muted: boolean;
+    display_mode?: "fit" | "fill" | null;
   };
 }
 
@@ -119,7 +120,7 @@ export default function Display() {
   const fetchPlaylist = useCallback(async (playlistId: string, forceReset = false) => {
     const { data } = await supabase
       .from("playlist_items")
-      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted)")
+      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted, display_mode)")
       .eq("playlist_id", playlistId)
       .order("position");
 
@@ -283,11 +284,14 @@ export default function Display() {
     return () => clearInterval(iv);
   }, []);
 
-  const objectClass = displayMode === "fit" ? "object-contain" : "object-cover";
-
   const renderMedia = (item: PlaylistItem | null, ref: React.RefObject<HTMLVideoElement>, isActive: boolean) => {
     if (!item) return null;
     const url = getPublicUrl(item.media.storage_path);
+
+    // Per-media override beats the screen setting.
+    const mediaOverride = item.media.display_mode;
+    const effectiveMode = mediaOverride === "fit" || mediaOverride === "fill" ? mediaOverride : displayMode;
+    const objectClass = effectiveMode === "fit" ? "object-contain" : "object-cover";
 
     if (item.media.type === "image") {
       return (

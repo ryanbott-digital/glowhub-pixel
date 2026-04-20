@@ -739,7 +739,7 @@ export default function Player() {
   const fetchPlaylist = useCallback(async (playlistId: string) => {
     const { data } = await supabase
       .from("playlist_items")
-      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted)")
+      .select("id, position, override_duration, media:media_id(id, storage_path, type, name, duration, audio_muted, display_mode)")
       .eq("playlist_id", playlistId)
       .order("position");
 
@@ -2186,7 +2186,10 @@ export default function Player() {
       syncMediaStyle.top = `-${position * 100}%`;
     }
   }
-  const objectFit = displayMode === "fit" ? "object-contain" : "object-cover";
+  // Per-media override: if the media item has its own display_mode, it wins over the screen setting.
+  const mediaOverride = (currentItem?.media as any)?.display_mode as "fit" | "fill" | null | undefined;
+  const effectiveDisplayMode = mediaOverride === "fit" || mediaOverride === "fill" ? mediaOverride : displayMode;
+  const objectFit = effectiveDisplayMode === "fit" ? "object-contain" : "object-cover";
   const mediaClassName = (syncLayout || (syncInfo && syncInfo.total > 1))
     ? "absolute inset-0"
     : `w-full h-full ${objectFit} absolute inset-0`;
