@@ -455,33 +455,52 @@ export default function DownloadPage() {
             </Link>
           </div>
 
-          {/* Firestick Code Card */}
-          <div className="glass-strong glass-spotlight rounded-2xl p-8 border-primary/20 relative overflow-hidden">
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[conic-gradient(from_180deg,hsla(180,100%,45%,0.15),hsla(220,80%,55%,0.1),transparent)] rounded-full blur-[40px]" />
-            <div className="relative z-10 space-y-5 text-center">
+          {/* Silk Warning Callout */}
+          <div
+            className="rounded-xl p-4 flex items-start gap-3"
+            style={{
+              background: "rgba(245, 158, 11, 0.08)",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
+            }}
+          >
+            <Shield className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-amber-400">Heads up — don't open the link in Silk</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Amazon Silk (the default Fire Stick browser) <strong className="text-foreground">always shows a URL bar at the top</strong> and
+                cannot be made fullscreen by any web app. Use the <strong className="text-foreground">GlowHub APK</strong> below or
+                <strong className="text-foreground"> Fully Kiosk Browser</strong> for a true kiosk experience.
+              </p>
+            </div>
+          </div>
+
+          {/* Firestick Code Card (legacy / advanced) */}
+          <div className="glass rounded-2xl p-6 border-primary/15 relative overflow-hidden">
+            <div className="relative z-10 space-y-4 text-center">
               <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center">
-                  <Flame className="h-5 w-5 text-accent" />
+                <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Flame className="h-4 w-4 text-accent" />
                 </div>
                 <div className="text-left">
-                  <h3 className="text-lg font-bold tracking-wide">Firestick Downloader Code</h3>
-                  <span className="text-xs text-primary font-semibold uppercase tracking-widest">Recommended</span>
+                  <h3 className="text-base font-bold tracking-wide">Firestick Downloader Code</h3>
+                  <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">Advanced — installs the APK</span>
                 </div>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-8 py-5 rounded-xl bg-background/80 border border-primary/30 shadow-[0_0_40px_hsla(180,100%,45%,0.15),inset_0_0_20px_hsla(180,100%,45%,0.05)]">
+              <div className="inline-flex items-center gap-1.5 px-6 py-3 rounded-xl bg-background/60 border border-primary/20">
                 {DOWNLOADER_CODE.split("").map((digit, i) => (
                   <span
                     key={i}
-                    className="text-4xl sm:text-5xl font-extrabold font-mono tracking-[0.18em] text-primary drop-shadow-[0_0_10px_hsla(180,100%,45%,0.7)]"
+                    className="text-3xl sm:text-4xl font-extrabold font-mono tracking-[0.18em] text-primary/90"
                   >
                     {digit}
                   </span>
                 ))}
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Open the <strong className="text-foreground">Downloader</strong> app on your Firestick and enter this code.
+              <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+                Open the <strong className="text-foreground">Downloader</strong> app on your Firestick and enter this code to fetch the GlowHub APK.
+                Make sure you tap <strong className="text-foreground">Install</strong> when the APK downloads — don't just open the URL.
               </p>
             </div>
           </div>
