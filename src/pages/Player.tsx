@@ -109,9 +109,13 @@ export default function Player() {
   const [cacheBytes, setCacheBytes] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
-  const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">(() =>
-    sessionStorage.getItem("glowhub_splash_seen") ? "done" : "splash"
-  );
+  const [bootPhase, setBootPhase] = useState<"splash" | "fading" | "done">(() => {
+    // Skip splash entirely if we've already paired this device (returning user / WebView restart)
+    // or if we've previously completed a splash on this device.
+    const alreadyPaired = !!localStorage.getItem("glowhub_screen_id");
+    const splashSeen = !!localStorage.getItem("glowhub_splash_seen_v2");
+    return (alreadyPaired || splashSeen) ? "done" : "splash";
+  });
   const [showSettingsHint, setShowSettingsHint] = useState(() => !localStorage.getItem("glowhub_settings_hint_seen"));
   const [showWatermark, setShowWatermark] = useState(false);
   const [isFullyKiosk, setIsFullyKiosk] = useState(false);
@@ -1643,6 +1647,7 @@ export default function Player() {
 
   // ── Cinematic Splash on every launch ──
   const handleSplashComplete = useCallback(() => {
+    localStorage.setItem("glowhub_splash_seen_v2", "1");
     sessionStorage.setItem("glowhub_splash_seen", "1");
     setBootPhase("done");
   }, []);
