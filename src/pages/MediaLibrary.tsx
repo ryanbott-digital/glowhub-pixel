@@ -11,8 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { hapticMedium } from "@/lib/haptics";
+import { AiFillSuggestionPill } from "@/components/media/AiFillSuggestionPill";
+import { AiFillModal } from "@/components/media/AiFillModal";
 
 const UNDO_DURATION = 8000;
+const SIXTEEN_NINE = 16 / 9;
+const ASPECT_TOLERANCE = 0.1; // 10%
 
 function UndoCountdown({ seconds }: { seconds: number }) {
   const [remaining, setRemaining] = useState(seconds);
@@ -72,6 +76,7 @@ interface MediaItem {
   audio_muted: boolean;
   display_mode: "fit" | "fill" | string | null;
   folder_id: string | null;
+  aspect_ratio: string | null;
 }
 
 interface MediaWithSize extends MediaItem {
