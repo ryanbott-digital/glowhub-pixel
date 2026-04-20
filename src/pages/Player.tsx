@@ -494,19 +494,8 @@ export default function Player() {
     };
   }, []);
 
-  // Toast when pre-caching completes (only once per session, not on every re-cache)
-  const cacheToastedRef = useRef(false);
-  useEffect(() => {
-    if (syncProgress?.done && syncProgress.total > 0 && !cacheToastedRef.current) {
-      cacheToastedRef.current = true;
-      const failed = syncProgress.failed;
-      if (failed > 0) {
-        toast.warning(`Cached ${syncProgress.completed}/${syncProgress.total} files (${failed} failed)`);
-      } else {
-        toast.success(`All ${syncProgress.total} media files cached for offline playback`);
-      }
-    }
-  }, [syncProgress?.done, syncProgress?.total, syncProgress?.completed, syncProgress?.failed]);
+  // Cache status is shown silently in the Settings panel — no toast on the player.
+
 
 
   // Offline/online detection with toast
@@ -2609,19 +2598,29 @@ export default function Player() {
                 <span className="text-white/60 text-xs font-mono">{cachedCount}</span>
               </div>
             </div>
-            {/* Sync progress bar */}
-            {syncProgress && !syncProgress.done && syncProgress.total > 0 && (
+            {/* Sync status line */}
+            {syncProgress && syncProgress.total > 0 && (
               <div className="mt-2 space-y-1">
                 <div className="flex items-center justify-between text-[10px] text-white/50">
-                  <span>Syncing media…</span>
-                  <span>{syncProgress.completed}/{syncProgress.total}</span>
+                  <span>
+                    {syncProgress.done
+                      ? syncProgress.failed > 0
+                        ? `Synced ${syncProgress.completed}/${syncProgress.total} · ${syncProgress.failed} failed`
+                        : `All ${syncProgress.total} file${syncProgress.total !== 1 ? "s" : ""} cached for offline playback`
+                      : "Syncing media…"}
+                  </span>
+                  {!syncProgress.done && (
+                    <span>{syncProgress.completed}/{syncProgress.total}</span>
+                  )}
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[hsl(180,100%,40%)] transition-all duration-300"
-                    style={{ width: `${(syncProgress.completed / syncProgress.total) * 100}%` }}
-                  />
-                </div>
+                {!syncProgress.done && (
+                  <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[hsl(180,100%,40%)] transition-all duration-300"
+                      style={{ width: `${(syncProgress.completed / syncProgress.total) * 100}%` }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
