@@ -494,7 +494,7 @@ export default function Player() {
     };
   }, []);
 
-  // Toast when pre-caching completes (once per cycle)
+  // Toast when pre-caching completes (only once per session, not on every re-cache)
   const cacheToastedRef = useRef(false);
   useEffect(() => {
     if (syncProgress?.done && syncProgress.total > 0 && !cacheToastedRef.current) {
@@ -505,10 +505,9 @@ export default function Player() {
       } else {
         toast.success(`All ${syncProgress.total} media files cached for offline playback`);
       }
-    } else if (!syncProgress?.done) {
-      cacheToastedRef.current = false;
     }
-  }, [syncProgress?.done]);
+  }, [syncProgress?.done, syncProgress?.total, syncProgress?.completed, syncProgress?.failed]);
+
 
   // Offline/online detection with toast
   useEffect(() => {
