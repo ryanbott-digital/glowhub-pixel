@@ -1,34 +1,47 @@
 
 
-## Diagnosis
+## Goal
 
-The "Friday" headline is being cropped because the screen is in **Fill** mode (`object-cover`), which crops portrait/tall artwork to fill a 16:9 TV. Your portrait-shaped poster is taller than the TV is, so the top and bottom get clipped.
+When a media item is letterboxed on the player (Fit mode + portrait/odd aspect on a 16:9 TV), surface a one-click suggestion in the **Media Library** to use AI to extend the artwork to fill the full screen — so the user can keep "no cropping" while still removing the black bars.
 
-The player already supports a **Fit** mode (`object-contain`) that shows the entire image with a coloured background filling the leftover space — the toggle exists in each Screen card under Settings → Scaling. The default is just wrong for poster-style content.
+## How it works
 
-## Fix
+1. **Detect candidates** in `MediaLibrary.tsx`
+   - On image load, read natural width/height and compute aspect ratio.
+   - Flag any image whose aspect differs from 16:9 by more than ~10% (portrait posters, square art, ultra-wide banners) as a "fill candidate".
+   - Persist the detected ratio into `media.aspect_ratio` (column already exists) so we don't recompute every visit.
 
-**1. `src/components/screens/ScreenStatusCard.tsx`**
-- Change the default scaling mode from `"fill"` to `"fit"` so new screens show the entire artwork by default.
-- Reword the Select options so they're clearer:
-  - `Fit (no cropping)` — recommended
-  - `Fill (crop to fill)` — for true 16:9 content
-- Add a tiny helper line under the Select: *"Use Fit for posters / Fill for 16:9 video."*
+2. **Surface the suggestion**
+   - On flagged media cards, show a subtle pill in the corner: ✨ **"Fill the screen with AI"** (teal accent, glassmorphism, matches design system).
+   - Tooltip: *"This image will letterbox on 16:9 screens. Let AI extend the background so it fills edge-to-edge."*
 
-**2. `src/pages/Display.tsx`** and **`src/pages/Player.tsx`**
-- Change the in-memory default of `displayMode` from `"fill"` to `"fit"` so any screen with no value stored also defaults to no-crop.
+3. **AI Fill action**
+   - Click opens a small modal: preview of original (letterboxed on a mock 16:9 frame) vs. the AI-filled version once generated.
+   - Calls a new edge function `ai-fill-media` that:
+     - Downloads the original from `signage-content` storage.
+     - Sends it to **Lovable AI** using `google/gemini-2.5-flash-image` (Nano Banana) with a prompt: *"Extend this image outward to a 16:9 aspect ratio. Seamlessly continue the background, colours, and atmosphere of the original. Keep all original content centered and untouched."*
+     - Uploads the returned image to storage as a sibling file (`<original>_ai-fill-16x9.png`).
+     - Inserts a new row in `media` (same folder, name suffixed " (AI Fill 16:9)", `aspect_ratio = '16:9'`, `display_mode = 'fill'`).
+   - Modal shows: **Use new version** (replaces references in playlists with the new media id, optional) or **Keep both**.
 
-**3. Database migration**
-- Update the `screens.display_mode` column default from `'fill'` to `'fit'`.
-- One-off backfill for screens still on the old default: `UPDATE screens SET display_mode = 'fit' WHERE display_mode IS NULL OR display_mode = 'fill';`
-  - This flips every existing screen to no-crop. If you have any screen you specifically want cropping on (true 16:9 video wall), you can switch it back in the card afterwards.
+4. **Default the new asset**
+   - The AI-filled copy is created with `display_mode = 'fill'` so it always edge-fills — user gets the no-cropping, no-letterbox win automatically.
 
-**4. Immediate fix for the Fire Stick on the wall**
-- Open the screen's settings card on the Dashboard → **Scaling** → switch to **Fit**. The player picks this up over realtime within ~1s — no APK rebuild needed for that one screen.
+## Technical changes
 
-## What you'll see
+- **`supabase/functions/ai-fill-media/index.ts`** (new, `verify_jwt = true` — default): receives `{ media_id }`, validates ownership, calls Lovable AI image endpoint, uploads result, inserts new media row, returns new media id.
+- **`src/pages/MediaLibrary.tsx`**:
+  - Add `imageDimensions` state map keyed by media id.
+  - On image card mount, compute aspect ratio (or read from `media.aspect_ratio`).
+  - Render `AiFillSuggestionPill` on flagged cards.
+  - New `AiFillModal` component (preview + Generate + Apply).
+- **`src/components/media/AiFillSuggestionPill.tsx`** (new): teal glass pill with sparkle icon and tooltip.
+- **`src/components/media/AiFillModal.tsx`** (new): side-by-side preview, generate button with progress, save/apply controls.
+- **No DB migration needed** — `media.aspect_ratio` and `media.display_mode` already exist.
 
-- "Friday Fun Fund" poster will display in full, with letterbox bars in your chosen background colour (default black).
-- All future screens you pair will default to Fit, so this never happens again.
-- Web-only change for the Player default — but since the player already reads `display_mode` live from the DB, the existing APK on the Fire Stick will pick up the new setting **without a reinstall** the moment you flip Scaling to Fit.
+## What the user sees
+
+- Open Media Library → portrait poster shows a ✨ "Fill with AI" chip.
+- Click → modal previews the letterbox problem and offers AI extension.
+- Generate → ~5–10s later, a new edge-to-edge 16:9 version appears in the same folder, ready to drop into playlists. Original kept intact.
 
