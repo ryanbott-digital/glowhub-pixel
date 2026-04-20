@@ -115,7 +115,10 @@ export default function Integrations() {
   const buildTriggerUrl = () => {
     const screen = getSelectedScreenData();
     if (!screen?.hardware_uuid) return "";
-    const keyValue = apiKey || `${keyPrefix || "glw_****"}...`;
+    // The full key only exists in memory right after generation.
+    // After reload we only have the prefix — show a placeholder so the user
+    // doesn't paste a broken URL into Stream Deck.
+    const keyValue = apiKey || "<YOUR_API_KEY>";
     const params = new URLSearchParams({
       key: keyValue,
       device: screen.hardware_uuid,
@@ -126,6 +129,10 @@ export default function Integrations() {
   };
 
   const handleCopy = async () => {
+    if (!apiKey) {
+      toast.error("Regenerate your API key to get a working URL — the full key is only shown once.");
+      return;
+    }
     const url = buildTriggerUrl();
     if (!url) return;
     try {
@@ -327,7 +334,13 @@ export default function Integrations() {
               <div className="p-3 rounded-lg bg-muted/50 border border-border/50 font-mono text-xs break-all text-foreground/80">
                 {buildTriggerUrl()}
               </div>
-              <Button onClick={handleCopy} disabled={!selectedScreen} className="gap-2">
+              {!apiKey && (
+                <p className="text-xs text-amber-500 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Your full API key isn't in memory anymore. Regenerate it above to copy a working URL — Stream Deck will reject the masked one with "Invalid API key".
+                </p>
+              )}
+              <Button onClick={handleCopy} disabled={!selectedScreen || !apiKey} className="gap-2">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copied!" : "Copy for Stream Deck"}
               </Button>
