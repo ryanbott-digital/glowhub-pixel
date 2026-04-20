@@ -1737,6 +1737,18 @@ export default function MediaLibrary() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* AI Fill modal */}
+      {aiFillTarget && (
+        <AiFillModal
+          open={!!aiFillTarget}
+          onOpenChange={(open) => !open && setAiFillTarget(null)}
+          mediaId={aiFillTarget.id}
+          mediaName={aiFillTarget.name}
+          originalUrl={getPublicUrl(aiFillTarget.storage_path)}
+          onComplete={() => fetchMedia()}
+        />
+      )}
     </div>
   );
 }
