@@ -21,6 +21,7 @@ import { enableImmersiveMode } from "@/lib/immersive-mode";
 import { enableKeepAwake } from "@/lib/keep-awake";
 import { OverlayPermissionPrompt } from "@/components/OverlayPermissionPrompt";
 import { startLockTask, isLockTaskActive, isLockTaskPreferred } from "@/lib/lock-task";
+import { SilkFallbackOverlay } from "@/components/SilkFallbackOverlay";
 
 interface PlaylistItem {
   id: string;
@@ -2180,6 +2181,7 @@ export default function Player() {
 
   return (
     <div className="w-screen h-screen flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: fitBgColor, animation: "contentFadeIn 1.2s ease-out forwards" }}>
+      <SilkFallbackOverlay />
       {/* Tap-to-fullscreen hint (touch browsers only) */}
       {showFullscreenHint && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[300] px-4 py-2 rounded-full bg-primary/90 backdrop-blur-md text-primary-foreground text-xs font-medium shadow-lg pointer-events-none animate-pulse">

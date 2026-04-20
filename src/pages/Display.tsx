@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GHLoader } from "@/components/GHLoader";
 import glowLogoPng from "@/assets/glow-text.png";
 import { useVersionCheck } from "@/hooks/use-version-check";
+import { SilkFallbackOverlay } from "@/components/SilkFallbackOverlay";
 
 interface PlaylistItem {
   id: string;
@@ -341,6 +342,7 @@ export default function Display() {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: fitBgColor, height: '100dvh' }}>
+      <SilkFallbackOverlay />
       {/* Layer A */}
       <div
         className="absolute inset-0 flex items-center justify-center"
