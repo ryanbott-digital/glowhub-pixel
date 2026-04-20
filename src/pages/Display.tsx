@@ -55,7 +55,7 @@ export default function Display() {
   const [loading, setLoading] = useState(true);
   const [showWatermark, setShowWatermark] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fill");
+  const [displayMode, setDisplayMode] = useState<"fill" | "fit">("fit");
   const [fitBgColor, setFitBgColor] = useState("#000000");
   const [needsTap, setNeedsTap] = useState(false);
 
