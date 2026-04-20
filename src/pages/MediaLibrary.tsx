@@ -1293,6 +1293,11 @@ export default function MediaLibrary() {
                     {item.type}
                   </Badge>
 
+                  {/* AI Fill suggestion pill — shows on non-16:9 images */}
+                  {!isSelecting && isFillCandidate(item) && (
+                    <AiFillSuggestionPill onClick={() => setAiFillTarget(item)} />
+                  )}
+
                   {/* Duration badge for video */}
                   {item.type === "video" && item.duration && (
                     <Badge
