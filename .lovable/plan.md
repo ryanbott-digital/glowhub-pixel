@@ -1,47 +1,39 @@
 
 
-## Goal
+## Problem
 
-When a media item is letterboxed on the player (Fit mode + portrait/odd aspect on a 16:9 TV), surface a one-click suggestion in the **Media Library** to use AI to extend the artwork to fill the full screen — so the user can keep "no cropping" while still removing the black bars.
+The previous icon update wrote **0-byte placeholder files** for all 15 launcher PNGs (`ic_launcher.png`, `ic_launcher_round.png`, `ic_launcher_foreground.png` × 5 densities). AAPT can't compile empty PNGs, so every release/debug Gradle build fails at `mergeReleaseResources`.
 
-## How it works
+The only valid asset that survived is `src/assets/launcher-fg.png` (446 KB, the teal "G" foreground at full resolution).
 
-1. **Detect candidates** in `MediaLibrary.tsx`
-   - On image load, read natural width/height and compute aspect ratio.
-   - Flag any image whose aspect differs from 16:9 by more than ~10% (portrait posters, square art, ultra-wide banners) as a "fill candidate".
-   - Persist the detected ratio into `media.aspect_ratio` (column already exists) so we don't recompute every visit.
+## Fix
 
-2. **Surface the suggestion**
-   - On flagged media cards, show a subtle pill in the corner: ✨ **"Fill the screen with AI"** (teal accent, glassmorphism, matches design system).
-   - Tooltip: *"This image will letterbox on 16:9 screens. Let AI extend the background so it fills edge-to-edge."*
+Regenerate all 15 launcher PNGs as **real, valid PNG image data** at the correct Android densities, using the existing `src/assets/launcher-fg.png` as the source of truth.
 
-3. **AI Fill action**
-   - Click opens a small modal: preview of original (letterboxed on a mock 16:9 frame) vs. the AI-filled version once generated.
-   - Calls a new edge function `ai-fill-media` that:
-     - Downloads the original from `signage-content` storage.
-     - Sends it to **Lovable AI** using `google/gemini-2.5-flash-image` (Nano Banana) with a prompt: *"Extend this image outward to a 16:9 aspect ratio. Seamlessly continue the background, colours, and atmosphere of the original. Keep all original content centered and untouched."*
-     - Uploads the returned image to storage as a sibling file (`<original>_ai-fill-16x9.png`).
-     - Inserts a new row in `media` (same folder, name suffixed " (AI Fill 16:9)", `aspect_ratio = '16:9'`, `display_mode = 'fill'`).
-   - Modal shows: **Use new version** (replaces references in playlists with the new media id, optional) or **Keep both**.
+### Densities (Android standard)
 
-4. **Default the new asset**
-   - The AI-filled copy is created with `display_mode = 'fill'` so it always edge-fills — user gets the no-cropping, no-letterbox win automatically.
+| Folder | `ic_launcher` & `_round` | `ic_launcher_foreground` |
+|---|---|---|
+| mipmap-mdpi | 48×48 | 108×108 |
+| mipmap-hdpi | 72×72 | 162×162 |
+| mipmap-xhdpi | 96×96 | 216×216 |
+| mipmap-xxhdpi | 144×144 | 324×324 |
+| mipmap-xxxhdpi | 192×192 | 432×432 |
 
-## Technical changes
+### Steps
 
-- **`supabase/functions/ai-fill-media/index.ts`** (new, `verify_jwt = true` — default): receives `{ media_id }`, validates ownership, calls Lovable AI image endpoint, uploads result, inserts new media row, returns new media id.
-- **`src/pages/MediaLibrary.tsx`**:
-  - Add `imageDimensions` state map keyed by media id.
-  - On image card mount, compute aspect ratio (or read from `media.aspect_ratio`).
-  - Render `AiFillSuggestionPill` on flagged cards.
-  - New `AiFillModal` component (preview + Generate + Apply).
-- **`src/components/media/AiFillSuggestionPill.tsx`** (new): teal glass pill with sparkle icon and tooltip.
-- **`src/components/media/AiFillModal.tsx`** (new): side-by-side preview, generate button with progress, save/apply controls.
-- **No DB migration needed** — `media.aspect_ratio` and `media.display_mode` already exist.
+1. **Generate icons via script** (default mode, using ImageMagick from nix):
+   - For each density, resize `src/assets/launcher-fg.png` to the foreground size and write `ic_launcher_foreground.png`.
+   - For `ic_launcher.png` and `ic_launcher_round.png`: composite the foreground (centered, ~66% scale per Android adaptive icon guidelines) onto the deep-navy `#0B1120` background at the launcher size. Round variant uses a circular mask.
+2. **Verify** every output file is a non-empty PNG with `identify` (ImageMagick) before committing.
+3. **No changes needed** to the adaptive XML (`mipmap-anydpi-v26/ic_launcher*.xml`) or `ic_launcher_background.xml` — those already point at the correct names.
 
-## What the user sees
+### What you'll see
 
-- Open Media Library → portrait poster shows a ✨ "Fill with AI" chip.
-- Click → modal previews the letterbox problem and offers AI extension.
-- Generate → ~5–10s later, a new edge-to-edge 16:9 version appears in the same folder, ready to drop into playlists. Original kept intact.
+Push triggers the GitHub Action → `mergeReleaseResources` succeeds → APK builds → published to Releases as before, with the GlowHub teal "G" launcher icon visible on Fire Stick.
+
+### Notes
+
+- No app code, manifest, Gradle, or workflow changes — purely regenerating binary assets.
+- `src/assets/launcher-fg.png` is preserved as-is.
 
