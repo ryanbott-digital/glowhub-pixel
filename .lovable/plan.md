@@ -1,33 +1,49 @@
 
 
-## Goal
+## What's broken
 
-Make sending content to a screen feel **seamless** (Yodeck-style): no flash of the GlowHub logo over already-playing media, no buffer reload when the playlist refetches but hasn't actually changed.
+The player is stuck on the first image of a 4-item playlist (60s image → 122s video → 60s image → 30s video), confirmed against the live data. The root cause is **state churn from heartbeat / realtime echoes that resets the image-duration timer before it ever fires**.
 
-## Root cause
+Sequence:
+1. New playlist arrives → `items` set, image at index 0 starts.
+2. Image-timer effect schedules `setTimeout(advanceToNext, 60_000)`.
+3. ~Every heartbeat (and every screen-row realtime echo of it) the screens UPDATE handler unconditionally calls `setSyncLayout(updated.sync_layout)`. JSONB always arrives as a new object reference, so the state actually changes → re-render.
+4. That re-render does **not** reset the image timer by itself, BUT the heartbeat effect at line 1374 depends on `[currentIndex, items]` and `items` reference can churn from `setItems` calls happening elsewhere (cold-start path, sync-group fetch, etc.), which fires the heartbeat ping again, which echoes back, which triggers `setItems` indirectly through `playlist_items` realtime if any write touches that table.
+5. Net effect: the image timer is being torn down and restarted (sometimes) before 60s elapses. With a video at index 1 buffering 122s, the same churn affects the `onEnded`-driven advance because the buffer can get reloaded mid-play.
 
-In `src/pages/Player.tsx`:
+## Fix (Player.tsx only)
 
-1. **`bufferLoading` overlay (line 2296)** is a full-screen GH-loader card that paints over both buffers at `z-20`. It's set to `true` *every time* the LOAD ACTIVE BUFFER effect runs (line 1615), then auto-clears after 2s or when `onload`/`play()` resolves.
-2. The LOAD effect (line 1605) depends on `[currentIndex, items, activeBuffer, volume, …]`. When realtime fires `fetchPlaylist` (lines 1465, 1300, etc.) and a new `items` array reference is set — even when the *content* is identical (same signature) — the effect re-runs, **re-assigns `img.src` / re-calls `video.load()`**, and flips `bufferLoading` on. That's the flash the user sees.
-3. The pre-load effect (line 1477) also re-fires for the same reason, momentarily wiping the inactive buffer's cached frame.
+### 1. Make the image-advance timer deadline-based, not restart-based
+Replace the current image timer (line 1597–1612) with a deadline approach:
+- When `currentIndex` changes to an image item, store `imageDeadlineRef.current = Date.now() + duration` and `imageItemKeyRef.current = item.id`.
+- The `setTimeout` is scheduled for `deadline - Date.now()`.
+- On effect cleanup, **only** clear the timer; do NOT reset the deadline.
+- On effect re-run, if `imageItemKeyRef.current === item.id` AND `imageDeadlineRef.current` is in the future, schedule the timer for the **remaining** time, not a fresh full duration. If the deadline already passed, fire `advanceToNext` immediately.
 
-Net effect: any DB write touching `screens` or `playlist_items` (heartbeat, settings tweak, send-to-screen creating its temporary playlist) triggers a visible glow-logo flash even though playback should continue uninterrupted.
+Result: heartbeat / realtime / sync_layout re-renders cannot extend an image's lifetime.
 
-## Fix
+### 2. Stop the realtime echo from setting state with unchanged values
+In the screens UPDATE handler (lines 1308–1319), wrap each setState in an "only if changed" guard using refs that hold the last-applied value. Specifically:
+- `setSyncLayout` only when JSON.stringify(sync_layout) differs from last applied.
+- All other primitive setters (`setTransitionType`, `setCrossfadeDuration`, `setLoopEnabled`, `setDisplayMode`, `setFitBgColor`, `setAudioEnabled`, `setAudioStationUrl`, `setAudioStationName`, `setAudioVolume`, `setAudioMuteOnHype`) only when the new value differs from current state.
 
-### 1. Don't reload buffers when the source URL hasn't changed
-In the LOAD ACTIVE BUFFER effect (lines 1604–1647):
-- Track the last-loaded URL per buffer in a ref (`lastLoadedUrlRef = { A: string, B: string }`).
-- If `url === lastLoadedUrlRef.current[activeBuffer]` **and** the element already has a valid src/readyState, skip the reload entirely (no `setBufferLoading(true)`, no `img.src =`, no `video.load()`).
-- Same guard for the pre-load effect (lines 1477–1492) using the inactive buffer.
+This eliminates the renders that re-trigger the playback effects.
 
-### 2. Suppress the overlay when a buffer already has paint
-- Only show the `bufferLoading` overlay on **cold start** (no item has ever rendered) — track `hasEverRenderedRef`. Once any media has successfully painted, never show the full-screen loader again; let the existing crossfade handle transitions, even if the next item is slow (it'll just hold the previous frame, which is exactly what Yodeck does).
-- Keep the GH loader strictly for the very first paint and the pairing/boot flow.
+### 3. Stop the heartbeat effect from churning on `items` reference changes
+Change the heartbeat effect (line 1374) deps from `[screenId, paired, currentIndex, items]` to `[screenId, paired]` and read `items[currentIndex]` from refs (`itemsRef`, `currentIndexRef`) inside `ping()`. Add a `itemsRef = useRef(items)` synced via a tiny effect. The heartbeat fires every 60s on a stable interval — it does NOT restart on every `items` reference change (which currently re-pings immediately each time, polluting the echo bus).
 
-### 3. Stop fetchPlaylist from churning items when nothing changed
-`fetchPlaylist` (line 737) already computes `lastPlaylistSigRef`. Confirm that when `isSamePlaylist === true` **and** the signature matches, it returns **without** calling `setItems` (currently it calls `setItems(parsed)` unconditionally on line 758). Move `setItems` inside the "signature changed" branch so realtime no-op refetches don't replace the array reference.
+### 4. Belt-and-braces: video advance via `timeupdate` watchdog
+Videos already advance via `onEnded`. Add a small watchdog: if a video's `currentTime` is within 250ms of `duration` for two consecutive `timeupdate` events and no advance has happened, call `advanceToNext()`. This protects against `onEnded` not firing on Fire TV/HLS edge cases (a known issue with hls.js on some streams).
 
-### 4. Don't reset the active buffer / currentIndex on send-to-screen
-When a brand-new playlist arrives (`current_playlist_id` actually changed
+## What the user sees after deploy
+
+- Friday Fund image plays for exactly 60s → crossfades to the 122s video → plays to completion → crossfades to Food Allergy image (60s) → Flower Lounge video (30s) → loops back to Friday Fund.
+- Heartbeat pings continue every 60s in the background with zero visible effect.
+- Sending a different playlist still crossfades in seamlessly (the recently-shipped buffer-handover path is unchanged).
+
+## Out of scope
+
+- No DB / RLS / edge function changes.
+- No splash, branding, or APK changes.
+- No new dependencies.
+
