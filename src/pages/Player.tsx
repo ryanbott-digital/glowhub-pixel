@@ -761,11 +761,34 @@ export default function Player() {
 
       // Only update state when signature actually changed
       setItems(parsed);
+
       // Only reset playback position if the playlist itself changed, not on item edits
       if (!isSamePlaylist) {
-        currentIndexRef.current = 0;
-        setCurrentIndex(0);
-        setActiveBuffer("A");
+        // If something is already painted, do a SEAMLESS handover:
+        // pre-load the new first item into the INACTIVE buffer, then let the crossfade swap it in.
+        // This avoids mutating the active buffer's source in place (which causes the visible flash).
+        if (hasEverRenderedRef.current && parsed.length > 0) {
+          const firstUrl = getPublicUrl(parsed[0].media.storage_path);
+          const inactive: "A" | "B" = activeBuffer === "A" ? "B" : "A";
+          const { video, img, hls } = getBufferRefs(inactive);
+          if (parsed[0].media.type === "video" && video.current) {
+            attachHls(video.current, firstUrl, hls);
+            video.current.load();
+            lastLoadedUrlRef.current[inactive] = firstUrl;
+          } else if (parsed[0].media.type === "image" && img.current) {
+            img.current.src = firstUrl;
+            lastLoadedUrlRef.current[inactive] = firstUrl;
+          }
+          // Point currentIndex at 0 of the new playlist and swap buffers via crossfade
+          currentIndexRef.current = 0;
+          setCurrentIndex(0);
+          setActiveBuffer(inactive);
+        } else {
+          // Cold start path
+          currentIndexRef.current = 0;
+          setCurrentIndex(0);
+          setActiveBuffer("A");
+        }
       }
 
       const urls = parsed.map((item) => getPublicUrl(item.media.storage_path));
@@ -775,7 +798,7 @@ export default function Player() {
       lastPlaylistSigRef.current = "";
       setItems([]);
     }
-  }, []);
+  }, [activeBuffer, getBufferRefs, attachHls]);
 
 
 
