@@ -121,6 +121,67 @@ jobs:
       - name: Sync existing Android project
         run: npx cap sync android
 
+      - name: Regenerate GlowHub launcher icons (overwrite Capacitor defaults)
+        run: |
+          set -euo pipefail
+          SRC="src/assets/launcher-fg.png"
+          if [ ! -f "$SRC" ]; then
+            echo "::error::Source launcher icon $SRC missing"
+            exit 1
+          fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
+          BG="#0B1120"
+          RES="android/app/src/main/res"
+
+          # Densities: name fg_size launcher_size
+          declare -A FG=( [mdpi]=108 [hdpi]=162 [xhdpi]=216 [xxhdpi]=324 [xxxhdpi]=432 )
+          declare -A LA=( [mdpi]=48  [hdpi]=72  [xhdpi]=96  [xxhdpi]=144 [xxxhdpi]=192 )
+
+          # Trimmed foreground (logo fills ~85% of the inner safe zone)
+          TMP_FG="/tmp/fg_trim.png"
+          convert "$SRC" -trim +repage -resize 432x432 \
+            -background none -gravity center -extent 432x432 "$TMP_FG"
+
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            DIR="$RES/mipmap-$d"
+            mkdir -p "$DIR"
+            FGSZ=${FG[$d]}
+            LSZ=${LA[$d]}
+
+            # Adaptive foreground: full-bleed PNG with logo in safe zone (~66% of canvas)
+            INNER=$(( FGSZ * 66 / 100 ))
+            convert -size ${FGSZ}x${FGSZ} xc:none \
+              \( "$TMP_FG" -resize ${INNER}x${INNER} \) -gravity center -composite \
+              "$DIR/ic_launcher_foreground.png"
+
+            # Square launcher: deep-navy bg + centered logo at ~70%
+            INNER2=$(( LSZ * 70 / 100 ))
+            convert -size ${LSZ}x${LSZ} "xc:$BG" \
+              \( "$TMP_FG" -resize ${INNER2}x${INNER2} \) -gravity center -composite \
+              "$DIR/ic_launcher.png"
+
+            # Round launcher: circular mask
+            convert -size ${LSZ}x${LSZ} "xc:$BG" \
+              \( "$TMP_FG" -resize ${INNER2}x${INNER2} \) -gravity center -composite \
+              \( -size ${LSZ}x${LSZ} xc:none -fill white \
+                 -draw "circle $((LSZ/2)),$((LSZ/2)) $((LSZ/2)),0" \) \
+              -compose CopyOpacity -composite \
+              "$DIR/ic_launcher_round.png"
+          done
+
+          # Verify every file decodes and is non-empty
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            for f in ic_launcher.png ic_launcher_round.png ic_launcher_foreground.png; do
+              P="$RES/mipmap-$d/$f"
+              if [ ! -s "$P" ]; then
+                echo "::error::$P missing or empty"
+                exit 1
+              fi
+              identify "$P" >/dev/null || { echo "::error::$P not a valid PNG"; exit 1; }
+            done
+          done
+          echo "✓ GlowHub launcher icons regenerated for all densities"
+
       - name: Inject Fire TV leanback intent & banner
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
