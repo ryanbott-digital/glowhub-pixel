@@ -2498,6 +2498,7 @@ export default function Player() {
           }}
           muted autoPlay playsInline preload="auto"
           onEnded={advanceToNext}
+          onTimeUpdate={handleVideoTimeUpdate}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
@@ -2530,6 +2531,7 @@ export default function Player() {
           }}
           muted autoPlay playsInline preload="auto"
           onEnded={advanceToNext}
+          onTimeUpdate={handleVideoTimeUpdate}
           onError={() => handleMediaError(currentItem.media.id, `Video failed to play: ${currentItem.media.name}`)}
         />
       </div>
