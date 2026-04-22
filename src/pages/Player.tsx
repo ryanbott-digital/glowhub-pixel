@@ -1727,6 +1727,23 @@ export default function Player() {
   // Reset video end-watchdog whenever the current item changes
   useEffect(() => { videoEndCountRef.current = 0; }, [currentIndex]);
 
+  // Video end-of-stream watchdog: some Fire TV / hls.js streams don't fire `onEnded`.
+  // If currentTime is within 250ms of duration for two consecutive timeupdate events,
+  // force advanceToNext().
+  const handleVideoTimeUpdate = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const v = e.currentTarget;
+    if (!v.duration || !isFinite(v.duration) || v.duration <= 0) return;
+    if (v.duration - v.currentTime <= 0.25) {
+      videoEndCountRef.current += 1;
+      if (videoEndCountRef.current >= 2) {
+        videoEndCountRef.current = 0;
+        advanceToNext();
+      }
+    } else {
+      videoEndCountRef.current = 0;
+    }
+  }, [advanceToNext]);
+
   // ── LOAD ACTIVE BUFFER: Set source, play video, show loading placeholder if slow ──
   useEffect(() => {
     if (items.length === 0) return;
