@@ -169,6 +169,28 @@ export default function Player() {
   const lastLoadedUrlRef = useRef<{ A: string; B: string }>({ A: "", B: "" });
   // Suppress the GH-loader overlay once any media has successfully painted
   const hasEverRenderedRef = useRef(false);
+  // Deadline-based image timer: survives re-renders so heartbeat/realtime echoes
+  // can't extend an image's lifetime by restarting setTimeout.
+  const imageDeadlineRef = useRef<number>(0);
+  const imageItemKeyRef = useRef<string>("");
+  // Items mirror for stable callbacks (heartbeat etc) that shouldn't churn on items ref
+  const itemsRef = useRef<PlaylistItem[]>([]);
+  // Last-applied screen settings, to suppress redundant setState from realtime echoes
+  const lastAppliedScreenRef = useRef<{
+    transition_type?: string;
+    crossfade_ms?: number;
+    loop_enabled?: boolean;
+    display_mode?: string;
+    fit_bg_color?: string;
+    sync_layout?: string; // JSON-stringified
+    audio_enabled?: boolean;
+    audio_station_url?: string | null;
+    audio_station_name?: string | null;
+    audio_volume?: number;
+    audio_mute_on_hype?: boolean;
+  }>({});
+  // Video end-of-stream watchdog (covers onEnded misfires on Fire TV / hls.js)
+  const videoEndCountRef = useRef(0);
 
   // HLS helpers
   const isHlsUrl = (url: string) => url.includes(".m3u8");
