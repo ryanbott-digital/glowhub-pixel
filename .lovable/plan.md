@@ -1,39 +1,33 @@
 
 
-## Problem
+## Goal
 
-The previous icon update wrote **0-byte placeholder files** for all 15 launcher PNGs (`ic_launcher.png`, `ic_launcher_round.png`, `ic_launcher_foreground.png` × 5 densities). AAPT can't compile empty PNGs, so every release/debug Gradle build fails at `mergeReleaseResources`.
+Make sending content to a screen feel **seamless** (Yodeck-style): no flash of the GlowHub logo over already-playing media, no buffer reload when the playlist refetches but hasn't actually changed.
 
-The only valid asset that survived is `src/assets/launcher-fg.png` (446 KB, the teal "G" foreground at full resolution).
+## Root cause
+
+In `src/pages/Player.tsx`:
+
+1. **`bufferLoading` overlay (line 2296)** is a full-screen GH-loader card that paints over both buffers at `z-20`. It's set to `true` *every time* the LOAD ACTIVE BUFFER effect runs (line 1615), then auto-clears after 2s or when `onload`/`play()` resolves.
+2. The LOAD effect (line 1605) depends on `[currentIndex, items, activeBuffer, volume, …]`. When realtime fires `fetchPlaylist` (lines 1465, 1300, etc.) and a new `items` array reference is set — even when the *content* is identical (same signature) — the effect re-runs, **re-assigns `img.src` / re-calls `video.load()`**, and flips `bufferLoading` on. That's the flash the user sees.
+3. The pre-load effect (line 1477) also re-fires for the same reason, momentarily wiping the inactive buffer's cached frame.
+
+Net effect: any DB write touching `screens` or `playlist_items` (heartbeat, settings tweak, send-to-screen creating its temporary playlist) triggers a visible glow-logo flash even though playback should continue uninterrupted.
 
 ## Fix
 
-Regenerate all 15 launcher PNGs as **real, valid PNG image data** at the correct Android densities, using the existing `src/assets/launcher-fg.png` as the source of truth.
+### 1. Don't reload buffers when the source URL hasn't changed
+In the LOAD ACTIVE BUFFER effect (lines 1604–1647):
+- Track the last-loaded URL per buffer in a ref (`lastLoadedUrlRef = { A: string, B: string }`).
+- If `url === lastLoadedUrlRef.current[activeBuffer]` **and** the element already has a valid src/readyState, skip the reload entirely (no `setBufferLoading(true)`, no `img.src =`, no `video.load()`).
+- Same guard for the pre-load effect (lines 1477–1492) using the inactive buffer.
 
-### Densities (Android standard)
+### 2. Suppress the overlay when a buffer already has paint
+- Only show the `bufferLoading` overlay on **cold start** (no item has ever rendered) — track `hasEverRenderedRef`. Once any media has successfully painted, never show the full-screen loader again; let the existing crossfade handle transitions, even if the next item is slow (it'll just hold the previous frame, which is exactly what Yodeck does).
+- Keep the GH loader strictly for the very first paint and the pairing/boot flow.
 
-| Folder | `ic_launcher` & `_round` | `ic_launcher_foreground` |
-|---|---|---|
-| mipmap-mdpi | 48×48 | 108×108 |
-| mipmap-hdpi | 72×72 | 162×162 |
-| mipmap-xhdpi | 96×96 | 216×216 |
-| mipmap-xxhdpi | 144×144 | 324×324 |
-| mipmap-xxxhdpi | 192×192 | 432×432 |
+### 3. Stop fetchPlaylist from churning items when nothing changed
+`fetchPlaylist` (line 737) already computes `lastPlaylistSigRef`. Confirm that when `isSamePlaylist === true` **and** the signature matches, it returns **without** calling `setItems` (currently it calls `setItems(parsed)` unconditionally on line 758). Move `setItems` inside the "signature changed" branch so realtime no-op refetches don't replace the array reference.
 
-### Steps
-
-1. **Generate icons via script** (default mode, using ImageMagick from nix):
-   - For each density, resize `src/assets/launcher-fg.png` to the foreground size and write `ic_launcher_foreground.png`.
-   - For `ic_launcher.png` and `ic_launcher_round.png`: composite the foreground (centered, ~66% scale per Android adaptive icon guidelines) onto the deep-navy `#0B1120` background at the launcher size. Round variant uses a circular mask.
-2. **Verify** every output file is a non-empty PNG with `identify` (ImageMagick) before committing.
-3. **No changes needed** to the adaptive XML (`mipmap-anydpi-v26/ic_launcher*.xml`) or `ic_launcher_background.xml` — those already point at the correct names.
-
-### What you'll see
-
-Push triggers the GitHub Action → `mergeReleaseResources` succeeds → APK builds → published to Releases as before, with the GlowHub teal "G" launcher icon visible on Fire Stick.
-
-### Notes
-
-- No app code, manifest, Gradle, or workflow changes — purely regenerating binary assets.
-- `src/assets/launcher-fg.png` is preserved as-is.
-
+### 4. Don't reset the active buffer / currentIndex on send-to-screen
+When a brand-new playlist arrives (`current_playlist_id` actually changed
