@@ -165,6 +165,10 @@ export default function Player() {
   const swapLockRef = useRef(false);
   const [bufferLoading, setBufferLoading] = useState(false);
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  // Track last-loaded URL per buffer so we don't reload when source hasn't changed
+  const lastLoadedUrlRef = useRef<{ A: string; B: string }>({ A: "", B: "" });
+  // Suppress the GH-loader overlay once any media has successfully painted
+  const hasEverRenderedRef = useRef(false);
 
   // HLS helpers
   const isHlsUrl = (url: string) => url.includes(".m3u8");
@@ -750,11 +754,12 @@ export default function Player() {
       // Compare against last loaded signature to avoid resetting playback on no-op realtime updates
       const newSig = `${playlistId}::` + parsed.map((p) => `${p.id}:${p.position}:${p.override_duration ?? ""}:${p.media.id}`).join("|");
       if (newSig === lastPlaylistSigRef.current) {
-        // Identical content — do not touch state, do not restart timers
+        // Identical content — do not touch state, do not replace items array reference
         return;
       }
       lastPlaylistSigRef.current = newSig;
 
+      // Only update state when signature actually changed
       setItems(parsed);
       // Only reset playback position if the playlist itself changed, not on item edits
       if (!isSamePlaylist) {
@@ -1483,11 +1488,16 @@ export default function Player() {
     const url = getPublicUrl(next.media.storage_path);
     const { video, img, hls } = getBufferRefs(inactiveBuffer);
 
+    // Skip if this URL is already loaded in the inactive buffer
+    if (lastLoadedUrlRef.current[inactiveBuffer] === url) return;
+
     if (next.media.type === "video" && video.current) {
       attachHls(video.current, url, hls);
       video.current.load(); // preload="auto" ensures full buffering
+      lastLoadedUrlRef.current[inactiveBuffer] = url;
     } else if (next.media.type === "image" && img.current) {
       img.current.src = url;
+      lastLoadedUrlRef.current[inactiveBuffer] = url;
     }
   }, [currentIndex, items, activeBuffer, getBufferRefs, inactiveBuffer, attachHls]);
 
@@ -1610,19 +1620,39 @@ export default function Player() {
     const url = getPublicUrl(item.media.storage_path);
     const { video, img, hls } = getBufferRefs(activeBuffer);
 
-    // Show branded loading placeholder if media takes >2s to load
+    // If this URL is already loaded into the active buffer and the element has paint,
+    // skip the reload entirely — no overlay flash, no source reassignment.
+    const alreadyLoaded = lastLoadedUrlRef.current[activeBuffer] === url;
+    if (alreadyLoaded) {
+      if (item.media.type === "video" && video.current && video.current.readyState >= 2) {
+        // Ensure it's playing, but don't trigger a reload
+        video.current.play().catch(() => {});
+        return;
+      }
+      if (item.media.type === "image" && img.current && img.current.complete && img.current.naturalWidth > 0) {
+        return;
+      }
+    }
+
+    // Only show the branded loader on COLD START (no media has ever rendered yet)
     if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-    setBufferLoading(true);
-    loadTimeoutRef.current = setTimeout(() => setBufferLoading(false), 2000);
+    if (!hasEverRenderedRef.current) {
+      setBufferLoading(true);
+      loadTimeoutRef.current = setTimeout(() => setBufferLoading(false), 2000);
+    }
+
+    const markRendered = () => {
+      hasEverRenderedRef.current = true;
+      setBufferLoading(false);
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
 
     if (item.media.type === "video" && video.current) {
       attachHls(video.current, url, hls);
+      lastLoadedUrlRef.current[activeBuffer] = url;
       video.current.volume = volume;
       video.current.muted = true; // Required for autoplay on Firestick/Google TV
-      video.current.play().then(() => {
-        setBufferLoading(false);
-        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-      }).catch(() => {});
+      video.current.play().then(markRendered).catch(() => {});
       // Unmute after play starts if volume > 0 and media audio is not muted
       const mediaAudioMuted = item.media.audio_muted === true;
       if (volume > 0 && !mediaAudioMuted) {
@@ -1635,10 +1665,8 @@ export default function Player() {
       }
     } else if (item.media.type === "image" && img.current) {
       img.current.src = url;
-      img.current.onload = () => {
-        setBufferLoading(false);
-        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-      };
+      lastLoadedUrlRef.current[activeBuffer] = url;
+      img.current.onload = markRendered;
     }
 
     return () => {
