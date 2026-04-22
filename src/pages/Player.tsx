@@ -1349,19 +1349,58 @@ export default function Player() {
           if (playlistChanged && updated.current_playlist_id && updated.current_playlist_id !== currentPlaylistIdRef.current) {
             fetchPlaylist(updated.current_playlist_id);
           }
-          // Apply playback settings in real-time
-          if (updated.transition_type) setTransitionType(updated.transition_type);
-          if (updated.crossfade_ms != null) setCrossfadeDuration(updated.crossfade_ms);
-          if (updated.loop_enabled != null) setLoopEnabled(updated.loop_enabled);
-          if (updated.display_mode === "fit" || updated.display_mode === "fill") setDisplayMode(updated.display_mode);
-          if (updated.fit_bg_color) setFitBgColor(updated.fit_bg_color);
-          if ((updated as any).sync_layout) setSyncLayout((updated as any).sync_layout);
-          // Apply audio settings in real-time
-          if (updated.audio_enabled != null) setAudioEnabled(updated.audio_enabled);
-          if (updated.audio_station_url !== undefined) setAudioStationUrl(updated.audio_station_url);
-          if (updated.audio_station_name !== undefined) setAudioStationName(updated.audio_station_name);
-          if (updated.audio_volume != null) setAudioVolume(updated.audio_volume);
-          if (updated.audio_mute_on_hype != null) setAudioMuteOnHype(updated.audio_mute_on_hype);
+          // Apply playback settings in real-time — but ONLY when the value actually changed.
+          // Realtime echoes from our own heartbeat re-deliver the entire row; setting state
+          // with an identical-but-new object reference (e.g. sync_layout JSONB) would
+          // trigger re-renders that reset playback timers.
+          const last = lastAppliedScreenRef.current;
+          if (updated.transition_type && updated.transition_type !== last.transition_type) {
+            last.transition_type = updated.transition_type;
+            setTransitionType(updated.transition_type);
+          }
+          if (updated.crossfade_ms != null && updated.crossfade_ms !== last.crossfade_ms) {
+            last.crossfade_ms = updated.crossfade_ms;
+            setCrossfadeDuration(updated.crossfade_ms);
+          }
+          if (updated.loop_enabled != null && updated.loop_enabled !== last.loop_enabled) {
+            last.loop_enabled = updated.loop_enabled;
+            setLoopEnabled(updated.loop_enabled);
+          }
+          if ((updated.display_mode === "fit" || updated.display_mode === "fill") && updated.display_mode !== last.display_mode) {
+            last.display_mode = updated.display_mode;
+            setDisplayMode(updated.display_mode);
+          }
+          if (updated.fit_bg_color && updated.fit_bg_color !== last.fit_bg_color) {
+            last.fit_bg_color = updated.fit_bg_color;
+            setFitBgColor(updated.fit_bg_color);
+          }
+          if ((updated as any).sync_layout) {
+            const sig = JSON.stringify((updated as any).sync_layout);
+            if (sig !== last.sync_layout) {
+              last.sync_layout = sig;
+              setSyncLayout((updated as any).sync_layout);
+            }
+          }
+          if (updated.audio_enabled != null && updated.audio_enabled !== last.audio_enabled) {
+            last.audio_enabled = updated.audio_enabled;
+            setAudioEnabled(updated.audio_enabled);
+          }
+          if (updated.audio_station_url !== undefined && updated.audio_station_url !== last.audio_station_url) {
+            last.audio_station_url = updated.audio_station_url;
+            setAudioStationUrl(updated.audio_station_url);
+          }
+          if (updated.audio_station_name !== undefined && updated.audio_station_name !== last.audio_station_name) {
+            last.audio_station_name = updated.audio_station_name;
+            setAudioStationName(updated.audio_station_name);
+          }
+          if (updated.audio_volume != null && updated.audio_volume !== last.audio_volume) {
+            last.audio_volume = updated.audio_volume;
+            setAudioVolume(updated.audio_volume);
+          }
+          if (updated.audio_mute_on_hype != null && updated.audio_mute_on_hype !== last.audio_mute_on_hype) {
+            last.audio_mute_on_hype = updated.audio_mute_on_hype;
+            setAudioMuteOnHype(updated.audio_mute_on_hype);
+          }
         }
       )
       .subscribe();
@@ -1415,12 +1454,18 @@ export default function Player() {
     }
   }, [currentIndex, items, audioEnabled, audioVolume]);
 
-  // Heartbeat: ping last_ping + current_media_id every 60s (battery-friendly)
+  // Keep itemsRef in sync so heartbeat can read items without depending on the array reference
+  useEffect(() => { itemsRef.current = items; }, [items]);
+
+  // Heartbeat: ping last_ping + current_media_id every 60s (battery-friendly).
+  // Deps are intentionally [screenId, paired] only — items/currentIndex are read from refs
+  // so the interval never restarts mid-playback (which would re-ping immediately and
+  // pollute the realtime echo bus, churning state and resetting playback timers).
   useEffect(() => {
     if (!screenId || !paired) return;
 
     const ping = () => {
-      const currentItem = items[currentIndex];
+      const currentItem = itemsRef.current[currentIndexRef.current];
       const update: any = { last_ping: new Date().toISOString(), status: "online" };
       if (currentItem) update.current_media_id = currentItem.media.id;
       supabase.from("screens").update(update).eq("id", screenId).then(() => {});
@@ -1429,7 +1474,7 @@ export default function Player() {
     ping(); // immediate first ping
     const interval = setInterval(ping, 60_000);
     return () => clearInterval(interval);
-  }, [screenId, paired, currentIndex, items]);
+  }, [screenId, paired]);
 
   // Reusable screenshot capture function
   const captureScreenshot = useCallback(async () => {
@@ -1638,7 +1683,11 @@ export default function Player() {
       .then(() => {});
   }, [screenId, currentIndex, items]);
 
-  // Playback timer for images
+  // Playback timer for images — DEADLINE-BASED.
+  // The deadline is computed once when an image item begins, and persists across
+  // re-renders. If the effect re-fires for the same item (e.g. items array got a
+  // new reference from a no-op realtime echo), we re-schedule for the REMAINING
+  // time instead of starting a fresh full duration.
   useEffect(() => {
     if (items.length === 0) return;
     const item = items[currentIndex];
@@ -1648,13 +1697,35 @@ export default function Player() {
 
     if (item.media.type === "image") {
       const duration = (item.override_duration || item.media.duration || DEFAULT_IMAGE_DURATION) * 1000;
-      timerRef.current = setTimeout(advanceToNext, duration);
+      const itemKey = `${item.id}-${currentIndex}`;
+
+      // If this is a fresh image (different from the last-tracked one), set a new deadline.
+      if (imageItemKeyRef.current !== itemKey) {
+        imageItemKeyRef.current = itemKey;
+        imageDeadlineRef.current = Date.now() + duration;
+      }
+
+      const remaining = imageDeadlineRef.current - Date.now();
+      if (remaining <= 0) {
+        // Deadline already passed (long re-render gap) — advance immediately.
+        advanceToNext();
+      } else {
+        timerRef.current = setTimeout(advanceToNext, remaining);
+      }
+    } else {
+      // Non-image item: clear deadline tracking so the next image starts fresh.
+      imageItemKeyRef.current = "";
+      imageDeadlineRef.current = 0;
     }
 
     return () => {
+      // Only clear the timer; keep the deadline so a re-run can resume.
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [currentIndex, items, advanceToNext]);
+
+  // Reset video end-watchdog whenever the current item changes
+  useEffect(() => { videoEndCountRef.current = 0; }, [currentIndex]);
 
   // ── LOAD ACTIVE BUFFER: Set source, play video, show loading placeholder if slow ──
   useEffect(() => {
